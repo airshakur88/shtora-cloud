@@ -106,3 +106,13 @@ export function displayModelName(
 		return base;
 	return name;
 }
+
+/**
+ * Label shown in the playground model combobox: the display name without a
+ * trailing version date such as " (08-2024)". The date only distinguishes
+ * versions of the same model in the catalog; the combobox shows the name
+ * alone, and the selection value (the model id) still disambiguates.
+ */
+export function comboboxModelLabel(name: string): string {
+	return name.replace(/\s*\(\d{2}-\d{4}\)$/, "");
+}

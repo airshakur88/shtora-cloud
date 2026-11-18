@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
 	canonicalModelId,
+	comboboxModelLabel,
 	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 } from "../src/lib/model-canonical";
@@ -83,6 +84,17 @@ test("display name keeps parentheticals that carry model info", () => {
 		"Command R (08-2024)",
 	);
 	expect(displayModelName("North Mini Code", "cohere")).toBe("North Mini Code");
+});
+
+test("combobox label strips a trailing version date", () => {
+	expect(comboboxModelLabel("Command R (08-2024)")).toBe("Command R");
+	expect(comboboxModelLabel("Command R7B (12-2024)")).toBe("Command R7B");
+	expect(comboboxModelLabel("Command-A (03-2025)")).toBe("Command-A");
+	expect(comboboxModelLabel("Cydonia 24B v4.3")).toBe("Cydonia 24B v4.3");
+	expect(comboboxModelLabel("GLM 4.7 (FP4)")).toBe("GLM 4.7 (FP4)");
+	expect(comboboxModelLabel("Qwen3Guard Gen 8B (OVH safety)")).toBe(
+		"Qwen3Guard Gen 8B (OVH safety)",
+	);
 });
 
 test("virtual router membership", () => {

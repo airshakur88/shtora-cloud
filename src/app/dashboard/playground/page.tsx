@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { apiErrorMessage } from "@/lib/api-error";
-import { canonicalModelId } from "@/lib/model-canonical";
+import { canonicalModelId, comboboxModelLabel } from "@/lib/model-canonical";
 import {
 	DEFAULT_SESSION_NAME,
 	deriveSessionTitle,
@@ -117,9 +117,6 @@ export default function PlaygroundPage() {
 		Record<string, Conversation>
 	>({});
 	const [models, setModels] = useState<Model[]>([]);
-	const [providerNames, setProviderNames] = useState<Record<string, string>>(
-		{},
-	);
 	const [sessionsLoading, setSessionsLoading] = useState(true);
 	const [modelsLoading, setModelsLoading] = useState(true);
 	const [sessionsError, setSessionsError] = useState<string | null>(null);
@@ -153,19 +150,6 @@ export default function PlaygroundPage() {
 	const conversationKey = activeSessionId ?? DRAFT_SESSION_KEY;
 	const conversation = conversations[conversationKey] ?? emptyConversation;
 	const availableModels = models.filter((model) => model.enabled);
-	// After the provider suffix is stripped from display names, a few
-	// distinct models share a name ("Llama 4 Scout" is three canonicals).
-	// The selector shows the provider only for those repeated names.
-	const duplicateModelNames = useMemo(() => {
-		const counts = new Map<string, number>();
-		for (const model of availableModels)
-			counts.set(model.name, (counts.get(model.name) ?? 0) + 1);
-		return new Set(
-			[...counts.entries()]
-				.filter(([, count]) => count > 1)
-				.map(([name]) => name),
-		);
-	}, [availableModels]);
 	const selectedModelId = activeSession
 		? resolveModelId(activeSession.modelId)
 		: pendingModelId || availableModels[0]?.id || "";
@@ -232,11 +216,6 @@ export default function PlaygroundPage() {
 		})
 			.then((result) => {
 				if (controller.signal.aborted) return;
-				setProviderNames(
-					Object.fromEntries(
-						result.providers.map((provider) => [provider.id, provider.name]),
-					),
-				);
 				// One entry per logical model: the router fans out across every
 				// provider exposing it, so we expose shtora/<canonical> only.
 				const uniqueModels = new Map<string, Model>();
@@ -970,13 +949,20 @@ export default function PlaygroundPage() {
 										<p className="text-xs text-destructive">{modelsError}</p>
 									) : availableModels.length ? (
 										<Combobox
+											// The items prop is what Base UI filters: without
+											// it the filtered list is always empty, so the
+											// popup is always data-empty and "No models
+											// available" shows next to the full list.
+											items={availableModels.map((model) => model.id)}
 											value={selectedModelId}
 											// The input shows the selected item's label: without
 											// this it falls back to the raw value (the model id).
-											itemToStringLabel={(value) =>
-												models.find((model) => model.id === value)?.name ??
-												String(value)
-											}
+											itemToStringLabel={(value) => {
+												const model = models.find((m) => m.id === value);
+												return model
+													? comboboxModelLabel(model.name)
+													: String(value);
+											}}
 											onValueChange={(value) => {
 												if (typeof value !== "string") return;
 												if (activeSession) {
@@ -1001,23 +987,15 @@ export default function PlaygroundPage() {
 											/>
 											<ComboboxContent>
 												<ComboboxList>
-													{availableModels.map((model) => (
-														<ComboboxItem key={model.id} value={model.id}>
-															{model.name}
-															{duplicateModelNames.has(model.name) ? (
-																<span className="text-xs text-muted-foreground">
-																	{" · "}
-																	{model.platform
-																		.split(",")
-																		.map(
-																			(id) =>
-																				providerNames[id.trim()] ?? id.trim(),
-																		)
-																		.join(", ")}
-																</span>
-															) : null}
-														</ComboboxItem>
-													))}
+													{(id: string) => {
+														const model = models.find((m) => m.id === id);
+														if (!model) return null;
+														return (
+															<ComboboxItem key={model.id} value={model.id}>
+																{comboboxModelLabel(model.name)}
+															</ComboboxItem>
+														);
+													}}
 												</ComboboxList>
 												<ComboboxEmpty>No models available</ComboboxEmpty>
 											</ComboboxContent>
