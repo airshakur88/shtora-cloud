@@ -1,2 +1,6 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files and perform LF normalization.
+# eol=lf forces LF checkouts on every platform (including the Windows
+# self-hosted runner): Biome's formatter requires LF, and without this
+# `text=auto` alone checks CRLF out on Windows, failing `bun x biome check`
+# on all 137 files (run 44372611071).
+* text=auto eol=lf
