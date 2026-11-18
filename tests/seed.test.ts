@@ -43,9 +43,27 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-	await rm(dir, { recursive: true, force: true });
+	// On Windows the seed subprocess can still hold the temp dir for a
+	// moment after it exits, so `rm` fails with EBUSY — retry briefly
+	// instead of failing the test on cleanup.
+	for (let attempt = 0; attempt < 10; attempt += 1) {
+		try {
+			await rm(dir, { recursive: true, force: true });
+			return;
+		} catch (error) {
+			const code = (error as { code?: string }).code;
+			if ((code !== "EBUSY" && code !== "EPERM") || attempt === 9) {
+				throw error;
+			}
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		}
+	}
 });
 
+// The seed spawns a subprocess that applies 16 migrations and hashes
+// the admin password with scrypt. On the slower Windows runner that
+// takes longer than Bun's 5s default test timeout, so these tests get
+// 60s (the second one runs the seed twice).
 test("seed applies every migration and creates the admin with the given password", async () => {
 	const dbPath = join(dir, "seed.sqlite");
 	const run = await runSeed(dbPath);
@@ -101,7 +119,7 @@ test("seed applies every migration and creates the admin with the given password
 	} finally {
 		db.close();
 	}
-});
+}, 60_000);
 
 test("a second seed run preserves admin-tuned settings and does not duplicate the admin", async () => {
 	const dbPath = join(dir, "seed.sqlite");
@@ -142,4 +160,4 @@ test("a second seed run preserves admin-tuned settings and does not duplicate th
 	} finally {
 		db.close();
 	}
-});
+}, 60_000);

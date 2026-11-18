@@ -25,8 +25,13 @@ const OTHER: AppUser = {
 };
 
 let db: MemoryD1;
-// Mutable session: tests set it to null to exercise the 401 path.
-let currentUser: AppUser | null = USER;
+// Real session for USER, created per test: the routes authenticate
+// through the real session module, not a mock. A mock.module for
+// ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files), which
+// broke key-limits.test.ts on the deploy runner: its createSession
+// calls hit this file's throwing mock. Keep session unmocked.
+let sessionCookie = "";
 
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
@@ -35,34 +40,23 @@ mock.module("../src/lib/env", () => ({
 		throw new Error("IMAGES_BUCKET is unavailable in this test");
 	},
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const exportRoute = await import("../src/app/api/keys/export/route");
 const importRoute = await import("../src/app/api/keys/import/route");
 const keysRoute = await import("../src/app/api/keys/route");
 const keyByIdRoute = await import("../src/app/api/keys/[id]/route");
 
-function postJson(url: string, body: unknown): Request {
+function postJson(url: string, body: unknown, withAuth = true): Request {
 	return new Request(url, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			"Content-Type": "application/json",
+			...(withAuth ? { Cookie: sessionCookie } : {}),
+		},
 		body: JSON.stringify(body),
 	});
 }
@@ -78,9 +72,10 @@ async function insertUser(id: string, username: string): Promise<void> {
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	await insertUser(USER.id, USER.username);
 	await insertUser(OTHER.id, OTHER.username);
+	const created = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
 test("POST /api/keys creates a key and returns its unified token once", async () => {
@@ -169,7 +164,9 @@ test("GET /api/keys lists only the caller's keys, masked", async () => {
 		SECRET,
 	);
 	const response = await keysRoute.GET(
-		new Request("http://localhost/api/keys"),
+		new Request("http://localhost/api/keys", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -202,7 +199,10 @@ test("POST /api/keys/export returns the user's keys in plaintext", async () => {
 		SECRET,
 	);
 	const response = await exportRoute.POST(
-		new Request("http://localhost/api/keys/export", { method: "POST" }),
+		new Request("http://localhost/api/keys/export", {
+			method: "POST",
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -226,7 +226,7 @@ test("GET /api/keys/export answers 405 and export without a session answers 401"
 	const get = await exportRoute.GET();
 	expect(get.status).toBe(405);
 	expect(get.headers.get("Allow")).toBe("POST");
-	currentUser = null;
+	// No session cookie: the export answers 401.
 	const post = await exportRoute.POST(
 		new Request("http://localhost/api/keys/export", { method: "POST" }),
 	);
@@ -289,7 +289,10 @@ test("import round-trips an export: export then import restores the keys", async
 	);
 	const exported = (await (
 		await exportRoute.POST(
-			new Request("http://localhost/api/keys/export", { method: "POST" }),
+			new Request("http://localhost/api/keys/export", {
+				method: "POST",
+				headers: { Cookie: sessionCookie },
+			}),
 		)
 	).json()) as { keys: Array<{ platform: string; key: string }> };
 	expect(exported.keys).toHaveLength(1);
@@ -328,7 +331,10 @@ test("import rejects malformed JSON, a non-object body and more than 500 keys", 
 	const malformed = await importRoute.POST(
 		new Request("http://localhost/api/keys/import", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: "{not json",
 		}),
 	);
@@ -362,7 +368,10 @@ test("import answers 413 when the body exceeds 512 KiB, even without content-len
 	const big = await importRoute.POST(
 		new Request("http://localhost/api/keys/import", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({
 				keys: [{ platform: "groq", key: "x".repeat(600 * 1024) }],
 			}),
@@ -401,9 +410,8 @@ test("import answers 403 when the user already holds the 50-key cap", async () =
 });
 
 test("import without a session answers 401", async () => {
-	currentUser = null;
 	const response = await importRoute.POST(
-		postJson("http://localhost/api/keys/import", { keys: [] }),
+		postJson("http://localhost/api/keys/import", { keys: [] }, false),
 	);
 	expect(response.status).toBe(401);
 });
@@ -421,7 +429,10 @@ test("DELETE /api/keys/[id] removes the user's own key and answers 204", async (
 	);
 	const params = { params: Promise.resolve({ id: String(key.id) }) };
 	const response = await keyByIdRoute.DELETE(
-		new Request(`http://localhost/api/keys/${key.id}`, { method: "DELETE" }),
+		new Request(`http://localhost/api/keys/${key.id}`, {
+			method: "DELETE",
+			headers: { Cookie: sessionCookie },
+		}),
 		params,
 	);
 	expect(response.status).toBe(204);
@@ -441,7 +452,10 @@ test("DELETE of another user's key answers 204 without deleting it", async () =>
 	);
 	const params = { params: Promise.resolve({ id: String(key.id) }) };
 	const response = await keyByIdRoute.DELETE(
-		new Request(`http://localhost/api/keys/${key.id}`, { method: "DELETE" }),
+		new Request(`http://localhost/api/keys/${key.id}`, {
+			method: "DELETE",
+			headers: { Cookie: sessionCookie },
+		}),
 		params,
 	);
 	expect(response.status).toBe(204);
@@ -470,22 +484,30 @@ test("key by id validates the id and hides other users' keys", async () => {
 		SECRET,
 	);
 	const bad = await keyByIdRoute.GET(
-		new Request("http://localhost/api/keys/abc"),
+		new Request("http://localhost/api/keys/abc", {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: "abc" }) },
 	);
 	expect(bad.status).toBe(400);
 	const missing = await keyByIdRoute.GET(
-		new Request("http://localhost/api/keys/99999"),
+		new Request("http://localhost/api/keys/99999", {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: "99999" }) },
 	);
 	expect(missing.status).toBe(404);
 	const theirs = await keyByIdRoute.GET(
-		new Request(`http://localhost/api/keys/${other.id}`),
+		new Request(`http://localhost/api/keys/${other.id}`, {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: String(other.id) }) },
 	);
 	expect(theirs.status).toBe(404);
 	const mine = await keyByIdRoute.GET(
-		new Request(`http://localhost/api/keys/${own.id}`),
+		new Request(`http://localhost/api/keys/${own.id}`, {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: String(own.id) }) },
 	);
 	expect(mine.status).toBe(200);
