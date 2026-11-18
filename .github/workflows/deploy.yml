@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     name: Deploy para Cloudflare Workers
-runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 15
 
     steps:
