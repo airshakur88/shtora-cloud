@@ -80,6 +80,7 @@ interface ByModel {
 }
 
 interface ByKey {
+	keyId: number;
 	key_mask: string;
 	platform: string;
 	requests: number;
@@ -953,7 +954,7 @@ export default function DashboardOverviewPage() {
 							<CardHeader>
 								<CardTitle>Usage by key</CardTitle>
 								<CardDescription>
-									Daily usage per API key (masked)
+									All-time usage per key that served your requests
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -990,7 +991,7 @@ export default function DashboardOverviewPage() {
 											<tbody>
 												{metrics.byKey.map((k) => (
 													<tr
-														key={k.key_mask}
+														key={`${k.keyId}-${k.platform}`}
 														className="border-b last:border-0"
 													>
 														<td className="px-4 py-3 font-mono text-xs">

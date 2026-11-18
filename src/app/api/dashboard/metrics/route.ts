@@ -1,5 +1,7 @@
 import { routeError } from "@/lib/api-error";
-import { getDb } from "@/lib/env";
+import { getDb, getEncryptionSecret } from "@/lib/env";
+import { getUsageByKey } from "@/lib/key-limits";
+import { listApiKeys } from "@/lib/key-store";
 import { requireUser } from "@/lib/session";
 
 interface RequestsByDay {
@@ -35,6 +37,8 @@ export async function GET(request: Request): Promise<Response> {
 			errorsByProviderResult,
 			recentErrorsResult,
 			byModelResult,
+			byKeyRows,
+			ownKeys,
 		] = await Promise.all([
 			db
 				.prepare(`
@@ -49,7 +53,6 @@ export async function GET(request: Request): Promise<Response> {
 			`)
 				.bind(user.id)
 				.all<{ day: string; total: number; success: number; error: number }>(),
-
 			db
 				.prepare(`
 				SELECT DATE(created_at) as day,
@@ -137,6 +140,8 @@ export async function GET(request: Request): Promise<Response> {
 					input_tokens: number;
 					output_tokens: number;
 				}>(),
+			getUsageByKey(db, user.id),
+			listApiKeys(db, user.id, getEncryptionSecret()),
 		]);
 
 		// Build responses
@@ -177,6 +182,22 @@ export async function GET(request: Request): Promise<Response> {
 		const errorsByProvider = errorsByProviderResult.results;
 		const recentErrors = recentErrorsResult.results;
 		const byModel = byModelResult.results;
+		// Usage by key: only the user's own keys get a masked label. A key
+		// that served the request from the community pool is not theirs, so
+		// its mask stays empty instead of decrypting someone else's key.
+		const maskedByKeyId = new Map(
+			ownKeys.map((key) => [key.id, key.maskedKey]),
+		);
+		const byKey = byKeyRows.map((row) => ({
+			keyId: row.keyId,
+			key_mask: maskedByKeyId.get(row.keyId) ?? "",
+			platform: row.platform,
+			requests: row.requests,
+			successes: row.successes,
+			latency_ms: row.latencyMs,
+			input_tokens: row.inputTokens,
+			output_tokens: row.outputTokens,
+		}));
 
 		return Response.json(
 			{
@@ -186,7 +207,7 @@ export async function GET(request: Request): Promise<Response> {
 				errorsByProvider,
 				recentErrors,
 				byModel,
-				byKey: [], // Placeholder for future implementation
+				byKey,
 			},
 			{ headers: { "Cache-Control": "private, no-store" } },
 		);

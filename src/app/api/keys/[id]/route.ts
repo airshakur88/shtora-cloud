@@ -1,6 +1,13 @@
 import { routeError } from "@/lib/api-error";
 import { getDb, getEncryptionSecret } from "@/lib/env";
-import { deleteApiKey, listApiKeys, setApiKeyEnabled } from "@/lib/key-store";
+import { parseOptionalLimit } from "@/lib/key-limits";
+import {
+	deleteApiKey,
+	listApiKeys,
+	setApiKeyEnabled,
+	updateKeyLimits,
+} from "@/lib/key-store";
+import { getProviderConfig } from "@/lib/provider-catalog";
 import { requireUser } from "@/lib/session";
 
 function parseId(raw: string): number | null {
@@ -70,8 +77,66 @@ export async function PATCH(
 				{ status: 400 },
 			);
 		}
+		const fields = body as Record<string, unknown>;
+		// Optional limit edits. A number sets the limit, null resets it to
+		// the provider catalog default (same rule as POST), omitted leaves
+		// the stored value alone. Invalid values are rejected, not ignored.
+		const limitFields = [
+			"rpmLimit",
+			"tpmLimit",
+			"rpdLimit",
+			"tpdLimit",
+		] as const;
+		const parsedLimits: Record<string, number | null | undefined> = {};
+		for (const field of limitFields) {
+			if (!(field in fields)) continue;
+			const parsed = parseOptionalLimit(fields[field]);
+			if (parsed === undefined)
+				return Response.json(
+					{
+						error: {
+							message: `${field} must be an integer between 0 and 10000000`,
+							type: "validation_error",
+						},
+					},
+					{ status: 400 },
+				);
+			parsedLimits[field] = parsed;
+		}
+		const db = getDb();
+		const hasLimitEdit = Object.keys(parsedLimits).length > 0;
+		if (hasLimitEdit) {
+			const current = (
+				await listApiKeys(db, user.id, getEncryptionSecret())
+			).find((item) => item.id === id);
+			if (!current)
+				return Response.json(
+					{ error: { message: "Key not found", type: "not_found" } },
+					{ status: 404 },
+				);
+			const catalogLimits = (await getProviderConfig(current.platform, db))
+				?.limits;
+			await updateKeyLimits(db, id, user.id, {
+				rpmLimit:
+					parsedLimits.rpmLimit !== undefined
+						? (parsedLimits.rpmLimit ?? catalogLimits?.rpmLimit ?? null)
+						: current.rpmLimit,
+				tpmLimit:
+					parsedLimits.tpmLimit !== undefined
+						? (parsedLimits.tpmLimit ?? catalogLimits?.tpmLimit ?? null)
+						: current.tpmLimit,
+				rpdLimit:
+					parsedLimits.rpdLimit !== undefined
+						? (parsedLimits.rpdLimit ?? catalogLimits?.rpdLimit ?? null)
+						: current.rpdLimit,
+				tpdLimit:
+					parsedLimits.tpdLimit !== undefined
+						? (parsedLimits.tpdLimit ?? catalogLimits?.tpdLimit ?? null)
+						: current.tpdLimit,
+			});
+		}
 		await setApiKeyEnabled(
-			getDb(),
+			db,
 			id,
 			user.id,
 			(body as { enabled: boolean }).enabled,

@@ -24,6 +24,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -77,12 +78,24 @@ function isKeyResponse(value: unknown): value is ApiKeyResponse {
 	);
 }
 
+interface KeyUsage {
+	keyId: number;
+	requestsMinute: number;
+	tokensMinute: number;
+	requestsDay: number;
+	tokensDay: number;
+}
+
 interface KeyForm {
 	platform: string;
 	rawKey: string;
 	keyLabel: string;
 	baseUrl: string;
 	keyless: boolean;
+	rpmLimit: string;
+	tpmLimit: string;
+	rpdLimit: string;
+	tpdLimit: string;
 }
 
 const emptyForm: KeyForm = {
@@ -91,6 +104,30 @@ const emptyForm: KeyForm = {
 	keyLabel: "",
 	baseUrl: "",
 	keyless: false,
+	rpmLimit: "",
+	tpmLimit: "",
+	rpdLimit: "",
+	tpdLimit: "",
+};
+
+/** 200000 -> "200k", 5000000 -> "5M", anything smaller stays plain. */
+function formatCompact(value: number): string {
+	if (value >= 1_000_000 && value % 1_000_000 === 0)
+		return `${value / 1_000_000}M`;
+	if (value >= 1_000 && value % 1_000 === 0) return `${value / 1_000}k`;
+	return value.toLocaleString();
+}
+
+function formatLimitInput(value: string): number | null {
+	if (!value.trim()) return null;
+	const parsed = Number.parseInt(value, 10);
+	return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+const LIMITS_SOURCE_LABEL: Record<string, string> = {
+	key: "Set for this key",
+	provider: "Provider default",
+	gateway: "Gateway default",
 };
 
 export default function DashboardProvidersPage() {
@@ -103,6 +140,7 @@ export default function DashboardProvidersPage() {
 	);
 	const [keys, setKeys] = useState<ApiKeyResponse[] | null>(null);
 	const [keysLoading, setKeysLoading] = useState(false);
+	const [keyUsage, setKeyUsage] = useState<Record<number, KeyUsage>>({});
 	const [form, setForm] = useState<KeyForm>({
 		...emptyForm,
 		platform: "google",
@@ -113,6 +151,15 @@ export default function DashboardProvidersPage() {
 	const [activeTab, setActiveTab] = useState<"overview" | "keys">("overview");
 	const [search, setSearch] = useState("");
 	const [actionError, setActionError] = useState<string | null>(null);
+	// Edit-limits dialog state. Values are the stored limits as text; blank
+	// means "provider default" when saved.
+	const [limitsKey, setLimitsKey] = useState<ApiKeyResponse | null>(null);
+	const [limitsForm, setLimitsForm] = useState({
+		rpmLimit: "",
+		tpmLimit: "",
+		rpdLimit: "",
+		tpdLimit: "",
+	});
 
 	const loadProviders = useCallback(async (signal?: AbortSignal) => {
 		try {
@@ -141,9 +188,12 @@ export default function DashboardProvidersPage() {
 	const loadKeys = useCallback(async (signal?: AbortSignal) => {
 		setKeysLoading(true);
 		try {
-			const response = await fetch("/api/keys", { cache: "no-store", signal });
-			if (!response.ok) throw new Error("Could not load provider keys.");
-			const result: unknown = await response.json();
+			const [keysResponse, usageResponse] = await Promise.all([
+				fetch("/api/keys", { cache: "no-store", signal }),
+				fetch("/api/keys/usage", { cache: "no-store", signal }),
+			]);
+			if (!keysResponse.ok) throw new Error("Could not load provider keys.");
+			const result: unknown = await keysResponse.json();
 			if (
 				!result ||
 				typeof result !== "object" ||
@@ -155,6 +205,31 @@ export default function DashboardProvidersPage() {
 			if (parsedKeys.length !== result.keys.length)
 				throw new Error("Invalid provider key response.");
 			if (!signal?.aborted) setKeys(parsedKeys);
+			// Usage is a best-effort extra: keys still render without it.
+			try {
+				const usageResult: unknown = await usageResponse.json();
+				if (
+					usageResponse.ok &&
+					usageResult &&
+					typeof usageResult === "object" &&
+					"usage" in usageResult &&
+					Array.isArray(usageResult.usage)
+				) {
+					const map: Record<number, KeyUsage> = {};
+					for (const row of usageResult.usage) {
+						if (
+							row &&
+							typeof row === "object" &&
+							"keyId" in row &&
+							typeof row.keyId === "number"
+						)
+							map[row.keyId] = row as KeyUsage;
+					}
+					if (!signal?.aborted) setKeyUsage(map);
+				}
+			} catch {
+				// Keep the keys table; usage columns fall back to zeros.
+			}
 		} catch (cause) {
 			if (!signal?.aborted)
 				toast.add({
@@ -204,6 +279,17 @@ export default function DashboardProvidersPage() {
 		if (form.keyLabel.trim()) body.keyLabel = form.keyLabel.trim();
 		if (form.platform === "custom" && form.baseUrl.trim())
 			body.baseUrl = form.baseUrl.trim();
+		// Blank limits mean "provider default": the backend fills the
+		// provider catalog value into the new key.
+		for (const field of [
+			"rpmLimit",
+			"tpmLimit",
+			"rpdLimit",
+			"tpdLimit",
+		] as const) {
+			const parsed = formatLimitInput(form[field]);
+			if (parsed !== null) body[field] = parsed;
+		}
 		try {
 			const response = await fetch("/api/keys", {
 				method: "POST",
@@ -288,6 +374,67 @@ export default function DashboardProvidersPage() {
 			);
 		} finally {
 			setBusyId(null);
+		}
+	}
+
+	function openLimitsEditor(key: ApiKeyResponse) {
+		setLimitsKey(key);
+		setLimitsForm({
+			rpmLimit:
+				key.rpmLimit !== null && key.rpmLimit !== undefined
+					? String(key.rpmLimit)
+					: "",
+			tpmLimit:
+				key.tpmLimit !== null && key.tpmLimit !== undefined
+					? String(key.tpmLimit)
+					: "",
+			rpdLimit:
+				key.rpdLimit !== null && key.rpdLimit !== undefined
+					? String(key.rpdLimit)
+					: "",
+			tpdLimit:
+				key.tpdLimit !== null && key.tpdLimit !== undefined
+					? String(key.tpdLimit)
+					: "",
+		});
+		setActionError(null);
+	}
+
+	async function saveLimits(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		if (!limitsKey || submitting) return;
+		setSubmitting(true);
+		setActionError(null);
+		try {
+			const response = await fetch(`/api/keys/${limitsKey.id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					enabled: limitsKey.enabled,
+					rpmLimit: formatLimitInput(limitsForm.rpmLimit),
+					tpmLimit: formatLimitInput(limitsForm.tpmLimit),
+					rpdLimit: formatLimitInput(limitsForm.rpdLimit),
+					tpdLimit: formatLimitInput(limitsForm.tpdLimit),
+				}),
+			});
+			const result: unknown = await response.json().catch(() => null);
+			if (!response.ok) {
+				setActionError(apiErrorMessage(result, "Could not update key limits."));
+				return;
+			}
+			toast.add({
+				title: "Limits updated",
+				description: "Key limits saved.",
+				type: "success",
+			});
+			setLimitsKey(null);
+			await loadKeys();
+		} catch (cause) {
+			setActionError(
+				cause instanceof Error ? cause.message : "Could not update limits.",
+			);
+		} finally {
+			setSubmitting(false);
 		}
 	}
 
@@ -472,6 +619,37 @@ export default function DashboardProvidersPage() {
 												placeholder="e.g. Production Key"
 											/>
 										</div>
+										<div className="space-y-2">
+											<p className="text-sm font-medium">Limits (optional)</p>
+											<p className="text-xs text-muted-foreground">
+												Blank uses the provider default. The limit applies per
+												model using this key.
+											</p>
+											<div className="grid grid-cols-2 gap-3">
+												{(
+													[
+														["rpmLimit", "Requests / minute"],
+														["tpmLimit", "Tokens / minute"],
+														["rpdLimit", "Requests / day"],
+														["tpdLimit", "Tokens / day"],
+													] as const
+												).map(([field, label]) => (
+													<div key={field} className="space-y-1">
+														<Label htmlFor={`add-${field}`}>{label}</Label>
+														<InputNumber
+															id={`add-${field}`}
+															value={form[field]}
+															onValueChange={(value) =>
+																setForm({ ...form, [field]: value ?? "" })
+															}
+															minValue={0}
+															maxValue={10_000_000}
+															placeholder="Default"
+														/>
+													</div>
+												))}
+											</div>
+										</div>
 										{form.platform === "custom" && (
 											<div className="space-y-2">
 												<Label htmlFor="baseUrl">Base URL</Label>
@@ -515,6 +693,79 @@ export default function DashboardProvidersPage() {
 												</>
 											) : (
 												"Add Key"
+											)}
+										</Button>
+									</DialogFooter>
+								</form>
+							</DialogContent>
+						</Dialog>
+
+						<Dialog
+							open={limitsKey !== null}
+							onOpenChange={(open) => {
+								if (!open) setLimitsKey(null);
+							}}
+						>
+							<DialogContent className="sm:max-w-lg">
+								<DialogHeader>
+									<DialogTitle>Edit key limits</DialogTitle>
+									<DialogDescription>
+										{limitsKey
+											? `${limitsKey.keyLabel || "Unnamed key"} · ${limitsKey.platform}`
+											: ""}
+										. Blank uses the provider default. The limit applies per
+										model using this key.
+									</DialogDescription>
+								</DialogHeader>
+								<form onSubmit={saveLimits}>
+									<div className="grid gap-4 py-4">
+										<div className="grid grid-cols-2 gap-3">
+											{(
+												[
+													["rpmLimit", "Requests / minute"],
+													["tpmLimit", "Tokens / minute"],
+													["rpdLimit", "Requests / day"],
+													["tpdLimit", "Tokens / day"],
+												] as const
+											).map(([field, label]) => (
+												<div key={field} className="space-y-1">
+													<Label htmlFor={`edit-${field}`}>{label}</Label>
+													<InputNumber
+														id={`edit-${field}`}
+														value={limitsForm[field]}
+														onValueChange={(value) =>
+															setLimitsForm({
+																...limitsForm,
+																[field]: value ?? "",
+															})
+														}
+														minValue={0}
+														maxValue={10_000_000}
+														placeholder="Provider default"
+													/>
+												</div>
+											))}
+										</div>
+										{actionError && (
+											<p className="text-sm text-destructive">{actionError}</p>
+										)}
+									</div>
+									<DialogFooter>
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => setLimitsKey(null)}
+										>
+											Cancel
+										</Button>
+										<Button type="submit" disabled={submitting}>
+											{submitting ? (
+												<>
+													<LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+													Saving...
+												</>
+											) : (
+												"Save limits"
 											)}
 										</Button>
 									</DialogFooter>
@@ -585,7 +836,7 @@ export default function DashboardProvidersPage() {
 									</div>
 								) : (
 									<div className="overflow-x-auto">
-										<table className="w-full min-w-[900px] text-sm">
+										<table className="w-full min-w-[1200px] text-sm">
 											<thead>
 												<tr className="border-b text-left text-muted-foreground">
 													<th className="px-4 py-3 font-medium">Provider</th>
@@ -593,6 +844,8 @@ export default function DashboardProvidersPage() {
 														Name / API key
 													</th>
 													<th className="px-4 py-3 font-medium">Status</th>
+													<th className="px-4 py-3 font-medium">Limits</th>
+													<th className="px-4 py-3 font-medium">Usage</th>
 													<th className="px-4 py-3 font-medium">
 														Last health check
 													</th>
@@ -645,6 +898,70 @@ export default function DashboardProvidersPage() {
 																) : null}
 															</td>
 															<td className="px-4 py-4 align-top">
+																{key.effectiveLimits ? (
+																	<>
+																		<div className="whitespace-nowrap tabular-nums">
+																			{formatCompact(key.effectiveLimits.rpm)}
+																			/min ·{" "}
+																			{formatCompact(key.effectiveLimits.tpm)}
+																			/min
+																		</div>
+																		<div className="mt-1 whitespace-nowrap tabular-nums">
+																			{formatCompact(key.effectiveLimits.rpd)}
+																			/day ·{" "}
+																			{formatCompact(key.effectiveLimits.tpd)}
+																			/day
+																		</div>
+																		<div className="mt-1 text-xs text-muted-foreground">
+																			{key.limitsSource
+																				? LIMITS_SOURCE_LABEL[key.limitsSource]
+																				: "—"}
+																		</div>
+																	</>
+																) : (
+																	<span className="text-muted-foreground">
+																		—
+																	</span>
+																)}
+															</td>
+															<td className="px-4 py-4 align-top">
+																{(() => {
+																	const usage = keyUsage[key.id];
+																	if (!usage)
+																		return (
+																			<span className="text-muted-foreground">
+																				—
+																			</span>
+																		);
+																	if (
+																		usage.requestsMinute === 0 &&
+																		usage.tokensMinute === 0 &&
+																		usage.requestsDay === 0 &&
+																		usage.tokensDay === 0
+																	)
+																		return (
+																			<span className="text-muted-foreground">
+																				No usage yet
+																			</span>
+																		);
+																	return (
+																		<>
+																			<div className="whitespace-nowrap tabular-nums">
+																				Last minute:{" "}
+																				{usage.requestsMinute.toLocaleString()}{" "}
+																				req ·{" "}
+																				{formatCompact(usage.tokensMinute)} tok
+																			</div>
+																			<div className="mt-1 whitespace-nowrap tabular-nums">
+																				Today:{" "}
+																				{usage.requestsDay.toLocaleString()} req
+																				· {formatCompact(usage.tokensDay)} tok
+																			</div>
+																		</>
+																	);
+																})()}
+															</td>
+															<td className="px-4 py-4 align-top">
 																{key.lastHealthCheckAt ? (
 																	<time
 																		dateTime={key.lastHealthCheckAt}
@@ -688,6 +1005,11 @@ export default function DashboardProvidersPage() {
 																		</Button>
 																	</DropdownMenuTrigger>
 																	<DropdownMenuContent align="end">
+																		<DropdownMenuItem
+																			onClick={() => openLimitsEditor(key)}
+																		>
+																			Edit limits
+																		</DropdownMenuItem>
 																		<DropdownMenuItem
 																			onClick={() =>
 																				void handleToggleKey(

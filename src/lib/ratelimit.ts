@@ -1,10 +1,27 @@
 import type { D1Database, D1Value } from "@/lib/types";
 
 const MINUTE_MS = 60_000;
-const DEFAULT_RPM = 60;
-const DEFAULT_TPM = 200_000;
-const DEFAULT_RPD = 5_000;
-const DEFAULT_TPD = 5_000_000;
+
+/** Gateway defaults, used when neither the key nor its provider sets a limit. */
+export const DEFAULT_RATE_LIMITS = {
+	rpm: 60,
+	tpm: 200_000,
+	rpd: 5_000,
+	tpd: 5_000_000,
+} as const;
+
+export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
+
+/**
+ * Window starts the enforcer uses: the last 60 seconds and today (UTC).
+ * Usage displays read the same windows, so the numbers match enforcement.
+ */
+export function getRateLimitWindowStarts(now = Date.now()): {
+	minuteStart: number;
+	dayStart: number;
+} {
+	return { minuteStart: now - MINUTE_MS, dayStart: utcMidnightMs(now) };
+}
 
 function utcMidnightMs(now: number): number {
 	const date = new Date(now);
@@ -37,8 +54,7 @@ export async function canMakeRequest(
 	},
 ): Promise<{ ok: boolean; reason?: string }> {
 	const now = Date.now();
-	const minuteStart = now - MINUTE_MS;
-	const dayStart = utcMidnightMs(now);
+	const { minuteStart, dayStart } = getRateLimitWindowStarts(now);
 	const where =
 		"platform = ? AND model_id = ? AND key_id = ? AND kind = ? AND created_at_ms > ?";
 	const [requestsMinute, tokensMinute, requestsDay, tokensDay] =
@@ -64,10 +80,10 @@ export async function canMakeRequest(
 				[input.platform, input.modelId, input.keyId, "tokens", dayStart],
 			),
 		]);
-	const rpm = input.rpmLimit ?? DEFAULT_RPM;
-	const tpm = input.tpmLimit ?? DEFAULT_TPM;
-	const rpd = input.rpdLimit ?? DEFAULT_RPD;
-	const tpd = input.tpdLimit ?? DEFAULT_TPD;
+	const rpm = input.rpmLimit ?? DEFAULT_RATE_LIMITS.rpm;
+	const tpm = input.tpmLimit ?? DEFAULT_RATE_LIMITS.tpm;
+	const rpd = input.rpdLimit ?? DEFAULT_RATE_LIMITS.rpd;
+	const tpd = input.tpdLimit ?? DEFAULT_RATE_LIMITS.tpd;
 	if (requestsMinute >= rpm) return { ok: false, reason: "rpm" };
 	if (tokensMinute + input.estTokens > tpm) return { ok: false, reason: "tpm" };
 	if (requestsDay >= rpd) return { ok: false, reason: "rpd" };

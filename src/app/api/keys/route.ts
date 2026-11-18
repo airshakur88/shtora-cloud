@@ -1,5 +1,6 @@
 import { routeError } from "@/lib/api-error";
 import { getDb, getEncryptionSecret } from "@/lib/env";
+import { parseOptionalLimit, withEffectiveLimits } from "@/lib/key-limits";
 import { createApiKey, listApiKeys } from "@/lib/key-store";
 import {
 	getProviderConfig,
@@ -9,23 +10,13 @@ import { isPrivateEndpointHost } from "@/lib/providers/public-url";
 import { requireUser } from "@/lib/session";
 import type { KeyInput } from "@/lib/types";
 
-function nullableLimit(value: unknown): number | null | undefined {
-	if (value === undefined || value === null) return null;
-	if (
-		typeof value !== "number" ||
-		!Number.isInteger(value) ||
-		value < 0 ||
-		value > 10_000_000
-	)
-		return undefined;
-	return value;
-}
-
 export async function GET(request: Request): Promise<Response> {
 	try {
 		const user = await requireUser(request);
+		const db = getDb();
+		const keys = await listApiKeys(db, user.id, getEncryptionSecret());
 		return Response.json({
-			keys: await listApiKeys(getDb(), user.id, getEncryptionSecret()),
+			keys: await withEffectiveLimits(db, keys),
 		});
 	} catch (error) {
 		return routeError(error, "/api/keys");
@@ -72,13 +63,13 @@ export async function POST(request: Request): Promise<Response> {
 
 		// User-provided limits override catalog defaults when present and valid
 		const rpmLimit =
-			nullableLimit(fields.rpmLimit) ?? catalogLimits?.rpmLimit ?? null;
+			parseOptionalLimit(fields.rpmLimit) ?? catalogLimits?.rpmLimit ?? null;
 		const tpmLimit =
-			nullableLimit(fields.tpmLimit) ?? catalogLimits?.tpmLimit ?? null;
+			parseOptionalLimit(fields.tpmLimit) ?? catalogLimits?.tpmLimit ?? null;
 		const rpdLimit =
-			nullableLimit(fields.rpdLimit) ?? catalogLimits?.rpdLimit ?? null;
+			parseOptionalLimit(fields.rpdLimit) ?? catalogLimits?.rpdLimit ?? null;
 		const tpdLimit =
-			nullableLimit(fields.tpdLimit) ?? catalogLimits?.tpdLimit ?? null;
+			parseOptionalLimit(fields.tpdLimit) ?? catalogLimits?.tpdLimit ?? null;
 
 		const rawKeyProvided = "rawKey" in fields && typeof rawKey === "string";
 		if (

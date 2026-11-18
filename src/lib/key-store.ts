@@ -63,6 +63,10 @@ export async function createApiKey(
 		unifiedToken: row.unified_token,
 		createdAt: row.created_at,
 		maskedKey: maskKey(input.rawKey),
+		rpmLimit: row.rpm_limit,
+		tpmLimit: row.tpm_limit,
+		rpdLimit: row.rpd_limit,
+		tpdLimit: row.tpd_limit,
 	};
 }
 
@@ -93,6 +97,10 @@ export async function listApiKeys(
 			unifiedToken: row.unified_token,
 			createdAt: row.created_at,
 			maskedKey: maskKey(rawKey),
+			rpmLimit: row.rpm_limit,
+			tpmLimit: row.tpm_limit,
+			rpdLimit: row.rpd_limit,
+			tpdLimit: row.tpd_limit,
 		});
 	}
 	return keys;
@@ -229,6 +237,33 @@ export async function setApiKeyEnabled(
 			"UPDATE api_keys SET enabled = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?",
 		)
 		.bind(enabled ? 1 : 0, id, userId)
+		.run();
+}
+
+export async function updateKeyLimits(
+	db: D1Database,
+	id: number,
+	userId: string,
+	limits: {
+		rpmLimit: number | null;
+		tpmLimit: number | null;
+		rpdLimit: number | null;
+		tpdLimit: number | null;
+	},
+): Promise<void> {
+	await db
+		.prepare(
+			`UPDATE api_keys SET rpm_limit = ?, tpm_limit = ?, rpd_limit = ?,
+			 tpd_limit = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
+		)
+		.bind(
+			limits.rpmLimit,
+			limits.tpmLimit,
+			limits.rpdLimit,
+			limits.tpdLimit,
+			id,
+			userId,
+		)
 		.run();
 }
 

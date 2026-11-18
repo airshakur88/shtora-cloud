@@ -130,6 +130,20 @@ export interface ApiKeyResponse {
 	unifiedToken: string;
 	createdAt: string;
 	maskedKey: string;
+	/** Limits stored on the key (null: not set on the row). */
+	rpmLimit: number | null;
+	tpmLimit: number | null;
+	rpdLimit: number | null;
+	tpdLimit: number | null;
+	/** Effective limits after the key → gateway fallback, plus their
+	 * source. Only populated by GET /api/keys (the list view). */
+	effectiveLimits?: {
+		rpm: number;
+		tpm: number;
+		rpd: number;
+		tpd: number;
+	};
+	limitsSource?: "key" | "provider" | "gateway";
 }
 
 export type ApiKeyDetail = ApiKeyResponse;
