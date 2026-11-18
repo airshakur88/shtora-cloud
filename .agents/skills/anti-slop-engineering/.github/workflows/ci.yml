@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-python:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify Python syntax
+        run: python -m py_compile scripts/diff_guard.py scripts/sre_guard.py scripts/decision_guard.py scripts/root_fix_guard.py scripts/future_scale_guard.py scripts/bump_version.py tests/test_diff_guard.py tests/test_sre_guard.py tests/test_decision_guard.py tests/test_root_fix_guard.py tests/test_future_scale_guard.py tests/test_bump_version.py
+
+      - name: Run unit test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Run diff guard against HEAD
+        run: python scripts/diff_guard.py --base HEAD
+      - name: Validate bundled decision example
+        run: python scripts/decision_guard.py audit skills/decision-guard/examples/architecture-record.json --json
+      - name: Validate bundled root-fix example
+        run: python scripts/root_fix_guard.py audit skills/root-fix-gate/examples/email-checkout-record.json --json
+      - name: Validate bundled future-scale example
+        run: python scripts/future_scale_guard.py audit skills/future-scale-gate/examples/runtime-envelope-record.json --json
+
+  validate-distribution:
+    name: Validate Universal Distribution & CLI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2.0.1
+        with:
+          bun-version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Verify CLI Execution with Node.js
+        run: |
+          node ./bin/cli.js --help
+          node ./bin/cli.js --base HEAD
+
+      - name: Verify CLI Execution with Bun
+        run: |
+          bun ./bin/cli.js --help
+          bun ./bin/cli.js --base HEAD
+
+      - name: Verify Universal Installer
+        run: |
+          bash ./install.sh
+          test -f "$HOME/.agents/skills/root-fix-gate/SKILL.md"
+
+      - name: Validate Skill & Distribution Manifests
+        run: |
+          python3 -c "
+          import json
+
+          # 1. Validate SKILL.md
+          skill = open('SKILL.md').read()
+          assert skill.startswith('---'), 'Missing YAML frontmatter'
+          assert 'name: anti-slop-engineering' in skill, 'Missing skill name'
+
+          # 2. Validate package.json
+          pkg = json.load(open('package.json'))
+          assert pkg['name'] == 'anti-slop-engineering'
+          assert 'bin' in pkg
+
+          # 3. Validate marketplace.json
+          mkt = json.load(open('marketplace.json'))
+          assert mkt['name'] == 'anti-slop-engineering'
+
+          # 4. Validate .skills.json
+          sk = json.load(open('.skills.json'))
+          assert sk['name'] == 'anti-slop-engineering'
+          print('All multi-agent manifests validated successfully!')
+          "
+
+  test-native:
+    name: Test Rust and Go engines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: stable
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version-file: services/toil-guard-go/go.mod
+      - name: Rust unit tests
+        working-directory: services/anti-slop-rust
+        run: cargo test --all-targets --locked
+      - name: Go unit tests
+        working-directory: services/toil-guard-go
+        run: go test ./...
+      - name: Native CLI failure contracts
+        run: |
+          if cargo run --manifest-path services/anti-slop-rust/Cargo.toml --locked -- ladder-audit does-not-exist.rs; then exit 1; fi
+          if cargo run --manifest-path services/anti-slop-rust/Cargo.toml --locked -- triage --base nonexistent-revision-123; then exit 1; fi
+          cd services/toil-guard-go
+          if go run ./cmd/toil-guard audit missing-path-go-123; then exit 1; fi
+      - name: npm package includes native sources
+        run: |
+          npm pack --dry-run --json > pack.json
+          node -e 'const f=require("./pack.json")[0].files.map(x=>x.path); for (const p of ["services/anti-slop-rust/Cargo.toml","services/toil-guard-go/go.mod","services/toil-guard-go/cmd/toil-guard/main.go","skills/decision-guard/SKILL.md","scripts/decision_guard.py","skills/root-fix-gate/SKILL.md","scripts/root_fix_guard.py"]) if(!f.includes(p)) process.exitCode=1'
+      - name: CLI and alias regression tests
+        run: |
+          node --check bin/cli.js
+          node --test tests/test_cli.mjs

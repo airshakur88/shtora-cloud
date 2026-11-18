@@ -1,0 +1,65 @@
+{
+  "sqli": [
+    {"id": "php-sqli-001", "regex": "mysql(?:i)?_query\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\()", "vuln_type": "sqli", "confidence": "likely", "description": "SQL execution receives request data directly"},
+    {"id": "php-sqli-002", "regex": "(?:->|::)(?:query|exec|unprepared)\\s*\\([^;\\n]*(?:\\.\\s*\\$_(?:GET|POST|REQUEST)|\\.\\s*request\\s*\\(|\\{\\s*\\$request\\s*->)", "vuln_type": "sqli", "confidence": "likely", "description": "Raw SQL is constructed with request-controlled data"},
+    {"id": "php-sqli-laravel-001", "regex": "(?:DB::raw|->(?:whereRaw|havingRaw|orderByRaw|groupByRaw|selectRaw))\\s*\\([^;\\n]*(?:\\.\\s*(?:request\\s*\\(|\\$_(?:GET|POST|REQUEST))|\\{\\s*\\$request\\s*->)", "vuln_type": "sqli", "confidence": "likely", "description": "Laravel raw query fragment concatenates or interpolates request data"},
+    {"id": "php-sqli-symfony-001", "regex": "(?:createQuery|createNativeQuery|addOrderBy)\\s*\\([^;\\n]*\\.\\s*\\$request\\s*->", "vuln_type": "sqli", "confidence": "likely", "description": "Doctrine query structure concatenates Symfony request data"},
+    {"id": "php-sqli-wp-001", "regex": "\\$wpdb\\s*->\\s*(?:query|get_results|get_row|get_var|get_col)\\s*\\([^;\\n]*\\.\\s*\\$_(?:GET|POST|REQUEST|COOKIE)", "vuln_type": "sqli", "confidence": "likely", "description": "WordPress database query concatenates a request superglobal without wpdb prepare"}
+  ],
+  "cmdi": [
+    {"id": "php-cmdi-001", "regex": "\\b(?:system|exec|shell_exec|passthru|popen)\\s*\\((?![^;\\n]*(?:escapeshellarg|escapeshellcmd)\\s*\\()[^;\\n]*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "cmdi", "confidence": "likely", "description": "Command execution receives request-controlled data without an inline shell escaping control"},
+    {"id": "php-cmdi-002", "regex": "(?:Process::fromShellCommandline|Process::run)\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "cmdi", "confidence": "likely", "description": "Framework shell command is constructed from request data"},
+    {"id": "php-cmdi-003", "regex": "`[^`]*(?:\\$_(?:GET|POST|REQUEST)|\\{\\$request\\s*->)[^`]*`", "vuln_type": "cmdi", "confidence": "likely", "description": "PHP backtick command interpolates request data"}
+  ],
+  "path_traversal": [
+    {"id": "php-path-001", "regex": "\\b(?:include|include_once|require|require_once)\\s*\\(?\\s*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "path_traversal", "confidence": "likely", "description": "Dynamic include or require receives a request-controlled path"},
+    {"id": "php-path-002", "regex": "\\b(?:file_get_contents|fopen|readfile|unlink|copy|rename)\\s*\\((?![^;\\n]*(?:basename|realpath)\\s*\\()[^;\\n]*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "path_traversal", "confidence": "likely", "description": "Filesystem operation receives request data without an inline path control"},
+    {"id": "php-path-laravel-001", "regex": "(?:Storage::(?:get|download|delete)|response\\s*\\(\\s*\\)\\s*->\\s*download)\\s*\\([^;\\n]*(?:request\\s*\\(|\\$request\\s*->)", "vuln_type": "path_traversal", "confidence": "likely", "description": "Laravel file read or download uses a request-controlled path"},
+    {"id": "php-archive-001", "regex": "->extractTo\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "path_traversal", "confidence": "possible", "description": "Archive extraction destination is request-controlled; verify containment and entry validation"}
+  ],
+  "unsafe_upload": [
+    {"id": "php-upload-laravel-001", "regex": "->move\\s*\\([^;\\n]*->getClientOriginalName\\s*\\(", "vuln_type": "unsafe_upload", "confidence": "possible", "description": "Uploaded file is stored using the attacker-controlled original filename"},
+    {"id": "php-upload-001", "regex": "move_uploaded_file\\s*\\([^;\\n]*\\$_FILES[^;\\n]*\\$_(?:GET|POST|REQUEST)", "vuln_type": "unsafe_upload", "confidence": "likely", "description": "Upload destination incorporates request-controlled data"}
+  ],
+  "xss": [
+    {"id": "php-xss-001", "regex": "\\b(?:echo|print)\\b(?![^;\\n]*(?:htmlspecialchars|htmlentities|esc_html|esc_attr|esc_url|wp_kses)\\s*\\()[^;\\n]*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "xss", "confidence": "likely", "description": "HTML output contains request data without an inline context encoder"},
+    {"id": "php-xss-blade-001", "regex": "\\{!![^!\\n]*(?:request\\s*\\(|\\$request\\s*->|\\$_(?:GET|POST|REQUEST))[^!\\n]*!!\\}", "vuln_type": "xss", "confidence": "likely", "description": "Blade raw-output block renders request-controlled data"},
+    {"id": "php-xss-twig-001", "regex": "\\{\\{[^}\\n]*(?:app\\.request|request)[^}\\n]*\\|\\s*raw[^}\\n]*\\}\\}", "vuln_type": "xss", "confidence": "likely", "description": "Twig raw filter renders request data without escaping"},
+    {"id": "php-xss-wp-001", "regex": "\\b(?:echo|print)\\b(?![^;\\n]*(?:htmlspecialchars|htmlentities|esc_html|esc_attr|esc_url|wp_kses)\\s*\\()[^;\\n]*\\$_(?:GET|POST|REQUEST|COOKIE)", "vuln_type": "xss", "confidence": "likely", "description": "WordPress output uses request data without a contextual escaping function"}
+  ],
+  "ssti": [
+    {"id": "php-ssti-twig-001", "regex": "(?:createTemplate|renderView)\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "ssti", "confidence": "likely", "description": "A Twig template or template name is derived directly from request data"}
+  ],
+  "deserialization": [
+    {"id": "php-deser-001", "regex": "\\b(?:unserialize|maybe_unserialize)\\s*\\(\\s*(?:\\$_(?:GET|POST|REQUEST|COOKIE)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "deserialization", "confidence": "confirmed", "description": "PHP object/data deserialization receives request-controlled bytes"},
+    {"id": "php-deser-002", "regex": "\\bunserialize\\s*\\([^;\\n]*(?:base64_decode|hex2bin)\\s*\\(\\s*\\$_(?:GET|POST|REQUEST|COOKIE)", "vuln_type": "deserialization", "confidence": "confirmed", "description": "Encoded request data is decoded and passed to unserialize"}
+  ],
+  "xxe": [
+    {"id": "php-xxe-001", "regex": "(?:loadXML|simplexml_load_string)\\s*\\([^;\\n]*\\$_(?:GET|POST|REQUEST)[^;\\n]*LIBXML_(?:NOENT|DTDLOAD)", "vuln_type": "xxe", "confidence": "confirmed", "description": "Request-controlled XML is parsed with entity or DTD expansion enabled"},
+    {"id": "php-xxe-002", "regex": "libxml_set_external_entity_loader\\s*\\(\\s*(?!null\\b|false\\b)[^)]+\\)", "vuln_type": "xxe", "confidence": "possible", "description": "A custom external entity loader is enabled; verify attacker-controlled XML reachability"}
+  ],
+  "ssrf": [
+    {"id": "php-ssrf-001", "regex": "(?:Http::(?:get|post|send)|wp_remote_(?:get|post|request)|file_get_contents|fopen)\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "ssrf", "confidence": "likely", "description": "Outbound HTTP-capable API receives a request-controlled URL"},
+    {"id": "php-ssrf-symfony-001", "regex": "->request\\s*\\([^,;\\n]+,[^;\\n]*\\$request\\s*->(?:query|request)\\s*->\\s*get\\s*\\(", "vuln_type": "ssrf", "confidence": "likely", "description": "Symfony HttpClient request target comes from request data"},
+    {"id": "php-ssrf-curl-001", "regex": "curl_setopt\\s*\\([^,]+,\\s*CURLOPT_URL\\s*,[^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "ssrf", "confidence": "likely", "description": "cURL target URL is request-controlled"}
+  ],
+  "open_redirect": [
+    {"id": "php-redirect-001", "regex": "header\\s*\\(\\s*['\"]Location:\\s*['\"]\\s*\\.[^;\\n]*\\$_(?:GET|POST|REQUEST)", "vuln_type": "open_redirect", "confidence": "likely", "description": "Location header is built from request data"},
+    {"id": "php-redirect-framework-001", "regex": "(?:redirect|new\\s+RedirectResponse|wp_redirect)\\s*\\([^;\\n]*(?:\\$_(?:GET|POST|REQUEST)|request\\s*\\(|\\$request\\s*->)", "vuln_type": "open_redirect", "confidence": "likely", "description": "Framework redirect destination is request-controlled"}
+  ],
+  "mass_assignment": [
+    {"id": "php-mass-laravel-001", "regex": "(?:[A-Z][A-Za-z0-9_]*::create|->(?:fill|forceFill|update))\\s*\\(\\s*(?:request\\s*\\(\\s*\\)\\s*->\\s*all\\s*\\(\\s*\\)|\\$request\\s*->\\s*all\\s*\\(\\s*\\))", "vuln_type": "mass_assignment", "confidence": "likely", "description": "Laravel model mutation consumes the complete request map"},
+    {"id": "php-mass-symfony-001", "regex": "->deserialize\\s*\\([^;\\n]*\\$request\\s*->getContent\\s*\\([^;\\n]*[A-Z][A-Za-z0-9_]*::class", "vuln_type": "mass_assignment", "confidence": "possible", "description": "Symfony serializer writes a request body directly into an object; verify writable privileged fields"}
+  ],
+  "authorization": [
+    {"id": "php-auth-wp-001", "regex": "['\"]permission_callback['\"]\\s*=>\\s*['\"]__return_true['\"]", "vuln_type": "missing_authorization", "confidence": "possible", "description": "WordPress REST route is explicitly public; verify the route exposes no privileged data or action"}
+  ],
+  "sensitive_logging": [
+    {"id": "php-log-001", "regex": "(?:Log::(?:debug|info|notice|warning|error)|->(?:debug|info|notice|warning|error))\\s*\\([^;\\n]*(?:\\$request\\s*->\\s*all\\s*\\(|\\$request\\s*->getContent\\s*\\(|\\$_(?:POST|REQUEST|COOKIE|FILES))", "vuln_type": "sensitive_data_exposure", "confidence": "possible", "description": "Application logging records an unfiltered request body, cookie, or upload map"},
+    {"id": "php-log-auth-001", "regex": "error_log\\s*\\([^;\\n]*\\$_SERVER\\s*\\[\\s*['\"]HTTP_AUTHORIZATION['\"]", "vuln_type": "sensitive_data_exposure", "confidence": "likely", "description": "Authorization credentials are written to the error log"}
+  ],
+  "crypto_tls": [
+    {"id": "php-crypto-password-001", "regex": "(?:md5|sha1)\\s*\\(\\s*\\$_(?:POST|REQUEST)\\s*\\[[^]]*(?:password|passwd|secret)", "vuln_type": "weak_crypto", "confidence": "confirmed", "description": "A submitted password or secret is hashed directly with MD5 or SHA-1"},
+    {"id": "php-tls-001", "regex": "curl_setopt\\s*\\([^,]+,\\s*CURLOPT_SSL_VERIFYPEER\\s*,\\s*false\\s*\\)", "vuln_type": "tls_bypass", "confidence": "confirmed", "description": "cURL certificate verification is explicitly disabled"}
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "skill_name": "nerd-fonts",
+  "source": "skill lookup, install, and review scenarios",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "On macOS I use kitty and starship. My prompt icons are empty boxes. Install JetBrains Mono Nerd Font, give me the exact kitty.conf family string, and tell me how to verify it.",
+      "expected_output": "Links https://www.nerdfonts.com/font-downloads. Homebrew cask font-jetbrains-mono-nerd-font. Family JetBrainsMono Nerd Font. kitty.conf: font_family JetBrainsMono Nerd Font. Verification via printf of named glyphs from data/glyphs.tsv. Mentions the Mono variant when columns must align. Starship nerd-font-symbols preset from references/terminals.md.",
+      "assertions": [
+        "Links font-downloads or nerdfonts.com/font-downloads",
+        "Names cask font-jetbrains-mono-nerd-font",
+        "Names family JetBrainsMono Nerd Font",
+        "Gives kitty font_family JetBrainsMono Nerd Font",
+        "Includes a printf verification step",
+        "Does not invent a codepoint; any glyph cited matches data/glyphs.tsv"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Give me the glyph, hex codepoint, and class name for: the Octicons GitHub mark, Font Awesome heart, Devicons rust, Material Design folder, and the Powerline right-pointing solid separator. Also what happened to nf-mdi-folder?",
+      "expected_output": "Values taken from data/glyphs.tsv, not memory: nf-oct-mark_github U+F408, nf-fa-heart U+F004, nf-dev-rust U+E7A8, nf-md-folder U+F024B, nf-pl-left_hard_divider U+E0B0 (points right; nf-pl-right_hard_divider U+E0B2 points left). nf-mdi-* moved in v3 to nf-md-* at U+F0001 to U+F1AF0; some names dropped; search the bare word folder.",
+      "assertions": [
+        "nf-oct-mark_github is U+F408",
+        "nf-fa-heart is U+F004",
+        "nf-dev-rust is U+E7A8",
+        "nf-md-folder is U+F024B",
+        "The right-pointing solid separator is nf-pl-left_hard_divider U+E0B0, not nf-pl-right_hard_divider",
+        "Explains nf-mdi- to nf-md- and bare-name search",
+        "Does not tell the user to pin Nerd Fonts v2 for mdi icons"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Ubuntu 24.04, Neovim with nvim-tree. GNOME Terminal shows tofu instead of file icons. I want to keep my current text font.",
+      "expected_output": "Keep the text font. Install NerdFontsSymbolsOnly (Symbols Nerd Font / Symbols Nerd Font Mono). Copy 10-nerd-font-symbols.conf to ~/.config/fontconfig/conf.d/ and run fc-cache -fv. GNOME Terminal uses the OS fontconfig fallback. Verify with printf. Do not replace the text font unless the user asks.",
+      "assertions": [
+        "Offers Symbols Only / NerdFontsSymbolsOnly rather than replacing the text font",
+        "Mentions 10-nerd-font-symbols.conf or fontconfig fallback",
+        "Does not claim GNOME Terminal cannot fall back to a symbols font"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Write deploy-status.sh that prints a git branch header and five services, each with one icon for ok, warning, error, pending, or unknown, for a terminal.",
+      "expected_output": "Uses Nerd Fonts glyphs with nf-<set>-<name> and U+XXXX comments taken from data/glyphs.tsv. One set per surface. No emoji. --no-icons or NO_ICONS=1 fallback. Font note linking font-downloads. Mono variant or alignment caveat. printf (not echo) for the icons.",
+      "assertions": [
+        "Every icon has an nf- name and U+XXXX from data/glyphs.tsv",
+        "No emoji used as icons",
+        "One icon set per surface",
+        "Includes --no-icons or NO_ICONS=1",
+        "Mentions a Nerd Font / font-downloads",
+        "Does not mix fa and dev for the same concept"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Review these configs: a starship.toml that uses emoji for git and status symbols; a lualine snippet with E: and W: text markers and nf-mdi-folder; a kitty.conf with font_family Cascadia Code.",
+      "expected_output": "Each finding quotes the line, says why, and gives a fix. Emoji in starship replaced by named Nerd Fonts glyphs from data/glyphs.tsv. E: / W: replaced by glyphs, one set. nf-mdi-folder replaced by nf-md-folder U+F024B (bare-name search). font_family Cascadia Code becomes CaskaydiaCove Nerd Font (cask font-caskaydia-cove-nerd-font). No unverified nvim-web-devicons API claims. No codepoints from memory.",
+      "assertions": [
+        "Flags emoji used as icons",
+        "Flags E: and W: text markers",
+        "Flags nf-mdi-folder and points to nf-md-folder U+F024B",
+        "Flags Cascadia Code and names CaskaydiaCove Nerd Font",
+        "Every replacement glyph is looked up in data/glyphs.tsv",
+        "Does not invent nvim-web-devicons APIs"
+      ]
+    }
+  ]
+}

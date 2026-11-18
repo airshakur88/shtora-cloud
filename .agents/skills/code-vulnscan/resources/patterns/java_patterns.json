@@ -1,0 +1,38 @@
+{
+  "sqli": [
+    {"id": "java-sqli-001", "regex": "(?:createNativeQuery|createQuery|createSQLQuery)\\s*\\([^;\\n]*\\+", "vuln_type": "sqli", "confidence": "likely", "description": "JPA/Hibernate query with string concatenation"},
+    {"id": "java-sqli-002", "regex": "(?:executeQuery|executeUpdate|execute)\\s*\\([^;\\n]*\\+", "vuln_type": "sqli", "confidence": "likely", "description": "JDBC statement with string concatenation"}
+  ],
+  "cmdi": [
+    {"id": "java-cmdi-001", "regex": "(?:Runtime\\.getRuntime\\(\\)|\\w+)\\.exec\\s*\\([^;\\n]*\\+", "vuln_type": "cmdi", "confidence": "likely", "description": "Runtime.exec with a concatenated command"},
+    {"id": "java-cmdi-002", "regex": "ProcessBuilder\\s*\\([^;\\n]*\\+", "vuln_type": "cmdi", "confidence": "likely", "description": "ProcessBuilder with a concatenated command or argument"}
+  ],
+  "ldap_injection": [
+    {"id": "java-ldap-001", "regex": "(?:dirContext|ldapTemplate)\\.search\\s*\\([^;\\n]*\\+", "vuln_type": "ldap_injection", "confidence": "likely", "description": "LDAP search filter built with string concatenation"}
+  ],
+  "xpath_injection": [
+    {"id": "java-xpath-001", "regex": "\\.evaluate\\s*\\([^;\\n]*\\+", "vuln_type": "xpath_injection", "confidence": "likely", "description": "XPath expression built with string concatenation"}
+  ],
+  "expression_injection": [
+    {"id": "java-expr-001", "regex": "\\.parseExpression\\s*\\(\\s*(?![\"'])[A-Za-z_$][\\w$]*\\s*\\)", "vuln_type": "expression_injection", "confidence": "possible", "description": "Dynamic Spring expression evaluation"},
+    {"id": "java-expr-002", "regex": "ELProcessor\\s*\\([^)]*\\)\\.eval\\s*\\(\\s*(?![\"'])", "vuln_type": "expression_injection", "confidence": "possible", "description": "Dynamic Jakarta EL evaluation"}
+  ],
+  "open_redirect": [
+    {"id": "java-redirect-001", "regex": "\\.sendRedirect\\s*\\(\\s*(?![\"'])", "vuln_type": "open_redirect", "confidence": "possible", "description": "Servlet redirect uses a non-literal destination"}
+  ],
+  "path_traversal": [
+    {"id": "java-path-001", "regex": "new\\s+(?:File|FileInputStream|FileOutputStream)\\s*\\([^;\\n]*getParameter", "vuln_type": "path_traversal", "confidence": "likely", "description": "File API receives a request parameter directly"},
+    {"id": "java-path-002", "regex": "Files\\.(?:readAllBytes|readString|write|copy|move)\\s*\\([^;\\n]*getParameter", "vuln_type": "path_traversal", "confidence": "likely", "description": "NIO file operation receives a request parameter directly"}
+  ],
+  "deserialization": [
+    {"id": "java-deser-001", "regex": "new\\s+ObjectInputStream\\s*\\([^;\\n]*(?:getInputStream|getReader)\\s*\\(", "vuln_type": "deserialization", "confidence": "likely", "description": "Native Java deserialization reads directly from a request stream"},
+    {"id": "java-deser-002", "regex": "XStream\\.fromXML\\s*\\([^;\\n]*(?:getInputStream|getReader|getParameter)", "vuln_type": "deserialization", "confidence": "likely", "description": "XStream deserializes request-controlled XML"}
+  ],
+  "crypto": [
+    {"id": "java-crypto-001", "regex": "MessageDigest\\.getInstance\\s*\\([\"']MD5[\"']\\)", "vuln_type": "weak_crypto", "confidence": "possible", "description": "MD5 MessageDigest is unsafe for security-sensitive use"},
+    {"id": "java-crypto-002", "regex": "MessageDigest\\.getInstance\\s*\\([\"']SHA-?1[\"']\\)", "vuln_type": "weak_crypto", "confidence": "possible", "description": "SHA-1 is unsafe for security-sensitive use"},
+    {"id": "java-crypto-003", "regex": "Cipher\\.getInstance\\s*\\([\"']AES/ECB", "vuln_type": "weak_crypto", "confidence": "confirmed", "description": "AES ECB mode leaks plaintext patterns"},
+    {"id": "java-crypto-004", "regex": "new\\s+(?:java\\.util\\.)?Random\\s*\\(\\s*\\)", "vuln_type": "insecure_random", "confidence": "possible", "description": "java.util.Random is not a cryptographic RNG"},
+    {"id": "java-crypto-005", "regex": "(?:ALLOW_ALL_HOSTNAME_VERIFIER|NoopHostnameVerifier|setHostnameVerifier\\s*\\([^;\\n]*(?:true|ALLOW_ALL))", "vuln_type": "tls_bypass", "confidence": "confirmed", "description": "TLS hostname verification is disabled"}
+  ]
+}
