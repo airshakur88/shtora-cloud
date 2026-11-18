@@ -23,10 +23,14 @@ jobs:
         uses: actions/checkout@v4
 
       # O runner reutiliza a pasta de trabalho: arquivos baixados antes do
-      # fix de `.gitattributes` (eol=lf) continuam CRLF no disco. Este passo
-      # reescreve todos os arquivos rastreados com LF antes do lint.
+      # fix de `.gitattributes` (eol=lf) continuam CRLF no disco, porque o
+      # checkout só reescreve arquivos que mudaram entre commits. `git rm
+      # --cached -r .` esvazia o índice e `git reset --hard` recria tudo a
+      # partir do HEAD aplicando o filtro LF. (`git checkout-index -f -a`
+      # NÃO converte: testado em simulação, ele reescreve os bytes sem
+      # aplicar o filtro de quebra de linha.)
       - name: Reescrever arquivos com LF
-        run: git checkout-index -f -a
+        run: git rm --cached -r .; git reset --hard HEAD
 
 
       - name: Setup Bun
