@@ -34,6 +34,9 @@ test("next.config.ts applies the full security header set to every path", async 
 	expect(byKey.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
 	expect(byKey.get("Permissions-Policy")).toContain("camera=()");
 	expect(byKey.get("Permissions-Policy")).toContain("microphone=()");
+	// interest-cohort (FLoC) was removed from Chrome: listing it logs
+	// "Unrecognized feature" on every page load.
+	expect(byKey.get("Permissions-Policy")).not.toContain("interest-cohort");
 	expect(byKey.get("X-Content-Type-Options")).toBe("nosniff");
 });
 

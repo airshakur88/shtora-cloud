@@ -63,7 +63,16 @@ export function routeError(error: unknown, path: string): Response {
 			{ status: error.name === "UnauthenticatedError" ? 401 : 403 },
 		);
 	}
-	console.error(JSON.stringify({ event: "api_error", path }));
+	console.error(
+		JSON.stringify({
+			event: "api_error",
+			path,
+			error:
+				error instanceof Error
+					? `${error.name}: ${error.message}`
+					: String(error),
+		}),
+	);
 	return Response.json(
 		{ error: { message: "Internal error", type: "server_error" } },
 		{ status: 500 },

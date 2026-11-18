@@ -141,6 +141,10 @@ export async function getKeyUsageWindows(
 	if (keyIds.length === 0) return [];
 	const { minuteStart, dayStart } = getRateLimitWindowStarts(now);
 	const placeholders = keyIds.map(() => "?").join(", ");
+	// Both windows live inside today, so rows older than dayStart can
+	// never count: bounding the scan to today keeps the query from
+	// walking the whole table as usage accumulates (the cleanup index
+	// on created_at_ms can serve the bound).
 	const result = await db
 		.prepare(
 			`SELECT key_id AS keyId,
@@ -148,10 +152,10 @@ export async function getKeyUsageWindows(
 			 COALESCE(SUM(CASE WHEN kind = 'tokens' AND created_at_ms > ? THEN tokens ELSE 0 END), 0) AS tokensMinute,
 			 COALESCE(SUM(CASE WHEN kind = 'request' AND created_at_ms >= ? THEN 1 ELSE 0 END), 0) AS requestsDay,
 			 COALESCE(SUM(CASE WHEN kind = 'tokens' AND created_at_ms >= ? THEN tokens ELSE 0 END), 0) AS tokensDay
-			 FROM provider_rate_limit_usage WHERE key_id IN (${placeholders})
+			 FROM provider_rate_limit_usage WHERE key_id IN (${placeholders}) AND created_at_ms >= ?
 			 GROUP BY key_id`,
 		)
-		.bind(minuteStart, minuteStart, dayStart, dayStart, ...keyIds)
+		.bind(minuteStart, minuteStart, dayStart, dayStart, ...keyIds, dayStart)
 		.all<KeyUsageWindow>();
 	return result.results;
 }
