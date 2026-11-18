@@ -21,6 +21,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+              # O runner self-hosted reutiliza a pasta de trabalho entre runs: arquivos
+                    # baixados antes do fix de `.gitattributes` (eol=lf) continuam CRLF no
+                          # disco, porque o checkout só reescreve arquivos que mudaram entre
+                                # commits. `git checkout-index -f -a` reescreve TODOS os arquivos
+                                      # rastreados a partir do índice, aplicando as regras atuais de quebra
+                                            # de linha — sem isso o passo de Lint (Biome) falha em 137 arquivos.
+                                                  - name: Reescrever arquivos com LF
+                                                    run: git checkout-index -f -a
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
