@@ -237,30 +237,6 @@ export default async function HomePage() {
 				<RequestLayers />
 
 				<section
-					className="provider-band"
-					aria-label="Provedores com modelos gratuitos no catálogo"
-				>
-					<div className="landing-wrap">
-						<p>
-							PROVEDORES COM MODELOS GRÁTIS
-							<br />
-							<strong>DIRETO NO SEU CÓDIGO.</strong>
-						</p>
-						<ul>
-							{freeModelsByProvider.map((entry) => (
-								<li key={entry.name}>
-									{entry.name}
-									<span>
-										{entry.count}{" "}
-										{entry.count === 1 ? "modelo grátis" : "modelos grátis"}
-									</span>
-								</li>
-							))}
-						</ul>
-					</div>
-				</section>
-
-				<section
 					className="landing-section landing-wrap"
 					id="recursos"
 					aria-labelledby="features-title"

@@ -333,43 +333,6 @@ a {
 	letter-spacing: 0;
 	margin-left: 9px;
 }
-.provider-band {
-	border-block: 1px solid var(--border);
-	background: #101113;
-}
-.provider-band > div {
-	display: flex;
-	align-items: center;
-	gap: 52px;
-	padding-block: 26px;
-}
-.provider-band p {
-	font:
-		11.5px / 1.7 ui-monospace,
-		Consolas,
-		monospace;
-	letter-spacing: 0.9px;
-	color: #94918d;
-	flex-shrink: 0;
-	margin: 0;
-}
-.provider-band strong {
-	color: #bcb7b1;
-	font-weight: 400;
-}
-.provider-band ul {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 14px 26px;
-	padding: 0;
-	list-style: none;
-	margin: 0;
-	font-size: 16px;
-	font-weight: 600;
-	letter-spacing: -0.4px;
-	color: #c1bcb6;
-}
 .landing-section {
 	padding-block: 96px;
 }
@@ -1101,9 +1064,6 @@ a {
 	.faq-layout {
 		gap: 35px;
 	}
-	.provider-band > div {
-		gap: 30px;
-	}
 	.capability {
 		padding: 20px 18px;
 	}
@@ -1158,17 +1118,6 @@ a {
 	.landing-stats dd span {
 		display: block;
 		margin-left: 0;
-	}
-	.provider-band > div {
-		align-items: flex-start;
-		flex-direction: column;
-		gap: 20px;
-	}
-	.provider-band p br {
-		display: none;
-	}
-	.provider-band p strong {
-		margin-left: 6px;
 	}
 	.landing-section {
 		padding-block: 72px;
