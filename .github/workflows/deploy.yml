@@ -23,6 +23,12 @@ jobs:
       - name: Instalar dependências
         run: bun install --frozen-lockfile
 
+      - name: Aplicar migrations D1
+        run: bun x cf d1 migrations apply 5a731b04-a5ac-4897-91cd-bd212e80699b --dir migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Build & Deploy
         run: bun run deploy
         env:
