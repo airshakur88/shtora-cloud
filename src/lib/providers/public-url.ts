@@ -26,6 +26,29 @@ export function isPrivateEndpointHost(hostname: string): boolean {
 	);
 }
 
+/**
+ * The lexical checks POST /api/keys applies to a user-provided baseUrl,
+ * shared with POST /api/providers so the two routes cannot drift apart:
+ * public HTTPS, no credentials, no query or fragment, no private host.
+ * No DNS lookup here, unlike validatePublicHttpsUrl: the keys route never
+ * did one, and the providers route matches it.
+ */
+export function isValidCustomBaseUrl(candidate: string): boolean {
+	try {
+		const url = new URL(candidate);
+		return (
+			url.protocol === "https:" &&
+			!url.username &&
+			!url.password &&
+			!url.search &&
+			!url.hash &&
+			!isPrivateEndpointHost(url.hostname)
+		);
+	} catch {
+		return false;
+	}
+}
+
 /** Dotted quad parsed as four octets, or null when malformed. Stricter
  * than Number(): an empty part ("1.2.3.") or a non-digit is rejected
  * instead of silently becoming 0. */

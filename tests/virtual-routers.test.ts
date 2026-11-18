@@ -3,7 +3,10 @@ import { createApiKey } from "../src/lib/key-store";
 import { canonicalModelId } from "../src/lib/model-canonical";
 import { routeChatCompletion } from "../src/lib/router";
 import type { AppUser, D1Database } from "../src/lib/types";
-import { VIRTUAL_ROUTERS } from "../src/lib/virtual-routers";
+import {
+	VIRTUAL_ROUTER_FALLBACK_MODELS,
+	VIRTUAL_ROUTERS,
+} from "../src/lib/virtual-routers";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
@@ -190,6 +193,153 @@ test("every virtual router member exists in the migrated catalog", async () => {
 				expect(canonicals.has(member)).toBe(true);
 			}
 		}
+	} finally {
+		db.close();
+	}
+});
+
+test("every virtual router fallback model exists in the migrated catalog with tools and vision", async () => {
+	// Same pattern as the router-member check: a fallback model with no
+	// catalog row, or with no tools/vision row, can never rescue a request.
+	const db = await createParityDatabase();
+	try {
+		const result = await db
+			.prepare("SELECT model_id, supports_tools, supports_vision FROM models")
+			.all();
+		const byCanonical = new Map<
+			string,
+			Array<{ supports_tools: number; supports_vision: number }>
+		>();
+		for (const row of result.results as Array<{
+			model_id: string;
+			supports_tools: number;
+			supports_vision: number;
+		}>) {
+			const canonical = canonicalModelId(row.model_id);
+			const rows = byCanonical.get(canonical) ?? [];
+			rows.push(row);
+			byCanonical.set(canonical, rows);
+		}
+		for (const member of VIRTUAL_ROUTER_FALLBACK_MODELS) {
+			const rows = byCanonical.get(member) ?? [];
+			expect(rows.length).toBeGreaterThan(0);
+			expect(
+				rows.some(
+					(row) => row.supports_tools === 1 && row.supports_vision === 1,
+				),
+			).toBe(true);
+		}
+	} finally {
+		db.close();
+	}
+});
+
+async function seedFallbackDb(db: D1Database): Promise<void> {
+	// Fixtures replace the migrated catalog so the chain holds exactly
+	// what the test pins: six shtora/auto members on groq, plus one
+	// fallback model (mistral-large-2512, not an auto member) on
+	// electronhub. No other model can answer the request.
+	await db.prepare("DELETE FROM models").run();
+	await db
+		.prepare(
+			"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+		)
+		.bind(USER.id, USER.name, USER.username, USER.passwordHash)
+		.run();
+	const members: Array<[string, string, number]> = [
+		["qwen3-8-max", "Qwen3 8 Max", 1],
+		["qwen3-8-flash", "Qwen3 8 Flash", 2],
+		["qwen3-8-omni-flash", "Qwen3 8 Omni Flash", 3],
+		["gpt-5-6-luna", "GPT 5.6 Luna", 4],
+		["gemini-3-5-flash", "Gemini 3.5 Flash", 5],
+		["minimax-m3", "MiniMax M3", 6],
+	];
+	for (const [modelId, name, rank] of members) {
+		await db
+			.prepare(
+				"INSERT INTO models (platform, model_id, name, context_window, intelligence_rank, tier, supports_tools, supports_vision) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
+			)
+			.bind("groq", modelId, name, 32768, rank, 1)
+			.run();
+	}
+	await db
+		.prepare(
+			"INSERT INTO models (platform, model_id, name, context_window, intelligence_rank, tier, supports_tools, supports_vision) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
+		)
+		.bind("electronhub", "mistral-large-2512", "Mistral Large 3", 262144, 7, 1)
+		.run();
+	for (const platform of ["groq", "electronhub"]) {
+		await createApiKey(
+			db,
+			{
+				userId: USER.id,
+				platform,
+				keyLabel: "test",
+				rawKey: "sk-test-upstream-key",
+			},
+			SECRET,
+		);
+	}
+}
+
+test("shtora/auto reaches the fallback chain after all members fail", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedFallbackDb(db);
+		const attempted: string[] = [];
+		fetchImpl = async (_input, init) => {
+			let model = "echo";
+			try {
+				const body = JSON.parse(String(init?.body ?? "{}")) as {
+					model?: string;
+				};
+				if (body.model) model = body.model;
+			} catch {
+				// Keep the fallback model.
+			}
+			attempted.push(model);
+			if (model !== "mistral-large-2512")
+				return new Response("boom", { status: 500 });
+			return new Response(
+				JSON.stringify({
+					id: "ok",
+					object: "chat.completion",
+					created: 0,
+					model,
+					choices: [
+						{
+							index: 0,
+							message: { role: "assistant", content: "ok" },
+							finish_reason: "stop",
+						},
+					],
+					usage: {
+						prompt_tokens: 10,
+						completion_tokens: 5,
+						total_tokens: 15,
+					},
+				}),
+				{ status: 200, headers: { "Content-Type": "application/json" } },
+			);
+		};
+		const result = await route(db, "shtora/auto");
+		// Six member attempts exhaust the member budget; the seventh
+		// attempt must be a fallback model, not a 502.
+		expect(result.response.status).toBe(200);
+		expect(result.modelId).toBe("mistral-large-2512");
+		expect(result.platform).toBe("electronhub");
+		expect(attempted).toHaveLength(7);
+		expect(new Set(attempted.slice(0, 6))).toEqual(
+			new Set([
+				"qwen3-8-max",
+				"qwen3-8-flash",
+				"qwen3-8-omni-flash",
+				"gpt-5-6-luna",
+				"gemini-3-5-flash",
+				"minimax-m3",
+			]),
+		);
+		expect(attempted[6]).toBe("mistral-large-2512");
 	} finally {
 		db.close();
 	}

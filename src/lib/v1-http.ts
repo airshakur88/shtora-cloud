@@ -246,7 +246,7 @@ export async function buildModelList(
 		if (!enabledPlatforms.has(row.platform)) continue;
 		const canonical = canonicalModelId(row.model_id);
 		// Excluded canonicals (e.g. "auto") are virtual routers, not
-		// ordinary models — they are appended below, once each.
+		// ordinary models — they are listed first below, once each.
 		if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
 		const existing = byCanonical.get(canonical);
 		if (existing) {
@@ -264,15 +264,17 @@ export async function buildModelList(
 			});
 		}
 	}
-	const entries: ModelListEntry[] = [...byCanonical.values()];
-	// Curated virtual routers, with the providers of their members that
-	// are present in this listing. A router with no member here is skipped.
+	// Curated virtual routers head the listing: they are the curated entry
+	// points, so they come before the ordinary models. Pagination slices
+	// this combined order, so routers count in the page like any entry.
+	// A router with no member here is skipped.
 	const providersByCanonical = new Map<string, readonly string[]>(
 		[...byCanonical.entries()].map(([canonical, entry]) => [
 			canonical,
 			entry.providers,
 		]),
 	);
+	const routerEntries: ModelListEntry[] = [];
 	for (const router of listingVirtualRouters()) {
 		const providers = virtualRouterProviders(
 			router.members,
@@ -282,7 +284,7 @@ export async function buildModelList(
 			providersByCanonical.has(member),
 		);
 		if (members.length === 0) continue;
-		entries.push({
+		routerEntries.push({
 			id: router.id,
 			name: router.name,
 			description: router.description,
@@ -290,6 +292,7 @@ export async function buildModelList(
 			members,
 		});
 	}
+	const entries: ModelListEntry[] = [...routerEntries, ...byCanonical.values()];
 	const total = entries.length;
 	const page = entries.slice(offset, offset + limit);
 	return {

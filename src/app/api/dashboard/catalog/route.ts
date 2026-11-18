@@ -101,7 +101,7 @@ export async function GET(request: Request): Promise<Response> {
 		for (const row of modelRows.results) {
 			const canonical = canonicalModelId(row.model_id);
 			// Excluded canonicals (e.g. "auto") are virtual routers, not
-			// ordinary models — they are appended below, once each.
+			// ordinary models — they are listed first below, once each.
 			if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
 			const entry = canonicalByModel.get(canonical);
 			if (!entry) {
@@ -128,55 +128,57 @@ export async function GET(request: Request): Promise<Response> {
 			globalKeyCount: number;
 			personalKeyCount: number;
 		}
-		const models: CatalogModelEntry[] = [...canonicalByModel.values()].map(
-			({ row, platforms }) => {
-				const globalKeys = platforms.reduce(
-					(sum, p) => sum + (globalByPlatform.get(p) ?? 0),
-					0,
-				);
-				const personalKeys = platforms.reduce(
-					(sum, p) => sum + (personalByPlatform.get(p) ?? 0),
-					0,
-				);
-				return {
-					id: `shtora/${canonicalModelId(row.model_id)}`,
-					canonical: canonicalModelId(row.model_id),
-					name: displayModelName(
-						row.name,
-						row.platform,
-						providerNameById.get(row.platform),
-					),
-					platform: platforms.join(", "),
-					enabled: row.enabled === 1,
-					supportsTools:
-						platforms.some((p) => {
-							const r = modelRows.results.find(
-								(mr) => mr.platform === p && mr.model_id === row.model_id,
-							);
-							return r?.supports_tools === 1;
-						}) || row.supports_tools === 1,
-					supportsVision:
-						platforms.some((p) => {
-							const r = modelRows.results.find(
-								(mr) => mr.platform === p && mr.model_id === row.model_id,
-							);
-							return r?.supports_vision === 1;
-						}) || row.supports_vision === 1,
-					contextWindow: row.context_window,
-					globalKeyCount: globalKeys,
-					personalKeyCount: personalKeys,
-				};
-			},
-		);
+		const ordinaryModels: CatalogModelEntry[] = [
+			...canonicalByModel.values(),
+		].map(({ row, platforms }) => {
+			const globalKeys = platforms.reduce(
+				(sum, p) => sum + (globalByPlatform.get(p) ?? 0),
+				0,
+			);
+			const personalKeys = platforms.reduce(
+				(sum, p) => sum + (personalByPlatform.get(p) ?? 0),
+				0,
+			);
+			return {
+				id: `shtora/${canonicalModelId(row.model_id)}`,
+				canonical: canonicalModelId(row.model_id),
+				name: displayModelName(
+					row.name,
+					row.platform,
+					providerNameById.get(row.platform),
+				),
+				platform: platforms.join(", "),
+				enabled: row.enabled === 1,
+				supportsTools:
+					platforms.some((p) => {
+						const r = modelRows.results.find(
+							(mr) => mr.platform === p && mr.model_id === row.model_id,
+						);
+						return r?.supports_tools === 1;
+					}) || row.supports_tools === 1,
+				supportsVision:
+					platforms.some((p) => {
+						const r = modelRows.results.find(
+							(mr) => mr.platform === p && mr.model_id === row.model_id,
+						);
+						return r?.supports_vision === 1;
+					}) || row.supports_vision === 1,
+				contextWindow: row.context_window,
+				globalKeyCount: globalKeys,
+				personalKeyCount: personalKeys,
+			};
+		});
 
 		// Curated virtual routers, aggregated over the member rows present
-		// in this listing. A router with no member here is skipped.
+		// in this listing. A router with no member here is skipped. They
+		// head the listing; ordinary models follow.
 		const providersByCanonical = new Map<string, readonly string[]>(
 			[...canonicalByModel.entries()].map(([canonical, entry]) => [
 				canonical,
 				entry.platforms,
 			]),
 		);
+		const routerModels: CatalogModelEntry[] = [];
 		for (const router of listingVirtualRouters()) {
 			const members = router.members.filter((member) =>
 				providersByCanonical.has(member),
@@ -211,7 +213,7 @@ export async function GET(request: Request): Promise<Response> {
 					),
 				);
 			});
-			models.push({
+			routerModels.push({
 				id: router.id,
 				canonical: router.id.slice("shtora/".length),
 				name: router.name,
@@ -230,6 +232,9 @@ export async function GET(request: Request): Promise<Response> {
 				personalKeyCount: personalKeys,
 			});
 		}
+
+		// Virtual routers head the listing; ordinary models follow.
+		const models: CatalogModelEntry[] = [...routerModels, ...ordinaryModels];
 
 		return Response.json(
 			{ providers, models },

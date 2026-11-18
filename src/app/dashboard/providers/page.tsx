@@ -10,6 +10,14 @@ import {
 } from "react";
 import { Button } from "@/components/ui/button";
 import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from "@/components/ui/combobox";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -61,10 +69,6 @@ interface KeyForm {
 	keyLabel: string;
 	baseUrl: string;
 	keyless: boolean;
-	rpmLimit: string;
-	tpmLimit: string;
-	rpdLimit: string;
-	tpdLimit: string;
 }
 
 const emptyForm: KeyForm = {
@@ -73,6 +77,22 @@ const emptyForm: KeyForm = {
 	keyLabel: "",
 	baseUrl: "",
 	keyless: false,
+};
+
+interface ProviderForm {
+	name: string;
+	id: string;
+	baseUrl: string;
+	rpmLimit: string;
+	tpmLimit: string;
+	rpdLimit: string;
+	tpdLimit: string;
+}
+
+const emptyProviderForm: ProviderForm = {
+	name: "",
+	id: "",
+	baseUrl: "",
 	rpmLimit: "",
 	tpmLimit: "",
 	rpdLimit: "",
@@ -120,15 +140,10 @@ export default function DashboardProvidersPage() {
 	const [activeTab, setActiveTab] = useState<"overview" | "keys">("overview");
 	const [search, setSearch] = useState("");
 	const [actionError, setActionError] = useState<string | null>(null);
-	// Edit-limits dialog state. Values are the stored limits as text; blank
-	// means "provider default" when saved.
-	const [limitsKey, setLimitsKey] = useState<ApiKeyResponse | null>(null);
-	const [limitsForm, setLimitsForm] = useState({
-		rpmLimit: "",
-		tpmLimit: "",
-		rpdLimit: "",
-		tpdLimit: "",
-	});
+	const [providerForm, setProviderForm] =
+		useState<ProviderForm>(emptyProviderForm);
+	const [providerFormOpen, setProviderFormOpen] = useState(false);
+	const [providerSubmitting, setProviderSubmitting] = useState(false);
 
 	const loadProviders = useCallback(async (signal?: AbortSignal) => {
 		try {
@@ -248,17 +263,6 @@ export default function DashboardProvidersPage() {
 		if (form.keyLabel.trim()) body.keyLabel = form.keyLabel.trim();
 		if (form.platform === "custom" && form.baseUrl.trim())
 			body.baseUrl = form.baseUrl.trim();
-		// Blank limits mean "provider default": the backend fills the
-		// provider catalog value into the new key.
-		for (const field of [
-			"rpmLimit",
-			"tpmLimit",
-			"rpdLimit",
-			"tpdLimit",
-		] as const) {
-			const parsed = formatLimitInput(form[field]);
-			if (parsed !== null) body[field] = parsed;
-		}
 		try {
 			const response = await fetch("/api/keys", {
 				method: "POST",
@@ -346,64 +350,55 @@ export default function DashboardProvidersPage() {
 		}
 	}
 
-	function openLimitsEditor(key: ApiKeyResponse) {
-		setLimitsKey(key);
-		setLimitsForm({
-			rpmLimit:
-				key.rpmLimit !== null && key.rpmLimit !== undefined
-					? String(key.rpmLimit)
-					: "",
-			tpmLimit:
-				key.tpmLimit !== null && key.tpmLimit !== undefined
-					? String(key.tpmLimit)
-					: "",
-			rpdLimit:
-				key.rpdLimit !== null && key.rpdLimit !== undefined
-					? String(key.rpdLimit)
-					: "",
-			tpdLimit:
-				key.tpdLimit !== null && key.tpdLimit !== undefined
-					? String(key.tpdLimit)
-					: "",
-		});
-		setActionError(null);
-	}
-
-	async function saveLimits(event: FormEvent<HTMLFormElement>) {
+	async function submitProvider(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!limitsKey || submitting) return;
-		setSubmitting(true);
+		if (providerSubmitting) return;
+		setProviderSubmitting(true);
 		setActionError(null);
+		const body: Record<string, string | number> = {
+			name: providerForm.name.trim(),
+			id: providerForm.id.trim(),
+			baseUrl: providerForm.baseUrl.trim(),
+		};
+		// Blank limits stay unset for the provider; keys for it fall back
+		// to the gateway default.
+		for (const field of [
+			"rpmLimit",
+			"tpmLimit",
+			"rpdLimit",
+			"tpdLimit",
+		] as const) {
+			const parsed = formatLimitInput(providerForm[field]);
+			if (parsed !== null) body[field] = parsed;
+		}
 		try {
-			const response = await fetch(`/api/keys/${limitsKey.id}`, {
-				method: "PATCH",
+			const response = await fetch("/api/providers", {
+				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					enabled: limitsKey.enabled,
-					rpmLimit: formatLimitInput(limitsForm.rpmLimit),
-					tpmLimit: formatLimitInput(limitsForm.tpmLimit),
-					rpdLimit: formatLimitInput(limitsForm.rpdLimit),
-					tpdLimit: formatLimitInput(limitsForm.tpdLimit),
-				}),
+				body: JSON.stringify(body),
 			});
 			const result: unknown = await response.json().catch(() => null);
 			if (!response.ok) {
-				setActionError(apiErrorMessage(result, "Could not update key limits."));
+				setActionError(apiErrorMessage(result, "Could not add the provider."));
 				return;
 			}
 			toast.add({
-				title: "Limits updated",
-				description: "Key limits saved.",
+				title: "Provider added",
+				description:
+					"The provider is now in the list. Add a key for it under Provider Keys.",
 				type: "success",
 			});
-			setLimitsKey(null);
-			await loadKeys();
+			setProviderForm(emptyProviderForm);
+			setProviderFormOpen(false);
+			await loadProviders();
 		} catch (cause) {
 			setActionError(
-				cause instanceof Error ? cause.message : "Could not update limits.",
+				cause instanceof Error
+					? cause.message
+					: "Network error. Check your connection.",
 			);
 		} finally {
-			setSubmitting(false);
+			setProviderSubmitting(false);
 		}
 	}
 
@@ -423,6 +418,11 @@ export default function DashboardProvidersPage() {
 				</TabsList>
 
 				<TabsContent value="overview" className="mt-6">
+					<div className="mb-4 flex items-center justify-end">
+						<Button onClick={() => setProviderFormOpen(true)}>
+							Add Provider
+						</Button>
+					</div>
 					{providers === null ? (
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 							{[1, 2, 3].map((row) => (
@@ -507,26 +507,43 @@ export default function DashboardProvidersPage() {
 									<div className="grid gap-4 py-4">
 										<div className="space-y-2">
 											<Label htmlFor="platform">Provider</Label>
-											<Input
-												id="platform"
-												list="providers"
+											<Combobox
+												// The items prop is what Base UI filters:
+												// without it the filtered list is always
+												// empty. Value is the provider id; the
+												// input shows the provider name.
+												items={[...providersCatalog.map((p) => p.id), "custom"]}
 												value={form.platform}
-												onChange={(e) =>
-													setForm({
-														...form,
-														platform: e.target.value,
-													})
+												itemToStringLabel={(value) =>
+													value === "custom"
+														? "Custom endpoint"
+														: (providersCatalog.find((p) => p.id === value)
+																?.name ?? String(value))
 												}
-												placeholder="Select provider"
-												required
-											/>
-											<datalist id="providers">
-												{providersCatalog.map((p) => (
-													<option key={p.id} value={p.id}>
-														{p.name}
-													</option>
-												))}
-											</datalist>
+												onValueChange={(value) => {
+													if (typeof value !== "string") return;
+													setForm({ ...form, platform: value });
+												}}
+											>
+												<ComboboxInput
+													id="platform"
+													placeholder="Select provider"
+													className="w-full"
+												/>
+												<ComboboxContent>
+													<ComboboxList>
+														{(id: string) => (
+															<ComboboxItem key={id} value={id}>
+																{id === "custom"
+																	? "Custom endpoint"
+																	: (providersCatalog.find((p) => p.id === id)
+																			?.name ?? id)}
+															</ComboboxItem>
+														)}
+													</ComboboxList>
+													<ComboboxEmpty>No providers found</ComboboxEmpty>
+												</ComboboxContent>
+											</Combobox>
 										</div>
 										{!form.keyless && (
 											<div className="space-y-2">
@@ -597,37 +614,6 @@ export default function DashboardProvidersPage() {
 												placeholder="e.g. Production Key"
 											/>
 										</div>
-										<div className="space-y-2">
-											<p className="text-sm font-medium">Limits (optional)</p>
-											<p className="text-xs text-muted-foreground">
-												Blank uses the provider default. The limit applies per
-												model using this key.
-											</p>
-											<div className="grid grid-cols-2 gap-3">
-												{(
-													[
-														["rpmLimit", "Requests / minute"],
-														["tpmLimit", "Tokens / minute"],
-														["rpdLimit", "Requests / day"],
-														["tpdLimit", "Tokens / day"],
-													] as const
-												).map(([field, label]) => (
-													<div key={field} className="space-y-1">
-														<Label htmlFor={`add-${field}`}>{label}</Label>
-														<InputNumber
-															id={`add-${field}`}
-															value={form[field]}
-															onValueChange={(value) =>
-																setForm({ ...form, [field]: value ?? "" })
-															}
-															minValue={0}
-															maxValue={10_000_000}
-															placeholder="Default"
-														/>
-													</div>
-												))}
-											</div>
-										</div>
 										{form.platform === "custom" && (
 											<div className="space-y-2">
 												<Label htmlFor="baseUrl">Base URL</Label>
@@ -678,51 +664,99 @@ export default function DashboardProvidersPage() {
 							</DialogContent>
 						</Dialog>
 
-						<Dialog
-							open={limitsKey !== null}
-							onOpenChange={(open) => {
-								if (!open) setLimitsKey(null);
-							}}
-						>
+						<Dialog open={providerFormOpen} onOpenChange={setProviderFormOpen}>
 							<DialogContent className="sm:max-w-lg">
 								<DialogHeader>
-									<DialogTitle>Edit key limits</DialogTitle>
+									<DialogTitle>Add Provider</DialogTitle>
 									<DialogDescription>
-										{limitsKey
-											? `${limitsKey.keyLabel || "Unnamed key"} · ${limitsKey.platform}`
-											: ""}
-										. Blank uses the provider default. The limit applies per
-										model using this key.
+										Add a provider to the catalog with its base URL and optional
+										limits. Keys for it use the provider limits.
 									</DialogDescription>
 								</DialogHeader>
-								<form onSubmit={saveLimits}>
+								<form onSubmit={submitProvider}>
 									<div className="grid gap-4 py-4">
-										<div className="grid grid-cols-2 gap-3">
-											{(
-												[
-													["rpmLimit", "Requests / minute"],
-													["tpmLimit", "Tokens / minute"],
-													["rpdLimit", "Requests / day"],
-													["tpdLimit", "Tokens / day"],
-												] as const
-											).map(([field, label]) => (
-												<div key={field} className="space-y-1">
-													<Label htmlFor={`edit-${field}`}>{label}</Label>
-													<InputNumber
-														id={`edit-${field}`}
-														value={limitsForm[field]}
-														onValueChange={(value) =>
-															setLimitsForm({
-																...limitsForm,
-																[field]: value ?? "",
-															})
-														}
-														minValue={0}
-														maxValue={10_000_000}
-														placeholder="Provider default"
-													/>
-												</div>
-											))}
+										<div className="space-y-2">
+											<Label htmlFor="provider-name">Name</Label>
+											<Input
+												id="provider-name"
+												value={providerForm.name}
+												onChange={(e) =>
+													setProviderForm({
+														...providerForm,
+														name: e.target.value,
+													})
+												}
+												placeholder="Acme AI"
+												required
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="provider-id">Provider ID</Label>
+											<Input
+												id="provider-id"
+												value={providerForm.id}
+												onChange={(e) =>
+													setProviderForm({
+														...providerForm,
+														id: e.target.value,
+													})
+												}
+												placeholder="acme"
+												required
+											/>
+											<p className="text-xs text-muted-foreground">
+												Lowercase letters, numbers, dots, dashes and
+												underscores.
+											</p>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="provider-base-url">Base URL</Label>
+											<Input
+												id="provider-base-url"
+												value={providerForm.baseUrl}
+												onChange={(e) =>
+													setProviderForm({
+														...providerForm,
+														baseUrl: e.target.value,
+													})
+												}
+												placeholder="https://api.example.com/v1"
+												required
+											/>
+										</div>
+										<div className="space-y-2">
+											<p className="text-sm font-medium">Limits (optional)</p>
+											<p className="text-xs text-muted-foreground">
+												Blank leaves the limit unset for this provider. The
+												limit applies per model using a key for this provider.
+											</p>
+											<div className="grid grid-cols-2 gap-3">
+												{(
+													[
+														["rpmLimit", "Requests / minute"],
+														["tpmLimit", "Tokens / minute"],
+														["rpdLimit", "Requests / day"],
+														["tpdLimit", "Tokens / day"],
+													] as const
+												).map(([field, label]) => (
+													<div key={field} className="space-y-1">
+														<Label htmlFor={`provider-${field}`}>{label}</Label>
+														<InputNumber
+															id={`provider-${field}`}
+															value={providerForm[field]}
+															onValueChange={(value) =>
+																setProviderForm({
+																	...providerForm,
+																	[field]: value ?? "",
+																})
+															}
+															minValue={0}
+															maxValue={10_000_000}
+															placeholder="No limit"
+														/>
+													</div>
+												))}
+											</div>
 										</div>
 										{actionError && (
 											<p className="text-sm text-destructive">{actionError}</p>
@@ -732,18 +766,26 @@ export default function DashboardProvidersPage() {
 										<Button
 											type="button"
 											variant="outline"
-											onClick={() => setLimitsKey(null)}
+											onClick={() => setProviderFormOpen(false)}
 										>
 											Cancel
 										</Button>
-										<Button type="submit" disabled={submitting}>
-											{submitting ? (
+										<Button
+											type="submit"
+											disabled={
+												providerSubmitting ||
+												!providerForm.name.trim() ||
+												!providerForm.id.trim() ||
+												!providerForm.baseUrl.trim()
+											}
+										>
+											{providerSubmitting ? (
 												<>
 													<LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
 													Saving...
 												</>
 											) : (
-												"Save limits"
+												"Add Provider"
 											)}
 										</Button>
 									</DialogFooter>
@@ -983,11 +1025,6 @@ export default function DashboardProvidersPage() {
 																		</Button>
 																	</DropdownMenuTrigger>
 																	<DropdownMenuContent align="end">
-																		<DropdownMenuItem
-																			onClick={() => openLimitsEditor(key)}
-																		>
-																			Edit limits
-																		</DropdownMenuItem>
 																		<DropdownMenuItem
 																			onClick={() =>
 																				void handleToggleKey(

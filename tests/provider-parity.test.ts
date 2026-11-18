@@ -1109,7 +1109,7 @@ test("Moondream forwards inline vision over its OpenAI-compatible transport", as
 	expect(result.choices[0].message.content).toBe("looks like a cat");
 });
 
-test("routing skips a provider model that cannot accept requested tools", async () => {
+test("routing rejects a direct request for a model that cannot accept requested tools", async () => {
 	const db = await createParityDatabase();
 	let calls = 0;
 	mockFetch(() => {
@@ -1173,15 +1173,22 @@ test("routing skips a provider model that cannot accept requested tools", async 
 			},
 		});
 
-		expect(result.response.status).toBe(200);
-		expect(result.modelId).toBe("model-tools");
-		expect(calls).toBe(1);
+		// The request names one model and that model cannot take tools:
+		// a different model that can is not a substitute.
+		const body = (await result.response.json()) as {
+			error: { message: string };
+		};
+		expect(result.response.status).toBe(404);
+		expect(body.error.message).toBe(
+			"Requested model does not support the requested features",
+		);
+		expect(calls).toBe(0);
 	} finally {
 		db.close();
 	}
 });
 
-test("routing skips models that cannot accept inline vision", async () => {
+test("routing rejects a direct request for a model that cannot accept inline vision", async () => {
 	const db = await createParityDatabase();
 	const googleModel = {
 		id: "gemini-vision-fixture",
@@ -1268,12 +1275,14 @@ test("routing skips models that cannot accept inline vision", async () => {
 				],
 			},
 		});
-		expect(result.response.status).toBe(200);
-		expect(result.platform).toBe("google");
-		expect(result.modelId).toBe(googleModel.id);
-		expect(urls).toEqual([
-			`https://generativelanguage.googleapis.com/v1beta/models/${googleModel.id}:generateContent`,
-		]);
+		expect(result.response.status).toBe(404);
+		const body = (await result.response.json()) as {
+			error: { message: string };
+		};
+		expect(body.error.message).toBe(
+			"Requested model does not support the requested features",
+		);
+		expect(urls).toEqual([]);
 	} finally {
 		db.close();
 	}

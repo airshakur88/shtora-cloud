@@ -59,7 +59,7 @@ afterAll(() => {
 	globalThis.fetch = originalFetch;
 });
 
-test("429 fails over and records isolated provider usage and cooldowns", async () => {
+test("429 on a direct model returns 502 instead of serving a different model", async () => {
 	const db = await createParityDatabase();
 	try {
 		await seedDb(db);
@@ -102,32 +102,39 @@ test("429 fails over and records isolated provider usage and cooldowns", async (
 				messages: [{ role: "user", content: "hi" }],
 			},
 		});
+		const body = (await result.response.json()) as {
+			error: { code: string; message: string };
+		};
 		const cooldowns = await db
 			.prepare(
 				"SELECT failure_count, cooldown_until_ms FROM provider_rate_limit_cooldowns",
 			)
 			.all<{ failure_count: number; cooldown_until_ms: number }>();
 		const requests = await db
-			.prepare("SELECT status FROM provider_requests ORDER BY id")
-			.all<{ status: string }>();
+			.prepare("SELECT status, model_routed FROM provider_requests ORDER BY id")
+			.all<{ status: string; model_routed: string }>();
 		const usage = await db
 			.prepare(
 				"SELECT kind, tokens FROM provider_rate_limit_usage ORDER BY rowid",
 			)
 			.all<{ kind: string; tokens: number | null }>();
 
-		expect(result.response.status).toBe(200);
-		expect(result.modelId).toBe("model-b");
-		expect(calls).toBe(2);
+		// A direct request names one model: a 429 on its only key is a
+		// 502, and model-b is never attempted.
+		expect(result.response.status).toBe(502);
+		expect(body.error.code).toBe("all_providers_failed");
+		expect(body.error.message).toBe(
+			"All configured upstream providers are unavailable.",
+		);
+		expect(calls).toBe(1);
 		expect(cooldowns.results).toHaveLength(1);
 		expect(cooldowns.results[0].failure_count).toBe(1);
 		expect(cooldowns.results[0].cooldown_until_ms).toBeGreaterThan(Date.now());
-		expect(requests.results.map((row) => row.status)).toEqual([
-			"rate_limited",
-			"success",
+		expect(requests.results.map((row) => row.status)).toEqual(["rate_limited"]);
+		expect(requests.results.map((row) => row.model_routed)).toEqual([
+			"model-a",
 		]);
-		expect(usage.results.map((row) => row.kind)).toEqual(["request", "tokens"]);
-		expect(usage.results[1].tokens).toBe(15);
+		expect(usage.results).toHaveLength(0);
 	} finally {
 		db.close();
 	}
@@ -137,8 +144,11 @@ test("upstream exhaustion returns generic 502 and records each failed attempt", 
 	const db = await createParityDatabase();
 	try {
 		await seedDb(db);
-		fetchImpl = async () =>
-			new Response("internal upstream detail", { status: 500 });
+		let calls = 0;
+		fetchImpl = async () => {
+			calls += 1;
+			return new Response("internal upstream detail", { status: 500 });
+		};
 		const result = await routeChatCompletion({
 			db,
 			secret: SECRET,
@@ -153,24 +163,34 @@ test("upstream exhaustion returns generic 502 and records each failed attempt", 
 		};
 		const requests = await db
 			.prepare(
-				"SELECT status, error_message FROM provider_requests ORDER BY id",
+				"SELECT status, error_message, model_routed FROM provider_requests ORDER BY id",
 			)
-			.all<{ status: string; error_message: string }>();
+			.all<{
+				status: string;
+				error_message: string;
+				model_routed: string;
+			}>();
 		expect(result.response.status).toBe(502);
 		expect(body.error.code).toBe("all_providers_failed");
 		expect(body.error.message).not.toContain("internal upstream detail");
-		expect(requests.results).toHaveLength(2);
+		// Only the requested model is ever attempted: model-b is not a
+		// substitute for a direct request.
+		expect(calls).toBe(1);
+		expect(requests.results).toHaveLength(1);
 		expect(
 			requests.results.every(
 				(row) => row.status === "error" && row.error_message === "Upstream 500",
 			),
 		).toBe(true);
+		expect(requests.results.map((row) => row.model_routed)).toEqual([
+			"model-a",
+		]);
 	} finally {
 		db.close();
 	}
 });
 
-test("upstream 400 continues failover without exposing response details", async () => {
+test("upstream 400 on a direct model returns 502 instead of serving a different model", async () => {
 	const db = await createParityDatabase();
 	try {
 		await seedDb(db);
@@ -210,15 +230,174 @@ test("upstream 400 continues failover without exposing response details", async 
 				messages: [{ role: "user", content: "hi" }],
 			},
 		});
+		const body = (await result.response.json()) as {
+			error: { code: string; message: string };
+		};
+		expect(result.response.status).toBe(502);
+		expect(body.error.code).toBe("all_providers_failed");
+		expect(body.error.message).not.toContain("secret upstream response");
+		expect(calls).toBe(1);
+		const requests = await db
+			.prepare("SELECT status, model_routed FROM provider_requests ORDER BY id")
+			.all<{ status: string; model_routed: string }>();
+		expect(requests.results.map((row) => row.status)).toEqual(["error"]);
+		expect(requests.results.map((row) => row.model_routed)).toEqual([
+			"model-a",
+		]);
+	} finally {
+		db.close();
+	}
+});
+
+test("direct request for a model with no enabled key returns 502 without calling upstream", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db.prepare("DELETE FROM models").run();
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind(USER.id, USER.name, USER.username, USER.passwordHash)
+			.run();
+		await db
+			.prepare(
+				"INSERT INTO models (platform, model_id, name, context_window, intelligence_rank, tier) VALUES (?, ?, ?, ?, ?, ?)",
+			)
+			.bind("groq", "model-a", "Model A", 32768, 1, 1)
+			.run();
+		await db
+			.prepare(
+				"INSERT INTO models (platform, model_id, name, context_window, intelligence_rank, tier) VALUES (?, ?, ?, ?, ?, ?)",
+			)
+			.bind("anthropic", "model-nokey", "No Key Model", 32768, 1, 1)
+			.run();
+		await createApiKey(
+			db,
+			{
+				userId: USER.id,
+				platform: "groq",
+				keyLabel: "test",
+				rawKey: "sk-test-upstream-key",
+			},
+			SECRET,
+		);
+		let calls = 0;
+		fetchImpl = async () => {
+			calls += 1;
+			return new Response("must not be called", { status: 200 });
+		};
+		const result = await routeChatCompletion({
+			db,
+			secret: SECRET,
+			user: USER,
+			request: {
+				model: "anthropic/model-nokey",
+				messages: [{ role: "user", content: "hi" }],
+			},
+		});
+		const body = (await result.response.json()) as {
+			error: { code: string; message: string };
+		};
+		const requests = await db
+			.prepare("SELECT model_routed FROM provider_requests")
+			.all<{ model_routed: string }>();
+		// model-a has a key and would have answered; a direct request for
+		// model-nokey must not be served by it.
+		expect(result.response.status).toBe(502);
+		expect(body.error.code).toBe("all_providers_failed");
+		expect(body.error.message).toBe(
+			"All configured upstream providers are unavailable.",
+		);
+		expect(calls).toBe(0);
+		expect(requests.results).toHaveLength(0);
+	} finally {
+		db.close();
+	}
+});
+
+test("router request still fails over between members", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db.prepare("DELETE FROM models").run();
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind(USER.id, USER.name, USER.username, USER.passwordHash)
+			.run();
+		for (const [modelId, name, rank] of [
+			["qwen3-coder-plus", "Qwen3 Coder Plus", 1],
+			["qwen3-8-max", "Qwen3 8 Max", 2],
+		] as const) {
+			await db
+				.prepare(
+					"INSERT INTO models (platform, model_id, name, context_window, intelligence_rank, tier, supports_tools, supports_vision) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
+				)
+				.bind("groq", modelId, name, 32768, rank, 1)
+				.run();
+		}
+		await createApiKey(
+			db,
+			{
+				userId: USER.id,
+				platform: "groq",
+				keyLabel: "test",
+				rawKey: "sk-test-upstream-key",
+			},
+			SECRET,
+		);
+		let calls = 0;
+		const attempted: string[] = [];
+		fetchImpl = async (_input, init) => {
+			calls += 1;
+			let model = "echo";
+			try {
+				const body = JSON.parse(String(init?.body ?? "{}")) as {
+					model?: string;
+				};
+				if (body.model) model = body.model;
+			} catch {
+				// Keep the fallback model.
+			}
+			attempted.push(model);
+			if (calls === 1) return new Response("boom", { status: 500 });
+			return new Response(
+				JSON.stringify({
+					id: "ok",
+					object: "chat.completion",
+					created: 0,
+					model,
+					choices: [
+						{
+							index: 0,
+							message: { role: "assistant", content: "ok" },
+							finish_reason: "stop",
+						},
+					],
+					usage: {
+						prompt_tokens: 10,
+						completion_tokens: 5,
+						total_tokens: 15,
+					},
+				}),
+				{ status: 200, headers: { "Content-Type": "application/json" } },
+			);
+		};
+		const result = await routeChatCompletion({
+			db,
+			secret: SECRET,
+			user: USER,
+			request: {
+				model: "shtora/coding",
+				messages: [{ role: "user", content: "hi" }],
+			},
+		});
 		expect(result.response.status).toBe(200);
 		expect(calls).toBe(2);
-		const requests = await db
-			.prepare("SELECT status FROM provider_requests ORDER BY id")
-			.all<{ status: string }>();
-		expect(requests.results.map((row) => row.status)).toEqual([
-			"error",
-			"success",
-		]);
+		expect(["qwen3-coder-plus", "qwen3-8-max"]).toContain(result.modelId);
+		expect(new Set(attempted)).toEqual(
+			new Set(["qwen3-coder-plus", "qwen3-8-max"]),
+		);
 	} finally {
 		db.close();
 	}

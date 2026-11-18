@@ -1,4 +1,5 @@
 import { expect, mock, test } from "bun:test";
+import { createApiKey } from "../src/lib/key-store";
 import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
@@ -141,4 +142,94 @@ test("GET /v1/models without a key still returns 401", async () => {
 	const request = new Request("http://localhost/v1/models");
 	const response = await v1Models.GET(request);
 	expect(response.status).toBe(401);
+});
+
+interface ModelListResponse {
+	object: string;
+	data: Array<{ id: string }>;
+	has_more: boolean;
+}
+
+async function getModels(
+	token: string,
+	query = "",
+): Promise<ModelListResponse> {
+	const response = await v1Models.GET(
+		new Request(`http://localhost/v1/models${query}`, {
+			headers: { Authorization: `Bearer ${token}` },
+		}),
+	);
+	expect(response.status).toBe(200);
+	return (await response.json()) as ModelListResponse;
+}
+
+test("GET /v1/models lists virtual routers before ordinary models", async () => {
+	db = await createParityDatabase();
+	await db.prepare("DELETE FROM models").run();
+	await db
+		.prepare(
+			"INSERT INTO user (id,name,username,password_hash) VALUES ('u1','Test User','testuser','unused')",
+		)
+		.run();
+	for (const [modelId, name] of [
+		["llama-4", "Llama 4"],
+		["gpt-4o", "GPT-4o"],
+		["qwen3-coder-plus", "Qwen3 Coder Plus"],
+		["qwen3-8-max", "Qwen3 8 Max"],
+		["gpt-5-4-mini", "GPT 5.4 Mini"],
+	] as const) {
+		await db
+			.prepare(
+				"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq',?,?,32768,1,1,1)",
+			)
+			.bind(modelId, name)
+			.run();
+	}
+	const key = await createApiKey(
+		db,
+		{
+			userId: "u1",
+			platform: "groq",
+			keyLabel: "test",
+			rawKey: "sk-test-models-order",
+		},
+		SECRET,
+	);
+	if (!key.unifiedToken) throw new Error("createApiKey did not return a token");
+	const token = key.unifiedToken;
+
+	// Routers present: auto, coding, smart, vision, 3d. Fast has no member
+	// here, so it stays out of the listing.
+	const body = await getModels(token);
+	expect(body.object).toBe("list");
+	const ids = body.data.map((model) => model.id);
+	expect(ids.slice(0, 5)).toEqual([
+		"shtora/auto",
+		"shtora/coding",
+		"shtora/smart",
+		"shtora/vision",
+		"shtora/3d",
+	]);
+	// Ordinary models follow, in canonical order.
+	expect(ids.slice(5)).toEqual([
+		"shtora/gpt-4o",
+		"shtora/gpt-5-4-mini",
+		"shtora/llama-4",
+		"shtora/qwen3-8-max",
+		"shtora/qwen3-coder-plus",
+	]);
+	expect(body.has_more).toBe(false);
+
+	// Pagination counts routers in the page: limit=2 returns only routers.
+	const firstPage = await getModels(token, "?limit=2");
+	expect(firstPage.data.map((model) => model.id)).toEqual([
+		"shtora/auto",
+		"shtora/coding",
+	]);
+	expect(firstPage.has_more).toBe(true);
+
+	// Offset past the routers returns ordinary models only.
+	const rest = await getModels(token, "?limit=100&offset=5");
+	expect(rest.data.map((model) => model.id)).toEqual(ids.slice(5));
+	expect(rest.has_more).toBe(false);
 });

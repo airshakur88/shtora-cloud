@@ -245,6 +245,55 @@ test("response includes Cache-Control: private, no-store", async () => {
 	expect(response.headers.get("Cache-Control")).toBe("private, no-store");
 });
 
+test("virtual routers come before ordinary models", async () => {
+	// Members for auto, coding, smart, vision and 3d. Fast has no member
+	// here, so it stays out of the listing.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','qwen3-coder-plus','Qwen3 Coder Plus',32768,1,1,1)",
+		)
+		.run();
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','qwen3-8-max','Qwen3 8 Max',32768,1,1,1)",
+		)
+		.run();
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','gpt-5-4-mini','GPT 5.4 Mini',32768,1,1,1)",
+		)
+		.run();
+
+	const body = await getCatalog();
+	const ids = body.models.map((m) => m.id);
+
+	// Routers head the listing, in listing order.
+	expect(ids.slice(0, 5)).toEqual([
+		"shtora/auto",
+		"shtora/coding",
+		"shtora/smart",
+		"shtora/vision",
+		"shtora/3d",
+	]);
+	// Every ordinary model follows every router.
+	const routerIds = new Set(ids.slice(0, 5));
+	const lastRouter = Math.max(
+		...ids.map((id, index) => (routerIds.has(id) ? index : -1)),
+	);
+	const firstOrdinary = ids.findIndex((id) => !routerIds.has(id));
+	expect(lastRouter).toBeGreaterThan(-1);
+	expect(firstOrdinary).toBeGreaterThan(lastRouter);
+	expect(ids.slice(firstOrdinary)).toEqual(
+		expect.arrayContaining([
+			"shtora/llama-4",
+			"shtora/gpt-4o",
+			"shtora/qwen3-coder-plus",
+			"shtora/qwen3-8-max",
+			"shtora/gpt-5-4-mini",
+		]),
+	);
+});
+
 test("excludes shtora/auto as an ordinary model and lists virtual routers", async () => {
 	// Upstream auto row must never appear as an ordinary model.
 	await db

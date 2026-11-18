@@ -14,7 +14,7 @@ import {
 	getProviderConfig,
 	normalizeProviderKey,
 } from "@/lib/provider-catalog";
-import { isPrivateEndpointHost } from "@/lib/providers/public-url";
+import { isValidCustomBaseUrl } from "@/lib/providers/public-url";
 import { requireUser } from "@/lib/session";
 import type { KeyInput } from "@/lib/types";
 
@@ -147,23 +147,8 @@ export async function POST(request: Request): Promise<Response> {
 		const rpdLimit = parsedLimits.rpdLimit ?? catalogLimits?.rpdLimit ?? null;
 		const tpdLimit = parsedLimits.tpdLimit ?? catalogLimits?.tpdLimit ?? null;
 
-		if (normalizedBaseUrl) {
-			let parsedUrl: URL;
-			try {
-				parsedUrl = new URL(normalizedBaseUrl);
-			} catch {
-				return validationError("Invalid request");
-			}
-			if (
-				parsedUrl.protocol !== "https:" ||
-				parsedUrl.username ||
-				parsedUrl.password ||
-				parsedUrl.search ||
-				parsedUrl.hash ||
-				isPrivateEndpointHost(parsedUrl.hostname)
-			) {
-				return validationError("Invalid request");
-			}
+		if (normalizedBaseUrl && !isValidCustomBaseUrl(normalizedBaseUrl)) {
+			return validationError("Invalid request");
 		}
 		if ((await countApiKeysForUser(db, user.id)) >= MAX_API_KEYS_PER_USER)
 			return Response.json(

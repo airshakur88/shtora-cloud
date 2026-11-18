@@ -129,6 +129,24 @@ export const VIRTUAL_ROUTERS: Record<string, VirtualRouter> = {
 export const VIRTUAL_ROUTER_IDS: readonly string[] =
 	Object.keys(VIRTUAL_ROUTERS);
 
+/**
+ * Curated fallback chain for virtual router requests, best first.
+ *
+ * When every member of a virtual router fails, the router tries these
+ * models before giving up. Each one exists in the catalog with tool
+ * calling and vision, and the list spreads across providers
+ * (ElectronHub, xKiro, Google, Anthropic) so one provider outage does
+ * not kill the fallback. A model that is also a member of the requested
+ * router is attempted as a member, never twice as fallback.
+ */
+export const VIRTUAL_ROUTER_FALLBACK_MODELS: readonly string[] = [
+	"gpt-5-4-mini",
+	"gpt-5-6-luna",
+	"mistral-large-2512",
+	"gemini-3-5-flash",
+	"claude-sonnet-5-5",
+];
+
 /** Normalize a requested bare name (with or without the shtora/ prefix). */
 function normalizeBare(bare: string): string {
 	let value = bare.toLowerCase().trim();

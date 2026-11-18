@@ -711,6 +711,35 @@ test("forward catalog migration preserves active enabled state and frozen histor
 	});
 });
 
+test("direct native request with a failing key returns 502 without serving another model", async () => {
+	let calls = 0;
+	upstream((url) => {
+		calls++;
+		expect(url).toBe("https://api.groq.com/openai/v1/chat/completions");
+		return new Response("failure", { status: 500 });
+	});
+	const response = await POST(request(input));
+	expect(response.status).toBe(502);
+	expect(calls).toBe(1);
+});
+
+test("direct native request with no key for its model returns 502 without calling upstream", async () => {
+	let calls = 0;
+	upstream(() => {
+		calls++;
+		return completion();
+	});
+	const response = await POST(
+		request({
+			...input,
+			model: "anthropic/claude-opus-5-5",
+			thinking: { type: "adaptive" },
+		}),
+	);
+	expect(response.status).toBe(502);
+	expect(calls).toBe(0);
+});
+
 test("unknown native IDs return404, explicit IDs stay pinned, auto alone uses the pool", async () => {
 	let calls = 0;
 	upstream(() => {

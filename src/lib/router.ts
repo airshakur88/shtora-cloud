@@ -46,7 +46,11 @@ import type {
 	D1Database,
 	ProviderCatalog,
 } from "./types";
-import { getVirtualRouter, isVirtualRouter } from "./virtual-routers";
+import {
+	getVirtualRouter,
+	isVirtualRouter,
+	VIRTUAL_ROUTER_FALLBACK_MODELS,
+} from "./virtual-routers";
 
 // ---------------------------------------------------------------------------
 // Shape
@@ -94,6 +98,11 @@ type Attribution = "provider_moment" | "key_exhausted" | "model_error";
 
 const CHAIN_CAP = 6;
 const UPSTREAM_TIMEOUT_MS = 120_000;
+// Extra attempts reserved for the virtual-router fallback chain
+// (VIRTUAL_ROUTER_FALLBACK_MODELS): one per fallback model. The member
+// phase keeps its CHAIN_CAP budget; once it is spent, a virtual router
+// request may still try fallback models instead of failing outright.
+const FALLBACK_ATTEMPT_CAP = 5;
 // Output tokens reserved when the caller sets no max_tokens. The model
 // may generate up to 100_000 tokens (chat-request.ts), but reserving
 // that for every request would spend the default 200k tpm budget in
@@ -172,30 +181,91 @@ function isMatch(model: RouterModel, requested: string): boolean {
 }
 
 /**
+ * True when the request names one specific model: a bare canonical id,
+ * a `platform/model` id, or `shtora/<model>`. The bare `auto` pool and
+ * the virtual routers are not specific: they exist to fan out, so they
+ * keep the cross-model chain.
+ */
+function isSpecificModelRequest(requested: string): boolean {
+	if (requested === "auto") return false;
+	if (isRouterModel(requested)) {
+		return !isVirtualRouter(stripRouterPrefix(requested));
+	}
+	return true;
+}
+
+/** Canonical id -> position in the curated fallback order. */
+function fallbackCanonicalIndex(
+	fallbackOrder: readonly string[],
+): Map<string, number> {
+	return new Map(
+		fallbackOrder.map((id, index) => [canonicalModelId(id), index]),
+	);
+}
+
+/**
+ * True when a chain row is a fallback row for this request: its
+ * canonical id is in the fallback list and it is not already a match.
+ * A member row that is also listed as fallback is attempted as a
+ * member, under the member budget, never twice.
+ */
+function isFallbackRow(
+	model: RouterModel,
+	requested: string,
+	fallbackIndex: Map<string, number>,
+): boolean {
+	if (fallbackIndex.size === 0) return false;
+	if (isMatch(model, requested)) return false;
+	return fallbackIndex.has(canonicalModelId(model.model_id));
+}
+
+/**
  * Matching model first (by model_id or 'platform/model_id'); the rest ordered
  * by tier asc, intelligence_rank asc with NULLS last, id asc.
+ *
+ * For virtual router requests the curated fallback models sit between
+ * the members and the rest, in curated order (not tier/rank order), so
+ * a dead member cannot push the fallback out of the chain.
  *
  * The scan window is twice the attempt budget: entries past the attempt
  * budget exist only so the loop can skip keyless models and still reach
  * a keyed one — a tier-1 model with no enabled key must not push a
  * keyed tier-1 model out of the chain. Attempts stay capped at
- * CHAIN_CAP; the extra entries are never attempted, only examined.
+ * CHAIN_CAP; the extra entries are never attempted, only examined. For
+ * virtual routers the window grows by the fallback list, so the
+ * fallback models are inside it.
  */
 const CHAIN_SCAN = CHAIN_CAP * 2;
 
-function buildChain(models: RouterModel[], requested: string): RouterModel[] {
+function buildChain(
+	models: RouterModel[],
+	requested: string,
+	fallbackOrder: readonly string[] = [],
+): RouterModel[] {
+	const fallbackIndex = fallbackCanonicalIndex(fallbackOrder);
 	return models
-		.map((model) => ({ model, key: isMatch(model, requested) ? 0 : 1 }))
+		.map((model) => ({
+			model,
+			key: isMatch(model, requested)
+				? 0
+				: fallbackIndex.has(canonicalModelId(model.model_id))
+					? 1
+					: 2,
+		}))
 		.sort(
 			(a, b) =>
 				a.key - b.key ||
+				(a.key === 1
+					? (fallbackIndex.get(canonicalModelId(a.model.model_id)) ?? 0) -
+						(fallbackIndex.get(canonicalModelId(b.model.model_id)) ?? 0)
+					: 0) ||
 				a.model.tier - b.model.tier ||
 				(a.model.intelligence_rank === null ? 1 : 0) -
 					(b.model.intelligence_rank === null ? 1 : 0) ||
 				(a.model.intelligence_rank ?? 0) - (b.model.intelligence_rank ?? 0) ||
 				a.model.id - b.model.id,
 		)
-		.slice(0, CHAIN_SCAN)
+		.slice(0, CHAIN_SCAN + fallbackOrder.length)
 		.map((entry) => entry.model);
 }
 
@@ -253,7 +323,9 @@ function mulberry32(seed: number): () => number {
  * Sampling exploration — and the score is the weighted sum of the
  * samples. The requested model stays pinned at the head of the chain;
  * the rest is re-ordered by score desc (strategy 'priority' keeps chain
- * order).
+ * order). For virtual router requests the curated fallback models stay
+ * pinned right after the matches, in curated order, never re-ordered
+ * by score.
  */
 async function scoreChain(
 	db: D1Database,
@@ -261,6 +333,7 @@ async function scoreChain(
 	strategy: string,
 	requested: string,
 	seed: number,
+	fallbackOrder: readonly string[] = [],
 ): Promise<{ chain: RouterModel[]; scores: Record<string, number> }> {
 	if (strategy === "priority" || chain.length === 0) {
 		return {
@@ -350,13 +423,29 @@ async function scoreChain(
 	// All models matching the request stay pinned at the head of the failover
 	// chain — for shtora/<model> that is every provider exposing the logical
 	// model — so a provider error fails over transparently. Sampling only
-	// reorders the alternatives that follow.
+	// reorders the alternatives that follow. For virtual routers the
+	// curated fallback models follow the matches in curated order, ahead
+	// of the remaining alternatives, so a dead member cannot push the
+	// fallback out of the chain.
+	const fallbackIndex = fallbackCanonicalIndex(fallbackOrder);
 	const matches = scored.filter((entry) => isMatch(entry.model, requested));
-	if (matches.length) {
-		const matchSet = new Set(matches);
-		scored = scored.filter((entry) => !matchSet.has(entry));
-		scored.unshift(...matches);
-	}
+	const fallbackEntries = scored
+		.filter(
+			(entry) =>
+				!isMatch(entry.model, requested) &&
+				fallbackIndex.has(canonicalModelId(entry.model.model_id)),
+		)
+		.sort(
+			(a, b) =>
+				(fallbackIndex.get(canonicalModelId(a.model.model_id)) ?? 0) -
+				(fallbackIndex.get(canonicalModelId(b.model.model_id)) ?? 0),
+		);
+	const rest = scored.filter(
+		(entry) =>
+			!isMatch(entry.model, requested) &&
+			!fallbackIndex.has(canonicalModelId(entry.model.model_id)),
+	);
+	scored = [...matches, ...fallbackEntries, ...rest];
 	return {
 		chain: scored.map((entry) => entry.model),
 		scores: Object.fromEntries(
@@ -585,12 +674,22 @@ async function resolveRequestChain(
 			(!needsVision || model.supports_vision === 1)
 		);
 	});
+	// A request that names one specific model only ever serves rows of
+	// that model: fan-out across the model's providers stays, but a
+	// different model is never a substitute. The bare `auto` pool and
+	// the virtual routers keep the full compatible chain, so their
+	// cross-model failover is untouched. The native filter above already
+	// restricts to matching rows for a specific request; this is the
+	// same restriction for the OpenAI path.
+	const routableModels = isSpecificModelRequest(requested)
+		? compatibleModels.filter((model) => isMatch(model, requested))
+		: compatibleModels;
 	if (native) {
 		const selected = models.filter((model) => isMatch(model, requested));
 		const response =
 			requested !== "auto" && !selected.length
 				? anthropicError("Unknown or disabled model", 404, "not_found_error")
-				: !compatibleModels.length
+				: !routableModels.length
 					? anthropicError(
 							"Requested model cannot preserve these native content blocks or options; token counting and bound state require an explicit model",
 						)
@@ -602,11 +701,9 @@ async function resolveRequestChain(
 		// serving the best-ranked models instead. A request that names
 		// no enabled model is a client error, not a routing
 		// opportunity — answer 404, like the native path already does.
-		// The same applies when the requested model exists but cannot
-		// serve the requested tools/vision and nothing else can
-		// either; when a compatible alternative exists the request
-		// still fails over to it (the skip tests in provider-parity
-		// pin that behaviour).
+		// The same applies when the requested model exists but none of
+		// its rows can serve the requested tools/vision: a compatible
+		// different model is not a substitute for a direct request.
 		if (!models.some((model) => isMatch(model, requested))) {
 			return {
 				earlyResponse: Response.json(
@@ -621,7 +718,7 @@ async function resolveRequestChain(
 				),
 			};
 		}
-		if ((needsTools || needsVision) && compatibleModels.length === 0) {
+		if ((needsTools || needsVision) && routableModels.length === 0) {
 			return {
 				earlyResponse: Response.json(
 					{
@@ -637,7 +734,7 @@ async function resolveRequestChain(
 			};
 		}
 	}
-	return { chain: { compatibleModels, providerConfigs } };
+	return { chain: { compatibleModels: routableModels, providerConfigs } };
 }
 
 export async function routeChatCompletion(args: {
@@ -671,9 +768,16 @@ export async function routeChatCompletion(args: {
 		.bind()
 		.first<{ value: string }>();
 	const strategy = settingRow?.value ?? "balanced";
+	// Virtual router requests carry the curated fallback chain after
+	// their members; direct requests and the bare `auto` pool do not.
+	const fallbackOrder =
+		isRouterModel(requested) && isVirtualRouter(requested)
+			? VIRTUAL_ROUTER_FALLBACK_MODELS
+			: [];
+	const fallbackIndex = fallbackCanonicalIndex(fallbackOrder);
 	const { chain, scores } = await scoreChain(
 		db,
-		buildChain(compatibleModels, requested),
+		buildChain(compatibleModels, requested, fallbackOrder),
 		strategy,
 		requested,
 		// One jitter sequence per request, seeded from the request
@@ -686,17 +790,33 @@ export async function routeChatCompletion(args: {
 				JSON.stringify(request.messages).slice(0, 4096),
 			].join("\n"),
 		),
+		fallbackOrder,
 	);
 	// Fair share of the attempt budget per chain model: one model with
 	// many keys must not consume all CHAIN_CAP attempts before the
-	// other models are tried.
+	// other models are tried. Fallback rows share their own smaller
+	// budget the same way.
 	const maxAttemptsPerModel = Math.max(
 		1,
 		Math.floor(CHAIN_CAP / Math.max(1, chain.length)),
 	);
+	const fallbackRowCount = chain.filter((model) =>
+		isFallbackRow(model, requested, fallbackIndex),
+	).length;
+	const maxFallbackAttemptsPerModel = Math.max(
+		1,
+		Math.floor(FALLBACK_ATTEMPT_CAP / Math.max(1, fallbackRowCount)),
+	);
 	const attemptsByModel = new Map<string, number>();
 
+	// Total attempts, reported to the caller. The member phase
+	// (members + rest) and the fallback phase have separate budgets:
+	// memberAttempts is capped at CHAIN_CAP, fallbackAttempts at
+	// FALLBACK_ATTEMPT_CAP, so a spent member budget never blocks the
+	// fallback rows later in the chain.
 	let attempts = 0;
+	let memberAttempts = 0;
+	let fallbackAttempts = 0;
 	const alternativesTried: string[] = [];
 	const routingDecision = { strategy, scores, alternativesTried };
 	const platformTallies = new Map<string, PlatformTally>();
@@ -710,7 +830,18 @@ export async function routeChatCompletion(args: {
 		estInputTokens + (request.max_tokens ?? DEFAULT_OUTPUT_TOKENS);
 
 	for (const model of chain) {
-		if (attempts >= CHAIN_CAP) break;
+		if (memberAttempts >= CHAIN_CAP && fallbackAttempts >= FALLBACK_ATTEMPT_CAP)
+			break;
+		const isFallback = isFallbackRow(model, requested, fallbackIndex);
+		// A spent member budget skips member and rest rows without
+		// ending the loop, so the fallback rows later in the chain are
+		// still reached; a spent fallback budget skips fallback rows.
+		if (
+			isFallback
+				? fallbackAttempts >= FALLBACK_ATTEMPT_CAP
+				: memberAttempts >= CHAIN_CAP
+		)
+			continue;
 
 		let keys: PlatformKey[] = [];
 		try {
@@ -732,8 +863,16 @@ export async function routeChatCompletion(args: {
 		const verdicts = await verifyModelKeys(db, model, keys, estTokens);
 
 		for (const { key, quarantined, allowed } of verdicts) {
-			if (attempts >= CHAIN_CAP) break;
-			if ((attemptsByModel.get(model.model_id) ?? 0) >= maxAttemptsPerModel)
+			if (
+				isFallback
+					? fallbackAttempts >= FALLBACK_ATTEMPT_CAP
+					: memberAttempts >= CHAIN_CAP
+			)
+				break;
+			if (
+				(attemptsByModel.get(model.model_id) ?? 0) >=
+				(isFallback ? maxFallbackAttemptsPerModel : maxAttemptsPerModel)
+			)
 				break;
 			if (quarantined) continue;
 			if (!allowed) {
@@ -742,6 +881,8 @@ export async function routeChatCompletion(args: {
 			}
 
 			attempts += 1;
+			if (isFallback) fallbackAttempts += 1;
+			else memberAttempts += 1;
 			attemptsByModel.set(
 				model.model_id,
 				(attemptsByModel.get(model.model_id) ?? 0) + 1,
