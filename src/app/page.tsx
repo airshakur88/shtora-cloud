@@ -26,16 +26,14 @@ const keylessProviders = catalog.providers.filter(
 	(provider) => "keyless" in provider && provider.keyless,
 );
 const keylessCount = keylessProviders.length;
-const isFreeModel = (modelId: string) => {
-	const value = modelId.toLowerCase();
-	return value.includes(":free") || value.startsWith("free/");
-};
+// O catálogo espelha o FreeLLMAPI, que só lista modelos gratuitos: o JSON
+// não tem nenhum campo de preço e nenhum modelo pago. Todo modelo do
+// catálogo é gratuito, então a contagem de "gratuitos" é a contagem total
+// de modelos por provedor.
 const freeModelsByProvider = catalog.providers
 	.map((provider) => ({
 		name: provider.name,
-		count: provider.keyless
-			? provider.models.length
-			: provider.models.filter((model) => isFreeModel(model.id)).length,
+		count: provider.models.length,
 	}))
 	.filter((entry) => entry.count > 0)
 	.sort((a, b) => b.count - a.count);
@@ -49,12 +47,12 @@ const capabilities = [
 	{
 		icon: Route,
 		title: "O provedor falhou. Sua integração não precisa mudar.",
-		body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo — o erro nunca chega ao seu cliente. Seleção por prioridade, velocidade ou confiabilidade, com cooldown para chaves com falhas. Use shtora/auto, o roteador curado, para permitir alternativas de modelo — ou shtora/coding para programar.",
+		body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo. Só quando todos falham o cliente recebe um erro 502. O roteador ordena a cadeia pelo desempenho dos últimos 7 dias: taxa de sucesso, latência e qualidade do modelo. Use shtora/auto, o roteador curado, para permitir alternativas de modelo, ou shtora/coding para programar.",
 		tag: "ROTEAMENTO",
 	},
 	{
 		icon: KeyRound,
-		title: "Suas chaves, sem espalhar segredos.",
+		title: "Suas chaves guardadas no gateway.",
 		body: "Credenciais dos provedores criptografadas em repouso. Sua aplicação recebe um token unificado; as chaves de origem continuam no gateway.",
 		tag: "BYOK",
 	},
@@ -66,31 +64,31 @@ const capabilities = [
 	},
 	{
 		icon: SlidersHorizontal,
-		title: "Cota tem limite. Seu gateway sabe disso.",
-		body: "Limites de requisições e tokens por minuto e por dia, configurados por chave. Acompanhe o uso antes de esgotar a cota do provedor.",
+		title: "Limites por chave, no painel.",
+		body: "Limites de requisições e tokens por minuto e por dia, configurados por chave. O painel mostra o uso de cada chave.",
 		tag: "CONTROLE",
 	},
 	{
 		icon: Terminal,
 		title: "Teste o modelo antes de escrever a integração.",
-		body: "Playground com streaming e histórico de sessões. Explore o catálogo, compare capacidades de contexto, visão e ferramentas e escolha o modelo adequado.",
+		body: "Playground com streaming e histórico de sessões. Explore o catálogo e compare contexto, visão e ferramentas de cada modelo.",
 		tag: "PLAYGROUND",
 	},
 	{
 		icon: Unplug,
-		title: "Grátis quando o provedor é grátis.",
-		body: `O catálogo inclui ${freeModelCount} modelos gratuitos em ${freeProviderCount} provedores, como ${freeModelsByProvider
+		title: "Tudo gratuito. Sem versão paga.",
+		body: `O catálogo tem ${freeModelCount} modelos gratuitos em ${freeProviderCount} provedores, como ${freeModelsByProvider
 			.slice(0, 3)
 			.map((entry) => entry.name)
 			.join(
 				", ",
-			)}. ${keylessCount} deles nem pedem chave. Importe e exporte suas chaves; conecte pagos ou use os sem chave.`,
+			)}. ${keylessCount} deles nem pedem chave. Traga suas chaves ou use as da comunidade.`,
 		tag: "SEM CUSTO",
 	},
 	{
 		icon: LockKeyhole,
-		title: "Visibilidade além de \u201cfuncionou\u201d.",
-		body: "Requisições, tokens, falhas, latência, tempo até o primeiro token e economia estimada no painel. Veja também as tentativas de fallback.",
+		title: "Cada requisição registrada.",
+		body: "Requisições, tokens, falhas, latência e tempo até o primeiro token no painel, com as tentativas de fallback.",
 		tag: "OBSERVABILIDADE",
 	},
 ];
@@ -103,7 +101,7 @@ const questions = [
 			.map((provider) => provider.name)
 			.join(
 				", ",
-			)} funcionam sem chave. O catálogo tem ${catalog.providers.length} provedores no total — dá para importar várias chaves de uma vez (export JSON) ou cadastrar uma a uma. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
+			)} funcionam sem chave. O catálogo tem ${catalog.providers.length} provedores, ${freeProviderCount} deles com modelos. Dá para importar várias chaves de uma vez (export JSON) ou cadastrar uma a uma. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
 	},
 	{
 		id: "pool",
@@ -115,7 +113,7 @@ const questions = [
 		id: "models",
 		question: "O fallback pode trocar o modelo que eu escolhi?",
 		answer:
-			'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem — se um falhar, vai para o próximo. Use model: "shtora/auto", o roteador curado, para permitir alternativas entre modelos compatíveis — ou "shtora/coding" para programar. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
+			'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem. Se um falhar, vai para o próximo. Use model: "shtora/auto", o roteador curado, para permitir alternativas entre modelos compatíveis, ou "shtora/coding" para programar. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
 	},
 	{
 		id: "sdk",
@@ -125,8 +123,8 @@ const questions = [
 	},
 	{
 		id: "cost",
-		question: "Usar o gateway elimina o custo dos modelos?",
-		answer: `Não para modelos pagos: planos e cotas continuam sendo de cada provedor. Mas o catálogo já reúne ${freeModelCount} modelos gratuitos em ${freeProviderCount} provedores, então dá para começar sem gastar nada. A economia no painel é estimativa, não desconto garantido.`,
+		question: "Usar o gateway custa alguma coisa?",
+		answer: `Não. O Shtora não cobra nada e todos os ${freeModelCount} modelos do catálogo são gratuitos. Cada provedor aplica os próprios limites da cota gratuita, por requisições e tokens por minuto e por dia. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
 	},
 	{
 		id: "privacy",
@@ -230,9 +228,7 @@ export default async function HomePage() {
 								</span>
 							</h1>
 							<p className="my-6 mb-7 max-w-[580px] text-[17px] leading-[1.75] text-[#aaa6a1] max-[800px]:max-w-[550px] max-[800px]:text-base max-[480px]:text-[15px]">
-								O catálogo reúne {catalog.providers.length} provedores e{" "}
-								{catalog.providers.reduce((s, p) => s + p.models.length, 0)}{" "}
-								modelos — {freeModelCount} deles gratuitos em{" "}
+								O catálogo reúne {freeModelCount} modelos gratuitos em{" "}
 								{freeProviderCount} provedores, incluindo{" "}
 								{keylessProviders.map((provider) => provider.name).join(", ")},
 								que não pedem chave. Modelos canônicos{" "}
@@ -280,10 +276,10 @@ export default async function HomePage() {
 							</div>
 							<div className="border-l border-[#2a2b2e] pl-[34px] max-[800px]:pl-5 max-[480px]:pl-[10px]">
 								<dt className="mb-[5px] text-[13px] text-[#aaa6a1] max-[480px]:text-[11.5px]">
-									Provedores no catálogo
+									Provedores com modelos
 								</dt>
 								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
-									{catalog.providers.length}
+									{freeProviderCount}
 								</dd>
 							</div>
 						</dl>
@@ -298,17 +294,17 @@ export default async function HomePage() {
 					aria-labelledby="features-title"
 				>
 					<div className="mb-10">
-						<p className={EYEBROW}>O GATEWAY TRABALHA NOS BASTIDORES</p>
+						<p className={EYEBROW}>O QUE O GATEWAY FAZ</p>
 						<h2 id="features-title" className={H2}>
 							Construa sua aplicação.
 							<br />
 							<span className="text-[#96928d]">
-								Não outra camada de remendos.
+								Deixe o roteamento com o gateway.
 							</span>
 						</h2>
 						<p className={INTRO_P}>
-							Uma integração para gerenciar o que muda entre provedores, sem
-							esconder o que acontece nas requisições.
+							Uma integração com {freeProviderCount} provedores. O painel mostra
+							cada requisição, cada falha e cada fallback.
 						</p>
 					</div>
 					<div className="grid grid-cols-3 border-t border-l border-[#2a2b2e] max-[800px]:grid-cols-2 max-[480px]:grid-cols-1">
@@ -342,18 +338,17 @@ export default async function HomePage() {
 						className={`grid grid-cols-[0.95fr_1.15fr] items-center gap-14 max-[1100px]:gap-[35px] max-[800px]:grid-cols-1 max-[800px]:gap-[35px] ${WRAP}`}
 					>
 						<div>
-							<p className={EYEBROW}>POR QUE PAGAR ANTES DE TESTAR?</p>
+							<p className={EYEBROW}>GRÁTIS DO INÍCIO AO FIM</p>
 							<h2 id="why-title" className={H2}>
 								Comece de graça.
 								<br />
-								<span className="text-[#96928d]">Depois você escolhe.</span>
+								<span className="text-[#96928d]">Continue de graça.</span>
 							</h2>
 							<p className={INTRO_P}>
 								{freeModelCount} modelos gratuitos em {freeProviderCount}{" "}
 								provedores já funcionam aqui, e toda chave habilitada entra num
-								pool comunitário que soma cota para todo mundo. Quando precisar
-								de mais, a troca de provedor acontece no gateway, não no seu
-								código.
+								pool comunitário que soma cota para todo mundo. Trocar de
+								provedor acontece no gateway, não no seu código.
 							</p>
 							<Link href="/register" className={`${TEXT_LINK} mt-5`}>
 								Centralizar minhas conexões{" "}
@@ -413,7 +408,7 @@ export default async function HomePage() {
 					aria-labelledby="integration-title"
 				>
 					<div>
-						<p className={EYEBROW}>POUCAS LINHAS. OUTRA ROTA.</p>
+						<p className={EYEBROW}>TROQUE A URL, NÃO O SDK</p>
 						<h2 id="integration-title" className={H2}>
 							Seu SDK continua.
 							<br />
@@ -421,10 +416,10 @@ export default async function HomePage() {
 						</h2>
 						<p className={INTRO_P}>
 							Use seu token Shtora no lugar da chave do provedor. Peça um modelo
-							canônico com <code>shtora/&lt;modelo&gt;</code> — o gateway roteia
-							entre todos os provedores que expõem aquele modelo — ou use{" "}
-							<code>shtora/auto</code>, o roteador curado — ou{" "}
-							<code>shtora/coding</code> para programar — para permitir
+							canônico com <code>shtora/&lt;modelo&gt;</code> e o gateway roteia
+							entre todos os provedores que expõem aquele modelo. Ou use{" "}
+							<code>shtora/auto</code>, o roteador curado, ou{" "}
+							<code>shtora/coding</code> para programar, para permitir
 							alternativas compatíveis.
 						</p>
 						<ol className="mt-[30px] grid list-none gap-5 p-0">
@@ -485,8 +480,7 @@ export default async function HomePage() {
 							<span className="text-[#96928d]">miúdas.</span>
 						</h2>
 						<p className={INTRO_P}>
-							O que o gateway resolve.
-							<br />E o que continua com o provedor.
+							O que o gateway resolve e o que continua com o provedor.
 						</p>
 					</div>
 					<FaqDepthGutter items={questions} defaultOpen={["models"]} />
@@ -497,14 +491,12 @@ export default async function HomePage() {
 					aria-labelledby="final-title"
 				>
 					<div>
-						<p className={EYEBROW}>
-							COMEÇA GRÁTIS, SEM CHAVE EM PARTE DOS PROVEDORES
-						</p>
+						<p className={EYEBROW}>COMEÇA GRÁTIS, COM OU SEM CHAVE</p>
 						<h2 id="final-title" className={`${H2} mb-0`}>
 							{freeModelCount} modelos grátis
 							<br />
 							<span className="font-[Georgia,serif] text-[#e3ab88] italic">
-								esperando no catálogo.
+								e nenhum plano pago.
 							</span>
 						</h2>
 					</div>

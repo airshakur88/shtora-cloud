@@ -23,7 +23,7 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 	{
 		id: "keyless",
 		title: "Sem chave",
-		rule: "Zero setup · pronto na hora",
+		rule: "Sem chave, sem cadastro",
 		providers: [
 			{
 				name: "OVH AI",
@@ -45,7 +45,7 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 	{
 		id: "speed",
 		title: "Inferência rápida",
-		rule: "Prioridade por baixa latência",
+		rule: "Inferência de baixa latência",
 		providers: [
 			{
 				name: "Groq",
@@ -55,7 +55,7 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 			{
 				name: "Cerebras",
 				slug: "cerebras",
-				endpointHint: "Tier gratuito · inferência wafer-scale",
+				endpointHint: "Tier gratuito · sem modelos neste catálogo",
 			},
 			{
 				name: "Cloudflare AI",
@@ -89,161 +89,6 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 				slug: "cohere",
 				endpointHint: "11 modelos gratuitos · Command & Embed",
 			},
-			{
-				name: "ElectronHub",
-				slug: "electronhub",
-				endpointHint: "79 modelos gratuitos · ElectronHub",
-			},
-			{
-				name: "Inferbase",
-				slug: "inferbase",
-				endpointHint: "39 modelos gratuitos · Inferbase",
-			},
-			{
-				name: "xKiro",
-				slug: "xkiro",
-				endpointHint: "28 modelos gratuitos · xKiro",
-			},
-			{
-				name: "Api.Airforce",
-				slug: "airforce",
-				endpointHint: "20 modelos gratuitos · Api.Airforce",
-			},
-			{
-				name: "DreamPrompting",
-				slug: "dreamprompting",
-				endpointHint: "14 modelos gratuitos · DreamPrompting",
-			},
-			{
-				name: "BlazeAPI",
-				slug: "blaze",
-				endpointHint: "6 modelos gratuitos · BlazeAPI",
-			},
-			{
-				name: "Speka",
-				slug: "speka",
-				endpointHint: "6 modelos gratuitos · Speka",
-			},
-			{
-				name: "Aion Labs",
-				slug: "aion",
-				endpointHint: "4 modelos gratuitos · Aion Labs",
-			},
-			{
-				name: "SEA-LION",
-				slug: "sealion",
-				endpointHint: "4 modelos gratuitos · SEA-LION",
-			},
-			{
-				name: "LLMTR",
-				slug: "llmtr",
-				endpointHint: "3 modelos gratuitos · LLMTR",
-			},
-			{
-				name: "Requesty",
-				slug: "requesty",
-				endpointHint: "3 modelos gratuitos · Requesty",
-			},
-			{
-				name: "Zhipu AI",
-				slug: "zhipu",
-				endpointHint: "3 modelos gratuitos · Zhipu AI",
-			},
-			{
-				name: "Logfare",
-				slug: "logfare",
-				endpointHint: "2 modelos gratuitos · Logfare",
-			},
-			{
-				name: "Moondream",
-				slug: "moondream",
-				endpointHint: "2 modelos gratuitos · Moondream",
-			},
-			{
-				name: "AMD Radeon Cloud",
-				slug: "radeon",
-				endpointHint: "2 modelos gratuitos · AMD Radeon Cloud",
-			},
-			{
-				name: "Agnes AI",
-				slug: "agnes",
-				endpointHint: "1 modelo gratuito · Agnes AI",
-			},
-			{
-				name: "BazaarLink",
-				slug: "bazaarlink",
-				endpointHint: "1 modelo gratuito · BazaarLink",
-			},
-			{
-				name: "Free.ai",
-				slug: "freeai",
-				endpointHint: "1 modelo gratuito · Free.ai",
-			},
-			{
-				name: "LLM7",
-				slug: "llm7",
-				endpointHint: "1 modelo gratuito · LLM7",
-			},
-			{
-				name: "Baichuan",
-				slug: "bai",
-				endpointHint: "Traga sua chave · Baichuan",
-			},
-			{
-				name: "Ollama",
-				slug: "ollama",
-				endpointHint: "Traga sua chave · Ollama",
-			},
-			{
-				name: "BeatAPI",
-				slug: "beatapi",
-				endpointHint: "Traga sua chave · BeatAPI",
-			},
-			{
-				name: "IteraCompute",
-				slug: "iteracompute",
-				endpointHint: "Traga sua chave · IteraCompute",
-			},
-			{
-				name: "Kenari",
-				slug: "kenari",
-				endpointHint: "Traga sua chave · Kenari",
-			},
-			{
-				name: "KiosAPI",
-				slug: "kiosapi",
-				endpointHint: "Traga sua chave · KiosAPI",
-			},
-			{
-				name: "Composite (Lucidity)",
-				slug: "lucidity",
-				endpointHint: "Traga sua chave · Composite (Lucidity)",
-			},
-			{
-				name: "onomeo",
-				slug: "onomeo",
-				endpointHint: "Traga sua chave · onomeo",
-			},
-			{
-				name: "Exa",
-				slug: "exa",
-				endpointHint: "Traga sua chave · Exa",
-			},
-			{
-				name: "Firecrawl",
-				slug: "firecrawl",
-				endpointHint: "Traga sua chave · Firecrawl",
-			},
-			{
-				name: "Tavily",
-				slug: "tavily",
-				endpointHint: "Traga sua chave · Tavily",
-			},
-			{
-				name: "FreeTTS",
-				slug: "freetts",
-				endpointHint: "Traga sua chave · FreeTTS",
-			},
 		],
 	},
 	{
@@ -254,37 +99,22 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 			{
 				name: "OpenRouter",
 				slug: "openrouter",
-				endpointHint: "5 modelos :free · roteamento multi-provedor",
+				endpointHint: "5 modelos gratuitos · roteamento multi-provedor",
 			},
 			{
 				name: "Together",
 				slug: "together",
-				endpointHint: "Tier gratuito · modelos open-weights",
+				endpointHint: "Tier gratuito · sem modelos neste catálogo",
 			},
 			{
 				name: "Hugging Face",
 				slug: "huggingface",
-				endpointHint: "Tier gratuito · Inference Providers",
+				endpointHint: "Tier gratuito · sem modelos neste catálogo",
 			},
 			{
 				name: "SiliconFlow",
 				slug: "siliconflow",
-				endpointHint: "Tier gratuito · Qwen & DeepSeek",
-			},
-			{
-				name: "Orca Router",
-				slug: "orcarouter",
-				endpointHint: "Traga sua chave · roteador Orca",
-			},
-			{
-				name: "Router9",
-				slug: "router9",
-				endpointHint: "4 modelos gratuitos · Router9",
-			},
-			{
-				name: "Routeway",
-				slug: "routeway",
-				endpointHint: "7 modelos gratuitos · Routeway",
+				endpointHint: "Tier gratuito · sem modelos neste catálogo",
 			},
 		],
 	},
@@ -356,12 +186,12 @@ export function RequestLayers() {
 					<p className="m-0 max-w-[490px] text-[15.5px] leading-[1.75] text-[#aaa6a1] text-pretty">
 						Um único endpoint ramifica sua chamada pelo gateway{" "}
 						<code className={cn(MONO, "text-[13px] text-[#e3ab88]")}>s.</code>{" "}
-						até 49 provedores gratuitos — com pool comunitário e failover
+						entre os 14 provedores abaixo, com pool comunitário e failover
 						silencioso.
 					</p>
 				</div>
 
-				<div className="rounded-[20px] border border-[color-mix(in_srgb,#2a2b2e_85%,transparent)] bg-[#0e0f12] bg-[radial-gradient(ellipse_54%_46%_at_50%_34%,rgba(227,171,136,0.085),transparent_70%),radial-gradient(rgba(238,234,229,0.07)_1px,transparent_1px)] bg-[length:100%_100%,24px_24px] px-8 pt-9 pb-[22px] max-[1024px]:px-5 max-[1024px]:pt-[26px] max-[1024px]:pb-5">
+				<div className="px-8 pt-9 pb-[22px] max-[1024px]:px-5 max-[1024px]:pt-[26px] max-[1024px]:pb-5">
 					<div className="relative" ref={stageRef}>
 						<div
 							className="pointer-events-none absolute inset-0 z-0 max-[1024px]:hidden"
@@ -556,8 +386,8 @@ export function RequestLayers() {
 							</span>
 						</div>
 						<p className="m-0 text-[13px] text-[#aaa6a1]">
-							{DEFAULT_PROVIDER.endpointHint} · Todos os provedores oferecem
-							modelos gratuitos
+							{DEFAULT_PROVIDER.endpointHint} · todos os modelos do catálogo são
+							gratuitos
 						</p>
 					</div>
 				</div>
