@@ -16,6 +16,7 @@
  */
 
 import { hashAuthPassword } from "../src/lib/auth-password.ts";
+import { displayModelName } from "../src/lib/model-canonical.ts";
 
 // Read the source catalog used by the application and seed script.
 async function loadModelsCatalog() {
@@ -180,6 +181,7 @@ async function main() {
          supports_json_mode, tier, intelligence_rank)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(platform, model_id) DO UPDATE SET
+         name = excluded.name,
          context_window = excluded.context_window,
          supports_tools = excluded.supports_tools,
          supports_vision = excluded.supports_vision,
@@ -190,7 +192,10 @@ async function main() {
 				values: [
 					provider.id,
 					model.id,
-					model.name,
+					// Upstream display names end with the provider in
+					// parentheses ("Cydonia 24B v4.3 (AI Horde)"); store the
+					// bare model name, the provider has its own column.
+					displayModelName(model.name, provider.id, provider.name),
 					model.contextWindow,
 					Number(flags.supports_tools),
 					Number(flags.supports_vision),

@@ -5,6 +5,7 @@ import {
 } from "@/lib/access-auth";
 import {
 	canonicalModelId,
+	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 	ROUTER_MODEL_PREFIX,
 } from "@/lib/model-canonical";
@@ -45,7 +46,7 @@ export async function GET(request: Request): Promise<Response> {
 			} else {
 				byCanonical.set(canonical, {
 					id: `${ROUTER_MODEL_PREFIX}${canonical}`,
-					name: model.name,
+					name: displayModelName(model.name, provider.id, provider.name),
 					providers: [provider.id],
 				});
 			}

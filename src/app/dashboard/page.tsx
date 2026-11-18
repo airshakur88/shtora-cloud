@@ -364,7 +364,7 @@ export default function DashboardOverviewPage() {
 							<CardHeader>
 								<CardTitle>Requests over time</CardTitle>
 								<CardDescription>
-									Last 14 days — total, success, and error
+									Last 14 days: total, success, and error
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -423,7 +423,7 @@ export default function DashboardOverviewPage() {
 							<CardHeader>
 								<CardTitle>Tokens over time</CardTitle>
 								<CardDescription>
-									Last 14 days — input vs output tokens
+									Last 14 days: input vs output tokens
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -468,7 +468,7 @@ export default function DashboardOverviewPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Requests by provider</CardTitle>
-								<CardDescription>Total requests per platform</CardDescription>
+								<CardDescription>Total requests per provider</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ChartContainer
@@ -618,7 +618,7 @@ export default function DashboardOverviewPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Errors by provider</CardTitle>
-								<CardDescription>Failed requests per platform</CardDescription>
+								<CardDescription>Failed requests per provider</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<ChartContainer
@@ -815,7 +815,7 @@ export default function DashboardOverviewPage() {
 							<CardHeader>
 								<CardTitle>Routing detail by provider</CardTitle>
 								<CardDescription>
-									Request statistics per platform
+									Request statistics per provider
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -900,7 +900,7 @@ export default function DashboardOverviewPage() {
 											<tr className="border-b text-left text-muted-foreground">
 												{[
 													"Model ID",
-													"Platform",
+													"Provider",
 													"Requests",
 													"Successes",
 													"Latency (ms)",
@@ -971,7 +971,7 @@ export default function DashboardOverviewPage() {
 												<tr className="border-b text-left text-muted-foreground">
 													{[
 														"Key",
-														"Platform",
+														"Provider",
 														"Requests",
 														"Successes",
 														"Latency (ms)",

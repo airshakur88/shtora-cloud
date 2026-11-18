@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
 	canonicalModelId,
+	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 } from "../src/lib/model-canonical";
 import { getVirtualRouter, isVirtualRouter } from "../src/lib/virtual-routers";
@@ -35,6 +36,53 @@ test("still strips the :free suffix", () => {
 test("auto is excluded from ordinary model listings", () => {
 	expect(EXCLUDED_CANONICAL_MODELS.has("auto")).toBe(true);
 	expect(EXCLUDED_CANONICAL_MODELS.has("kilo-free")).toBe(false);
+});
+
+test("display name strips the trailing provider in parentheses", () => {
+	expect(displayModelName("Cydonia 24B v4.3 (AI Horde)", "aihorde")).toBe(
+		"Cydonia 24B v4.3",
+	);
+	expect(displayModelName("Llama 4 Scout (CF)", "cloudflare")).toBe(
+		"Llama 4 Scout",
+	);
+	expect(displayModelName("Nemotron 3 Ultra 550B (NV)", "nvidia")).toBe(
+		"Nemotron 3 Ultra 550B",
+	);
+	expect(
+		displayModelName("Qwen3Guard Gen 8B (OVH)", "ovh", "OVH AI Endpoints"),
+	).toBe("Qwen3Guard Gen 8B");
+	expect(
+		displayModelName("Gemma SEA-LION v4 27B (SEA-LION)", "sealion", "SEA-LION"),
+	).toBe("Gemma SEA-LION v4 27B");
+	expect(displayModelName("GLM 4.7 Flash (ElectronHub)", "electronhub")).toBe(
+		"GLM 4.7 Flash",
+	);
+});
+
+test("display name strips upstream free markers", () => {
+	expect(displayModelName("Gemma 4 31B (free)", "openrouter")).toBe(
+		"Gemma 4 31B",
+	);
+	expect(
+		displayModelName("Nemotron 3 Ultra 550B (free, slow)", "openrouter"),
+	).toBe("Nemotron 3 Ultra 550B");
+	expect(displayModelName("BazaarLink Auto (free router)", "bazaarlink")).toBe(
+		"BazaarLink Auto",
+	);
+	expect(displayModelName("Muse Glimmer 30B (Routeway free)", "routeway")).toBe(
+		"Muse Glimmer 30B",
+	);
+});
+
+test("display name keeps parentheticals that carry model info", () => {
+	expect(displayModelName("GLM 4.7 (FP4)", "inferbase")).toBe("GLM 4.7 (FP4)");
+	expect(displayModelName("Qwen3Guard Gen 8B (OVH safety)", "ovh")).toBe(
+		"Qwen3Guard Gen 8B (OVH safety)",
+	);
+	expect(displayModelName("Command R (08-2024)", "cohere")).toBe(
+		"Command R (08-2024)",
+	);
+	expect(displayModelName("North Mini Code", "cohere")).toBe("North Mini Code");
 });
 
 test("virtual router membership", () => {

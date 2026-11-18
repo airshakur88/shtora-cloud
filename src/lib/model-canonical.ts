@@ -51,3 +51,58 @@ export function stripRouterPrefix(requested: string): string {
  * providers, not members of it.
  */
 export const EXCLUDED_CANONICAL_MODELS: ReadonlySet<string> = new Set(["auto"]);
+
+/**
+ * Short provider aliases used as "(X)" markers in upstream display names.
+ * They identify the provider regardless of which row carries them: "(CF)"
+ * marks a Cloudflare model even on a row served by another provider
+ * (e.g. DreamPrompting re-serving a Cloudflare model).
+ */
+const PROVIDER_ALIASES: ReadonlySet<string> = new Set(["cf", "nv"]);
+
+/** Upstream "(free…)" markers: the free tier of a provider's router row, not part of the model name. */
+const FREE_MARKERS: ReadonlySet<string> = new Set([
+	"free",
+	"freerouter",
+	"freeslow",
+]);
+
+function normalizeNameToken(value: string): string {
+	return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * Strip a trailing " (provider)" from an upstream display name.
+ *
+ * The catalog mirrors FreeLLMAPI, whose display names usually end with the
+ * provider in parentheses ("Cydonia 24B v4.3 (AI Horde)"). The provider
+ * already has its own column in the dashboard, so the name shown to the user
+ * is just the model name. Only a parenthetical that identifies the provider
+ * is removed: the provider id, its display name, a known alias ("CF", "NV"),
+ * or a "free" marker ("(free)", "(free router)", "(Routeway free)").
+ * Parentheticals that carry model info are kept: quantization ("(FP4)"),
+ * variant ("(OVH safety)") and version dates ("(08-2025)").
+ */
+export function displayModelName(
+	name: string,
+	providerId: string,
+	providerName?: string,
+): string {
+	const match = name.match(/^(.*) \(([^)]+)\)$/);
+	if (!match) return name;
+	const [, base, suffix] = match;
+	const suffixNorm = normalizeNameToken(suffix);
+	const providerNorms = new Set([
+		normalizeNameToken(providerId),
+		...(providerName ? [normalizeNameToken(providerName)] : []),
+	]);
+	if (providerNorms.has(suffixNorm) || PROVIDER_ALIASES.has(suffixNorm))
+		return base;
+	if (FREE_MARKERS.has(suffixNorm)) return base;
+	if (
+		suffixNorm.endsWith("free") &&
+		providerNorms.has(suffixNorm.slice(0, -"free".length))
+	)
+		return base;
+	return name;
+}

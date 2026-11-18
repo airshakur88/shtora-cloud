@@ -3,9 +3,11 @@ import { getDb, getEncryptionSecret } from "@/lib/env";
 import { getApiKeyOwnerByToken } from "@/lib/key-store";
 import {
 	canonicalModelId,
+	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 	ROUTER_MODEL_PREFIX,
 } from "@/lib/model-canonical";
+import catalog from "@/lib/models-catalog.json";
 import {
 	listingVirtualRouters,
 	virtualRouterProviders,
@@ -55,6 +57,13 @@ export async function GET(request: Request): Promise<Response> {
 		);
 		// Only providers with at least one enabled key in the community pool are
 		// routable, so list models only for those platforms.
+		// Upstream display names end with the provider in parentheses; the
+		// provider already has its own field, so names are served without it.
+		const providerNameById = new Map(
+			(catalog.providers as Array<{ id: string; name: string }>).map(
+				(provider) => [provider.id, provider.name],
+			),
+		);
 		for (const row of result.results) {
 			if (!enabledPlatforms.has(row.platform)) continue;
 			const canonical = canonicalModelId(row.model_id);
@@ -68,7 +77,11 @@ export async function GET(request: Request): Promise<Response> {
 			} else {
 				byCanonical.set(canonical, {
 					id: `${ROUTER_MODEL_PREFIX}${canonical}`,
-					name: row.name,
+					name: displayModelName(
+						row.name,
+						row.platform,
+						providerNameById.get(row.platform),
+					),
 					providers: [row.platform],
 				});
 			}

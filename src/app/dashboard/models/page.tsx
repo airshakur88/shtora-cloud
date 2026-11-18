@@ -128,7 +128,7 @@ export default function DashboardModelsPage() {
 									<tr className="border-b text-left text-muted-foreground">
 										<th className="px-4 py-3 font-medium">Model</th>
 										<th className="px-4 py-3 font-medium text-right">
-											Platform
+											Provider
 										</th>
 										<th className="px-4 py-3 font-medium text-right">
 											Global keys
@@ -192,7 +192,7 @@ export default function DashboardModelsPage() {
 						<thead>
 							<tr className="border-b text-left text-muted-foreground">
 								<th className="px-4 py-3 font-medium">Model</th>
-								<th className="px-4 py-3 font-medium text-right">Platform</th>
+								<th className="px-4 py-3 font-medium text-right">Provider</th>
 								<th className="px-4 py-3 font-medium text-right">
 									Global keys
 								</th>

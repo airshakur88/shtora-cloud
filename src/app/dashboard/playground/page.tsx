@@ -13,7 +13,7 @@ import {
 	X,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Combobox,
@@ -61,6 +61,8 @@ interface Model {
 	id: string;
 	canonical: string;
 	name: string;
+	/** Comma-joined provider ids exposing this model (from the catalog API). */
+	platform: string;
 	enabled: boolean;
 }
 
@@ -110,6 +112,9 @@ export default function PlaygroundPage() {
 		Record<string, Conversation>
 	>({});
 	const [models, setModels] = useState<Model[]>([]);
+	const [providerNames, setProviderNames] = useState<Record<string, string>>(
+		{},
+	);
 	const [sessionsLoading, setSessionsLoading] = useState(true);
 	const [modelsLoading, setModelsLoading] = useState(true);
 	const [sessionsError, setSessionsError] = useState<string | null>(null);
@@ -139,6 +144,19 @@ export default function PlaygroundPage() {
 		? (conversations[activeSessionId] ?? emptyConversation)
 		: emptyConversation;
 	const availableModels = models.filter((model) => model.enabled);
+	// After the provider suffix is stripped from display names, a few
+	// distinct models share a name ("Llama 4 Scout" is three canonicals).
+	// The selector shows the provider only for those repeated names.
+	const duplicateModelNames = useMemo(() => {
+		const counts = new Map<string, number>();
+		for (const model of availableModels)
+			counts.set(model.name, (counts.get(model.name) ?? 0) + 1);
+		return new Set(
+			[...counts.entries()]
+				.filter(([, count]) => count > 1)
+				.map(([name]) => name),
+		);
+	}, [availableModels]);
 	const selectedModelId = activeSession
 		? resolveModelId(activeSession.modelId)
 		: (availableModels[0]?.id ?? "");
@@ -185,11 +203,19 @@ export default function PlaygroundPage() {
 		const controller = new AbortController();
 		setModelsLoading(true);
 		setModelsError(null);
-		void requestJson<{ models: Model[] }>("/api/dashboard/catalog", {
+		void requestJson<{
+			models: Model[];
+			providers: { id: string; name: string }[];
+		}>("/api/dashboard/catalog", {
 			signal: controller.signal,
 		})
 			.then((result) => {
 				if (controller.signal.aborted) return;
+				setProviderNames(
+					Object.fromEntries(
+						result.providers.map((provider) => [provider.id, provider.name]),
+					),
+				);
 				// One entry per logical model: the router fans out across every
 				// provider exposing it, so we expose shtora/<canonical> only.
 				const uniqueModels = new Map<string, Model>();
@@ -929,6 +955,18 @@ export default function PlaygroundPage() {
 													{availableModels.map((model) => (
 														<ComboboxItem key={model.id} value={model.id}>
 															{model.name}
+															{duplicateModelNames.has(model.name) ? (
+																<span className="text-xs text-muted-foreground">
+																	{" · "}
+																	{model.platform
+																		.split(",")
+																		.map(
+																			(id) =>
+																				providerNames[id.trim()] ?? id.trim(),
+																		)
+																		.join(", ")}
+																</span>
+															) : null}
 														</ComboboxItem>
 													))}
 												</ComboboxList>

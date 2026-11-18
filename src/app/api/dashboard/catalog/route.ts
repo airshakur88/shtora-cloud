@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/env";
 import {
 	canonicalModelId,
+	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 } from "@/lib/model-canonical";
 import catalog from "@/lib/models-catalog.json";
@@ -66,6 +67,14 @@ export async function GET(request: Request): Promise<Response> {
 			name: string;
 		}>;
 
+		// Upstream display names end with the provider in parentheses
+		// ("Cydonia 24B v4.3 (AI Horde)"); the provider already has its own
+		// field, so names are served without that suffix. Rows already seeded
+		// with the suffix are cleaned here too, not only at seed time.
+		const providerNameById = new Map(
+			providersCatalog.map((provider) => [provider.id, provider.name]),
+		);
+
 		const providers = providersCatalog.map((provider) => ({
 			id: provider.id,
 			name: provider.name,
@@ -119,7 +128,11 @@ export async function GET(request: Request): Promise<Response> {
 				return {
 					id: `shtora/${canonicalModelId(row.model_id)}`,
 					canonical: canonicalModelId(row.model_id),
-					name: row.name,
+					name: displayModelName(
+						row.name,
+						row.platform,
+						providerNameById.get(row.platform),
+					),
 					platform: platforms.join(", "),
 					enabled: row.enabled === 1,
 					supportsTools:
