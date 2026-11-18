@@ -90,9 +90,159 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 				endpointHint: "11 modelos gratuitos · Command & Embed",
 			},
 			{
-				name: "xAI",
-				slug: "xai",
-				endpointHint: "Tier gratuito · protocolo compatível OpenAI",
+				name: "ElectronHub",
+				slug: "electronhub",
+				endpointHint: "79 modelos gratuitos · ElectronHub",
+			},
+			{
+				name: "Inferbase",
+				slug: "inferbase",
+				endpointHint: "39 modelos gratuitos · Inferbase",
+			},
+			{
+				name: "xKiro",
+				slug: "xkiro",
+				endpointHint: "28 modelos gratuitos · xKiro",
+			},
+			{
+				name: "Api.Airforce",
+				slug: "airforce",
+				endpointHint: "20 modelos gratuitos · Api.Airforce",
+			},
+			{
+				name: "DreamPrompting",
+				slug: "dreamprompting",
+				endpointHint: "14 modelos gratuitos · DreamPrompting",
+			},
+			{
+				name: "BlazeAPI",
+				slug: "blaze",
+				endpointHint: "6 modelos gratuitos · BlazeAPI",
+			},
+			{
+				name: "Speka",
+				slug: "speka",
+				endpointHint: "6 modelos gratuitos · Speka",
+			},
+			{
+				name: "Aion Labs",
+				slug: "aion",
+				endpointHint: "4 modelos gratuitos · Aion Labs",
+			},
+			{
+				name: "SEA-LION",
+				slug: "sealion",
+				endpointHint: "4 modelos gratuitos · SEA-LION",
+			},
+			{
+				name: "LLMTR",
+				slug: "llmtr",
+				endpointHint: "3 modelos gratuitos · LLMTR",
+			},
+			{
+				name: "Requesty",
+				slug: "requesty",
+				endpointHint: "3 modelos gratuitos · Requesty",
+			},
+			{
+				name: "Zhipu AI",
+				slug: "zhipu",
+				endpointHint: "3 modelos gratuitos · Zhipu AI",
+			},
+			{
+				name: "Logfare",
+				slug: "logfare",
+				endpointHint: "2 modelos gratuitos · Logfare",
+			},
+			{
+				name: "Moondream",
+				slug: "moondream",
+				endpointHint: "2 modelos gratuitos · Moondream",
+			},
+			{
+				name: "AMD Radeon Cloud",
+				slug: "radeon",
+				endpointHint: "2 modelos gratuitos · AMD Radeon Cloud",
+			},
+			{
+				name: "Agnes AI",
+				slug: "agnes",
+				endpointHint: "1 modelo gratuito · Agnes AI",
+			},
+			{
+				name: "BazaarLink",
+				slug: "bazaarlink",
+				endpointHint: "1 modelo gratuito · BazaarLink",
+			},
+			{
+				name: "Free.ai",
+				slug: "freeai",
+				endpointHint: "1 modelo gratuito · Free.ai",
+			},
+			{
+				name: "LLM7",
+				slug: "llm7",
+				endpointHint: "1 modelo gratuito · LLM7",
+			},
+			{
+				name: "Baichuan",
+				slug: "bai",
+				endpointHint: "Traga sua chave · Baichuan",
+			},
+			{
+				name: "Ollama",
+				slug: "ollama",
+				endpointHint: "Traga sua chave · Ollama",
+			},
+			{
+				name: "BeatAPI",
+				slug: "beatapi",
+				endpointHint: "Traga sua chave · BeatAPI",
+			},
+			{
+				name: "IteraCompute",
+				slug: "iteracompute",
+				endpointHint: "Traga sua chave · IteraCompute",
+			},
+			{
+				name: "Kenari",
+				slug: "kenari",
+				endpointHint: "Traga sua chave · Kenari",
+			},
+			{
+				name: "KiosAPI",
+				slug: "kiosapi",
+				endpointHint: "Traga sua chave · KiosAPI",
+			},
+			{
+				name: "Composite (Lucidity)",
+				slug: "lucidity",
+				endpointHint: "Traga sua chave · Composite (Lucidity)",
+			},
+			{
+				name: "onomeo",
+				slug: "onomeo",
+				endpointHint: "Traga sua chave · onomeo",
+			},
+			{
+				name: "Exa",
+				slug: "exa",
+				endpointHint: "Traga sua chave · Exa",
+			},
+			{
+				name: "Firecrawl",
+				slug: "firecrawl",
+				endpointHint: "Traga sua chave · Firecrawl",
+			},
+			{
+				name: "Tavily",
+				slug: "tavily",
+				endpointHint: "Traga sua chave · Tavily",
+			},
+			{
+				name: "FreeTTS",
+				slug: "freetts",
+				endpointHint: "Traga sua chave · FreeTTS",
 			},
 		],
 	},
@@ -121,9 +271,49 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 				slug: "siliconflow",
 				endpointHint: "Tier gratuito · Qwen & DeepSeek",
 			},
+			{
+				name: "Orca Router",
+				slug: "orcarouter",
+				endpointHint: "Traga sua chave · roteador Orca",
+			},
+			{
+				name: "Router9",
+				slug: "router9",
+				endpointHint: "4 modelos gratuitos · Router9",
+			},
+			{
+				name: "Routeway",
+				slug: "routeway",
+				endpointHint: "7 modelos gratuitos · Routeway",
+			},
 		],
 	},
 ];
+
+// Slugs com logotipo em public/providers/. Provedores sem entrada aqui
+// aparecem no pill só com o nome, sem imagem.
+const ICON_SLUGS = new Set([
+	"aihorde",
+	"cerebras",
+	"cloudflare",
+	"cohere",
+	"google",
+	"groq",
+	"huggingface",
+	"kilo",
+	"mistral",
+	"nvidia",
+	"openrouter",
+	"ovh",
+	"siliconflow",
+	"together",
+]);
+
+// Rota de exemplo exibida estaticamente no rodapé da seção.
+const DEFAULT_BRANCH =
+	ROUTING_BRANCHES.find((branch) => branch.id === "labs") ??
+	ROUTING_BRANCHES[0];
+const DEFAULT_PROVIDER = DEFAULT_BRANCH.providers[0];
 
 const WRAP =
 	"w-[min(1400px,calc(100%-64px))] max-[1100px]:w-[calc(100%-48px)] max-[480px]:w-[calc(100%-32px)] mx-auto";
@@ -140,36 +330,9 @@ export function RequestLayers() {
 	const originRef = useRef<HTMLDivElement>(null);
 	const hubRef = useRef<HTMLDivElement>(null);
 	const branchRefs = useMemo(
-		() => ROUTING_BRANCHES.map(() => createRef<HTMLButtonElement>()),
+		() => ROUTING_BRANCHES.map(() => createRef<HTMLDivElement>()),
 		[],
 	);
-
-	const [activeBranchId, setActiveBranchId] = useState<string>(
-		ROUTING_BRANCHES[0].id,
-	);
-	const [activeProviderSlug, setActiveProviderSlug] = useState<string>(
-		ROUTING_BRANCHES[0].providers[0].slug,
-	);
-
-	const activeBranch =
-		ROUTING_BRANCHES.find((branch) => branch.id === activeBranchId) ??
-		ROUTING_BRANCHES[0];
-	const activeProvider =
-		activeBranch.providers.find(
-			(provider) => provider.slug === activeProviderSlug,
-		) ?? activeBranch.providers[0];
-
-	function selectBranch(branch: RoutingBranch) {
-		setActiveBranchId(branch.id);
-		if (!branch.providers.some((p) => p.slug === activeProviderSlug)) {
-			setActiveProviderSlug(branch.providers[0].slug);
-		}
-	}
-
-	function selectProvider(branch: RoutingBranch, provider: ProviderLeaf) {
-		setActiveBranchId(branch.id);
-		setActiveProviderSlug(provider.slug);
-	}
 
 	return (
 		<section
@@ -194,7 +357,7 @@ export function RequestLayers() {
 						Um único endpoint ramifica sua chamada pelo gateway{" "}
 						<code className={cn(MONO, "text-[13px] text-[#e3ab88]")}>s.</code>{" "}
 						até 49 provedores gratuitos — com pool comunitário e failover
-						silencioso. Clique ou passe o cursor para inspecionar uma rota.
+						silencioso.
 					</p>
 				</div>
 
@@ -216,62 +379,57 @@ export function RequestLayers() {
 								gradientStopColor="#e3ab88"
 								duration={2.6}
 							/>
-							{ROUTING_BRANCHES.map((branch, index) => {
-								const isSelected = branch.id === activeBranch.id;
-								return (
-									<AnimatedBeam
-										key={branch.id}
-										containerRef={stageRef}
-										fromRef={hubRef}
-										toRef={branchRefs[index]}
-										orientation="vertical"
-										pathColor={isSelected ? "#e3ab88" : "#514134"}
-										pathOpacity={isSelected ? 0.65 : 0.35}
-										pathWidth={isSelected ? 2 : 1.5}
-										gradientStartColor="#f5c5a6"
-										gradientStopColor="#c98d63"
-										duration={isSelected ? 2.4 : 4.2}
-										delay={index * 0.35}
-									/>
-								);
-							})}
+							{ROUTING_BRANCHES.map((branch, index) => (
+								<AnimatedBeam
+									key={branch.id}
+									containerRef={stageRef}
+									fromRef={hubRef}
+									toRef={branchRefs[index]}
+									orientation="vertical"
+									pathColor="#514134"
+									pathOpacity={0.35}
+									pathWidth={1.5}
+									gradientStartColor="#f5c5a6"
+									gradientStopColor="#c98d63"
+									duration={4.2}
+									delay={index * 0.35}
+								/>
+							))}
 						</div>
 
 						<div className="relative z-[1] flex flex-col items-center">
 							<div className="mb-[52px] w-[min(260px,100%)] max-[1024px]:mb-0">
-								<div className="w-full rounded-[14px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] p-1">
-									<div
-										className="flex flex-col items-center gap-[3px] rounded-[10px] bg-[#131417] px-[14px] py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-										ref={originRef}
+								<div
+									className="flex w-full flex-col items-center gap-[3px] rounded-[14px] border border-[rgba(255,255,255,0.08)] bg-[#131417] px-[14px] py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+									ref={originRef}
+								>
+									<span
+										className={cn(
+											MONO,
+											"text-[10.5px] leading-[1.2] tracking-[1.3px] text-[#e3ab88]",
+										)}
 									>
-										<span
-											className={cn(
-												MONO,
-												"text-[10.5px] leading-[1.2] tracking-[1.3px] text-[#e3ab88]",
-											)}
-										>
-											ENTRADA ÚNICA
-										</span>
-										<strong className="mt-[2px] text-[15px] font-[550] tracking-[-0.2px]">
-											Sua Aplicação
-										</strong>
-										<code
-											className={cn(
-												MONO,
-												"mt-[2px] text-[11.5px] leading-[1.4] text-[#d4c6b8]",
-											)}
-										>
-											POST /v1/chat/completions
-										</code>
-										<span
-											className={cn(
-												MONO,
-												"text-[11.5px] leading-[1.4] text-[#aaa6a1]",
-											)}
-										>
-											model: &ldquo;shtora/&lt;modelo&gt;&rdquo;
-										</span>
-									</div>
+										ENTRADA ÚNICA
+									</span>
+									<strong className="mt-[2px] text-[15px] font-[550] tracking-[-0.2px]">
+										Sua Aplicação
+									</strong>
+									<code
+										className={cn(
+											MONO,
+											"mt-[2px] text-[11.5px] leading-[1.4] text-[#d4c6b8]",
+										)}
+									>
+										POST /v1/chat/completions
+									</code>
+									<span
+										className={cn(
+											MONO,
+											"text-[11.5px] leading-[1.4] text-[#aaa6a1]",
+										)}
+									>
+										model: &ldquo;shtora/&lt;modelo&gt;&rdquo;
+									</span>
 								</div>
 							</div>
 
@@ -281,29 +439,27 @@ export function RequestLayers() {
 							/>
 
 							<div className="mb-16 w-[min(200px,100%)] max-[1024px]:mb-0">
-								<div className="w-full rounded-[18px] border border-[rgba(227,171,136,0.3)] bg-[rgba(227,171,136,0.06)] p-[5px] shadow-[0_0_48px_rgba(227,171,136,0.12)]">
-									<div
-										className="flex flex-col items-center gap-[3px] rounded-[13px] bg-[#1b1612] px-[14px] py-[14px] text-center shadow-[inset_0_1px_0_rgba(227,171,136,0.22)]"
-										ref={hubRef}
+								<div
+									className="flex w-full flex-col items-center gap-[3px] rounded-[18px] border border-[rgba(227,171,136,0.3)] bg-[#1b1612] px-[14px] py-[14px] text-center shadow-[0_0_48px_rgba(227,171,136,0.12),inset_0_1px_0_rgba(227,171,136,0.22)]"
+									ref={hubRef}
+								>
+									<span
+										className="mb-[2px] font-[Georgia,serif] text-[32px] leading-[0.9] font-bold text-[#e3ab88] italic"
+										aria-hidden="true"
 									>
-										<span
-											className="mb-[2px] font-[Georgia,serif] text-[32px] leading-[0.9] font-bold text-[#e3ab88] italic"
-											aria-hidden="true"
-										>
-											s.
-										</span>
-										<strong className="text-[15px] font-semibold tracking-[-0.2px] text-[#f5e6d8]">
-											Shtora Cloud
-										</strong>
-										<span
-											className={cn(
-												MONO,
-												"text-[11px] leading-[1.4] tracking-[0.3px] text-[#b79c86]",
-											)}
-										>
-											Pool · Failover · Grátis
-										</span>
-									</div>
+										s.
+									</span>
+									<strong className="text-[15px] font-semibold tracking-[-0.2px] text-[#f5e6d8]">
+										Shtora Cloud
+									</strong>
+									<span
+										className={cn(
+											MONO,
+											"text-[11px] leading-[1.4] tracking-[0.3px] text-[#b79c86]",
+										)}
+									>
+										Pool · Failover · Grátis
+									</span>
 								</div>
 							</div>
 
@@ -313,83 +469,49 @@ export function RequestLayers() {
 							/>
 
 							<ul className="m-0 grid w-full list-none grid-cols-[repeat(4,minmax(0,1fr))] items-start gap-5 p-0 max-[1024px]:grid-cols-2 max-[640px]:grid-cols-1">
-								{ROUTING_BRANCHES.map((branch, index) => {
-									const isBranchActive = branch.id === activeBranch.id;
-									return (
-										<li key={branch.id} className="flex flex-col items-stretch">
-											<button
-												ref={branchRefs[index]}
-												type="button"
-												className={cn(
-													"relative flex w-full flex-col items-start gap-[2px] rounded-[10px] border border-[#2b2c30] bg-[#131417] px-[13px] py-[10px] text-left text-[#eeeae5] transition-[transform_180ms_cubic-bezier(0.23,1,0.32,1),border-color_180ms_cubic-bezier(0.23,1,0.32,1),background-color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:top-[-4px] before:left-1/2 before:size-[7px] before:-translate-x-1/2 before:rounded-full before:border before:border-[#675243] before:bg-[#3a342e] before:transition-[background-color_180ms_cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] hover:border-[#7c5c46]",
-													FOCUS_VISIBLE,
-													isBranchActive &&
-														"border-[#9d7051] bg-[#1b1612] before:bg-[#e3ab88]",
-												)}
-												aria-pressed={isBranchActive}
-												onClick={() => selectBranch(branch)}
-												onMouseEnter={() => selectBranch(branch)}
-											>
-												<span
+								{ROUTING_BRANCHES.map((branch, index) => (
+									<li key={branch.id} className="flex flex-col items-stretch">
+										<div
+											ref={branchRefs[index]}
+											className="flex w-full flex-col items-start gap-[2px] rounded-[10px] border border-[#2b2c30] bg-[#131417] px-[13px] py-[10px] text-left text-[#eeeae5]"
+										>
+											<span className="text-[14px] font-[550] tracking-[-0.2px] text-[#eeeae5]">
+												{branch.title}
+											</span>
+											<span className="text-xs leading-[1.35] text-[#aaa6a1]">
+												{branch.rule}
+											</span>
+										</div>
+
+										<div className="relative mt-3 ml-4 flex flex-col items-start gap-[7px] border-l border-[#2f2c28] pl-4 before:absolute before:-top-3 before:-left-px before:h-3 before:w-px before:bg-[#2f2c28]">
+											{branch.providers.map((provider) => (
+												<div
+													key={provider.slug}
 													className={cn(
-														"text-[14px] font-[550] tracking-[-0.2px] text-[#eeeae5]",
-														isBranchActive && "text-[#f5c5a6]",
+														"inline-flex max-w-full items-center gap-2 rounded-full border border-[#27282d] bg-[#121316] py-[5px] pr-[11px] text-[13px] leading-[1.2] font-medium text-[#cbc6c0]",
+														ICON_SLUGS.has(provider.slug)
+															? "pl-[5px]"
+															: "pl-[11px]",
 													)}
 												>
-													{branch.title}
-												</span>
-												<span className="text-xs leading-[1.35] text-[#aaa6a1]">
-													{branch.rule}
-												</span>
-											</button>
-
-											<div
-												className={cn(
-													"relative mt-3 ml-4 flex flex-col items-start gap-[7px] border-l border-[#2f2c28] pl-4 transition-[border-color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:-top-3 before:-left-px before:h-3 before:w-px before:bg-[#2f2c28]",
-													isBranchActive &&
-														"border-l-[rgba(227,171,136,0.6)] before:bg-[rgba(227,171,136,0.6)]",
-												)}
-											>
-												{branch.providers.map((provider) => {
-													const isProviderActive =
-														isBranchActive &&
-														provider.slug === activeProvider.slug;
-													return (
-														<button
-															key={provider.slug}
-															type="button"
-															className={cn(
-																"relative inline-flex max-w-full items-center gap-2 rounded-full border border-[#27282d] bg-[#121316] py-[5px] pr-[11px] pl-[5px] text-[13px] leading-[1.2] font-medium text-[#cbc6c0] transition-[transform_180ms_cubic-bezier(0.23,1,0.32,1),border-color_180ms_cubic-bezier(0.23,1,0.32,1),background-color_180ms_cubic-bezier(0.23,1,0.32,1),color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:top-1/2 before:-left-[17px] before:h-px before:w-4 before:bg-[#2f2c28] before:transition-[background-color_180ms_cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] hover:translate-x-[2px] hover:border-[#9d7051] hover:text-[#eeeae5]",
-																FOCUS_VISIBLE,
-																isBranchActive &&
-																	"before:bg-[rgba(227,171,136,0.45)]",
-																isProviderActive &&
-																	"border-[#e3ab88] bg-[#211a15] text-[#eeeae5] before:bg-[#e3ab88]",
-															)}
-															aria-pressed={isProviderActive}
-															onClick={() => selectProvider(branch, provider)}
-															onMouseEnter={() =>
-																selectProvider(branch, provider)
-															}
-														>
-															<span className="inline-flex size-[22px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.16)] bg-[#eeeae5]">
-																<Image
-																	src={`/providers/${provider.slug}.png`}
-																	width={14}
-																	height={14}
-																	alt=""
-																	aria-hidden="true"
-																	unoptimized
-																/>
-															</span>
-															<span>{provider.name}</span>
-														</button>
-													);
-												})}
-											</div>
-										</li>
-									);
-								})}
+													{ICON_SLUGS.has(provider.slug) && (
+														<span className="inline-flex size-[22px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.16)] bg-[#eeeae5]">
+															<Image
+																src={`/providers/${provider.slug}.png`}
+																width={14}
+																height={14}
+																alt=""
+																aria-hidden="true"
+																unoptimized
+															/>
+														</span>
+													)}
+													<span>{provider.name}</span>
+												</div>
+											))}
+										</div>
+									</li>
+								))}
 							</ul>
 						</div>
 					</div>
@@ -413,14 +535,14 @@ export function RequestLayers() {
 							<span className="text-[#5c4938]" aria-hidden="true">
 								→
 							</span>
-							<span className="text-[#aaa6a1]">{activeBranch.title}</span>
+							<span className="text-[#aaa6a1]">{DEFAULT_BRANCH.title}</span>
 							<span className="text-[#5c4938]" aria-hidden="true">
 								→
 							</span>
 							<span className="inline-flex items-center gap-[7px] text-[#eeeae5]">
 								<span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.16)] bg-[#eeeae5]">
 									<Image
-										src={`/providers/${activeProvider.slug}.png`}
+										src={`/providers/${DEFAULT_PROVIDER.slug}.png`}
 										width={14}
 										height={14}
 										alt=""
@@ -428,12 +550,14 @@ export function RequestLayers() {
 										unoptimized
 									/>
 								</span>
-								<strong className="font-semibold">{activeProvider.name}</strong>
+								<strong className="font-semibold">
+									{DEFAULT_PROVIDER.name}
+								</strong>
 							</span>
 						</div>
 						<p className="m-0 text-[13px] text-[#aaa6a1]">
-							{activeProvider.endpointHint} · Todos os provedores oferecem
-							modelos gratuitos (+34 no catálogo)
+							{DEFAULT_PROVIDER.endpointHint} · Todos os provedores oferecem
+							modelos gratuitos
 						</p>
 					</div>
 				</div>
