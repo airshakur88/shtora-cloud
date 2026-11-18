@@ -5,6 +5,13 @@ on:
     branches:
       - main
 
+# Um deploy por vez: dois pushes seguidos não concorrem no passo de
+# migrations D1. O segundo espera o primeiro terminar (cancel-in-progress:
+# false) em vez de cancelar um deploy no meio da migração.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: Deploy para Cloudflare Workers
@@ -22,6 +29,22 @@ jobs:
 
       - name: Instalar dependências
         run: bun install --frozen-lockfile
+
+      # Portões de qualidade, antes de qualquer mudança no banco ou no
+      # deploy: nada vai para produção com lint, tipos ou testes falhando.
+      # Passos separados (sem `&&`) porque o runner é Windows e o shell
+      # padrão é o PowerShell. `bun x` (nunca `bunx`) em todos os passos.
+      # O lint do CI é só leitura (`biome check`, sem `--write`): o script
+      # local `bun run lint` usa `--write` e reescreve arquivos, o que não
+      # faz sentido num runner.
+      - name: Lint (Biome)
+        run: bun x biome check
+
+      - name: Typecheck
+        run: bun x tsc --noEmit
+
+      - name: Testes
+        run: bun test
 
       - name: Aplicar migrations D1
         run: bun x cf d1 migrations apply 5a731b04-a5ac-4897-91cd-bd212e80699b --dir migrations
