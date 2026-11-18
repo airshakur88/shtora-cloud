@@ -1,0 +1,422 @@
+# SHTORA-CLOUD Agent Guidelines
+
+## Mission
+
+This document defines the operating principles, workflows, and conventions for AI agents working on the **shtora-cloud** project. The project is a Next.js 14+ App Router application built with vinext (Next.js on Cloudflare Workers via Vite) using bun as the package manager.
+
+---
+
+## 🚨 CRITICAL USER RULES (MUST FOLLOW)
+
+### Core Toolchain Rules
+
+1. **NEVER use npm/npx - ALWAYS use bun/bunx**. Exception: skills CLI uses bunx skills.
+2. **ALWAYS run lints after modifications** - `bun run lint` must pass before completing any change.
+3. **ALWAYS verify for bugs, dead code, duplicates, inconsistencies** after changes.
+4. **NEVER modify components in [src/components/ui]** - these are shadcn/ui components.
+5. **NEVER use img/a tags for links/images** - MUST use next/link and next/image.
+6. **NEVER use `<input type="number">`** — MUST use the project's `InputNumber` component (`import { InputNumber } from "@/components/ui/input-number";`) for all numeric input fields. Native number inputs do not enforce min/max clamping or provide accessible increment/decrement controls.
+
+### Pre-Task Protocol
+
+7. **BEFORE tasks: perform detailed study via MCP, docs, references**. Research thoroughly before implementing.
+
+### Quality Gate Rules
+
+8. **AI SLOP IS PROHIBITED** - always use anti-ai-slop skills after modifications.
+9. **ALWAYS use anti-ai-slop, best-practices, organization, cleanup skills available** - apply relevant skills for each task.
+10. **ALWAYS use verification checklist for every change**:
+    - Run `bun run lint` (Biome + TypeScript)
+    - Check for dead code and unused imports
+    - Verify no duplicated logic
+    - Run anti-ai-slop cleanup
+    - Confirm all tests pass
+
+### Maintenance Standards
+
+11. **Keep project clean** - no logs, trash, or any junk. Clean up temporary files and artifacts.
+12. **Update documentation when completing tasks** - maintain accurate docs for all changes.
+
+---
+
+## Project Context
+
+- **Framework**: Next.js 14+ App Router with vinext (Vite + React Server Components)
+- **Runtime**: Cloudflare Workers with `nodejs_compat` flag
+- **Package Manager**: Bun 1.4.4 (never npm/npx)
+- **Language**: TypeScript with `@/*` path alias
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Linting**: Biome 2.6.7 + TypeScript
+- **Deployment**: Cloudflare via `cloudflare.config.ts`
+
+## O que é este site
+
+O shtora-cloud é um agregador comunitário de modelos de IA rodando em Cloudflare
+Workers (vinext). Ele reúne os modelos gratuitos de vários provedores upstream
+(no catálogo atual: modelos `:free` e provedores keyless como OVH, AI Horde e
+Kilo) atrás de uma única conta. O usuário se registra com usuário e senha, guarda
+as chaves dos provedores em `/api/keys` (criptografadas em repouso com
+`ENCRYPTION_SECRET`) e recebe um token unificado, que autentica os endpoints
+públicos compatíveis com OpenAI (`/v1/chat/completions`) e Anthropic
+(`/v1/messages`, `/v1/messages/count_tokens`, `/v1/models`) via
+`Authorization: Bearer <token>` ou `x-api-key`.
+
+**Pool de chaves comunitário**: toda chave habilitada entra num pool compartilhado
+entre todos os usuários (`getEnabledKeysForPlatform` em `src/lib/key-store.ts`
+retorna todas as chaves habilitadas da plataforma, com as do próprio usuário
+primeiro). O roteador (`src/lib/router.ts`) percorre pool × cadeia de modelos até
+um upstream aceitar; falha de provedor faz failover transparente e é registrada
+em `provider_requests` (que guarda `user_id` de quem pediu e `key_id` de quem
+atendeu), nunca exposta ao cliente. Cada chave continua aplicando seus próprios
+limites (rpm/tpm/rpd/tpd em `src/lib/ratelimit.ts`), então compartilhar soma
+capacidade total sem remover limites individuais.
+
+**Roteamento por modelo canônico**: modelos são endereçados como
+`shtora/<modelo>` (roteia entre todos os provedores daquele modelo lógico, ver
+`src/lib/model-canonical.ts`). A API `/api/dashboard/catalog` retorna modelos
+agrupados por ID canônico — um único entry por modelo lógico, mesmo quando ele
+existe em múltiplos provedores. O playground armazena o modelo escolhido na
+sessão como `shtora/<canonical>` e normaliza IDs antigos ao carregar a página.
+
+O endpoint público `GET /v1/models` lista apenas os modelos dos provedores com
+ao menos uma chave API habilitada no pool comunitário (consulta
+`api_keys WHERE enabled = 1`), seguindo o mesmo critério de roteamento do
+router — modelos de provedores sem chave habilitada não aparecem.
+
+**Failover silencioso**: erros de upstream (400, 500, timeouts, rate limits) são
+registrados internamente mas nunca retornados ao cliente. O roteador tenta o
+próximo provider/key na cadeia automaticamente. Somente quando **todos** os
+provedores disponíveis falham o cliente recebe um erro genérico HTTP 502 com a
+mensagem "All configured upstream providers are unavailable." — detalhes internos
+como mensagens de erro do upstream ou nomes de chaves não vazam.
+
+**Playground sessions**: sessões vivem no banco D1 (`playground_sessions`).
+Cada sessão tem um `model_id` que aponta para o modelo canônico selecionado.
+Alterar o modelo em uma sessão ativa atualiza o campo via PATCH sem criar nova
+sessão. Ao enviar mensagem, o backend valida a sessão e roteia o request através
+do router independente do provedor original.
+
+O dashboard tem playground (sessões de chat com anexo de imagens no bucket R2
+`shtora-images`, máx. 10 MB e 10 imagens por mensagem), catálogo de modelos,
+gerenciamento de chaves e área admin (usuários, chaves, quarentena, estatísticas).
+As métricas de uso/latência/economia ficam em `src/lib/usage-metrics.ts`.
+
+- **Auth pages** (`/login`, `/register`) compartilham `src/components/auth-shell.tsx`
+  e usam o tema escuro da landing (`bg-background`/`bg-card`, acento copper
+  `primary`) via classe `dark` no root — visualmente consistentes com a landing.
+  Usam shadcn/ui `Input`/`Label`/`Button` (nunca inputs raw) e `next/link`.
+- **Landing page** (`src/app/page.tsx`): o conteúdo é gerado a partir de
+  `src/lib/models-catalog.json` em build time (contagens de provedores/modelos/
+  free), então se atualiza sozinho quando o catálogo muda. `RoutingMap` e
+  `IntegrationCode` ficam em `src/components/landing-experience.tsx`.
+
+---
+
+## Available Skills & Usage
+
+### Core Development Skills
+
+| Skill                          | When to Use                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| **nextjs-app-router-patterns** | App Router conventions, Server/Client components, Layout patterns, Loading UI, error.tsx |
+| **nextjs-react-typescript**    | React component patterns with TypeScript, hooks, prop types                              |
+| **clean-code**                 | Code readability, naming conventions, function complexity, comments                      |
+| **code-review**                | Reviewing changes before merging, PR quality checks                                      |
+| **refactoring-patterns**       | Extracting functions, reducing complexity, removing duplication                          |
+
+### Quality & Maintenance Skills
+
+| Skill                            | When to Use                                                           |
+| -------------------------------- | --------------------------------------------------------------------- |
+| **anti-ai-slop**                 | After any modification to remove AI-written patterns, improve clarity |
+| **anti-slop-engineering**        | Removing unnecessary abstractions, simplifying builds                 |
+| **anti-slop-code**               | Cleaning up code smells, dead code, over-engineering                  |
+| **codebase-cleanup**             | Tech debt removal, dead code elimination, cleanup passes              |
+| **codebase-design**              | Module interface design, seam placement, testability                  |
+| **performance-optimization**     | Profiling bottlenecks, optimizing hot paths                           |
+| **debugging-and-error-recovery** | Diagnosing and fixing runtime failures                                |
+
+### Pre-Modification Protocol
+
+Before any significant work:
+
+1. Read relevant source files
+2. Study patterns through MCP docs (`mcp://context7_query_docs` for frameworks)
+3. Understand existing conventions in the codebase
+
+---
+
+## Coding Standards
+
+### File & Directory Structure
+
+```
+src/
+├── app/           # App Router pages and layouts
+│   ├── layout.tsx # Root layout
+│   ├── page.tsx   # Default page
+│   └── api/       # Route handlers (Route App Router)
+├── components/    # Project-specific components
+│   └── ui/        # SHADCN/UI components (NEVER modify)
+├── hooks/         # Custom React hooks
+└── lib/           # Utility functions, helpers
+```
+
+### TypeScript Conventions
+
+- **Strict mode**: Enabled (`strict: true` in tsconfig.json)
+- **Type imports**: Use `import type { }` for type-only imports
+- **JSX**: `preserve` - use TSX syntax
+- **Module system**: ES modules (`type: module`)
+- **Path alias**: `@/*` resolves to `./src/*`
+
+### Component Patterns
+
+- **Server Components**: Default. Return JSX directly.
+- **Client Components**: Mark with `"use client"` at top
+- **Props**: Always use TypeScript interfaces/types
+
+```typescript
+interface Props {
+	title: string;
+	count?: number;
+}
+
+export default function MyComponent({ title, count = 0 }: Props) {
+	// ...
+}
+```
+
+### Links & Images
+
+**MUST** use vinext equivalents:
+
+- **Links**: Use `next/link` (or vinext equivalent) - never `<a>` tags outside anchor context
+- **Images**: Use `next/image` (or vinext equivalent) for optimizeable assets
+
+```tsx
+// ✅ Correct
+import Link from "next/link";
+<Link href="/path">Go to path</Link>;
+
+import Image from "next/image";
+<Image src="/image.png" alt="description" width={100} height={100} />;
+
+// ❌ Never use raw <a> or <img> for navigable/display content
+```
+
+---
+
+## Development Workflow
+
+### Available Scripts (package.json)
+
+```bash
+# Development
+bun run dev              # Start vinext dev server
+bun run build            # Build Cloudflare Worker output
+bun run preview          # Preview built output locally
+
+# Deployment
+bun run deploy           # Deploy to Cloudflare Workers
+
+# Verification
+bun run lint             # Run Biome + TypeScript checks
+bun run cf-typegen       # Generate Cloudflare types
+```
+
+### Package Manager
+
+- **ALWAYS use bun/bunx** - never npm/npx
+- **Biome** is the linter/formatter of record
+- Scripts in package.json use `bunx` for dev tool execution
+
+---
+
+## Configuration Files
+
+### Cloudflare Configuration: `cloudflare.config.ts`
+
+**ONLY** this file is used for deployment configuration.
+
+```typescript
+import { bindings, defineConfig, defineWorker } from "cf/config";
+
+export default defineConfig({
+	worker: defineWorker({
+		name: "shtora-cloud",
+		entrypoint: "vinext/server/fetch-handler",
+		compatibilityDate: "2026-11-12",
+		compatibilityFlags: ["nodejs_compat"],
+		assets: {
+			htmlHandling: "none",
+			notFoundHandling: "none",
+			runWorkerFirst: ["/*", "!/_next/static/*", "!/*/_next/static/*"],
+		},
+		env: {
+			ASSETS: bindings.assets(),
+			IMAGES: bindings.images(),
+		},
+	}),
+});
+```
+
+**NEVER** use `wrangler.jsonc`, `wrangler.json`, or `wrangler.toml`.
+
+### Vite Configuration: `vite.config.ts`
+
+Configured for vinext with images optimizer and Cloudflare plugin.
+
+### Biome Configuration: `biome.json`
+
+- **Formatter**: Enabled, tab indentation, double quotes
+- **Linter**: Recommended rules preset
+- **Assist**: Import organization on save
+
+---
+
+## Linting & Verification Protocol
+
+### Pre-Commit Checklist
+
+1. **Run lint**: `bun run lint` (Biome check + TypeScript)
+2. **Verify no dead code**: Check for unused exports/imports
+3. **Check for duplicates**: No duplicated logic or components
+4. **Anti-slop review**: Run anti-ai-slop and anti-slop-code
+
+### Lint Command
+
+```bash
+bun run lint
+```
+
+This runs:
+
+- `bunx biome check --write` - Biome formatter and linter
+- `bunx tsc --noEmit` - TypeScript type checking
+
+---
+
+## Deployment Workflow
+
+### Local Development
+
+```bash
+bun run dev
+```
+
+### Production Build
+
+```bash
+bun run build
+```
+
+### Preview
+
+```bash
+bun run preview
+```
+
+### Deploy to Cloudflare
+
+```bash
+bun run deploy
+```
+
+### Verify Deployment
+
+- Check Cloudflare dashboard for Worker status
+- Verify routes respond correctly
+- Test API endpoints
+
+---
+
+## Anti-Slop Policies
+
+### AI Slop Prohibition
+
+AI-generated code patterns are NOT acceptable. Signs of slop:
+
+- Generic boilerplate without purpose
+- Over-abstracted patterns for simple tasks
+- Unnecessary comments or verbose prose in code
+
+**Remediation**: Apply `anti-ai-slop` skill after any modification.
+
+### Code Cleanup Rules
+
+- Delete dead code (unused functions, imports, variables)
+- Remove duplicate implementations
+- Simplify over-engineered abstractions
+- Prefer explicit over implicit behavior
+
+---
+
+## Debugging Protocol
+
+### Common Issues
+
+1. **Build failures**: Check TypeScript errors first, then Biome
+2. **Worker failures**: Check logs in Cloudflare dashboard
+3. **Route issues**: Verify `runWorkerFirst` patterns in config
+
+### Debug Workflow
+
+1. Reproduce locally with `bun run dev`
+2. Check Cloudflare logs for production issues
+3. Verify TypeScript types with `bun run lint`
+
+---
+
+## Testing & Verification
+
+### Run Tests
+
+```bash
+bun test
+```
+
+### CI/CD Pipeline
+
+1. Lint check (`bun run lint`)
+2. Type check (`bun run tsc --noEmit`)
+3. Tests (`bun test`)
+4. Build (`bun run build`)
+5. Deploy on main branch push
+
+---
+
+## Model Catalog
+
+`src/lib/models-catalog.json` mirrors the upstream FreeLLMAPI catalog exactly:
+
+- **Source**: `https://freellmapi.co/models` — the page renders from `window.CATALOG_SNAPSHOT` embedded in `https://freellmapi.co/assets/data.js` (the same bundle the site itself displays). Alternative live feed: `https://api.freellmapi.co/v1/latest` (JSON; may be one snapshot newer than the page bundle).
+- **Update procedure**:
+  1. Fetch the current catalog: `curl -sL https://freellmapi.co/assets/data.js` (JS object literal — parse with `new Function("return (" + literal + ");")` via bun) or the JSON feed `curl -sL https://api.freellmapi.co/v1/latest`.
+  2. For each site platform, regenerate models: `modelId → id`, `displayName → name`, `contextWindow ?? 0`, `supportsTools → supportsFunctions` + `"tools"` capability, `supportsVision → "vision"` capability, `intelligenceRank ?? 0`. Capabilities vocabulary: `"chat"` for text modality, else the modality string (`"audio"`, `"image"`, `"video"`).
+  3. **Preserve this app's runtime config per provider** (the site snapshot does not publish it): `baseUrl`, `authType`, `protocol`, `keyless`, `keyHint`, `modelIdentity`, `extraHeaders`, `forceSingleToolCall`, `modelAliases`, `electronHubProxyError`, `ensureDone`.
+  4. Keep the extra providers not listed on the site (BYOK targets + key-import support): `cerebras`, `together`, `xai`, `bai`, `huggingface`, `ollama`, `orcarouter`. (`openai` and `anthropic` were removed as providers; the OpenAI-compatible and Anthropic endpoint protocols remain supported for routing.)
+  5. Update `sourceSnapshot` to the site snapshot's `version`/`generatedAt`.
+  6. Run `bun run lint`, then re-seed the DB so the `models` table matches: `bun run scripts/seed.mjs` (uses `context_window NOT NULL` — nulls must be coerced to 0).
+- **Rate-limit defaults**: `src/lib/models-catalog.json` includes per-provider `limits` derived from the site snapshot's per-model `limits.rpm/rpd/tpm/tpd` (aggregated as min across models when they vary; exact value used when identical). Auto-populated at `POST /api/keys` via `providerCatalog.find(id)?.limits ?? {rpmLimit:30,tpmLimit:100_000,rpdLimit:1_000,tpdLimit:1_000_000}` (fallback defined in `src/lib/ratelimit.ts`). Existing DB rows keep their manually-set values until seed overwrites them on re-seed.
+- **Key format reference** (key prefixes seen upstream): `sk-` generic, `sk-air-` airforce, `sk-bl-` bazaarlink, `sk-or-v1-` openrouter, `sk-orca-` orcarouter, `sk-speka-live-` speka, `sk-xt-` xkiro, `mstrl_` mistral, `nvapi-` nvidia, `fc-` firecrawl, `tvly-dev-` tavily, `hf_` huggingface, `rqsty-sk-` requesty, `rc-` radeon, `ek...` aihorde/electronhub, `AQ.Ab8...` google cloud project key, `email:token` cloudflare, `id.secret` zhipu/ollama-cloud, plus merged from freellmapi-keys.json export (2026-11-17): `blaze-` blaze, `dp-` dreamprompting, `sk-free-` freeai, `inf_` inferbase, `llmtr-` llmtr, `lfu_` logfare, `sk-r9k-` router9, `sk-onomeo-` onomeo, `cmp-` lucidity, `kn-` kenari, `kios_live_` kiosapi, `ick_live_` iteracompute, `ft_live_` freetts. Extra chat providers merged from that export: airforce, blaze, dreamprompting, electronhub, freeai, inferbase, llmtr, logfare, moondream, radeon, router9, routeway, speka, xkiro, beatapi, iteracompute, kenari, kiosapi, lucidity, onomeo, siliconflow, exa, firecrawl, tavily, freetts.
+
+---
+
+## Troubleshooting
+
+### Build Errors
+
+1. Ensure `nodejs_compat` flag is set in `cloudflare.config.ts`
+2. Check for TypeScript errors: `bun run tsc --noEmit`
+3. Verify all dependencies are installed: `bun install`
+
+### Deployment Failures
+
+1. Check Cloudflare dashboard for error details
+2. Verify `wrote` package is correctly configured
+3. Ensure wrangler is up to date: `bunx wrangler version`
+
+---
+
+_Last updated: 2026-11-13_
