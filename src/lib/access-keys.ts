@@ -34,6 +34,44 @@ export interface CreateAccessKeyResult extends AccessKeyResponse {
 
 const ACCESS_KEY_PREFIX = "ska-";
 const ACCESS_KEY_BYTES = 32;
+/**
+ * Stored lookup prefix length: "ska-" + 16 hex chars = 64 bits of the key
+ * (was 12 chars / 32 bits). A 32-bit prefix collides after ~77k keys; a
+ * 64-bit prefix needs ~2^32 keys for the same collision odds. Keys created
+ * before this change keep their 12-char prefix and still authenticate:
+ * validation tries the 20-char prefix first, then the legacy 12-char one.
+ */
+const ACCESS_KEY_PREFIX_LENGTH = 20;
+const LEGACY_ACCESS_KEY_PREFIX_LENGTH = 12;
+
+/** Same cap as provider keys: at most 50 access keys per user (M1). */
+export const MAX_ACCESS_KEYS_PER_USER = 50;
+
+export class AccessKeyLimitError extends Error {
+	constructor() {
+		super("Access key limit reached");
+		this.name = "AccessKeyLimitError";
+	}
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i += 1) {
+		diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	}
+	return diff === 0;
+}
+
+async function sha256Hex(value: string): Promise<string> {
+	const hashBuffer = await crypto.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(value),
+	);
+	return Array.from(new Uint8Array(hashBuffer), (b) =>
+		b.toString(16).padStart(2, "0"),
+	).join("");
+}
 
 async function generateAccessKey(): Promise<{
 	apiKey: string;
@@ -47,17 +85,8 @@ async function generateAccessKey(): Promise<{
 		.join("");
 	const apiKey = `${ACCESS_KEY_PREFIX}${keyBody}`;
 
-	const encoder = new TextEncoder();
-	const hashBuffer = await crypto.subtle.digest(
-		"SHA-256",
-		encoder.encode(apiKey),
-	);
-	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	const keyHash = hashArray
-		.map((b) => b.toString(16).padStart(2, "0"))
-		.join("");
-
-	const keyPrefix = apiKey.slice(0, 12);
+	const keyHash = await sha256Hex(apiKey);
+	const keyPrefix = apiKey.slice(0, ACCESS_KEY_PREFIX_LENGTH);
 
 	return { apiKey, keyHash, keyPrefix };
 }
@@ -67,6 +96,16 @@ export async function createAccessKey(
 	userId: string,
 	input: CreateAccessKeyRequest,
 ): Promise<CreateAccessKeyResult> {
+	const existing = await db
+		.prepare("SELECT COUNT(*) AS n FROM user_access_keys WHERE user_id = ?")
+		.bind(userId)
+		.first<{ n: number }>();
+	if ((existing?.n ?? 0) >= MAX_ACCESS_KEYS_PER_USER) {
+		// Thrown, not returned: the /api/access-keys route catches
+		// AccessKeyLimitError and answers 403 `limit_reached`, like the
+		// 50-key cap on POST /api/keys.
+		throw new AccessKeyLimitError();
+	}
 	const { apiKey, keyHash, keyPrefix } = await generateAccessKey();
 
 	const now = new Date().toISOString();
@@ -87,11 +126,10 @@ export async function createAccessKey(
 		.bind(userId, input.name, keyHash, keyPrefix, now, now, expiresAt)
 		.all<{ id: number }>();
 
-	const row = result.results[0];
-	if (!row) throw new Error("Created access key unavailable");
+	const id = result.results[0]?.id ?? 0;
 
 	return {
-		id: row.id,
+		id,
 		name: input.name,
 		enabled: true,
 		createdAt: now,
@@ -127,19 +165,24 @@ export async function listAccessKeys(
 	}));
 }
 
-export async function getAccessKeyByPrefix(
+/**
+ * All enabled keys sharing a lookup prefix. A prefix collision must not
+ * hide a key, so callers compare every candidate instead of taking the
+ * first row.
+ */
+export async function getAccessKeysByPrefix(
 	db: D1Database,
 	keyPrefix: string,
-): Promise<AccessKeyRecord | null> {
+): Promise<AccessKeyRecord[]> {
 	const result = await db
 		.prepare(
 			`SELECT * FROM user_access_keys
-		WHERE key_prefix = ? AND enabled = 1`,
+		WHERE key_prefix = ? AND enabled = 1 ORDER BY id ASC`,
 		)
 		.bind(keyPrefix)
-		.first<AccessKeyRecord>();
+		.all<AccessKeyRecord>();
 
-	return result ?? null;
+	return result.results;
 }
 
 export async function validateAccessKey(
@@ -150,34 +193,27 @@ export async function validateAccessKey(
 		return null;
 	}
 
-	const keyPrefix = apiKey.slice(0, 12);
-	const record = await getAccessKeyByPrefix(db, keyPrefix);
-	if (!record) {
-		return null;
-	}
-
-	const encoder = new TextEncoder();
-	const hashBuffer = await crypto.subtle.digest(
-		"SHA-256",
-		encoder.encode(apiKey),
-	);
-	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	const keyHash = hashArray
-		.map((b) => b.toString(16).padStart(2, "0"))
-		.join("");
-
-	if (record.key_hash !== keyHash) {
-		return null;
-	}
-
-	if (record.expires_at) {
-		const exp = new Date(record.expires_at).getTime();
-		if (Date.now() > exp) {
-			return null;
+	const keyHash = await sha256Hex(apiKey);
+	// New keys store a 20-char prefix; pre-change keys store 12 chars.
+	// Both are tried so old keys keep working, and every candidate sharing
+	// a prefix is compared — a collision never blocks the second key.
+	const prefixes = [
+		apiKey.slice(0, ACCESS_KEY_PREFIX_LENGTH),
+		apiKey.slice(0, LEGACY_ACCESS_KEY_PREFIX_LENGTH),
+	];
+	for (const keyPrefix of [...new Set(prefixes)]) {
+		const candidates = await getAccessKeysByPrefix(db, keyPrefix);
+		for (const record of candidates) {
+			if (!timingSafeEqual(record.key_hash, keyHash)) continue;
+			if (record.expires_at) {
+				const exp = new Date(record.expires_at).getTime();
+				if (Date.now() > exp) continue;
+			}
+			return record;
 		}
 	}
 
-	return record;
+	return null;
 }
 
 export async function updateAccessKeyLastUsed(

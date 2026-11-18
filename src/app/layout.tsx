@@ -11,9 +11,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+	metadataBase: new URL("https://shtora.cloud"),
 	title: "Shtora Cloud | Modelos de IA grátis de vários provedores",
 	description:
 		"Reúna modelos gratuitos de vários provedores de IA em um só lugar: APIs compatíveis com OpenAI e Anthropic, failover automático entre provedores e provedores sem chave.",
+	alternates: { canonical: "/" },
+	openGraph: {
+		url: "https://shtora.cloud",
+		siteName: "Shtora Cloud",
+	},
 };
 
 export default function RootLayout({

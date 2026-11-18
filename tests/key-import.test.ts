@@ -67,8 +67,11 @@ test("parses freellmapi format without version/source wrapper", async () => {
 	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
-		expect(result.data.keys).toHaveLength(1);
-		expect(result.data.keys[0].platform).toBe("openai");
+		// openai is not a catalog provider: discarded, but reported.
+		expect(result.data.keys).toHaveLength(0);
+		expect(result.data.skipped).toEqual([
+			{ platform: "openai", reason: "unsupported_platform" },
+		]);
 	}
 });
 
@@ -97,9 +100,14 @@ test("parses flat map format {provider: key}", async () => {
 	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
-		expect(result.data.keys).toHaveLength(3);
+		// groq and anthropic are catalog providers (migration 0015 added
+		// the anthropic row); openai is discarded and reported.
+		expect(result.data.keys).toHaveLength(2);
 		const platforms = result.data.keys.map((k) => k.platform).sort();
-		expect(platforms).toEqual(["anthropic", "groq", "openai"]);
+		expect(platforms).toEqual(["anthropic", "groq"]);
+		expect(result.data.skipped).toEqual([
+			{ platform: "openai", reason: "unsupported_platform" },
+		]);
 	}
 });
 
@@ -115,20 +123,26 @@ test("parses array format with platform/key aliases inside keys array", async ()
 	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
-		expect(result.data.keys).toHaveLength(4);
+		// groq, anthropic and google import; openai is discarded and reported.
+		expect(result.data.keys).toHaveLength(3);
+		const platforms = result.data.keys.map((k) => k.platform).sort();
+		expect(platforms).toEqual(["anthropic", "google", "groq"]);
+		expect(result.data.skipped).toEqual([
+			{ platform: "openai", reason: "unsupported_platform" },
+		]);
 	}
 });
 
 test("normalizes platform to lowercase and trims values", async () => {
 	const input = {
-		platform: "  OpenAI  ",
+		platform: "  Groq  ",
 		key: "  sk-test  ",
 		label: "  test label  ",
 	};
 	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
-		expect(result.data.keys[0].platform).toBe("openai");
+		expect(result.data.keys[0].platform).toBe("groq");
 		expect(result.data.keys[0].key).toBe("sk-test");
 		expect(result.data.keys[0].label).toBe("test label");
 	}
@@ -144,15 +158,21 @@ test("skips unsupported platforms with reason", async () => {
 	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
-		// unknown-fake-platform is not in the provider catalog
-		expect(result.data.skipped.length).toBeGreaterThanOrEqual(1);
+		// Both are discarded with platform and reason, not silently.
+		expect(result.data.keys).toHaveLength(0);
+		expect(result.data.skipped).toEqual(
+			expect.arrayContaining([
+				{ platform: "openai", reason: "unsupported_platform" },
+				{ platform: "unknown-fake-platform", reason: "unsupported_platform" },
+			]),
+		);
 	}
 });
 
 test("skips empty keys", async () => {
 	const input = {
 		keys: [
-			{ platform: "openai", key: "sk-valid" },
+			{ platform: "groq", key: "sk-valid" },
 			{ platform: "groq", key: "" },
 			{ platform: "anthropic", key: "   " },
 		],
@@ -162,6 +182,12 @@ test("skips empty keys", async () => {
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(1);
 		expect(result.data.keys[0].key).toBe("sk-valid");
+		expect(result.data.skipped).toEqual(
+			expect.arrayContaining([
+				{ platform: "groq", reason: "empty_key" },
+				{ platform: "anthropic", reason: "empty_key" },
+			]),
+		);
 	}
 });
 
@@ -288,17 +314,18 @@ test("round-trip: create -> export -> import preserves key data", async () => {
 		expect(parseResult.success).toBe(true);
 
 		if (parseResult.success) {
-			expect(parseResult.data.keys).toHaveLength(2);
+			// groq round-trips; the openai key is discarded (not a catalog
+			// provider) and reported instead of imported silently.
+			expect(parseResult.data.keys).toHaveLength(1);
+			expect(parseResult.data.skipped).toEqual([
+				{ platform: "openai", reason: "unsupported_platform" },
+			]);
 
 			// Verify keys match
 			const parsedKeys = parseResult.data.keys;
-			expect(parsedKeys[0].platform).toBe("openai");
-			expect(parsedKeys[0].key).toBe("sk-original-1");
-			expect(parsedKeys[0].label).toBe("gpt-key");
-
-			expect(parsedKeys[1].platform).toBe("groq");
-			expect(parsedKeys[1].key).toBe("gsk-original-2");
-			expect(parsedKeys[1].label).toBe(null);
+			expect(parsedKeys[0].platform).toBe("groq");
+			expect(parsedKeys[0].key).toBe("gsk-original-2");
+			expect(parsedKeys[0].label).toBe(null);
 		}
 	} finally {
 		db.close();
@@ -327,11 +354,13 @@ test("parses user's freellmapi export format correctly", async () => {
 	expect(result.success).toBe(true);
 
 	if (result.success) {
-		expect(result.data.keys).toHaveLength(3);
+		// agnes and aihorde import; openai is discarded and reported.
+		expect(result.data.keys).toHaveLength(2);
 		expect(result.data.keys[0].platform).toBe("agnes");
 		expect(result.data.keys[1].platform).toBe("aihorde");
 		expect(result.data.keys[1].label).toBe(null); // Empty label normalized
-		expect(result.data.keys[2].platform).toBe("openai");
-		expect(result.data.keys[2].label).toBe("gpt-4");
+		expect(result.data.skipped).toEqual([
+			{ platform: "openai", reason: "unsupported_platform" },
+		]);
 	}
 });

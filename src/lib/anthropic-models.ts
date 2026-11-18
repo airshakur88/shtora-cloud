@@ -23,6 +23,24 @@ export async function nativeModels(
 				context_window: number;
 				max_output_tokens: number | null;
 			}>();
+		// Native model shape, per the Anthropic Models API. Three fields
+		// below look wrong at first glance and are intentional:
+		// - `id` is `platform/model_id`, not the bare vendor id: ids are
+		//   namespaced because the same model id exists on several
+		//   providers. The bare model id still resolves on retrieve.
+		// - `created_at` is the epoch sentinel. Anthropic specifies the
+		//   epoch value for exactly this case: "May be set to an epoch
+		//   value if the release date is unknown." D1 stores no vendor
+		//   release date (models.created_at is the catalog import time,
+		//   not the release), so the sentinel stays instead of a
+		//   fabricated date.
+		// - `capabilities: null` is a valid Anthropic value (the field is
+		//   nullable). D1 has no per-model capability map beyond
+		//   supports_tools/supports_vision, so null means unknown rather
+		//   than an invented capability set. `lifecycle: "active"` holds
+		//   because only enabled rows are listed; `line`,
+		//   `deprecated_at` and `retires_at` are null for the same
+		//   no-data reason.
 		const data = result.results.map((row) => ({
 			type: "model",
 			id: `${row.platform}/${row.model_id}`,

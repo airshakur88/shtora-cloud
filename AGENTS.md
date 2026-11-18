@@ -10,7 +10,7 @@ This document defines the operating principles, workflows, and conventions for A
 
 ### Core Toolchain Rules
 
-1. **NEVER use npm/npx - ALWAYS use bun/bunx**. Exception: skills CLI uses bunx skills.
+1. **NEVER use npm/npx - ALWAYS use bun**. Exception: skills CLI uses bunx skills. Use `bun x` to run dev tools (Biome, TypeScript, `cf`).
 2. **ALWAYS run lints after modifications** - `bun run lint` must pass before completing any change.
 3. **ALWAYS verify for bugs, dead code, duplicates, inconsistencies** after changes.
 4. **NEVER modify components in [src/components/ui]** - these are shadcn/ui components.
@@ -46,7 +46,7 @@ This document defines the operating principles, workflows, and conventions for A
 - **Package Manager**: Bun 1.4.4 (never npm/npx)
 - **Language**: TypeScript with `@/*` path alias
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **Linting**: Biome 2.6.7 + TypeScript
+- **Linting**: Biome 2.6.8 + TypeScript
 - **Deployment**: Cloudflare via `cloudflare.config.ts`
 
 ## O que é este site
@@ -97,8 +97,10 @@ sessão. Ao enviar mensagem, o backend valida a sessão e roteia o request atrav
 do router independente do provedor original.
 
 O dashboard tem playground (sessões de chat com anexo de imagens no bucket R2
-`shtora-images`, máx. 10 MB e 10 imagens por mensagem), catálogo de modelos,
-gerenciamento de chaves e área admin (usuários, chaves, quarentena, estatísticas).
+`shtora-images`, máx. 10 MB e 10 imagens por mensagem), catálogo de modelos e
+gerenciamento de chaves. Não há área admin no painel: ela foi removida no
+commit 2e4a24f e não existe página de usuários, quarentena ou estatísticas no
+dashboard.
 As métricas de uso/latência/economia ficam em `src/lib/usage-metrics.ts`.
 
 - **Auth pages** (`/login`, `/register`) compartilham `src/components/auth-shell.tsx`
@@ -228,9 +230,9 @@ bun run cf-typegen       # Generate Cloudflare types
 
 ### Package Manager
 
-- **ALWAYS use bun/bunx** - never npm/npx
+- **ALWAYS use bun** - never npm/npx
 - **Biome** is the linter/formatter of record
-- Scripts in package.json use `bunx` for dev tool execution
+- Scripts in package.json use `bun x` for dev tool execution
 
 ---
 
@@ -293,8 +295,8 @@ bun run lint
 
 This runs:
 
-- `bunx biome check --write` - Biome formatter and linter
-- `bunx tsc --noEmit` - TypeScript type checking
+- `bun x biome check --write` - Biome formatter and linter
+- `bun x tsc --noEmit` - TypeScript type checking
 
 ---
 
@@ -379,11 +381,19 @@ bun test
 
 ### CI/CD Pipeline
 
-1. Lint check (`bun run lint`)
-2. Type check (`bun run tsc --noEmit`)
-3. Tests (`bun test`)
-4. Build (`bun run build`)
-5. Deploy on main branch push
+O workflow de deploy na main (`.github/workflows/deploy.yml`) roda estes
+passos, nesta ordem, um deploy por vez (`concurrency: group: deploy`, sem
+cancelar um deploy em curso):
+
+1. Checkout, Setup Bun e `bun install --frozen-lockfile`
+2. Lint (`bun x biome check`, só leitura, sem `--write`)
+3. Type check (`bun x tsc --noEmit`)
+4. Tests (`bun test`)
+5. Migrations D1 (`bun x cf d1 migrations apply <id> --dir migrations`),
+   antes do deploy
+6. Build e deploy (passo `Build & Deploy`, `bun run deploy`)
+
+Se um passo falha, os passos seguintes não rodam e nada vai para produção.
 
 ---
 
@@ -410,8 +420,8 @@ repo. Duas tabelas:
   (o mesmo bundle que o site exibe). Feed alternativo:
   `https://api.freellmapi.co/v1/latest` (JSON; pode estar um snapshot à frente
   do bundle da página). Snapshot atual no banco: `2026.11.14.64a371`
-  (49 provedores, 303 modelos, 31 com modelos; + 4 modelos diretos Anthropic
-  da migração 0005, que não são provedores do catálogo).
+  (50 provedores, 307 modelos, 32 com modelos; os 4 modelos Anthropic da
+  migração 0005 são provedor do catálogo desde a migração 0015).
 - **Atualizar o catálogo**: escreva uma NOVA migração (nunca edite as
   aplicadas). Para cada provedor/mudança: `INSERT INTO providers ... ON
   CONFLICT(id) DO UPDATE ...` e `INSERT INTO models ... ON CONFLICT(platform,
@@ -442,9 +452,10 @@ repo. Duas tabelas:
   `modelIdentity`, `extraHeaders`, `forceSingleToolCall`, `modelAliases`,
   `electronHubProxyError`, `ensureDone`.
 - **Provedores extras fora do site** (BYOK + importação de chave): `cerebras`,
-  `together`, `xai`, `bai`, `huggingface`, `ollama`, `orcarouter`. (`openai` e
-  `anthropic` foram removidos como provedores; os protocolos de endpoint
-  OpenAI-compatível e Anthropic permanecem suportados para roteamento.)
+  `together`, `xai`, `bai`, `huggingface`, `ollama`, `orcarouter`. (`openai`
+  não é provedor do catálogo; `anthropic` é provedor desde a migração 0015;
+  os protocolos de endpoint OpenAI-compatível e Anthropic permanecem
+  suportados para roteamento.)
 - **Rate-limit defaults**: a coluna `limits` de `providers` guarda os
   `limits.rpm/rpd/tpm/tpd` por provedor (mínimo entre os modelos quando
   variam; valor exato quando idênticos). No `POST /api/keys`, o limite
@@ -461,14 +472,14 @@ repo. Duas tabelas:
 ### Build Errors
 
 1. Ensure `nodejs_compat` flag is set in `cloudflare.config.ts`
-2. Check for TypeScript errors: `bun run tsc --noEmit`
+2. Check for TypeScript errors: `bun x tsc --noEmit`
 3. Verify all dependencies are installed: `bun install`
 
 ### Deployment Failures
 
 1. Check Cloudflare dashboard for error details
 2. Verify `wrote` package is correctly configured
-3. Ensure wrangler is up to date: `bunx wrangler version`
+3. Ensure the Cloudflare CLI is up to date: `bun x cf --version`
 
 ---
 

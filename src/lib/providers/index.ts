@@ -1,8 +1,11 @@
 import type { NativeMessagesRequest } from "../anthropic-request";
 import { getProviderConfig } from "../provider-catalog";
 import type { D1Database, ProviderCatalog } from "../types";
+import { sendAiHorde } from "./ai-horde";
+import { sendAnthropic } from "./anthropic";
 import { sendCloudflare } from "./cloudflare";
 import { ProviderError, toProviderError } from "./errors";
+import { sendGoogle } from "./google";
 import { sendMoondream } from "./moondream";
 import { sendOpenAICompatible } from "./openai-compatible";
 import { validatePublicHttpsUrl } from "./public-url";
@@ -29,6 +32,32 @@ async function resolveBaseUrl(
 	return url.toString();
 }
 
+/**
+ * The vendor error response the router returns when a direct native
+ * request fails: same status and body, but the upstream API key is
+ * redacted wherever it appears in the message (a vendor can echo the
+ * key back inside its validation text), and only the headers a caller
+ * needs to correlate or retry are kept — the vendor request id and
+ * retry-after — never auth or cookie material.
+ */
+function nativeErrorResponse(
+	source: Response,
+	bodyText: string,
+	apiKey: string,
+): Response {
+	const headers = new Headers();
+	const contentType = source.headers.get("content-type");
+	if (contentType) headers.set("content-type", contentType);
+	for (const name of ["request-id", "retry-after"]) {
+		const value = source.headers.get(name);
+		if (value) headers.set(name, value);
+	}
+	const redacted = apiKey
+		? bodyText.split(apiKey).join("[redacted]")
+		: bodyText;
+	return new Response(redacted, { status: source.status, headers });
+}
+
 export async function sendNativeMessages(
 	input: UpstreamChatInput,
 	native: NativeMessagesRequest,
@@ -41,8 +70,21 @@ export async function sendNativeMessages(
 		Authorization: `Bearer ${input.apiKey}`,
 		"Content-Type": "application/json",
 		"anthropic-version": "2023-06-01",
-		...native.headers,
 	});
+	// The caller's anthropic-* headers are part of the native request
+	// (betas, workspace id) and must reach the upstream verbatim. A
+	// Headers object has no own enumerable properties, so spreading it
+	// into the object above copies nothing — iterate it instead. Never
+	// forward anthropic-version (pinned above), the browser-access
+	// marker, or any credential header from the inbound request.
+	for (const [name, value] of native.headers) {
+		if (
+			name.startsWith("anthropic-") &&
+			name !== "anthropic-version" &&
+			name !== "anthropic-dangerous-direct-browser-access"
+		)
+			headers.set(name, value);
+	}
 	headers.set(
 		"Accept",
 		input.stream ? "text/event-stream" : "application/json",
@@ -52,15 +94,21 @@ export async function sendNativeMessages(
 		{
 			method: "POST",
 			headers,
-			body: JSON.stringify(native.body),
+			// The upstream gets the bare vendor model id (input.modelId),
+			// not the gateway-namespaced id the caller used
+			// ("anthropic/claude-opus-5-5") — everything else in the
+			// native body passes through verbatim.
+			body: JSON.stringify({ ...native.body, model: input.modelId }),
 			signal,
 		},
 	);
 	if (!response.ok) {
 		const text = await response.text().catch(() => "");
-		throw await toProviderError(
+		const error = await toProviderError(
 			new Response(text, { status: response.status }),
 		);
+		error.nativeResponse = nativeErrorResponse(response, text, input.apiKey);
+		throw error;
 	}
 	if (
 		input.stream &&
@@ -79,9 +127,13 @@ export async function sendNativeMessages(
 export function nativeResponseHeaders(source: Headers): Headers {
 	const h = new Headers();
 	for (const [name, value] of source) {
+		const lower = name.toLowerCase();
 		if (
-			name.toLowerCase() === "content-type" ||
-			name.toLowerCase() === "cache-control"
+			lower === "content-type" ||
+			lower === "cache-control" ||
+			// The vendor request id is how a caller correlates an error with
+			// the upstream; dropping it makes native 400s unanswerable.
+			lower === "request-id"
 		)
 			h.set(name, value);
 	}
@@ -94,17 +146,26 @@ export async function sendChat(
 	db?: D1Database,
 ): Promise<Response> {
 	const provider = await getProviderConfig(input.platform, db);
-	const _baseUrl = await resolveBaseUrl(input, provider);
+	// Resolved once: for a catalog platform this is always the catalog base
+	// URL — a stored key baseUrl is never used for those (C1). Only an
+	// off-catalog platform (e.g. `custom`) reaches the key baseUrl, and
+	// resolveBaseUrl only accepts a public HTTPS endpoint for it.
+	const baseUrl = await resolveBaseUrl(input, provider);
+
+	// The dedicated senders used to be dead code: everything fell through
+	// to the OpenAI-compatible path, so Gemini got a POST to a
+	// /chat/completions endpoint that does not exist, AI Horde lost its
+	// anonymous auth, and Anthropic got an OpenAI-shaped body.
+	if (provider?.protocol === "google_gemini") {
+		return sendGoogle(input, baseUrl, signal);
+	}
+
+	if (provider?.protocol === "ai_horde") {
+		return sendAiHorde(input, baseUrl, signal);
+	}
 
 	if (provider?.protocol === "anthropic_messages") {
-		// This requires the native messages request to be built first
-		// The actual call path for anthropic is handled elsewhere
-		// Return error for now - this path needs native request building
-		throw new ProviderError(
-			"Anthropic messages protocol not supported via sendChat",
-			0,
-			"bad_request",
-		);
+		return sendAnthropic(input, baseUrl, signal);
 	}
 
 	if (provider?.protocol === "cloudflare_openai") {
@@ -115,10 +176,5 @@ export async function sendChat(
 		return sendMoondream(input, provider, signal);
 	}
 
-	return sendOpenAICompatible(
-		input,
-		provider,
-		await resolveBaseUrl(input, provider),
-		signal,
-	);
+	return sendOpenAICompatible(input, provider, baseUrl, signal);
 }

@@ -9,6 +9,9 @@ let sessionToken = "";
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
 	getEncryptionSecret: () => SECRET,
+	getImagesBucket: () => {
+		throw new Error("IMAGES_BUCKET is unavailable in this test");
+	},
 }));
 
 // Dynamic import needed because env.ts depends on cloudflare:workers
@@ -51,6 +54,7 @@ interface CatalogResponse {
 		personalKeyCount: number;
 		description?: string;
 		members?: string[];
+		memberNames?: string[];
 	}>;
 }
 
@@ -266,6 +270,14 @@ test("excludes shtora/auto as an ordinary model and lists virtual routers", asyn
 			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','qwen3-8-max','Qwen3 8 Max',32768,1,1,1)",
 		)
 		.run();
+	// A 3d member so shtora/3d has a routable member. The name carries a
+	// version date on purpose: memberNames must strip it, like the
+	// playground combobox label.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','gpt-5-4-mini','GPT 5.4 Mini (08-2024)',32768,1,1,1)",
+		)
+		.run();
 
 	const body = await getCatalog();
 	const ids = body.models.map((m) => m.id);
@@ -280,10 +292,19 @@ test("excludes shtora/auto as an ordinary model and lists virtual routers", asyn
 	expect(coding).toBeDefined();
 	expect(coding?.members).toContain("qwen3-coder-plus");
 	expect(coding?.name).toBe("Shtora Coding");
+	expect(coding?.memberNames).toContain("Qwen3 Coder Plus");
 
 	const auto = body.models.find((m) => m.id === "shtora/auto");
 	expect(auto).toBeDefined();
 	expect(auto?.name).toBe("Shtora Auto");
 	expect(auto?.members).toContain("qwen3-8-max");
 	expect(auto?.members).not.toContain("auto");
+
+	const router3d = body.models.find((m) => m.id === "shtora/3d");
+	expect(router3d).toBeDefined();
+	expect(router3d?.name).toBe("Shtora 3D");
+	expect(router3d?.members).toContain("gpt-5-4-mini");
+	// qwen3-coder-plus is a 3d member too and is in the fixtures, so it
+	// shows up as well, after gpt-5-4-mini in router priority order.
+	expect(router3d?.memberNames).toEqual(["GPT 5.4 Mini", "Qwen3 Coder Plus"]);
 });

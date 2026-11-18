@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { type RefObject, useEffect, useId, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -182,30 +181,50 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
 				strokeLinecap="round"
 			/>
 			<defs>
-				<motion.linearGradient
+				{/*
+				 * The gradient sweep, as native SMIL: each coordinate
+				 * travels from its start value to its end value on the
+				 * easeOutExpo curve (0.16 1 0.3 1), then restarts — the
+				 * same loop motion/react used to run. SMIL replaces the
+				 * animation library here: motion was the only reason
+				 * the landing's first paint pulled it in (B9), and the
+				 * beam is decorative, so no JS animation runtime is
+				 * needed for it. A nonzero repeatDelay becomes a hold
+				 * at the end values before the next loop.
+				 */}
+				<linearGradient
 					className="transform-gpu"
 					id={id}
 					gradientUnits={"userSpaceOnUse"}
-					initial={{
-						x1: "0%",
-						x2: "0%",
-						y1: "0%",
-						y2: "0%",
-					}}
-					animate={{
-						x1: gradientCoordinates.x1,
-						x2: gradientCoordinates.x2,
-						y1: gradientCoordinates.y1,
-						y2: gradientCoordinates.y2,
-					}}
-					transition={{
-						delay,
-						duration,
-						ease: [0.16, 1, 0.3, 1], // https://easings.net/#easeOutExpo
-						repeat,
-						repeatDelay,
-					}}
+					x1={gradientCoordinates.x1[0]}
+					x2={gradientCoordinates.x2[0]}
+					y1={gradientCoordinates.y1[0]}
+					y2={gradientCoordinates.y2[0]}
 				>
+					{(["x1", "x2", "y1", "y2"] as const).map((name) => {
+						const [from, to] = gradientCoordinates[name];
+						const totalDuration = duration + repeatDelay;
+						const sweepEnd = repeatDelay > 0 ? duration / totalDuration : 1;
+						return (
+							<animate
+								key={name}
+								attributeName={name}
+								values={
+									repeatDelay > 0 ? `${from};${to};${to}` : `${from};${to}`
+								}
+								keyTimes={repeatDelay > 0 ? `0;${sweepEnd};1` : "0;1"}
+								keySplines={
+									repeatDelay > 0 ? "0.16 1 0.3 1;0.16 1 0.3 1" : "0.16 1 0.3 1"
+								}
+								calcMode="spline"
+								dur={`${totalDuration}s`}
+								begin={`${delay}s`}
+								repeatCount={
+									repeat === Infinity ? "indefinite" : String(repeat)
+								}
+							/>
+						);
+					})}
 					<stop stopColor={gradientStartColor} stopOpacity="0"></stop>
 					<stop stopColor={gradientStartColor}></stop>
 					<stop offset="32.5%" stopColor={gradientStopColor}></stop>
@@ -214,7 +233,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
 						stopColor={gradientStopColor}
 						stopOpacity="0"
 					></stop>
-				</motion.linearGradient>
+				</linearGradient>
 			</defs>
 		</svg>
 	);

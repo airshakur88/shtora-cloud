@@ -1,7 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { Activity, Clock, ShieldCheck, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -46,11 +44,17 @@ interface TokensByDay {
 
 interface ByProvider {
 	platform: string;
+	providerName: string;
 	requests: number;
 	errors: number;
 	avgLatencyMs: number | null;
+	latencySumMs: number;
+	latencyCount: number;
+	ttftSumMs: number;
+	ttftCount: number;
 	p95LatencyMs: number | null;
 	avgTtftMs: number | null;
+	fallbackAttempts: number;
 	tokensPerSec: number | null;
 	inputTokens: number;
 	outputTokens: number;
@@ -58,12 +62,14 @@ interface ByProvider {
 
 interface ErrorsByProvider {
 	platform: string;
+	providerName: string;
 	errors: number;
 }
 
 interface RecentError {
 	id: number;
 	platform: string;
+	providerName: string;
 	model_routed: string;
 	error_message: string;
 	created_at: string;
@@ -72,6 +78,7 @@ interface RecentError {
 interface ByModel {
 	model_id: string;
 	platform: string;
+	providerName: string;
 	requests: number;
 	successes: number;
 	latency_ms: number | null;
@@ -83,6 +90,7 @@ interface ByKey {
 	keyId: number;
 	key_mask: string;
 	platform: string;
+	providerName: string;
 	requests: number;
 	successes: number;
 	latency_ms: number | null;
@@ -98,6 +106,10 @@ interface DashboardMetrics {
 	recentErrors: RecentError[];
 	byModel: ByModel[];
 	byKey: ByKey[];
+	overall?: {
+		p95LatencyMs: number | null;
+		averageTtftMs: number | null;
+	};
 }
 
 function isDashboardMetrics(value: unknown): value is DashboardMetrics {
@@ -162,23 +174,22 @@ function calculateTotals(metrics: DashboardMetrics | null): UsageTotals {
 		(sum, day) => sum + day.output,
 		0,
 	);
-	const avgLatency =
-		metrics.byProvider.reduce((sum, p) => sum + (p.avgLatencyMs ?? 0), 0) /
-		(metrics.byProvider.length || 1);
-	const p95Latencies = metrics.byProvider
-		.map((p) => p.p95LatencyMs)
-		.filter((l): l is number => l !== null);
-	const p95Latency =
-		p95Latencies.length > 0
-			? p95Latencies[Math.floor(p95Latencies.length * 0.95)]
-			: null;
-	const ttftValues = metrics.byProvider
-		.map((p) => p.avgTtftMs)
-		.filter((t): t is number => t !== null);
-	const avgTtft =
-		ttftValues.length > 0
-			? ttftValues.reduce((a, b) => a + b, 0) / ttftValues.length
-			: null;
+	// Averages weighted by the requests behind them: a provider with one
+	// request must not weigh the same as one with ten thousand. The sums
+	// come from the metrics route, so the weight is exact, not estimated
+	// from the per-provider averages.
+	const latencySumMs = metrics.byProvider.reduce(
+		(sum, p) => sum + p.latencySumMs,
+		0,
+	);
+	const latencyCount = metrics.byProvider.reduce(
+		(sum, p) => sum + p.latencyCount,
+		0,
+	);
+	const avgLatency = latencyCount > 0 ? latencySumMs / latencyCount : null;
+	const ttftSumMs = metrics.byProvider.reduce((sum, p) => sum + p.ttftSumMs, 0);
+	const ttftCount = metrics.byProvider.reduce((sum, p) => sum + p.ttftCount, 0);
+	const avgTtft = ttftCount > 0 ? ttftSumMs / ttftCount : null;
 
 	return {
 		requests: totals.requests,
@@ -187,20 +198,38 @@ function calculateTotals(metrics: DashboardMetrics | null): UsageTotals {
 			totals.requests > 0 ? totals.successfulRequests / totals.requests : null,
 		inputTokens: totalInputTokens,
 		outputTokens: totalOutputTokens,
-		averageLatencyMs: avgLatency > 0 ? avgLatency : null,
-		p95LatencyMs: p95Latency,
+		averageLatencyMs: avgLatency,
+		p95LatencyMs: metrics.overall?.p95LatencyMs ?? null,
 		averageTtftMs: avgTtft,
 	};
 }
 
+/** "18 Nov" / "18 Nov 14:32:05", day first like the date-fns formats
+ * these replaced ("d MMM", "d MMM HH:mm:ss"). Intl orders month first
+ * in en-US, so the parts are reassembled by hand; hourCycle h23 keeps
+ * midnight as 00, not 24. */
+function dateParts(date: Date): Record<string, string> {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		day: "numeric",
+		month: "short",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hourCycle: "h23",
+	}).formatToParts(date);
+	return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
 function formatDateLabel(dateStr: string): string {
 	const date = new Date(`${dateStr}T00:00:00`);
-	return format(date, "d MMM", { locale: es });
+	const parts = dateParts(date);
+	return `${parts.day} ${parts.month}`;
 }
 
 function formatDateTimeLabel(dateStr: string): string {
 	const date = new Date(dateStr);
-	return format(date, "d MMM HH:mm:ss", { locale: es });
+	const parts = dateParts(date);
+	return `${parts.day} ${parts.month} ${parts.hour}:${parts.minute}:${parts.second}`;
 }
 
 export default function DashboardOverviewPage() {
@@ -479,7 +508,7 @@ export default function DashboardOverviewPage() {
 									<BarChart data={metrics.byProvider} layout="vertical">
 										<YAxis
 											type="category"
-											dataKey="platform"
+											dataKey="providerName"
 											width={100}
 											tick={{ fontSize: 11 }}
 										/>
@@ -526,7 +555,7 @@ export default function DashboardOverviewPage() {
 									>
 										<YAxis
 											type="category"
-											dataKey="platform"
+											dataKey="providerName"
 											width={100}
 											tick={{ fontSize: 11 }}
 										/>
@@ -632,7 +661,7 @@ export default function DashboardOverviewPage() {
 									>
 										<YAxis
 											type="category"
-											dataKey="platform"
+											dataKey="providerName"
 											width={100}
 											tick={{ fontSize: 11 }}
 										/>
@@ -679,7 +708,7 @@ export default function DashboardOverviewPage() {
 									>
 										<YAxis
 											type="category"
-											dataKey="platform"
+											dataKey="providerName"
 											width={100}
 											tick={{ fontSize: 11 }}
 										/>
@@ -726,7 +755,7 @@ export default function DashboardOverviewPage() {
 									>
 										<YAxis
 											type="category"
-											dataKey="platform"
+											dataKey="providerName"
 											width={100}
 											tick={{ fontSize: 11 }}
 										/>
@@ -792,7 +821,7 @@ export default function DashboardOverviewPage() {
 											<tbody>
 												{metrics.recentErrors.map((err) => (
 													<tr key={err.id} className="border-b last:border-0">
-														<td className="px-4 py-3">{err.platform}</td>
+														<td className="px-4 py-3">{err.providerName}</td>
 														<td className="px-4 py-3 font-mono text-xs">
 															{err.model_routed}
 														</td>
@@ -828,6 +857,7 @@ export default function DashboardOverviewPage() {
 													"Provider",
 													"Requests",
 													"Errors",
+													"Fallbacks",
 													"Avg latency (ms)",
 													"P95 latency (ms)",
 													"TTFT (ms)",
@@ -847,12 +877,15 @@ export default function DashboardOverviewPage() {
 										<tbody>
 											{metrics.byProvider.map((p) => (
 												<tr key={p.platform} className="border-b last:border-0">
-													<td className="px-4 py-3">{p.platform}</td>
+													<td className="px-4 py-3">{p.providerName}</td>
 													<td className="px-4 py-3 tabular-nums">
 														{p.requests.toLocaleString()}
 													</td>
 													<td className="px-4 py-3 tabular-nums text-destructive">
 														{p.errors.toLocaleString()}
+													</td>
+													<td className="px-4 py-3 tabular-nums">
+														{p.fallbackAttempts.toLocaleString()}
 													</td>
 													<td className="px-4 py-3 tabular-nums">
 														{p.avgLatencyMs !== null
@@ -922,7 +955,7 @@ export default function DashboardOverviewPage() {
 												<tr key={m.model_id} className="border-b last:border-0">
 													<td className="px-4 py-3">{m.model_id}</td>
 													<td className="px-4 py-3 text-muted-foreground">
-														{m.platform}
+														{m.providerName}
 													</td>
 													<td className="px-4 py-3 tabular-nums">
 														{m.requests.toLocaleString()}
@@ -998,7 +1031,7 @@ export default function DashboardOverviewPage() {
 															{k.key_mask || "—"}
 														</td>
 														<td className="px-4 py-3 text-muted-foreground">
-															{k.platform}
+															{k.providerName}
 														</td>
 														<td className="px-4 py-3 tabular-nums">
 															{k.requests.toLocaleString()}

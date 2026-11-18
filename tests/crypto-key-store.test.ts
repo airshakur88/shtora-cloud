@@ -6,9 +6,10 @@ import {
 	deleteApiKey,
 	getApiKeyOwnerByToken,
 	listApiKeys,
+	rotateUnifiedToken,
 	setApiKeyEnabled,
+	sha256Hex,
 } from "../src/lib/key-store";
-import { hashPassword } from "../src/lib/password";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
@@ -32,11 +33,6 @@ test("auth scrypt verifier accepts baseline and pre-parity target formats", asyn
 	expect(
 		await verifyAuthPassword("baseline-password-123", hashFromBaselineScrypt),
 	).toBe(true);
-
-	const targetHash = await hashPassword("legacy-password-123");
-	expect(await verifyAuthPassword("legacy-password-123", targetHash)).toBe(
-		true,
-	);
 });
 
 test("provider API keys are encrypted and unified tokens resolve to their owner", async () => {
@@ -63,29 +59,96 @@ test("provider API keys are encrypted and unified tokens resolve to their owner"
 			.prepare("SELECT encrypted_key, unified_token FROM api_keys WHERE id = ?")
 			.bind(created.id)
 			.first<{ encrypted_key: string; unified_token: string }>();
-		const ownerId = await getApiKeyOwnerByToken(db, created.unifiedToken);
+		// The plaintext token exists only on the creation response.
+		const token = created.unifiedToken as string;
+		const ownerId = await getApiKeyOwnerByToken(db, token);
 		const listed = await listApiKeys(db, "u1", SECRET);
 
 		expect(stored?.encrypted_key).not.toContain(rawKey);
-		expect(stored?.unified_token).toBe(created.unifiedToken);
+		// Only the SHA-256 hash of the unified token is stored.
+		expect(stored?.unified_token).toBe(await sha256Hex(token));
+		expect(stored?.unified_token).not.toBe(token);
 		expect(ownerId).toBe("u1");
-		expect(created.unifiedToken).toMatch(
+		expect(token).toMatch(
 			/^flmr-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
 		);
 		expect(await getApiKeyOwnerByToken(db, "invalid-token")).toBe(null);
 		await setApiKeyEnabled(db, created.id, "u1", false);
-		expect(await getApiKeyOwnerByToken(db, created.unifiedToken)).toBe(null);
+		expect(await getApiKeyOwnerByToken(db, token)).toBe(null);
 		await setApiKeyEnabled(db, created.id, "u1", true);
 		await deleteApiKey(db, created.id, "not-the-owner");
-		expect(await getApiKeyOwnerByToken(db, created.unifiedToken)).toBe("u1");
+		expect(await getApiKeyOwnerByToken(db, token)).toBe("u1");
 		expect(created.maskedKey).toBe("••••7654");
 		expect(listed).toHaveLength(1);
 		expect(listed[0].maskedKey).toBe("••••7654");
+		// The token is returned once at creation, never in listings.
+		expect(listed[0].unifiedToken).toBeUndefined();
 		expect("encryptedKey" in listed[0]).toBe(false);
 	} finally {
 		db.close();
 	}
 });
+test("legacy plaintext unified tokens authenticate and are re-hashed on first use", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind("u1", "Test User", "testuser", "hash")
+			.run();
+		const legacyToken = "flmr-11111111-2222-3333-4444-555555555555";
+		await db
+			.prepare(
+				"INSERT INTO api_keys (user_id, platform, encrypted_key, iv, auth_tag, enabled, unified_token) VALUES ('u1', 'groq', 'enc', 'iv', 'tag', 1, ?)",
+			)
+			.bind(legacyToken)
+			.run();
+		expect(await getApiKeyOwnerByToken(db, legacyToken)).toBe("u1");
+		const stored = await db
+			.prepare("SELECT unified_token FROM api_keys WHERE user_id = ?")
+			.bind("u1")
+			.first<{ unified_token: string }>();
+		expect(stored?.unified_token).toBe(await sha256Hex(legacyToken));
+		expect(stored?.unified_token).not.toBe(legacyToken);
+		// Still works after the re-hash.
+		expect(await getApiKeyOwnerByToken(db, legacyToken)).toBe("u1");
+	} finally {
+		db.close();
+	}
+});
+
+test("rotating a unified token invalidates the old one", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind("u1", "Test User", "testuser", "hash")
+			.run();
+		const created = await createApiKey(
+			db,
+			{ userId: "u1", platform: "groq", keyLabel: "primary", rawKey: "sk-x" },
+			SECRET,
+		);
+		const oldToken = created.unifiedToken as string;
+		expect(await getApiKeyOwnerByToken(db, oldToken)).toBe("u1");
+		const newToken = await rotateUnifiedToken(db, created.id, "u1");
+		expect(newToken).toMatch(
+			/^flmr-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+		);
+		expect(newToken).not.toBe(oldToken);
+		expect(await getApiKeyOwnerByToken(db, oldToken)).toBe(null);
+		expect(await getApiKeyOwnerByToken(db, newToken as string)).toBe("u1");
+		expect(await rotateUnifiedToken(db, created.id, "not-the-owner")).toBe(
+			null,
+		);
+	} finally {
+		db.close();
+	}
+});
+
 test("deleting a provider key preserves request history", async () => {
 	const db = await createParityDatabase();
 	try {

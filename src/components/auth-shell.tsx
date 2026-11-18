@@ -31,13 +31,11 @@ export function AuthShell({
 					>
 						s.
 					</span>
-					<span>
-						shtora<span className="text-muted-foreground"> / cloud</span>
-					</span>
+					<span>shtora</span>
 				</Link>
 				<div className="absolute bottom-10 left-10 z-10">
 					<p className="font-mono text-[10px] tracking-[2px] text-primary/60">
-						SHTORA CLOUD
+						SHTORA
 					</p>
 					<p className="mt-1 text-sm text-muted-foreground">
 						Um token. Vários provedores.

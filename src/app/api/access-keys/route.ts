@@ -1,5 +1,10 @@
 import type { CreateAccessKeyRequest } from "@/lib/access-keys";
-import { createAccessKey, listAccessKeys } from "@/lib/access-keys";
+import {
+	AccessKeyLimitError,
+	createAccessKey,
+	listAccessKeys,
+	MAX_ACCESS_KEYS_PER_USER,
+} from "@/lib/access-keys";
 import { routeError } from "@/lib/api-error";
 import { getDb } from "@/lib/env";
 import { requireUser } from "@/lib/session";
@@ -73,6 +78,17 @@ export async function POST(request: Request): Promise<Response> {
 
 		return Response.json({ accessKey: result }, { status: 201 });
 	} catch (error) {
+		if (error instanceof AccessKeyLimitError) {
+			return Response.json(
+				{
+					error: {
+						message: `Access key limit reached (${MAX_ACCESS_KEYS_PER_USER} keys per user)`,
+						type: "limit_reached",
+					},
+				},
+				{ status: 403 },
+			);
+		}
 		return routeError(error, "/api/access-keys");
 	}
 }

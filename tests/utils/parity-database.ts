@@ -18,6 +18,8 @@ export async function createParityDatabase(): Promise<MemoryD1> {
 		"0012_clean_model_names_b.sql",
 		"0013_clean_model_names_c.sql",
 		"0014_clean_model_names_d.sql",
+		"0015_anthropic_provider.sql",
+		"0016_playground_image_ownership.sql",
 	]) {
 		db.exec(
 			readFileSync(resolve(process.cwd(), `migrations/${migration}`), "utf8"),

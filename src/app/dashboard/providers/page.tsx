@@ -30,41 +30,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { apiErrorMessage } from "@/lib/api-error";
+import type { CatalogProvider } from "@/lib/dashboard-catalog";
+import { isCatalogResponse } from "@/lib/dashboard-catalog";
 import type { ApiKeyResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-interface CatalogResponse {
-	providers: ProviderStats[];
-	models: unknown[];
-}
-
-interface ProviderStats {
-	id: string;
-	name: string;
-	globalKeys: number;
-	personalKeys: number;
-}
-
-function isProviderStats(value: unknown): value is ProviderStats {
-	if (!value || typeof value !== "object") return false;
-	return (
-		"id" in value &&
-		typeof value.id === "string" &&
-		"name" in value &&
-		typeof value.name === "string" &&
-		"globalKeys" in value &&
-		typeof value.globalKeys === "number" &&
-		"personalKeys" in value &&
-		typeof value.personalKeys === "number"
-	);
-}
-
-function isCatalogResponse(value: unknown): value is CatalogResponse {
-	if (!value || typeof value !== "object") return false;
-	if (!("providers" in value) || !Array.isArray(value.providers)) return false;
-	if (!("models" in value) || !Array.isArray(value.models)) return false;
-	return value.providers.every(isProviderStats);
-}
 
 function isKeyResponse(value: unknown): value is ApiKeyResponse {
 	if (!value || typeof value !== "object") return false;
@@ -131,7 +100,7 @@ const LIMITS_SOURCE_LABEL: Record<string, string> = {
 };
 
 export default function DashboardProvidersPage() {
-	const [providers, setProviders] = useState<ProviderStats[] | null>(null);
+	const [providers, setProviders] = useState<CatalogProvider[] | null>(null);
 	// Provider id/name list comes from the same /api/dashboard/catalog
 	// response as the stats above — the D1 `providers` table, not a bundle.
 	const providersCatalog = useMemo(
@@ -465,9 +434,10 @@ export default function DashboardProvidersPage() {
 						</div>
 					) : providers.length === 0 ? (
 						<div className="rounded-lg border bg-card px-4 py-12 text-center">
-							<p className="font-medium">No providers configured</p>
+							<p className="font-medium">No providers in the catalog</p>
 							<p className="mt-1 text-sm text-muted-foreground">
-								Add API keys to see provider statistics.
+								The provider catalog is empty. Providers appear here when they
+								are added to the catalog.
 							</p>
 						</div>
 					) : (
@@ -476,6 +446,7 @@ export default function DashboardProvidersPage() {
 								<thead>
 									<tr className="border-b text-left text-muted-foreground">
 										<th className="px-4 py-3 font-medium">Provider</th>
+										<th className="px-4 py-3 font-medium text-right">Models</th>
 										<th className="px-4 py-3 font-medium text-right">
 											Global keys
 										</th>
@@ -492,6 +463,9 @@ export default function DashboardProvidersPage() {
 												<div className="text-xs text-muted-foreground">
 													{provider.id}
 												</div>
+											</td>
+											<td className="px-4 py-3 text-right tabular-nums">
+												{provider.modelCount.toLocaleString()}
 											</td>
 											<td className="px-4 py-3 text-right tabular-nums">
 												{provider.globalKeys.toLocaleString()}
@@ -515,6 +489,10 @@ export default function DashboardProvidersPage() {
 								Add Provider Key
 							</Button>
 						</div>
+						<p className="text-sm text-muted-foreground">
+							Usage below is summed across all models for each key. Limits still
+							apply per model.
+						</p>
 
 						<Dialog open={formOpen} onOpenChange={setFormOpen}>
 							<DialogContent className="sm:max-w-lg">

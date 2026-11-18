@@ -179,7 +179,32 @@ async function getWorkersDatabase() {
 
 async function applyMigrations(db, isLocal) {
 	const files = listMigrationFiles();
+	// Re-running the seed used to re-apply every migration, and some of
+	// them add columns without IF NOT EXISTS (e.g. 0003), so a second run
+	// died with "duplicate column name". Applied migrations are recorded
+	// in seed_migrations and skipped on later runs; the migration files
+	// themselves are never edited. A migration is only recorded after it
+	// applies cleanly, so a failed run retries it next time.
+	await run(
+		db,
+		isLocal,
+		`CREATE TABLE IF NOT EXISTS seed_migrations (
+			name TEXT PRIMARY KEY,
+			applied_at TEXT NOT NULL
+		)`,
+	);
+	let applied = 0;
 	for (const file of files) {
+		const row = await first(
+			db,
+			isLocal,
+			"SELECT name FROM seed_migrations WHERE name = ?",
+			file.name,
+		);
+		if (row) {
+			console.log(`  Skipped ${file.name} (already applied)`);
+			continue;
+		}
 		if (isLocal) {
 			db.exec(file.sql);
 		} else {
@@ -188,9 +213,17 @@ async function applyMigrations(db, isLocal) {
 			);
 			await db.batch(statements);
 		}
+		await run(
+			db,
+			isLocal,
+			"INSERT INTO seed_migrations (name, applied_at) VALUES (?, ?)",
+			file.name,
+			new Date().toISOString(),
+		);
 		console.log(`  Applied ${file.name}`);
+		applied += 1;
 	}
-	return files.length;
+	return applied;
 }
 
 async function run(db, isLocal, sql, ...values) {
@@ -227,29 +260,30 @@ async function main() {
 
 	await applyMigrations(db, isLocal);
 
+	// Insert-only: nunca sobrescrever um fallback_config já existente.
+	// Rodar o seed contra um banco em produção não pode resetar ajustes
+	// feitos por admin.
 	const fallbackJson = JSON.stringify(JSON.stringify(DEFAULT_FALLBACK_CHAIN));
 	await run(
 		db,
 		isLocal,
 		`INSERT INTO fallback_config (name, chain_json, is_default)
     VALUES (?, ?, ?)
-    ON CONFLICT(name) DO UPDATE SET
-      chain_json = excluded.chain_json,
-      updated_at = datetime('now')`,
+    ON CONFLICT(name) DO NOTHING`,
 		"default",
 		fallbackJson,
 		1,
 	);
 
 	for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+		// Insert-only: settings existentes (ajustadas por admin) são
+		// preservadas; só as ausentes recebem o valor padrão.
 		await run(
 			db,
 			isLocal,
 			`INSERT INTO settings (key, value)
         VALUES (?, ?)
-        ON CONFLICT(key) DO UPDATE SET
-          value = excluded.value,
-          updated_at = datetime('now')`,
+        ON CONFLICT(key) DO NOTHING`,
 			key,
 			String(value),
 		);

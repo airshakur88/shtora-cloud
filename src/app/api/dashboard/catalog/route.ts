@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/env";
 import {
 	canonicalModelId,
+	comboboxModelLabel,
 	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 } from "@/lib/model-canonical";
@@ -34,7 +35,7 @@ export async function GET(request: Request): Promise<Response> {
 		const user = await requireUser(request);
 		const db = getDb();
 
-		const [globalRows, personalRows, modelRows, providerRows] =
+		const [globalRows, personalRows, modelRows, providerRows, modelCountRows] =
 			await Promise.all([
 				db
 					.prepare(
@@ -56,6 +57,11 @@ export async function GET(request: Request): Promise<Response> {
 				db
 					.prepare("SELECT id, name FROM providers ORDER BY id")
 					.all<{ id: string; name: string }>(),
+				db
+					.prepare(
+						"SELECT platform, COUNT(*) AS count FROM models WHERE enabled = 1 GROUP BY platform",
+					)
+					.all<CountRow>(),
 			]);
 
 		const globalByPlatform = new Map<string, number>(
@@ -63,6 +69,11 @@ export async function GET(request: Request): Promise<Response> {
 		);
 		const personalByPlatform = new Map<string, number>(
 			personalRows.results.map((row) => [row.platform, row.count]),
+		);
+		// Enabled models per provider, so providers with no models read as 0
+		// instead of looking the same as usable ones.
+		const modelCountByPlatform = new Map<string, number>(
+			modelCountRows.results.map((row) => [row.platform, row.count]),
 		);
 
 		const providersCatalog = providerRows.results;
@@ -78,6 +89,7 @@ export async function GET(request: Request): Promise<Response> {
 		const providers = providersCatalog.map((provider) => ({
 			id: provider.id,
 			name: provider.name,
+			modelCount: modelCountByPlatform.get(provider.id) ?? 0,
 			globalKeys: globalByPlatform.get(provider.id) ?? 0,
 			personalKeys: personalByPlatform.get(provider.id) ?? 0,
 		}));
@@ -107,6 +119,7 @@ export async function GET(request: Request): Promise<Response> {
 			name: string;
 			description?: string;
 			members?: string[];
+			memberNames?: string[];
 			platform: string;
 			enabled: boolean;
 			supportsTools: boolean;
@@ -184,12 +197,27 @@ export async function GET(request: Request): Promise<Response> {
 				(sum, p) => sum + (personalByPlatform.get(p) ?? 0),
 				0,
 			);
+			// Display labels for the tooltip on /dashboard/models: display
+			// name only, same as the playground combobox label — no
+			// provider, no version date.
+			const memberNames = members.map((member) => {
+				const row = canonicalByModel.get(member)?.row;
+				if (!row) return member;
+				return comboboxModelLabel(
+					displayModelName(
+						row.name,
+						row.platform,
+						providerNameById.get(row.platform),
+					),
+				);
+			});
 			models.push({
 				id: router.id,
 				canonical: router.id.slice("shtora/".length),
 				name: router.name,
 				description: router.description,
 				members,
+				memberNames,
 				platform: providers.join(", "),
 				enabled: true,
 				supportsTools: memberRows.some((row) => row.supports_tools === 1),

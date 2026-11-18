@@ -8,8 +8,14 @@
  */
 export function canonicalModelId(modelId: string): string {
 	let value = modelId.toLowerCase().trim();
-	// Strip pricing/route suffixes such as ":free" or ":paid".
-	value = value.split(":")[0];
+	// Strip a trailing pricing suffix (":free", ":paid") only. Other
+	// colon suffixes are real variants, not pricing tiers: ":fp8",
+	// ":fp4" and ":turbo" must survive, or "deepseek-v4-flash:fp8"
+	// (inferbase) merges into "deepseek-v4-flash" (electronhub) and
+	// shtora/deepseek-v4-flash can silently serve the FP8 variant.
+	if (value.endsWith(":free") || value.endsWith(":paid")) {
+		value = value.slice(0, value.lastIndexOf(":"));
+	}
 	// Strip a single leading vendor/provider prefix ("openai/gpt-oss-20b").
 	if (value.includes("/")) {
 		const firstSlash = value.indexOf("/");

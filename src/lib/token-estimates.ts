@@ -35,12 +35,115 @@ export function parseCompletionTokenCounts(response: unknown): {
 export function estimateTokensFromCharacters(characters: number): number {
 	return Math.ceil(characters / 4);
 }
-export function promptInputCharacters(messages: ChatMessage[]): number {
-	return messages.reduce(
-		(total, message) =>
-			total +
-			contentCharacters(message.content) +
-			toolCallCharacters(message.tool_calls),
+
+/**
+ * Token estimate for a known string, with documented corrections for the
+ * scripts the 4-chars-per-token baseline undercounts:
+ * - CJK characters carry roughly one token each, so they are charged at
+ *   1.5 chars per token while everything else keeps the baseline.
+ * - Code/JSON lines are denser than prose in BPE tokenizers (braces,
+ *   quotes and punctuation each tend to become their own token), so a
+ *   line that contains a structural bracket plus at least two other
+ *   symbols is charged at 2 chars per token. The 2-char rate is a
+ *   conservative planning estimate, not a tokenizer: very dense code
+ *   still reserves less than it spends, but far less than at 4 chars.
+ * This is a planning estimate for rate-limit reservation, not a
+ * tokenizer.
+ */
+const CJK_PATTERN =
+	/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uac00-\ud7af]/g;
+const CODE_BRACKET_PATTERN = /[{}[\]]/;
+
+function isCodeLine(line: string): boolean {
+	if (!CODE_BRACKET_PATTERN.test(line)) return false;
+	let symbols = 0;
+	for (const char of line) {
+		if (!/[\p{L}\p{N}\s]/u.test(char)) {
+			symbols += 1;
+			if (symbols >= 2) return true;
+		}
+	}
+	return false;
+}
+
+function tokenWeight(text: string): number {
+	const cjk = text.match(CJK_PATTERN)?.length ?? 0;
+	const rest = text.replace(CJK_PATTERN, "");
+	const lines = rest.split("\n");
+	let weight = cjk / 1.5 + (lines.length - 1) / 4;
+	for (const line of lines) {
+		weight += line.length / (isCodeLine(line) ? 2 : 4);
+	}
+	return weight;
+}
+
+export function estimateTokensFromText(text: string): number {
+	return Math.ceil(tokenWeight(text));
+}
+
+/**
+ * Every prompt string that counts toward the input estimate: message text,
+ * message `name`, tool-call arguments, `stop` sequences, and the text of a
+ * remote `image_url`. A `data:` URL contributes nothing — its payload is
+ * image bytes, not text, and counting base64 as tokens would reserve the
+ * whole minute budget for one attachment.
+ */
+function promptTextParts(
+	messages: ChatMessage[],
+	stop?: string | string[],
+): string[] {
+	const parts: string[] = [];
+	for (const message of messages) {
+		if (message.name) parts.push(message.name);
+		if (typeof message.content === "string") {
+			parts.push(message.content);
+		} else if (Array.isArray(message.content)) {
+			for (const part of message.content) {
+				if (!isRecord(part)) continue;
+				if (part.type === "text" && typeof part.text === "string") {
+					parts.push(part.text);
+				} else if (
+					part.type === "image_url" &&
+					isRecord(part.image_url) &&
+					typeof part.image_url.url === "string" &&
+					!part.image_url.url.startsWith("data:")
+				) {
+					parts.push(part.image_url.url);
+				}
+			}
+		}
+		if (Array.isArray(message.tool_calls)) {
+			for (const call of message.tool_calls) {
+				if (
+					isRecord(call) &&
+					isRecord(call.function) &&
+					typeof call.function.arguments === "string"
+				)
+					parts.push(call.function.arguments);
+			}
+		}
+	}
+	if (stop !== undefined) parts.push(...(Array.isArray(stop) ? stop : [stop]));
+	return parts;
+}
+
+export function estimatePromptTokens(
+	messages: ChatMessage[],
+	stop?: string | string[],
+): number {
+	const weight = promptTextParts(messages, stop).reduce(
+		(total, text) => total + tokenWeight(text),
+		0,
+	);
+	return Math.ceil(weight);
+}
+
+export function promptInputCharacters(
+	messages: ChatMessage[],
+	stop?: string | string[],
+): number {
+	return promptTextParts(messages, stop).reduce(
+		(total, text) => total + text.length,
 		0,
 	);
 }

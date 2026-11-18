@@ -1,58 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-
-interface ModelData {
-	id: string;
-	name: string;
-	platform: string;
-	enabled: boolean;
-	supportsTools: boolean;
-	supportsVision: boolean;
-	contextWindow: number | null;
-	globalKeyCount: number;
-	personalKeyCount: number;
-}
-
-interface CatalogResponse {
-	providers: unknown[];
-	models: ModelData[];
-}
-
-function isModelData(value: unknown): value is ModelData {
-	if (!value || typeof value !== "object") return false;
-	return (
-		"id" in value &&
-		typeof value.id === "string" &&
-		"name" in value &&
-		typeof value.name === "string" &&
-		"platform" in value &&
-		typeof value.platform === "string" &&
-		"enabled" in value &&
-		typeof value.enabled === "boolean" &&
-		"supportsTools" in value &&
-		typeof value.supportsTools === "boolean" &&
-		"supportsVision" in value &&
-		typeof value.supportsVision === "boolean" &&
-		"contextWindow" in value &&
-		(typeof value.contextWindow === "number" || value.contextWindow === null) &&
-		"globalKeyCount" in value &&
-		"personalKeyCount" in value &&
-		typeof value.personalKeyCount === "number"
-	);
-}
-
-function isCatalogResponse(value: unknown): value is CatalogResponse {
-	if (!value || typeof value !== "object") return false;
-	if (!("models" in value) || !Array.isArray(value.models)) return false;
-	if (!("providers" in value) || !Array.isArray(value.providers)) return false;
-	return value.models.every(isModelData);
-}
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { CatalogModel, CatalogProvider } from "@/lib/dashboard-catalog";
+import { isCatalogResponse } from "@/lib/dashboard-catalog";
 
 export default function DashboardModelsPage() {
-	const [models, setModels] = useState<ModelData[] | null>(null);
+	const [models, setModels] = useState<CatalogModel[] | null>(null);
+	const [providers, setProviders] = useState<CatalogProvider[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const loadModels = useCallback(async (signal?: AbortSignal) => {
@@ -67,6 +29,7 @@ export default function DashboardModelsPage() {
 				throw new Error("Invalid catalog response.");
 			if (signal?.aborted) return;
 			setModels(result.models);
+			setProviders(result.providers);
 		} catch (cause) {
 			if (!signal?.aborted)
 				toast.add({
@@ -85,15 +48,33 @@ export default function DashboardModelsPage() {
 		return () => controller.abort();
 	}, [loadModels]);
 
+	// Provider ids come from the catalog as a comma-joined list; the names
+	// come from the same response, straight from the providers table.
+	const providerNameById = useMemo(
+		() => new Map(providers.map((p) => [p.id, p.name])),
+		[providers],
+	);
+	const providerNames = useCallback(
+		(platform: string) =>
+			platform
+				.split(", ")
+				.map((id) => providerNameById.get(id) ?? id)
+				.join(", "),
+		[providerNameById],
+	);
+
 	const filteredModels = useMemo(
 		() =>
-			models?.filter(
-				(model) =>
-					model.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					model.platform.toLowerCase().includes(searchQuery.toLowerCase()),
-			) ?? [],
-		[models, searchQuery],
+			models?.filter((model) => {
+				const query = searchQuery.toLowerCase();
+				return (
+					model.id.toLowerCase().includes(query) ||
+					model.name.toLowerCase().includes(query) ||
+					model.platform.toLowerCase().includes(query) ||
+					providerNames(model.platform).toLowerCase().includes(query)
+				);
+			}) ?? [],
+		[models, searchQuery, providerNames],
 	);
 
 	return (
@@ -101,18 +82,16 @@ export default function DashboardModelsPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Models</h1>
-					<p className="text-muted-foreground">
-						Available models from all providers with global keys configured.
-					</p>
+					<p className="text-muted-foreground">Models listed in the catalog.</p>
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
-				<input
-					type="text"
+				<Input
+					type="search"
 					placeholder="Search models..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					className="rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+					className="max-w-sm"
 				/>
 			</div>
 			{models === null ? (
@@ -145,8 +124,14 @@ export default function DashboardModelsPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{[...Array(5)].map((_, i) => (
-										<tr key={i} className="border-b last:border-0">
+									{[
+										"skeleton-1",
+										"skeleton-2",
+										"skeleton-3",
+										"skeleton-4",
+										"skeleton-5",
+									].map((rowKey) => (
+										<tr key={rowKey} className="border-b last:border-0">
 											<td className="px-4 py-3">
 												<div className="font-medium">
 													<Skeleton className="h-4 w-32 mb-1" />
@@ -178,12 +163,12 @@ export default function DashboardModelsPage() {
 			) : filteredModels.length === 0 ? (
 				<div className="rounded-lg border bg-card px-4 py-12 text-center">
 					<p className="font-medium">
-						{searchQuery ? "No matching models" : "No models available"}
+						{searchQuery ? "No matching models" : "No models in the catalog"}
 					</p>
 					<p className="mt-1 text-sm text-muted-foreground">
 						{searchQuery
 							? "Try a different search term."
-							: "Add API keys to see available models."}
+							: "The catalog is empty. Models appear here when they are added to the catalog."}
 					</p>
 				</div>
 			) : (
@@ -209,13 +194,38 @@ export default function DashboardModelsPage() {
 							{filteredModels.map((model) => (
 								<tr key={model.id} className="border-b last:border-0">
 									<td className="px-4 py-3">
-										<div className="font-medium">{model.name}</div>
+										<div className="font-medium">
+											{model.name}
+											{model.memberNames !== undefined &&
+												model.memberNames.length > 0 && (
+													<Tooltip>
+														<TooltipTrigger
+															render={
+																<button
+																	type="button"
+																	aria-label={`Models in ${model.name}`}
+																	className="ml-1.5 inline-flex size-4 items-center justify-center rounded-full border text-[10px] leading-none text-muted-foreground"
+																>
+																	?
+																</button>
+															}
+														/>
+														<TooltipContent side="right">
+															<ul className="space-y-0.5">
+																{model.memberNames.map((member) => (
+																	<li key={member}>{member}</li>
+																))}
+															</ul>
+														</TooltipContent>
+													</Tooltip>
+												)}
+										</div>
 										<div className="text-xs text-muted-foreground">
 											{model.id}
 										</div>
 									</td>
 									<td className="px-4 py-3 text-right text-muted-foreground">
-										{model.platform}
+										{providerNames(model.platform)}
 									</td>
 									<td className="px-4 py-3 text-right tabular-nums">
 										{model.globalKeyCount.toLocaleString()}

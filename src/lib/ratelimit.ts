@@ -13,6 +13,183 @@ export const DEFAULT_RATE_LIMITS = {
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 
 /**
+ * Public inference caps (A2). Enforced per unified-token owner and per
+ * client IP, on top of the per-(key, model) limits above.
+ *
+ * Why these numbers: the per-key ceiling is rpm 60 per (key, model). A token
+ * owner normally holds several keys across several models, so 120 req/min
+ * per token is 2x one key-model ceiling while still capping what a single
+ * token can drain from the shared pool, no matter how many keys or models
+ * the router fans out to. 300 req/min per IP is 2.5x the per-token cap: it
+ * tolerates shared egress/NAT but still bounds one source abusing many
+ * tokens. Both are fixed 60 s windows, like the auth limiter.
+ */
+export const PUBLIC_INFERENCE_LIMITS = {
+	perTokenRpm: 120,
+	perIpRpm: 300,
+	/** Failed-token attempts per minute per IP. Cheap on purpose: one D1
+	 * statement per attempt, the same cost class as the login limiter. */
+	invalidTokenRpm: 20,
+	/** Uploads per minute per user on POST /api/playground/images. */
+	imageUploadRpm: 20,
+	windowMs: 60_000,
+} as const;
+
+export type PublicLimitScope = "token" | "ip" | "invalid_token" | "upload";
+
+export interface PublicLimitResult {
+	ok: boolean;
+	scope?: PublicLimitScope;
+	retryAfterSeconds?: number;
+}
+
+/** Client IP as the auth limiter reads it. */
+export function getClientIp(request: Request): string {
+	return request.headers.get("cf-connecting-ip") || "127.0.0.1";
+}
+
+async function sha256Hex(value: string): Promise<string> {
+	const bytes = await crypto.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(value),
+	);
+	return Array.from(new Uint8Array(bytes), (byte) =>
+		byte.toString(16).padStart(2, "0"),
+	).join("");
+}
+
+/**
+ * Fixed-window counter with the reservation in the same statement that
+ * counts (INSERT ... ON CONFLICT ... RETURNING), so concurrent requests
+ * cannot all slip through before any row is written. This is the same
+ * single-statement pattern src/lib/auth.ts uses for login/register.
+ *
+ * Known limitation, NOT fixed here: the per-(key, model) enforcer above
+ * (canMakeRequest + recordUsage) is still check-then-act — the check and
+ * the reservation are separate calls made by src/lib/router.ts, so
+ * concurrent requests can pass the check before any usage row exists.
+ * Making that atomic needs the router call site to reserve in one
+ * statement; router.ts belongs to another agent.
+ */
+export async function checkFixedWindowLimit(
+	db: D1Database,
+	input: {
+		scope: string;
+		id: string;
+		limit: number;
+		windowMs?: number;
+	},
+): Promise<{ ok: boolean; retryAfterSeconds?: number }> {
+	const windowMs = input.windowMs ?? PUBLIC_INFERENCE_LIMITS.windowMs;
+	const now = Date.now();
+	const keyHash = await sha256Hex(`${input.scope}:${input.id}`);
+	const row = await db
+		.prepare(
+			`INSERT INTO shtora_rate_limits (key_hash, window_start_ms, count)
+			 VALUES (?, ?, 1)
+			 ON CONFLICT(key_hash) DO UPDATE SET
+			   window_start_ms = CASE WHEN excluded.window_start_ms - shtora_rate_limits.window_start_ms > ?
+			     THEN excluded.window_start_ms ELSE shtora_rate_limits.window_start_ms END,
+			   count = CASE WHEN excluded.window_start_ms - shtora_rate_limits.window_start_ms > ?
+			     THEN 1 WHEN shtora_rate_limits.count < ? THEN shtora_rate_limits.count + 1
+			     ELSE ? END
+			 RETURNING window_start_ms, count`,
+		)
+		.bind(keyHash, now, windowMs, windowMs, input.limit, input.limit + 1)
+		.first<{ window_start_ms: number; count: number }>();
+	if (!row) throw new Error("Rate limit state unavailable");
+	if (row.count <= input.limit) return { ok: true };
+	return {
+		ok: false,
+		retryAfterSeconds: Math.max(
+			1,
+			Math.ceil((row.window_start_ms + windowMs - now) / 1000),
+		),
+	};
+}
+
+/**
+ * Per-token and per-IP caps for public inference. Call after the token
+ * authenticates, before routing: the cap bounds the token's total request
+ * rate, so no change to the router's key failover is needed for A2 to
+ * hold — a token that exhausted its cap never reaches the pool.
+ * Call sites: /v1/chat/completions, /v1/messages and
+ * /v1/messages/count_tokens (via handleNativeMessages), and
+ * /api/v1/chat/completions. Answer 429 with Retry-After when ok is false.
+ */
+export async function checkPublicInferenceLimit(
+	db: D1Database,
+	input: { userId: string; ip: string },
+): Promise<PublicLimitResult> {
+	const token = await checkFixedWindowLimit(db, {
+		scope: "public-inference:token",
+		id: input.userId,
+		limit: PUBLIC_INFERENCE_LIMITS.perTokenRpm,
+	});
+	if (!token.ok)
+		return {
+			ok: false,
+			scope: "token",
+			retryAfterSeconds: token.retryAfterSeconds,
+		};
+	const ip = await checkFixedWindowLimit(db, {
+		scope: "public-inference:ip",
+		id: input.ip,
+		limit: PUBLIC_INFERENCE_LIMITS.perIpRpm,
+	});
+	if (!ip.ok)
+		return {
+			ok: false,
+			scope: "ip",
+			retryAfterSeconds: ip.retryAfterSeconds,
+		};
+	return { ok: true };
+}
+
+/**
+ * Rate limit for requests that fail token authentication. Call when auth
+ * fails, before returning 401: if the bucket is exhausted, answer 429
+ * instead, so invalid-token probing costs one D1 statement per attempt
+ * and cannot be repeated without bound.
+ */
+export async function checkInvalidTokenLimit(
+	db: D1Database,
+	input: { ip: string },
+): Promise<PublicLimitResult> {
+	const result = await checkFixedWindowLimit(db, {
+		scope: "public-inference:invalid-token",
+		id: input.ip,
+		limit: PUBLIC_INFERENCE_LIMITS.invalidTokenRpm,
+	});
+	if (!result.ok)
+		return {
+			ok: false,
+			scope: "invalid_token",
+			retryAfterSeconds: result.retryAfterSeconds,
+		};
+	return { ok: true };
+}
+
+/** Upload rate limit for POST /api/playground/images, per user. */
+export async function checkImageUploadLimit(
+	db: D1Database,
+	input: { userId: string },
+): Promise<PublicLimitResult> {
+	const result = await checkFixedWindowLimit(db, {
+		scope: "image-upload",
+		id: input.userId,
+		limit: PUBLIC_INFERENCE_LIMITS.imageUploadRpm,
+	});
+	if (!result.ok)
+		return {
+			ok: false,
+			scope: "upload",
+			retryAfterSeconds: result.retryAfterSeconds,
+		};
+	return { ok: true };
+}
+
+/**
  * Window starts the enforcer uses: the last 60 seconds and today (UTC).
  * Usage displays read the same windows, so the numbers match enforcement.
  */

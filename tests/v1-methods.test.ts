@@ -8,6 +8,9 @@ let db: MemoryD1;
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
 	getEncryptionSecret: () => SECRET,
+	getImagesBucket: () => {
+		throw new Error("IMAGES_BUCKET is unavailable in this test");
+	},
 }));
 
 // Dynamic imports needed because env.ts depends on cloudflare:workers,

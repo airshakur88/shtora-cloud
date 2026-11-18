@@ -57,14 +57,6 @@ export interface ShtoraSession {
 	expiresAtMs: number;
 }
 
-export interface ShtoraSessionRecord {
-	id: string;
-	token_hash: string;
-	user_id: string;
-	created_at_ms: number;
-	expires_at_ms: number;
-}
-
 export type HealthStatus = "healthy" | "rate_limited" | "invalid" | "error";
 
 export interface ApiKey {
@@ -127,7 +119,12 @@ export interface ApiKeyResponse {
 	enabled: boolean;
 	lastHealthCheckAt: string | null;
 	lastHealthCheckStatus: string | null;
-	unifiedToken: string;
+	/**
+	 * Present only on creation (POST /api/keys) and rotation
+	 * (POST /api/keys/[id]/rotate), returned once. List/detail responses
+	 * never include it: only the SHA-256 hash is stored.
+	 */
+	unifiedToken?: string;
 	createdAt: string;
 	maskedKey: string;
 	/** Limits stored on the key (null: not set on the row). */
@@ -274,23 +271,6 @@ export interface ChatCompletionResponse {
 		finish_reason: ChatFinishReason | null;
 	}>;
 	usage?: TokenUsage;
-}
-
-export interface SessionData {
-	userId: string;
-	sessionId: string;
-	role: UserRole;
-}
-
-export interface LoginRequest {
-	username: string;
-	password: string;
-}
-
-export interface RegisterRequest extends LoginRequest {}
-
-export interface AuthResponse {
-	user: Omit<AppUser, "passwordHash">;
 }
 
 export interface ErrorResponse {

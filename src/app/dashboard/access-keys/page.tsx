@@ -222,8 +222,12 @@ export default function DashboardAccessKeysPage() {
 					<Button onClick={() => setFormOpen(true)}>New Access Key</Button>
 				</div>
 				<div className="space-y-4">
-					{Array.from({ length: 3 }).map((_, i) => (
-						<div key={i} className="rounded-lg border bg-card p-6">
+					{[
+						"access-key-skeleton-1",
+						"access-key-skeleton-2",
+						"access-key-skeleton-3",
+					].map((id) => (
+						<div key={id} className="rounded-lg border bg-card p-6">
 							<Skeleton className="h-6 w-48" />
 							<Skeleton className="mt-4 h-4 w-64" />
 						</div>

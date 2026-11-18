@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { isKnownProvider, normalizeProviderKey } from "./provider-catalog";
 import type { D1Database } from "./types";
 
@@ -14,9 +15,14 @@ export interface ParsedKeyCandidate {
 }
 
 /**
- * Result of a skipped key import entry
+ * Result of a skipped key import entry. The platform is always reported
+ * (null when the entry had none) so a discarded key is never silent:
+ * platforms the catalog does not support — `openai` is not a provider
+ * (`anthropic` is, since migration 0015) — are dropped with
+ * `unsupported_platform`, not imported.
  */
 export interface SkippedKey {
+	platform: string | null;
 	reason:
 		| "unsupported_platform"
 		| "empty_key"
@@ -88,7 +94,24 @@ type ValidationResult =
 	| {
 			valid: false;
 			reason: "unsupported_platform" | "empty_key" | "invalid_key";
+			platform: string | null;
 	  };
+
+/**
+ * Normalized key entry after alias resolution. Zod handles the
+ * type/trim/normalize checks here; the reason mapping (empty platform vs
+ * empty key vs wrong type) stays manual because the skip reason depends
+ * on which field failed.
+ */
+const keyCandidateSchema = z.object({
+	platform: z.string().trim().toLowerCase().min(1),
+	key: z.string().trim().min(1),
+	label: z.unknown().transform((value) => normalizeLabel(value)),
+});
+
+function platformOf(value: unknown): string | null {
+	return typeof value === "string" ? value.trim().toLowerCase() : null;
+}
 
 /**
  * Validate and extract a key candidate from a key entry object
@@ -100,92 +123,66 @@ async function validateAndExtractKey(
 	const platform = getValueByAliases(entry, PROVIDER_FIELDS);
 	const rawKey = getValueByAliases(entry, KEY_FIELDS);
 
-	// Check platform
-	if (typeof platform !== "string") {
-		return { valid: false, reason: "invalid_key" };
+	// Empty platform is unsupported, not malformed.
+	if (typeof platform === "string" && platform.trim().length === 0) {
+		return { valid: false, reason: "unsupported_platform", platform: "" };
 	}
 
-	// Check raw key
-	if (typeof rawKey !== "string") {
-		return { valid: false, reason: "invalid_key" };
+	// Empty key has its own reason.
+	if (typeof rawKey === "string" && rawKey.trim().length === 0) {
+		return {
+			valid: false,
+			reason: "empty_key",
+			platform: platformOf(platform),
+		};
 	}
 
-	const normalizedPlatform = platform.trim().toLowerCase();
-
-	// Check for empty platform
-	if (normalizedPlatform.length === 0) {
-		return { valid: false, reason: "unsupported_platform" };
+	const parsed = keyCandidateSchema.safeParse({
+		platform,
+		key: rawKey,
+		label: getValueByAliases(entry, ["label"]),
+	});
+	if (!parsed.success) {
+		return {
+			valid: false,
+			reason: "invalid_key",
+			platform: platformOf(platform),
+		};
 	}
+	const { platform: normalizedPlatform, key, label } = parsed.data;
 
 	// Check if platform is supported
 	if (!(await isKnownProvider(normalizedPlatform, db))) {
-		return { valid: false, reason: "unsupported_platform" };
-	}
-
-	// Check if key is empty
-	if (rawKey.trim().length === 0) {
-		return { valid: false, reason: "empty_key" };
+		return {
+			valid: false,
+			reason: "unsupported_platform",
+			platform: normalizedPlatform,
+		};
 	}
 
 	// Check if normalizeProviderKey accepts it
 	const normalized = await normalizeProviderKey(
 		normalizedPlatform,
-		rawKey.trim(),
+		key,
 		undefined,
 		db,
 	);
 	if (normalized === null) {
-		return { valid: false, reason: "invalid_key" };
+		return {
+			valid: false,
+			reason: "invalid_key",
+			platform: normalizedPlatform,
+		};
 	}
-
-	const label = normalizeLabel(getValueByAliases(entry, ["label"]));
 
 	return {
 		valid: true,
 		data: {
 			platform: normalizedPlatform,
-			key: rawKey.trim(),
+			key: normalized,
 			label,
 		},
 	};
-}
-
-/**
- * Validate a key candidate and return skip reason if invalid
- */
-async function validateKeyCandidate(
-	platform: string,
-	rawKey: string,
-	db?: D1Database,
-): Promise<
-	| { valid: true }
-	| {
-			valid: false;
-			reason: "unsupported_platform" | "empty_key" | "invalid_key";
-	  }
-> {
-	// Check if platform is supported
-	if (!(await isKnownProvider(platform, db))) {
-		return { valid: false, reason: "unsupported_platform" };
-	}
-
-	// Check if key is empty
-	if (rawKey.trim().length === 0) {
-		return { valid: false, reason: "empty_key" };
-	}
-
-	// Check if normalizeProviderKey accepts it
-	const normalized = await normalizeProviderKey(
-		platform,
-		rawKey,
-		undefined,
-		db,
-	);
-	if (normalized === null) {
-		return { valid: false, reason: "invalid_key" };
-	}
-
-	return { valid: true };
 }
 
 /**
@@ -255,7 +252,7 @@ export async function parseKeyImport(
 			if (result.valid) {
 				keys.push(result.data);
 			} else {
-				skipped.push({ reason: result.reason });
+				skipped.push({ platform: result.platform, reason: result.reason });
 			}
 		}
 		return { success: true, data: { keys, skipped } };
@@ -278,15 +275,20 @@ export async function parseKeyImport(
 		}
 
 		for (const candidate of result.keys) {
-			const validation = await validateKeyCandidate(
-				candidate.platform,
-				candidate.key,
+			// Flat-map entries are already normalized {platform, key,
+			// label: null}; the same validator as the structured formats
+			// applies, so the key-format check is not duplicated here.
+			const validation = await validateAndExtractKey(
+				{ platform: candidate.platform, key: candidate.key, label: null },
 				db,
 			);
 			if (validation.valid) {
-				keys.push(candidate);
+				keys.push(validation.data);
 			} else {
-				skipped.push({ reason: validation.reason });
+				skipped.push({
+					platform: validation.platform,
+					reason: validation.reason,
+				});
 			}
 		}
 		return { success: true, data: { keys, skipped } };
@@ -300,7 +302,10 @@ export async function parseKeyImport(
 	}
 
 	// If validation failed for single key
-	skipped.push({ reason: singleResult.reason });
+	skipped.push({
+		platform: singleResult.platform,
+		reason: singleResult.reason,
+	});
 	return { success: true, data: { keys, skipped } };
 }
 

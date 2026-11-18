@@ -3,6 +3,7 @@ import { getDb } from "@/lib/env";
 import {
 	deleteSession,
 	getSession,
+	modelExists,
 	updateSession,
 } from "@/lib/playground-sessions";
 import { requireUser } from "@/lib/session";
@@ -76,11 +77,53 @@ export async function PATCH(
 		}
 
 		const bodyObj = (body ?? {}) as Record<string, unknown>;
-		const updates: { name?: string | null; modelId?: string | null } = {};
-		if (typeof bodyObj.name === "string")
-			updates.name = bodyObj.name.trim() || null;
+		// An explicit empty string is a client bug, not "keep the old
+		// value": it is rejected instead of silently keeping the name
+		// or model. Omitting the field keeps the current value.
+		if (typeof bodyObj.name === "string" && bodyObj.name.trim().length === 0) {
+			return Response.json(
+				{
+					error: {
+						message: "Session name must not be empty",
+						type: "validation_error",
+					},
+				},
+				{ status: 400 },
+			);
+		}
+		if (
+			typeof bodyObj.modelId === "string" &&
+			bodyObj.modelId.trim().length === 0
+		) {
+			return Response.json(
+				{
+					error: {
+						message: "modelId must not be empty",
+						type: "validation_error",
+					},
+				},
+				{ status: 400 },
+			);
+		}
+		const updates: { name?: string; modelId?: string } = {};
+		if (typeof bodyObj.name === "string") updates.name = bodyObj.name.trim();
 		if (typeof bodyObj.modelId === "string")
-			updates.modelId = bodyObj.modelId.trim() || null;
+			updates.modelId = bodyObj.modelId.trim();
+
+		if (updates.modelId !== undefined) {
+			const exists = await modelExists(db, updates.modelId);
+			if (!exists) {
+				return Response.json(
+					{
+						error: {
+							message: `Unknown model: ${updates.modelId}`,
+							type: "validation_error",
+						},
+					},
+					{ status: 400 },
+				);
+			}
+		}
 
 		const session = await updateSession(db, id, user.id, updates);
 		if (!session) {

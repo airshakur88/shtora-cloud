@@ -154,3 +154,94 @@ export async function getGlobalUsageMetrics(
 		db.prepare(GLOBAL_P95_SQL),
 	);
 }
+
+export interface ProviderLatencyStats {
+	p95LatencyMs: number | null;
+	avgTtftMs: number | null;
+	// Models tried and failed before the one that served each request.
+	// Counted only on the successful rows: every failed attempt also has
+	// its own row with a snapshot of the same list, so summing over all
+	// rows would count each fallback more than once.
+	fallbackAttempts: number;
+}
+
+interface ProviderAggregateRow {
+	platform: string;
+	avgTtftMs: number | null;
+	fallbackAttempts: number;
+}
+
+interface ProviderLatencyCountRow {
+	platform: string;
+	samples: number;
+}
+
+interface LatencyRow {
+	latency_ms: number;
+}
+
+// Per-provider latency stats read straight from provider_requests. The
+// aggregate tables above only hold user-level and global totals, so they
+// cannot answer "p95 for this provider". p95 is the nearest-rank value
+// over the provider's recorded latencies.
+export async function getProviderLatencyStats(
+	db: D1Database,
+	userId: string,
+): Promise<Map<string, ProviderLatencyStats>> {
+	const [aggregateResult, countResult] = await Promise.all([
+		db
+			.prepare(
+				`SELECT platform,
+						AVG(ttft_ms) AS avgTtftMs,
+						COALESCE(SUM(CASE
+							WHEN status = 'success' AND json_valid(routing_decision)
+							THEN json_array_length(routing_decision, '$.alternativesTried')
+							ELSE 0 END), 0) AS fallbackAttempts
+				 FROM provider_requests
+				 WHERE user_id = ?
+				 GROUP BY platform`,
+			)
+			.bind(userId)
+			.all<ProviderAggregateRow>(),
+		db
+			.prepare(
+				`SELECT platform, COUNT(*) AS samples
+				 FROM provider_requests
+				 WHERE user_id = ? AND latency_ms IS NOT NULL
+				 GROUP BY platform`,
+			)
+			.bind(userId)
+			.all<ProviderLatencyCountRow>(),
+	]);
+
+	const stats = new Map<string, ProviderLatencyStats>();
+	for (const row of aggregateResult.results) {
+		stats.set(row.platform, {
+			p95LatencyMs: null,
+			avgTtftMs: row.avgTtftMs,
+			fallbackAttempts: row.fallbackAttempts,
+		});
+	}
+	await Promise.all(
+		countResult.results.map(async (row) => {
+			// Nearest rank: the ceil(0.95 * n)-th smallest latency.
+			const offset = Math.max(0, Math.ceil(0.95 * row.samples) - 1);
+			const p95 = await db
+				.prepare(
+					`SELECT latency_ms FROM provider_requests
+					 WHERE user_id = ? AND platform = ? AND latency_ms IS NOT NULL
+					 ORDER BY latency_ms ASC LIMIT 1 OFFSET ?`,
+				)
+				.bind(userId, row.platform, offset)
+				.first<LatencyRow>();
+			const entry = stats.get(row.platform) ?? {
+				p95LatencyMs: null,
+				avgTtftMs: null,
+				fallbackAttempts: 0,
+			};
+			entry.p95LatencyMs = p95?.latency_ms ?? null;
+			stats.set(row.platform, entry);
+		}),
+	);
+	return stats;
+}

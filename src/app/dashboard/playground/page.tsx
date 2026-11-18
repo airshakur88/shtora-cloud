@@ -54,6 +54,7 @@ interface Attachment {
 }
 
 interface ChatMessage {
+	id: string;
 	role: "user" | "assistant";
 	content: string;
 	attachments: Attachment[];
@@ -181,6 +182,7 @@ export default function PlaygroundPage() {
 			!renaming,
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sessionsRevision is a trigger, not a read — the Retry button bumps it to reload the list after a load error, even though the body never reads it.
 	useEffect(() => {
 		const controller = new AbortController();
 		setSessionsLoading(true);
@@ -252,11 +254,13 @@ export default function PlaygroundPage() {
 		else renameButtonRef.current?.focus();
 	}, [renaming]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: activeSessionId is a trigger, not a read — the composer regains focus when the session changes, even though the body only checks `submitting`.
 	useEffect(() => {
 		if (!submitting) inputRef.current?.focus();
 	}, [activeSessionId, submitting]);
 
 	// Grow the composer with its content instead of relying on a manual resize.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: conversation.draft is a trigger, not a read — the textarea resizes when the draft changes, even though the body only touches the DOM element.
 	useEffect(() => {
 		const element = inputRef.current;
 		if (!element) return;
@@ -461,6 +465,7 @@ export default function PlaygroundPage() {
 		const nextMessages: ChatMessage[] = [
 			...previousMessages,
 			{
+				id: crypto.randomUUID(),
 				role: "user",
 				content: draft.trim(),
 				attachments,
@@ -556,6 +561,7 @@ export default function PlaygroundPage() {
 					messages: [
 						...nextMessages,
 						{
+							id: crypto.randomUUID(),
 							role: "assistant",
 							content,
 							attachments: [],
@@ -866,9 +872,9 @@ export default function PlaygroundPage() {
 								</div>
 							) : (
 								<ol className="mx-auto max-w-3xl space-y-6">
-									{conversation.messages.map((message, index) => (
+									{conversation.messages.map((message) => (
 										<li
-											key={`${message.timestamp}-${index}`}
+											key={message.id}
 											className={
 												message.role === "user"
 													? "rounded-lg bg-muted/30 p-4"

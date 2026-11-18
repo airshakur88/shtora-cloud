@@ -21,6 +21,23 @@ export function apiErrorMessage(payload: unknown, fallback: string): string {
 }
 
 /**
+ * Canonical `{ error: { message, type } }` envelope for route handlers
+ * that answer a known error directly, instead of mapping a thrown error
+ * through routeError. Extra headers are for callers that need them — a
+ * 429 carries Retry-After, authenticated content carries no-store /
+ * nosniff. The playground image routes used to build this same envelope
+ * locally (M26).
+ */
+export function apiErrorResponse(
+	message: string,
+	type: string,
+	status: number,
+	headers?: Record<string, string>,
+): Response {
+	return Response.json({ error: { message, type } }, { status, headers });
+}
+
+/**
  * Standard API error envelope for server route handlers.
  * Session-auth failures map to 401/403; anything else is logged and
  * answered with a generic 500 so internals never leak to the client.

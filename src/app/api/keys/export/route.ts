@@ -3,7 +3,15 @@ import { getDb, getEncryptionSecret } from "@/lib/env";
 import { exportApiKeys } from "@/lib/key-store";
 import { requireUser } from "@/lib/session";
 
-export async function GET(request: Request): Promise<Response> {
+/**
+ * POST /api/keys/export — returns the user's provider keys in plaintext.
+ * This used to be a GET, which a top-level navigation could trigger with
+ * the session cookie attached (SameSite=Lax sends it on top-level GETs).
+ * POST with the same session check keeps the export behind an explicit
+ * fetch. No caller in the dashboard uses this endpoint today (verified by
+ * grep: no fetch to /api/keys/export in src/), so nothing else changes.
+ */
+export async function POST(request: Request): Promise<Response> {
 	try {
 		const user = await requireUser(request);
 		const keys = await exportApiKeys(getDb(), user.id, getEncryptionSecret());
@@ -22,4 +30,11 @@ export async function GET(request: Request): Promise<Response> {
 	} catch (error) {
 		return routeError(error, "/api/keys/export");
 	}
+}
+
+export async function GET(): Promise<Response> {
+	return Response.json(
+		{ error: { message: "Method not allowed", type: "method_not_allowed" } },
+		{ status: 405, headers: { Allow: "POST" } },
+	);
 }

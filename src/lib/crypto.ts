@@ -1,9 +1,3 @@
-export interface EncryptedKey {
-	ciphertext: string;
-	iv: string;
-	authTag: string;
-}
-
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 
@@ -38,7 +32,7 @@ async function importKey(secret: string): Promise<CryptoKey> {
 export async function encryptApiKey(
 	rawKey: string,
 	secret: string,
-): Promise<EncryptedKey> {
+): Promise<{ ciphertext: string; iv: string; authTag: string }> {
 	const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
 	const encrypted = new Uint8Array(
 		await crypto.subtle.encrypt(
@@ -55,7 +49,7 @@ export async function encryptApiKey(
 }
 
 export async function decryptApiKey(
-	encrypted: EncryptedKey,
+	encrypted: { ciphertext: string; iv: string; authTag: string },
 	secret: string,
 ): Promise<string> {
 	const ciphertext = fromHex(encrypted.ciphertext);

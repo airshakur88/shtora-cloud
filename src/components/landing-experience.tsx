@@ -94,7 +94,7 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 	{
 		id: "pools",
 		title: "Pools & roteadores",
-		rule: "Fallback automático em cadeia · shtora/auto, coding, fast, smart e vision",
+		rule: "Fallback automático em cadeia · shtora/auto, coding, fast, smart, vision e 3d",
 		providers: [
 			{
 				name: "OpenRouter",
@@ -407,7 +407,7 @@ const examples = {
 
 export function IntegrationCode() {
 	const [selected, setSelected] = useState<keyof typeof examples>("OpenAI");
-	const [origin, setOrigin] = useState("https://SEU-DOMINIO");
+	const [origin, setOrigin] = useState("https://shtora.cloud");
 	const [copyState, setCopyState] = useState<"idle" | "copied" | "error">(
 		"idle",
 	);

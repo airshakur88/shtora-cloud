@@ -219,20 +219,17 @@ export function observeStreamUsage(
 			try {
 				const next = reader.read();
 				const idle = Promise.withResolvers<never>();
-				const timer =
-					protocol === "anthropic"
-						? setTimeout(
-								() =>
-									idle.reject(
-										new Error("Upstream stream idle for five minutes"),
-									),
-								300_000,
-							)
-						: undefined;
-				const { done, value } = await (protocol === "anthropic"
-					? Promise.race([next, idle.promise])
-					: next
-				).finally(() => clearTimeout(timer));
+				// Idle timeout for both protocols: the 120 s upstream timeout
+				// only covers time to first byte, so a stalled mid-stream
+				// would otherwise hang the consumer forever.
+				const timer = setTimeout(
+					() => idle.reject(new Error("Upstream stream idle for five minutes")),
+					300_000,
+				);
+				const { done, value } = await Promise.race([
+					next,
+					idle.promise,
+				]).finally(() => clearTimeout(timer));
 				if (done) {
 					flushParser();
 					await finalize();

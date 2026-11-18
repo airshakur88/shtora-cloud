@@ -11,7 +11,7 @@
  * Must be run in vinext runtime with D1 binding configured, or with miniflare.
  */
 
-// scrypt parameters - must match src/lib/password.ts
+// scrypt parameters - must match src/lib/auth-password.ts
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;

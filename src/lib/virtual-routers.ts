@@ -54,7 +54,6 @@ export const VIRTUAL_ROUTERS: Record<string, VirtualRouter> = {
 			"north-mini-code",
 			"codestral-latest",
 			"codestral-2508",
-			"devstral-2512",
 			"qwen3-8-max",
 			"gemini-3-5-flash",
 			"qwen3-8-flash",
@@ -105,6 +104,24 @@ export const VIRTUAL_ROUTERS: Record<string, VirtualRouter> = {
 			"gemini-3-5-flash-lite",
 			"muse-glimmer-30b",
 			"qwen3-5-omni-plus",
+		],
+	},
+	"3d": {
+		id: "3d",
+		name: "Shtora 3D",
+		description:
+			"Shtora 3D — code and vision models for creating and editing 3D scenes",
+		members: [
+			"gpt-5-4-mini",
+			"gpt-5-6-luna",
+			"gemini-3-5-flash",
+			"qwen3-coder-plus",
+			"qwen3-coder-30-a3b-instruct",
+			"mistral-code-latest",
+			"north-mini-code",
+			"codestral-latest",
+			"qwen3-8-flash",
+			"qwen3-8-omni-flash",
 		],
 	},
 };

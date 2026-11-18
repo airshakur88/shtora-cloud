@@ -2,7 +2,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import type { SessionUser } from "@/lib/server-session";
+import type { SessionUser } from "@/lib/session";
 
 interface LandingNavProps {
 	user: SessionUser | null;

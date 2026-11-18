@@ -1,31 +1,38 @@
+import { AuthRequestError, readLimitedJsonBody } from "@/lib/auth";
 import { getDb, getEncryptionSecret } from "@/lib/env";
 import { parseKeyImport } from "@/lib/key-import";
-import { createApiKey } from "@/lib/key-store";
+import {
+	countApiKeysForUser,
+	createApiKey,
+	MAX_API_KEYS_PER_USER,
+} from "@/lib/key-store";
 import { requireUser } from "@/lib/session";
+
+/**
+ * Import body cap: 512 KiB, enforced by reading the stream with a running
+ * total — a chunked body without `content-length` cannot bypass it.
+ */
+const MAX_IMPORT_BODY_BYTES = 512 * 1024;
 
 export async function POST(request: Request): Promise<Response> {
 	try {
 		const user = await requireUser(request);
 
-		// Get content-length header for size cap
-		const contentLength = request.headers.get("content-length");
-		if (contentLength && parseInt(contentLength, 10) > 512 * 1024) {
-			return Response.json(
-				{
-					error: {
-						message: "Request body too large",
-						type: "validation_error",
-						code: "body_too_large",
-					},
-				},
-				{ status: 400 },
-			);
-		}
-
 		let body: unknown;
 		try {
-			body = await request.json();
-		} catch {
+			body = await readLimitedJsonBody(request, MAX_IMPORT_BODY_BYTES);
+		} catch (error) {
+			if (error instanceof AuthRequestError && error.status === 413)
+				return Response.json(
+					{
+						error: {
+							message: "Request body too large",
+							type: "validation_error",
+							code: "body_too_large",
+						},
+					},
+					{ status: 413 },
+				);
 			return Response.json(
 				{
 					error: {
@@ -72,14 +79,33 @@ export async function POST(request: Request): Promise<Response> {
 			);
 		}
 
+		// Per-user key cap (M1): import only up to the remaining slots;
+		// the rest are reported as discarded with `exceeds_limit`.
+		const db = getDb();
+		const existing = await countApiKeysForUser(db, user.id);
+		const remaining = MAX_API_KEYS_PER_USER - existing;
+		if (remaining <= 0) {
+			return Response.json(
+				{
+					error: {
+						message: `Key limit reached (${MAX_API_KEYS_PER_USER} keys per user)`,
+						type: "limit_reached",
+					},
+				},
+				{ status: 403 },
+			);
+		}
+		const importable = keys.slice(0, remaining);
+		const overCap = keys.slice(remaining);
+
 		let imported = 0;
 		const errors: { reason: string }[] = [];
 
 		// Import each key
-		for (const candidate of keys) {
+		for (const candidate of importable) {
 			try {
 				await createApiKey(
-					getDb(),
+					db,
 					{
 						userId: user.id,
 						platform: candidate.platform,
@@ -89,18 +115,22 @@ export async function POST(request: Request): Promise<Response> {
 					getEncryptionSecret(),
 				);
 				imported++;
-			} catch (e) {
-				// Record non-secret error
-				if (e instanceof Error) {
-					errors.push({ reason: "import_failed" });
-				} else {
-					errors.push({ reason: "unknown_error" });
-				}
+			} catch {
+				errors.push({ reason: "import_failed" });
 			}
 		}
 
-		// Add skipped entries to errors
-		for (const skip of skipped) {
+		// Discarded entries, with platform and reason each — nothing is
+		// dropped silently. `discarded` is the detailed list; `errors`
+		// keeps the previous [{ reason }] shape.
+		const discarded = [
+			...skipped,
+			...overCap.map((candidate) => ({
+				platform: candidate.platform,
+				reason: "exceeds_limit" as const,
+			})),
+		];
+		for (const skip of discarded) {
 			errors.push({ reason: skip.reason });
 		}
 
@@ -112,6 +142,7 @@ export async function POST(request: Request): Promise<Response> {
 						type: "validation_error",
 						code: "no_valid_keys",
 					},
+					discarded,
 				},
 				{ status: 400 },
 			);
@@ -122,6 +153,7 @@ export async function POST(request: Request): Promise<Response> {
 				imported,
 				skipped: errors.length,
 				errors,
+				discarded,
 			},
 			{ status: 200 },
 		);

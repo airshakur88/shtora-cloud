@@ -1,3 +1,13 @@
+import {
+	ApiError,
+	type Content,
+	type FunctionDeclaration,
+	type GenerateContentConfig,
+	type GenerateContentResponse,
+	GoogleGenAI,
+	type Part,
+	type Tool,
+} from "@google/genai/web";
 import { isValidTokenCount } from "../token-estimates";
 import type {
 	ChatCompletionResponse,
@@ -12,37 +22,30 @@ import {
 	parseInlineImage,
 	textFromContent,
 } from "./content";
-import { ProviderError, toProviderError } from "./errors";
-import {
-	openAiChunk,
-	openAiUsageChunk,
-	sseResponse,
-	transformSseStream,
-} from "./sse";
+import { classifyStatus, ProviderError } from "./errors";
+import { openAiChunk, openAiUsageChunk, sseResponse } from "./sse";
 import type { UpstreamChatInput } from "./types";
 
-interface GeminiPart {
-	text?: string;
-	thought?: boolean;
-	inlineData?: { mimeType: string; data: string };
-	thoughtSignature?: string;
-	functionCall?: { id?: string; name?: string; args?: unknown };
-	functionResponse?: { id?: string; name?: string; response?: unknown };
-}
-
-interface GeminiCandidate {
-	content?: { parts?: GeminiPart[] };
-	finishReason?: string;
-}
-
-interface GeminiData {
-	candidates?: GeminiCandidate[];
-	usageMetadata?: {
-		promptTokenCount?: number;
-		candidatesTokenCount?: number;
-		totalTokenCount?: number;
-	};
-}
+/**
+ * The Google path talks to the Gemini API through the official SDK
+ * (`@google/genai`, web entry — the only import in `dist/web/index.mjs`
+ * besides the SDK itself is `p-retry`, no Node built-ins, so it bundles
+ * for Cloudflare Workers). The SDK owns the HTTP layer (auth header,
+ * `v1beta` path, SSE parsing, status errors); this file keeps only the
+ * project-specific parts: translating the OpenAI-shaped `UpstreamChatInput`
+ * into Gemini params — including the Gemini 3 `thoughtSignature` cache
+ * and the Gemma system-instruction inline — and translating the Gemini
+ * answer back into OpenAI-shaped chunks.
+ *
+ * Two SDK defaults are switched off on purpose: retries
+ * (`httpOptions.retryOptions.attempts: 1`) so SDK retries never fight
+ * the router's own failover, and automatic continuation
+ * (`config.automaticContinuation: false`) so one call never silently
+ * becomes several upstream requests. Wire behavior is otherwise the
+ * same as the manual implementation: `x-goog-api-key`, POST to
+ * `{baseUrl}/models/{model}:generateContent` (or `:streamGenerateContent`
+ * with `?alt=sse`), same request body shape.
+ */
 
 const THOUGHT_SIGNATURE_TTL_MS = 30 * 60 * 1000;
 const THOUGHT_SIGNATURE_LIMIT = 5000;
@@ -143,7 +146,7 @@ function parseArguments(raw: string): Record<string, unknown> {
 	return { value };
 }
 
-function geminiParts(message: ChatMessage): GeminiPart[] {
+function geminiParts(message: ChatMessage): Part[] {
 	if (message.role !== "user" && hasImageContent(message.content)) {
 		throw new ProviderError(
 			"Images are supported only in user messages",
@@ -151,7 +154,7 @@ function geminiParts(message: ChatMessage): GeminiPart[] {
 			"bad_request",
 		);
 	}
-	const parts: GeminiPart[] = [];
+	const parts: Part[] = [];
 	const text = textFromContent(message.content);
 	if (text) parts.push({ text });
 	for (const part of imageParts(message.content)) {
@@ -168,20 +171,27 @@ function geminiParts(message: ChatMessage): GeminiPart[] {
 	return parts;
 }
 
-function geminiTool(tool: ChatTool): Record<string, unknown> {
+function geminiTool(tool: ChatTool): FunctionDeclaration {
 	const parameters = geminiSchema(tool.function.parameters);
 	return {
 		name: tool.function.name,
 		...(tool.function.description
 			? { description: tool.function.description }
 			: {}),
-		parameters,
+		parameters: parameters as FunctionDeclaration["parameters"],
 	};
 }
 
-function buildGeminiBody(input: UpstreamChatInput): Record<string, unknown> {
+function buildGenerateContentParams(
+	input: UpstreamChatInput,
+	signal?: AbortSignal,
+): {
+	model: string;
+	contents: Content[];
+	config: GenerateContentConfig;
+} {
 	const systemParts: { text: string }[] = [];
-	const contents: Array<{ role: "user" | "model"; parts: GeminiPart[] }> = [];
+	const contents: Content[] = [];
 	const toolNames = new Map<string, string>();
 	const isGemini3 = /gemini-3(?:[.-]|$)/i.test(input.modelId);
 	for (const message of input.messages) {
@@ -259,7 +269,7 @@ function buildGeminiBody(input: UpstreamChatInput): Record<string, unknown> {
 		if (isGemma) {
 			const systemText = systemParts.map((part) => part.text).join("\n\n");
 			if (contents[0]?.role === "user") {
-				contents[0].parts.unshift({ text: systemText });
+				contents[0].parts?.unshift({ text: systemText });
 			} else {
 				contents.unshift({ role: "user", parts: [{ text: systemText }] });
 			}
@@ -268,24 +278,25 @@ function buildGeminiBody(input: UpstreamChatInput): Record<string, unknown> {
 		}
 	}
 
-	const body: Record<string, unknown> = { contents };
-	if (systemInstruction) body.systemInstruction = systemInstruction;
+	const config: GenerateContentConfig = {
+		automaticContinuation: false,
+		...(signal ? { abortSignal: signal } : {}),
+	};
+	if (systemInstruction) config.systemInstruction = systemInstruction;
 	if (input.tools?.length) {
-		body.tools = [{ functionDeclarations: input.tools.map(geminiTool) }];
+		const tools: Tool[] = [
+			{ functionDeclarations: input.tools.map(geminiTool) },
+		];
+		config.tools = tools;
 	}
-	const generationConfig: Record<string, unknown> = {};
-	if (input.temperature !== undefined)
-		generationConfig.temperature = input.temperature;
-	if (input.maxTokens !== undefined)
-		generationConfig.maxOutputTokens = input.maxTokens;
+	if (input.temperature !== undefined) config.temperature = input.temperature;
+	if (input.maxTokens !== undefined) config.maxOutputTokens = input.maxTokens;
 	if (input.stop !== undefined) {
-		generationConfig.stopSequences = Array.isArray(input.stop)
+		config.stopSequences = Array.isArray(input.stop)
 			? input.stop
 			: [input.stop];
 	}
-	if (Object.keys(generationConfig).length)
-		body.generationConfig = generationConfig;
-	return body;
+	return { model: input.modelId, contents, config };
 }
 
 function finishReason(reason: string | undefined): ChatFinishReason {
@@ -303,7 +314,7 @@ function finishReason(reason: string | undefined): ChatFinishReason {
 	return "stop";
 }
 
-function usage(data: GeminiData): TokenUsage | undefined {
+function usage(data: GenerateContentResponse): TokenUsage | undefined {
 	const prompt = isValidTokenCount(data.usageMetadata?.promptTokenCount)
 		? data.usageMetadata.promptTokenCount
 		: null;
@@ -326,7 +337,7 @@ function usage(data: GeminiData): TokenUsage | undefined {
 	};
 }
 
-function streamingUsage(data: GeminiData) {
+function streamingUsage(data: GenerateContentResponse) {
 	const prompt = data.usageMetadata?.promptTokenCount;
 	const completion = data.usageMetadata?.candidatesTokenCount;
 	if (!isValidTokenCount(prompt) && !isValidTokenCount(completion)) return null;
@@ -339,7 +350,7 @@ function streamingUsage(data: GeminiData) {
 }
 
 function normalizeGeminiResponse(
-	data: GeminiData,
+	data: GenerateContentResponse,
 	modelId: string,
 ): ChatCompletionResponse {
 	const candidate = data.candidates?.[0];
@@ -389,41 +400,9 @@ function normalizeGeminiResponse(
 	};
 }
 
-async function sendGeminiNonStream(
+function streamGeminiResponse(
 	input: UpstreamChatInput,
-	baseUrl: string,
-	signal?: AbortSignal,
-): Promise<Response> {
-	const response = await fetch(
-		`${baseUrl}/models/${input.modelId}:generateContent`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-goog-api-key": input.apiKey,
-			},
-			body: JSON.stringify(buildGeminiBody(input)),
-			redirect: "manual",
-			signal,
-		},
-	);
-	if (!response.ok) throw await toProviderError(response);
-	let data: GeminiData;
-	try {
-		data = (await response.json()) as GeminiData;
-	} catch {
-		throw new ProviderError(
-			"Google returned an invalid response",
-			502,
-			"server",
-		);
-	}
-	return Response.json(normalizeGeminiResponse(data, input.modelId));
-}
-
-function sendGeminiStream(
-	input: UpstreamChatInput,
-	upstream: ReadableStream<Uint8Array>,
+	stream: AsyncIterable<GenerateContentResponse>,
 ): Response {
 	const id = `gemini-${crypto.randomUUID()}`;
 	const created = Math.floor(Date.now() / 1000);
@@ -434,124 +413,20 @@ function sendGeminiStream(
 	let sawCall = false;
 	let emittedDone = false;
 	let emittedRole = false;
-	const body = transformSseStream(
-		upstream,
-		(event, controller) => {
-			if (!emittedRole) {
-				controller.enqueue(
-					encoder.encode(
-						openAiChunk(
-							id,
-							created,
-							input.modelId,
-							{ role: "assistant" },
-							null,
-						),
-					),
-				);
+	const body = new ReadableStream<Uint8Array>({
+		async start(controller) {
+			const emit = (text: string) => controller.enqueue(encoder.encode(text));
+			const emitRole = () => {
+				if (emittedRole) return;
 				emittedRole = true;
-			}
-			if (event.data === "[DONE]" || !event.data) return;
-			let data: GeminiData;
-			try {
-				data = JSON.parse(event.data) as GeminiData;
-			} catch {
-				return;
-			}
-			const reportedUsage = streamingUsage(data);
-			if (reportedUsage) {
-				controller.enqueue(
-					encoder.encode(
-						openAiUsageChunk(id, created, input.modelId, reportedUsage),
-					),
+				emit(
+					openAiChunk(id, created, input.modelId, { role: "assistant" }, null),
 				);
-			}
-			const candidate = data.candidates?.[0];
-			for (const part of candidate?.content?.parts ?? []) {
-				if (typeof part.text === "string" && !part.thought) {
-					controller.enqueue(
-						encoder.encode(
-							openAiChunk(
-								id,
-								created,
-								input.modelId,
-								{ content: part.text },
-								null,
-							),
-						),
-					);
-				}
-				if (part.functionCall?.name) {
-					const call = part.functionCall;
-					const name = call.name;
-					if (!name) continue;
-					const callId = call.id ?? `${id}_call_${nextToolIndex}`;
-					let index = toolIndexes.get(callId);
-					if (index === undefined) {
-						index = nextToolIndex++;
-						toolIndexes.set(callId, index);
-						controller.enqueue(
-							encoder.encode(
-								openAiChunk(
-									id,
-									created,
-									input.modelId,
-									{
-										tool_calls: [
-											{
-												index,
-												id: callId,
-												type: "function",
-												function: { name, arguments: "" },
-											},
-										],
-									},
-									null,
-								),
-							),
-						);
-					}
-					const signature = part.thoughtSignature;
-					if (signature)
-						rememberSignature(callId, name, call.args ?? {}, signature);
-					const args = JSON.stringify(call.args ?? {});
-					controller.enqueue(
-						encoder.encode(
-							openAiChunk(
-								id,
-								created,
-								input.modelId,
-								{
-									tool_calls: [{ index, function: { arguments: args } }],
-								},
-								null,
-							),
-						),
-					);
-					sawCall = true;
-				}
-			}
-			if (candidate?.finishReason)
-				finish = finishReason(candidate.finishReason);
-		},
-		(controller) => {
-			if (!emittedRole) {
-				controller.enqueue(
-					encoder.encode(
-						openAiChunk(
-							id,
-							created,
-							input.modelId,
-							{ role: "assistant" },
-							null,
-						),
-					),
-				);
-			}
-			if (emittedDone) return;
-			emittedDone = true;
-			controller.enqueue(
-				encoder.encode(
+			};
+			const finishStream = () => {
+				if (emittedDone) return;
+				emittedDone = true;
+				emit(
 					openAiChunk(
 						id,
 						created,
@@ -559,12 +434,152 @@ function sendGeminiStream(
 						{},
 						sawCall ? "tool_calls" : (finish ?? "stop"),
 					),
-				),
-			);
-			controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+				);
+				emit("data: [DONE]\n\n");
+			};
+			try {
+				for await (const chunk of stream) {
+					emitRole();
+					const reportedUsage = streamingUsage(chunk);
+					if (reportedUsage) {
+						emit(openAiUsageChunk(id, created, input.modelId, reportedUsage));
+					}
+					const candidate = chunk.candidates?.[0];
+					for (const part of candidate?.content?.parts ?? []) {
+						if (typeof part.text === "string" && !part.thought) {
+							emit(
+								openAiChunk(
+									id,
+									created,
+									input.modelId,
+									{ content: part.text },
+									null,
+								),
+							);
+						}
+						if (part.functionCall?.name) {
+							const call = part.functionCall;
+							const name = call.name;
+							if (!name) continue;
+							const callId = call.id ?? `${id}_call_${nextToolIndex}`;
+							let index = toolIndexes.get(callId);
+							if (index === undefined) {
+								index = nextToolIndex++;
+								toolIndexes.set(callId, index);
+								emit(
+									openAiChunk(
+										id,
+										created,
+										input.modelId,
+										{
+											tool_calls: [
+												{
+													index,
+													id: callId,
+													type: "function",
+													function: { name, arguments: "" },
+												},
+											],
+										},
+										null,
+									),
+								);
+							}
+							const signature = part.thoughtSignature;
+							if (signature)
+								rememberSignature(callId, name, call.args ?? {}, signature);
+							const args = JSON.stringify(call.args ?? {});
+							emit(
+								openAiChunk(
+									id,
+									created,
+									input.modelId,
+									{
+										tool_calls: [{ index, function: { arguments: args } }],
+									},
+									null,
+								),
+							);
+							sawCall = true;
+						}
+					}
+					if (candidate?.finishReason)
+						finish = finishReason(candidate.finishReason);
+				}
+			} catch (error) {
+				// The manual SSE mapper errored the stream on an upstream
+				// failure; same here — an abort just ends the stream.
+				if (error instanceof Error && error.name === "AbortError") {
+					controller.close();
+					return;
+				}
+				controller.error(error);
+				return;
+			}
+			emitRole();
+			finishStream();
+			controller.close();
 		},
-	);
+	});
 	return sseResponse(body);
+}
+
+function toProviderError(error: ApiError): ProviderError {
+	const status = error.status;
+	return new ProviderError(
+		`Upstream ${status}`,
+		status,
+		classifyStatus(status),
+	);
+}
+
+function googleClient(input: UpstreamChatInput, baseUrl: string): GoogleGenAI {
+	// The SDK appends `/{apiVersion}/models/...` to baseUrl itself, so
+	// the catalog base URL (`https://generativelanguage.googleapis.com/v1beta`)
+	// has its trailing `/v1beta` stripped; anything else is used as the
+	// API root as-is.
+	return new GoogleGenAI({
+		apiKey: input.apiKey,
+		httpOptions: {
+			baseUrl: baseUrl.replace(/\/v1beta\/?$/, ""),
+			apiVersion: "v1beta",
+			retryOptions: { attempts: 1 },
+		},
+	});
+}
+
+async function sendGeminiNonStream(
+	input: UpstreamChatInput,
+	baseUrl: string,
+	signal?: AbortSignal,
+): Promise<Response> {
+	const client = googleClient(input, baseUrl);
+	const params = buildGenerateContentParams(input, signal);
+	let data: GenerateContentResponse;
+	try {
+		data = await client.models.generateContent(params);
+	} catch (error) {
+		if (error instanceof ApiError) throw toProviderError(error);
+		throw error;
+	}
+	return Response.json(normalizeGeminiResponse(data, input.modelId));
+}
+
+async function sendGeminiStream(
+	input: UpstreamChatInput,
+	baseUrl: string,
+	signal?: AbortSignal,
+): Promise<Response> {
+	const client = googleClient(input, baseUrl);
+	const params = buildGenerateContentParams(input, signal);
+	let stream: AsyncIterable<GenerateContentResponse>;
+	try {
+		stream = await client.models.generateContentStream(params);
+	} catch (error) {
+		if (error instanceof ApiError) throw toProviderError(error);
+		throw error;
+	}
+	return streamGeminiResponse(input, stream);
 }
 
 export async function sendGoogle(
@@ -573,21 +588,5 @@ export async function sendGoogle(
 	signal?: AbortSignal,
 ): Promise<Response> {
 	if (!input.stream) return sendGeminiNonStream(input, baseUrl, signal);
-	const response = await fetch(
-		`${baseUrl}/models/${input.modelId}:streamGenerateContent?alt=sse`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-goog-api-key": input.apiKey,
-			},
-			body: JSON.stringify(buildGeminiBody(input)),
-			redirect: "manual",
-			signal,
-		},
-	);
-	if (!response.ok) throw await toProviderError(response);
-	if (!response.body)
-		throw new ProviderError("Google returned an empty stream", 502, "server");
-	return sendGeminiStream(input, response.body);
+	return sendGeminiStream(input, baseUrl, signal);
 }

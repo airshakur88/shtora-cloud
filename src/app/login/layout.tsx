@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { getCurrentSessionUser } from "@/lib/server-session";
+import { getCurrentSessionUser } from "@/lib/session";
 
 export default async function LoginLayout({
 	children,

@@ -3,6 +3,10 @@ import { getDb, getEncryptionSecret } from "@/lib/env";
 import { getUsageByKey } from "@/lib/key-limits";
 import { listApiKeys } from "@/lib/key-store";
 import { requireUser } from "@/lib/session";
+import {
+	getProviderLatencyStats,
+	getUserUsageMetrics,
+} from "@/lib/usage-metrics";
 
 interface RequestsByDay {
 	date: string;
@@ -39,6 +43,9 @@ export async function GET(request: Request): Promise<Response> {
 			byModelResult,
 			byKeyRows,
 			ownKeys,
+			providerRows,
+			usage,
+			providerLatencyStats,
 		] = await Promise.all([
 			db
 				.prepare(`
@@ -72,6 +79,10 @@ export async function GET(request: Request): Promise<Response> {
 					   COUNT(*) as requests,
 					   SUM(CASE WHEN status != 'success' THEN 1 ELSE 0 END) as errors,
 					   AVG(latency_ms) as avgLatencyMs,
+					   COALESCE(SUM(latency_ms), 0) as latencySumMs,
+					   SUM(CASE WHEN latency_ms IS NOT NULL THEN 1 ELSE 0 END) as latencyCount,
+					   COALESCE(SUM(ttft_ms), 0) as ttftSumMs,
+					   SUM(CASE WHEN ttft_ms IS NOT NULL THEN 1 ELSE 0 END) as ttftCount,
 					   COALESCE(SUM(input_tokens), 0) as inputTokens,
 					   COALESCE(SUM(output_tokens), 0) as outputTokens
 				FROM provider_requests
@@ -85,6 +96,10 @@ export async function GET(request: Request): Promise<Response> {
 					requests: number;
 					errors: number;
 					avgLatencyMs: number | null;
+					latencySumMs: number;
+					latencyCount: number;
+					ttftSumMs: number;
+					ttftCount: number;
 					inputTokens: number;
 					outputTokens: number;
 				}>(),
@@ -142,6 +157,14 @@ export async function GET(request: Request): Promise<Response> {
 				}>(),
 			getUsageByKey(db, user.id),
 			listApiKeys(db, user.id, getEncryptionSecret()),
+			// Provider display names come from the D1 providers table in one
+			// query; every platform id in this response is mapped through it
+			// instead of joining providers into each grouped query.
+			db
+				.prepare("SELECT id, name FROM providers")
+				.all<{ id: string; name: string }>(),
+			getUserUsageMetrics(db, user.id),
+			getProviderLatencyStats(db, user.id),
 		]);
 
 		// Build responses
@@ -164,24 +187,54 @@ export async function GET(request: Request): Promise<Response> {
 			};
 		});
 
-		const byProvider = byProviderResult.results.map((r) => ({
-			platform: r.platform,
-			requests: r.requests,
-			errors: r.errors,
-			avgLatencyMs: r.avgLatencyMs,
-			p95LatencyMs: null, // Can add P95 calculation if needed
-			avgTtftMs: null,
-			tokensPerSec:
-				r.avgLatencyMs && r.avgLatencyMs > 0
-					? ((r.inputTokens + r.outputTokens) / r.avgLatencyMs) * 1000
-					: null,
-			inputTokens: r.inputTokens,
-			outputTokens: r.outputTokens,
-		}));
+		// Provider display names from the D1 providers table. A platform
+		// with no row there keeps its id so nothing is invented.
+		const providerNameById = new Map(
+			providerRows.results.map((row) => [row.id, row.name]),
+		);
+		const providerName = (platform: string): string =>
+			providerNameById.get(platform) ?? platform;
 
-		const errorsByProvider = errorsByProviderResult.results;
-		const recentErrors = recentErrorsResult.results;
-		const byModel = byModelResult.results;
+		const byProvider = byProviderResult.results.map((r) => {
+			const latency = providerLatencyStats.get(r.platform);
+			return {
+				platform: r.platform,
+				providerName: providerName(r.platform),
+				requests: r.requests,
+				errors: r.errors,
+				avgLatencyMs: r.avgLatencyMs,
+				latencySumMs: r.latencySumMs,
+				latencyCount: r.latencyCount,
+				ttftSumMs: r.ttftSumMs,
+				ttftCount: r.ttftCount,
+				p95LatencyMs: latency?.p95LatencyMs ?? null,
+				avgTtftMs: latency?.avgTtftMs ?? null,
+				fallbackAttempts: latency?.fallbackAttempts ?? 0,
+				// Throughput is total tokens over total elapsed time: the sum
+				// of every request's latency. Dividing by the average latency
+				// instead would inflate the number by the request count.
+				tokensPerSec:
+					r.latencySumMs > 0
+						? ((r.inputTokens + r.outputTokens) / r.latencySumMs) * 1000
+						: null,
+				inputTokens: r.inputTokens,
+				outputTokens: r.outputTokens,
+			};
+		});
+
+		const errorsByProvider = errorsByProviderResult.results.map((r) => ({
+			platform: r.platform,
+			providerName: providerName(r.platform),
+			errors: r.errors,
+		}));
+		const recentErrors = recentErrorsResult.results.map((r) => ({
+			...r,
+			providerName: providerName(r.platform),
+		}));
+		const byModel = byModelResult.results.map((r) => ({
+			...r,
+			providerName: providerName(r.platform),
+		}));
 		// Usage by key: only the user's own keys get a masked label. A key
 		// that served the request from the community pool is not theirs, so
 		// its mask stays empty instead of decrypting someone else's key.
@@ -192,6 +245,7 @@ export async function GET(request: Request): Promise<Response> {
 			keyId: row.keyId,
 			key_mask: maskedByKeyId.get(row.keyId) ?? "",
 			platform: row.platform,
+			providerName: providerName(row.platform),
 			requests: row.requests,
 			successes: row.successes,
 			latency_ms: row.latencyMs,
@@ -208,6 +262,14 @@ export async function GET(request: Request): Promise<Response> {
 				recentErrors,
 				byModel,
 				byKey,
+				// User-level p95 and TTFT from the aggregate tables in
+				// usage-metrics.ts (maintained by the triggers in migration
+				// 0003). Per-provider p95 cannot be combined from per-provider
+				// values, so the overview reads the real overall value here.
+				overall: {
+					p95LatencyMs: usage.p95LatencyMs,
+					averageTtftMs: usage.averageTtftMs,
+				},
 			},
 			{ headers: { "Cache-Control": "private, no-store" } },
 		);

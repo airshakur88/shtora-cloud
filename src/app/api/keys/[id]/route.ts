@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { routeError } from "@/lib/api-error";
+import { AuthRequestError, readLimitedJsonBody } from "@/lib/auth";
 import { getDb, getEncryptionSecret } from "@/lib/env";
 import { parseOptionalLimit } from "@/lib/key-limits";
 import {
@@ -9,6 +11,17 @@ import {
 } from "@/lib/key-store";
 import { getProviderConfig } from "@/lib/provider-catalog";
 import { requireUser } from "@/lib/session";
+
+/** Body cap for PATCH /api/keys/[id]: 8 KiB, same as the auth routes. */
+const MAX_PATCH_BODY_BYTES = 8 * 1024;
+
+const patchKeyBodySchema = z.object({
+	enabled: z.boolean(),
+	rpmLimit: z.unknown().optional(),
+	tpmLimit: z.unknown().optional(),
+	rpdLimit: z.unknown().optional(),
+	tpdLimit: z.unknown().optional(),
+});
 
 function parseId(raw: string): number | null {
 	const id = Number(raw);
@@ -54,19 +67,25 @@ export async function PATCH(
 			);
 		let body: unknown;
 		try {
-			body = await request.json();
-		} catch {
+			body = await readLimitedJsonBody(request, MAX_PATCH_BODY_BYTES);
+		} catch (error) {
+			if (error instanceof AuthRequestError && error.status === 413)
+				return Response.json(
+					{
+						error: {
+							message: "Request body too large",
+							type: "validation_error",
+						},
+					},
+					{ status: 413 },
+				);
 			return Response.json(
 				{ error: { message: "Invalid request", type: "validation_error" } },
 				{ status: 400 },
 			);
 		}
-		if (
-			!body ||
-			typeof body !== "object" ||
-			Array.isArray(body) ||
-			typeof (body as Record<string, unknown>).enabled !== "boolean"
-		) {
+		const parsed = patchKeyBodySchema.safeParse(body);
+		if (!parsed.success) {
 			return Response.json(
 				{
 					error: {
@@ -77,7 +96,7 @@ export async function PATCH(
 				{ status: 400 },
 			);
 		}
-		const fields = body as Record<string, unknown>;
+		const fields = parsed.data;
 		// Optional limit edits. A number sets the limit, null resets it to
 		// the provider catalog default (same rule as POST), omitted leaves
 		// the stored value alone. Invalid values are rejected, not ignored.
@@ -90,8 +109,8 @@ export async function PATCH(
 		const parsedLimits: Record<string, number | null | undefined> = {};
 		for (const field of limitFields) {
 			if (!(field in fields)) continue;
-			const parsed = parseOptionalLimit(fields[field]);
-			if (parsed === undefined)
+			const parsedLimit = parseOptionalLimit(fields[field]);
+			if (parsedLimit === undefined)
 				return Response.json(
 					{
 						error: {
@@ -101,7 +120,7 @@ export async function PATCH(
 					},
 					{ status: 400 },
 				);
-			parsedLimits[field] = parsed;
+			parsedLimits[field] = parsedLimit;
 		}
 		const db = getDb();
 		const hasLimitEdit = Object.keys(parsedLimits).length > 0;
@@ -135,12 +154,7 @@ export async function PATCH(
 						: current.tpdLimit,
 			});
 		}
-		await setApiKeyEnabled(
-			db,
-			id,
-			user.id,
-			(body as { enabled: boolean }).enabled,
-		);
+		await setApiKeyEnabled(db, id, user.id, fields.enabled);
 		const key = (
 			await listApiKeys(getDb(), user.id, getEncryptionSecret())
 		).find((item) => item.id === id);

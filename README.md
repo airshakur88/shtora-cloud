@@ -23,16 +23,16 @@ The gateway supports native Anthropic Messages requests at `/v1/messages` and `/
 
 Common text, tool, and supported image requests can route through compatible providers when their semantics are preserved. Native-only options and content blocks require a compatible Anthropic provider; unsupported requests return an explicit error rather than silently dropping fields. `count_tokens` requires native provider token counting; unsupported models return `invalid_request_error` rather than an estimate. Translated responses mark estimated fields with `usage.shtora_estimated.input_tokens` and `usage.shtora_estimated.output_tokens`. Native responses retain provider usage unchanged. Request bodies are limited to 1 MB; larger requests return HTTP 413.
 
-Explicit model IDs pin requests to the matching configured model. Use `model: "auto"` to allow cross-model routing. Count-token requests and requests with bound native state require an explicit model.
+Explicit model IDs pin requests to the matching configured model. Use `model: "shtora/auto"`, the curated router, to allow cross-model routing. A bare `model: "auto"` does not route across models: it pins the request to the single upstream model whose id is `auto`. Count-token requests and requests with bound native state require an explicit model.
 
-Use active model IDs such as `claude-opus-5-5` or `anthropic/claude-opus-5-5`. For the official SDK, configure the gateway origin as `baseURL` (for example, `https://YOUR-DOMAIN`); the SDK appends `/v1`. Authenticate with the unified token:
+To use a Claude model, add your Anthropic key in the dashboard first: open the Providers tab, choose Add Provider API Key, type `anthropic` in the Provider field, and paste the key. No base URL is needed; the gateway routes Anthropic requests to `https://api.anthropic.com/v1`, the base URL stored for the `anthropic` catalog provider. Then use active model IDs such as `claude-opus-5-5` or `anthropic/claude-opus-5-5`. For the official SDK, configure the gateway origin as `baseURL` (for example, `https://shtora.cloud`); the SDK appends `/v1`. Authenticate with the unified token:
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({
 	apiKey: process.env.SHTORA_API_KEY,
-	baseURL: "https://YOUR-DOMAIN",
+	baseURL: "https://shtora.cloud",
 });
 
 const message = await client.messages.create({
@@ -46,7 +46,7 @@ Anthropic's [Messages API](https://platform.claude.com/docs/en/api/messages) and
 
 ## Provider coverage
 
-The catalog lives in D1, not in a bundled file: migration 0010 creates the `providers` table (49 providers with base URL, protocol, keyless flag, limits and the remaining runtime config) and migrations 0011–0014 upsert the 303 catalog models with clean display names, sourced from the first-party feed snapshot 2026.11.14.64a371, plus four direct Anthropic models from migration 0005. It retains three target-only providers with no models (Cerebras, Together, and xAI); OpenAI and Anthropic are not catalog providers. The chat route uses OpenAI-compatible transports where applicable and dedicated Responses, Anthropic Messages, Gemini, Cloudflare Workers AI, AI Horde, and Moondream adapters where required.
+The catalog lives in D1, not in a bundled file: migration 0010 creates the `providers` table (50 providers with base URL, protocol, keyless flag, limits and the remaining runtime config) and migrations 0011–0014 upsert the 303 catalog models with clean display names, sourced from the first-party feed snapshot 2026.11.14.64a371, plus the four Anthropic models from migration 0005, registered as a catalog provider by migration 0015 (base URL `https://api.anthropic.com/v1`, protocol `anthropic_messages`). It retains 18 providers with no models (Baichuan, BeatAPI, Cerebras, Exa, Firecrawl, FreeTTS, Hugging Face, IteraCompute, Kenari, KiosAPI, Composite (Lucidity), Ollama, onomeo, Orca Router, SiliconFlow, Tavily, Together, and Xai). OpenAI is not a catalog provider; Anthropic is one, for its four direct models. The chat route uses OpenAI-compatible transports where applicable and dedicated Responses, Anthropic Messages, Gemini, Cloudflare Workers AI, AI Horde, and Moondream adapters where required.
 
 The Gemini and Moondream adapters accept inline base64 image data URLs within the 1 MB request-body limit. Remote and `file://` image references are rejected; the Worker never fetches caller-supplied image URLs.
 
@@ -56,13 +56,13 @@ Sources: [FreeLLMAPI model catalog](https://freellmapi.co/models) and [provider 
 
 Fresh D1 databases apply migrations 0001 through 0014 in numeric order. Migration 0003 adds the metrics schema and triggers; 0004 backfills existing attempts; 0005 adds direct Anthropic catalog and pricing data. Migration 0005 is a forward code migration and must be applied to each database before the new catalog entries are available; this change does not apply it to remote databases. Migrations 0010–0014 carry the providers table and the clean model display names (model upserts are split into four files of ~44 KB each because the D1 API rejects migration files over ~100 KB with `SQLITE_TOOBIG`). The `metrics_processed` marker lets the backfill and live insert trigger count each attempt once, even when requests arrive between migration files. Apply all unapplied migrations before deploying the code that reads the summaries — the Deploy workflow does this with `bun x cf d1 migrations apply <id> --dir migrations` before `bun run deploy`.
 
-Use the project’s `cloudflare.config.ts` D1 ID with the installed Cloudflare CLI. From the repository root, local application is `bunx cf d1 migrations apply 5a731b04-a5ac-4897-91cd-bd212e80699b --dir migrations --local`. Production application is the same command without `--local`; it targets Cloudflare. The CLI requires the database ID, not its name or binding. Its local D1 state is separate from the Vite plugin’s `.cloudflare/state`.
+Use the project’s `cloudflare.config.ts` D1 ID with the installed Cloudflare CLI. From the repository root, local application is `bun x cf d1 migrations apply 5a731b04-a5ac-4897-91cd-bd212e80699b --dir migrations --local`. Production application is the same command without `--local`; it targets Cloudflare. The CLI requires the database ID, not its name or binding. Its local D1 state is separate from the Vite plugin’s `.cloudflare/state`.
 
-`/api/usage` and the user Overview report lifetime provider attempts, including failovers. Failures with NULL token counts contribute zero to totals; savings includes successful attempts only and uses frozen per-attempt rates. Existing rows are backfilled using migration 0003's current rates because prior rows had no price snapshot. Valid provider counts are retained; absent or malformed counts are estimated from input text and emitted text/tool arguments.
+`/api/usage` reports lifetime provider attempts, including failovers. Failures with NULL token counts contribute zero to totals; the estimated savings figure in the response covers successful attempts only and uses frozen per-attempt rates. No dashboard page displays the savings figure. Existing rows are backfilled using migration 0003's current rates because prior rows had no price snapshot. Valid provider counts are retained; absent or malformed counts are estimated from input text and emitted text/tool arguments.
 
 Average latency and p95 use `latency_ms`, measured to provider response headers. P95 uses histogram bucket upper bounds; an overflow percentile falls back to one indexed exact D1 query. TTFT is averaged across streaming attempts that emitted visible content; historical TTFT is unavailable.
 
-Global lifetime metrics appear only in the admin Overview and its `requireAdmin`-protected API. The 24-hour success rate and 7-day latency diagnostics remain separate.
+The 24-hour success rate and 7-day latency diagnostics remain separate from the lifetime figures above.
 
 ## Scripts
 

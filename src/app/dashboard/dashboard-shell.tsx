@@ -36,7 +36,7 @@ import {
 	SidebarProvider,
 	SidebarRail,
 } from "@/components/ui/sidebar";
-import type { SessionUser } from "@/lib/server-session";
+import type { SessionUser } from "@/lib/session";
 
 const sidebarItems = [
 	{ title: "Overview", url: "/dashboard", icon: Home },

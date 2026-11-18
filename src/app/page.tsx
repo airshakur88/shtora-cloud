@@ -20,7 +20,7 @@ import {
 import { LandingNav } from "@/components/landing-nav";
 import { FaqDepthGutter } from "@/components/ns-ui/faq-answer-depth-gutter";
 import { getDb } from "@/lib/env";
-import { getCurrentSessionUser } from "@/lib/server-session";
+import { getCurrentSessionUser } from "@/lib/session";
 
 // The landing is rendered per request, not at build time: every number on
 // the page comes from D1, so a catalog change reaches the landing on the
@@ -79,7 +79,7 @@ function landingCapabilities({
 		{
 			icon: Route,
 			title: "O provedor falhou. Sua integração não precisa mudar.",
-			body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo. Só quando todos falham o cliente recebe um erro 502. O roteador ordena a cadeia pelo desempenho dos últimos 7 dias: taxa de sucesso, latência e qualidade do modelo. Use shtora/auto, o roteador curado, para permitir alternativas de modelo, ou shtora/coding para programar.",
+			body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo. Só quando todos falham o cliente recebe um erro 502. O roteador ordena as alternativas pela taxa de sucesso e pela latência de cada modelo nos últimos 7 dias e pela qualidade do modelo. Use shtora/auto, o roteador curado, para permitir alternativas de modelo, ou shtora/coding para programar.",
 			tag: "ROTEAMENTO",
 		},
 		{
@@ -140,7 +140,7 @@ function landingQuestions({
 				.map((provider) => provider.name)
 				.join(
 					", ",
-				)} funcionam sem chave. O catálogo tem ${totalProviderCount} provedores, ${freeProviderCount} deles com modelos. Dá para importar várias chaves de uma vez (export JSON) ou cadastrar uma a uma. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
+				)} funcionam sem chave. O catálogo tem ${totalProviderCount} provedores, ${freeProviderCount} deles com modelos. Dá para cadastrar uma chave por vez no painel, na aba de provedores. Importar várias chaves de uma vez só existe pela API, com POST /api/keys/import e o export JSON de POST /api/keys/export; o painel não tem botão de importação nem de exportação. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
 		},
 		{
 			id: "pool",

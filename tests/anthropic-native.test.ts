@@ -8,7 +8,7 @@ import {
 	test,
 } from "bun:test";
 import { readFileSync } from "node:fs";
-import { createApiKey } from "../src/lib/key-store";
+import { createApiKey, sha256Hex } from "../src/lib/key-store";
 import {
 	canMakeRequest,
 	finalizeUsage,
@@ -36,6 +36,9 @@ const originalFetch = globalThis.fetch;
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
 	getEncryptionSecret: () => SECRET,
+	getImagesBucket: () => {
+		throw new Error("IMAGES_BUCKET is unavailable in this test");
+	},
 }));
 // Load routes only after replacing their unavailable Cloudflare binding module.
 const { POST } = await import("../src/app/v1/messages/route");
@@ -73,7 +76,7 @@ beforeEach(async () => {
 		{ userId: "native-user", platform: "groq", rawKey: "groq-upstream" },
 		SECRET,
 	);
-	token = key.unifiedToken;
+	token = key.unifiedToken as string;
 });
 afterEach(() => {
 	globalThis.fetch = originalFetch;
@@ -532,8 +535,8 @@ test("observer cancellation finalizes once and never claims successful TTFT", as
 
 test("original token receipt survives reset and cannot modify concurrent reservations", async () => {
 	const key = await db
-		.prepare("SELECT id FROM api_keys WHERE unified_token=?")
-		.bind(token)
+		.prepare("SELECT id FROM api_keys WHERE unified_token = ?")
+		.bind(await sha256Hex(token))
 		.first<{ id: number }>();
 	if (!key) throw new Error("Missing key");
 	const clock = spyOn(Date, "now").mockReturnValue(

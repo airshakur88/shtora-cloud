@@ -3,6 +3,11 @@ import type { AppUser, AppUserRecord, ShtoraSession } from "@/lib/types";
 
 export const SESSION_COOKIE_NAME = "__Host-shtora.session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+/**
+ * Cap on concurrent sessions per user (M1). A new login past the cap
+ * evicts the oldest sessions instead of locking the user out.
+ */
+export const MAX_SESSIONS_PER_USER = 20;
 
 export class UnauthenticatedError extends Error {
 	constructor() {
@@ -18,8 +23,8 @@ export class ForbiddenError extends Error {
 	}
 }
 
-function readCookie(request: Request): string | null {
-	const header = request.headers.get("cookie");
+function readCookie(cookieHeader: string | null): string | null {
+	const header = cookieHeader;
 	if (!header || header.length > 16_384) return null;
 	let token: string | null = null;
 	for (const part of header.split(";")) {
@@ -91,6 +96,19 @@ export async function createSession(
 			session.expiresAtMs,
 		)
 		.run();
+	try {
+		await getDb()
+			.prepare(
+				`DELETE FROM shtora_auth_sessions WHERE user_id = ? AND id NOT IN
+				 (SELECT id FROM shtora_auth_sessions WHERE user_id = ?
+				  ORDER BY created_at_ms DESC, id DESC LIMIT ?)`,
+			)
+			.bind(userId, userId, MAX_SESSIONS_PER_USER)
+			.run();
+	} catch {
+		// Best-effort eviction: a failed prune only leaves extra sessions,
+		// which the next login retries. Login must not fail over this.
+	}
 	return { token, session };
 }
 
@@ -104,7 +122,7 @@ export function clearedSessionCookie(): string {
 }
 
 export async function deleteSession(request: Request): Promise<void> {
-	const token = readCookie(request);
+	const token = readCookie(request.headers.get("cookie"));
 	if (!token) return;
 	await getDb()
 		.prepare("DELETE FROM shtora_auth_sessions WHERE token_hash = ?")
@@ -112,11 +130,29 @@ export async function deleteSession(request: Request): Promise<void> {
 		.run();
 }
 
+/**
+ * Invalidates every session of a user, including the current one. Used by
+ * "log out everywhere" (POST /api/auth/logout-all). Also the hook a
+ * password-change flow must call — there is no such endpoint today, so
+ * nothing else calls this yet. Login deliberately does NOT call it: that
+ * would drop legitimate sessions on other devices without warning.
+ */
+export async function deleteAllSessionsForUser(userId: string): Promise<void> {
+	await getDb()
+		.prepare("DELETE FROM shtora_auth_sessions WHERE user_id = ?")
+		.bind(userId)
+		.run();
+}
+
 export async function getSession(
 	request: Request,
 ): Promise<ShtoraSession | null> {
-	const token = readCookie(request);
+	const token = readCookie(request.headers.get("cookie"));
 	if (!token) return null;
+	return getSessionByToken(token);
+}
+
+async function getSessionByToken(token: string): Promise<ShtoraSession | null> {
 	const tokenHash = await hashToken(token);
 	const row = await getDb()
 		.prepare(
@@ -155,41 +191,75 @@ export async function getSession(
 export async function getSessionUser(
 	request: Request,
 ): Promise<AppUser | null> {
-	const token = readCookie(request);
-	if (!token) return null;
-	const tokenHash = await hashToken(token);
-	const now = Date.now();
+	const session = await getSession(request);
+	if (!session) return null;
+	return getUserForSession(session);
+}
+
+async function getUserForSession(
+	session: ShtoraSession,
+): Promise<AppUser | null> {
 	const row = await getDb()
 		.prepare(
-			`SELECT u.id, u.name, u.username, u.role, u.password_hash,
-			        u.created_at, u.updated_at,
-			        s.id AS session_id, s.created_at_ms, s.expires_at_ms
-			 FROM shtora_auth_sessions s
-			 JOIN user u ON u.id = s.user_id
-			 WHERE s.token_hash = ?`,
+			"SELECT id, name, username, role, password_hash, created_at, updated_at FROM user WHERE id = ?",
 		)
-		.bind(tokenHash)
-		.first<
-			AppUserRecord & {
-				session_id: string;
-				created_at_ms: number;
-				expires_at_ms: number;
-			}
-		>();
-	if (!row || row.expires_at_ms <= now || row.created_at_ms > now) {
-		if (row) {
-			await getDb()
-				.prepare("DELETE FROM shtora_auth_sessions WHERE token_hash = ?")
-				.bind(tokenHash)
-				.run();
-		}
+		.bind(session.userId)
+		.first<AppUserRecord>();
+	if (!row) {
+		await getDb()
+			.prepare("DELETE FROM shtora_auth_sessions WHERE id = ?")
+			.bind(session.id)
+			.run();
 		return null;
 	}
 	return toAppUser(row);
 }
 
+/** The session user as server components see it (no password hash). */
+export interface SessionUser {
+	id: string;
+	name: string | null;
+	username: string;
+	role: "user" | "admin";
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
+ * The current user for server components (layouts, landing). Reads the
+ * session cookie straight from `next/headers` — the old
+ * `src/lib/server-session.ts` shim built a fake Request just to call
+ * getSessionUser, which hid where the cookie came from (M26).
+ *
+ * The `next/headers` import is dynamic so modules that only need the
+ * session helpers (routes, tests) never resolve it.
+ */
+export async function getCurrentSessionUser(): Promise<SessionUser | null> {
+	const { headers } = await import("next/headers");
+	const token = readCookie((await headers()).get("cookie"));
+	if (!token) return null;
+	const session = await getSessionByToken(token);
+	if (!session) return null;
+	const user = await getUserForSession(session);
+	if (!user) return null;
+	return {
+		id: user.id,
+		name: user.name || null,
+		username: user.username,
+		role: user.role,
+		createdAt: user.createdAt,
+		updatedAt: user.updatedAt,
+	};
+}
+
 export async function requireUser(request: Request): Promise<AppUser> {
 	const user = await getSessionUser(request);
 	if (!user) throw new UnauthenticatedError();
+	return user;
+}
+
+export async function requireAdmin(request: Request): Promise<AppUser> {
+	const user = await requireUser(request);
+	if (user.role !== "admin") throw new ForbiddenError();
 	return user;
 }

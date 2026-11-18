@@ -103,9 +103,15 @@ test("virtual router membership", () => {
 	expect(isVirtualRouter("fast")).toBe(true);
 	expect(isVirtualRouter("smart")).toBe(true);
 	expect(isVirtualRouter("vision")).toBe(true);
+	expect(isVirtualRouter("3d")).toBe(true);
 	expect(isVirtualRouter("gpt-oss-120b")).toBe(false);
 	const coding = getVirtualRouter("coding");
 	expect(coding?.members).toContain("qwen3-coder-plus");
 	expect(coding?.members).not.toContain("auto");
 	expect(getVirtualRouter("shtora/coding")?.id).toBe("coding");
+	const router3d = getVirtualRouter("shtora/3d");
+	expect(router3d?.id).toBe("3d");
+	expect(router3d?.name).toBe("Shtora 3D");
+	expect(router3d?.members).toContain("qwen3-coder-plus");
+	expect(router3d?.members).toContain("gpt-5-4-mini");
 });

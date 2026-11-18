@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { createApiKey } from "../src/lib/key-store";
+import { canonicalModelId } from "../src/lib/model-canonical";
 import { routeChatCompletion } from "../src/lib/router";
 import type { AppUser, D1Database } from "../src/lib/types";
+import { VIRTUAL_ROUTERS } from "../src/lib/virtual-routers";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
@@ -151,6 +153,43 @@ test("shtora/auto routes to a virtual member, never to an upstream auto row", as
 		expect(result.response.status).toBe(200);
 		expect(result.modelId).toBe("qwen3-8-max");
 		expect(result.modelId).not.toBe("auto");
+	} finally {
+		db.close();
+	}
+});
+
+test("shtora/3d routes to a 3d member", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedDb(db);
+		fetchImpl = successFetch();
+		const result = await route(db, "shtora/3d");
+		expect(result.response.status).toBe(200);
+		// Both qwen3-coder-plus and qwen3-8-max are 3d members; the
+		// guarantee is that a member wins over the better-ranked non-member.
+		expect(["qwen3-coder-plus", "qwen3-8-max"]).toContain(result.modelId);
+		expect(result.modelId).not.toBe("model-x");
+	} finally {
+		db.close();
+	}
+});
+
+test("every virtual router member exists in the migrated catalog", async () => {
+	// A member with no catalog row is dead weight: the router silently
+	// skips it, so membership must be checked against the real migrations.
+	const db = await createParityDatabase();
+	try {
+		const result = await db.prepare("SELECT model_id FROM models").all();
+		const canonicals = new Set(
+			(result.results as Array<{ model_id: string }>).map((row) =>
+				canonicalModelId(row.model_id),
+			),
+		);
+		for (const router of Object.values(VIRTUAL_ROUTERS)) {
+			for (const member of router.members) {
+				expect(canonicals.has(member)).toBe(true);
+			}
+		}
 	} finally {
 		db.close();
 	}

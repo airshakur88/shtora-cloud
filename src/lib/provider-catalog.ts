@@ -10,6 +10,60 @@ import type { D1Database, ProviderCatalog } from "./types";
 
 export const KEYLESS_API_KEY = "no-key";
 
+/**
+ * The only off-catalog platform POST /api/keys accepts. It is the explicit
+ * custom-endpoint escape hatch the dashboard form offers (baseUrl field
+ * shown only when platform is "custom"); every other off-catalog platform
+ * (notably `anthropic` / `openai`) is rejected as unknown. A `custom` key
+ * without a baseUrl can never serve, so the route requires one.
+ */
+export const CUSTOM_PLATFORM = "custom";
+
+/**
+ * Expected key prefixes per provider, from the "Key format reference" in
+ * AGENTS.md ("key prefixes seen upstream"). This is a plausibility check,
+ * not a guarantee: a key that does not start with its provider's documented
+ * prefix is rejected as `invalid_key`. Providers absent from this map
+ * (groq, google, cohere, ...) have no documented prefix in the reference
+ * and are not checked — `sk-` is generic and `AQ.Ab8...` / `email:token` /
+ * `id.secret` are patterns, not literal prefixes, so they are left out.
+ */
+const KEY_PREFIX_BY_PLATFORM: Record<string, string> = {
+	aihorda: "ek",
+	airforce: "sk-air-",
+	bazaarlink: "sk-bl-",
+	blaze: "blaze-",
+	dreamprompting: "dp-",
+	electronhub: "ek",
+	firecrawl: "fc-",
+	freeai: "sk-free-",
+	freetts: "ft_live_",
+	huggingface: "hf_",
+	inferbase: "inf_",
+	iteracompute: "ick_live_",
+	kenari: "kn-",
+	kiosapi: "kios_live_",
+	llmtr: "llmtr-",
+	logfare: "lfu_",
+	lucidity: "cmp-",
+	mistral: "mstrl_",
+	nvidia: "nvapi-",
+	onomeo: "sk-onomeo-",
+	openrouter: "sk-or-v1-",
+	orcarouter: "sk-orca-",
+	radeon: "rc-",
+	router9: "sk-r9k-",
+	speka: "sk-speka-live-",
+	tavily: "tvly-dev-",
+	xkiro: "sk-xt-",
+};
+
+export function isPlausibleProviderKey(platform: string, key: string): boolean {
+	if (/\s/.test(key)) return false;
+	const prefix = KEY_PREFIX_BY_PLATFORM[platform];
+	return prefix === undefined || key.startsWith(prefix);
+}
+
 const PROVIDER_COLUMNS =
 	"id, name, base_url, auth_type, protocol, description, keyless, key_hint, extra_headers, force_single_tool_call, model_identity, model_aliases, electron_hub_proxy_error, ensure_done, limits";
 
@@ -142,7 +196,10 @@ export async function normalizeProviderKey(
 	keyless?: boolean,
 	db?: D1Database,
 ): Promise<string | null> {
-	if (typeof rawKey === "string" && rawKey.trim().length > 0) return rawKey;
+	if (typeof rawKey === "string" && rawKey.trim().length > 0) {
+		const trimmed = rawKey.trim();
+		return isPlausibleProviderKey(platform, trimmed) ? trimmed : null;
+	}
 	const isKeyless = keyless ?? (await getProviderConfig(platform, db))?.keyless;
 	return isKeyless ? KEYLESS_API_KEY : null;
 }

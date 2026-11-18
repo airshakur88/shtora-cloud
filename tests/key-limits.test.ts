@@ -336,23 +336,32 @@ test("usage by key aggregates the requester's rows per serving key", async () =>
 	});
 });
 
-// Route tests: the session is mocked to user-1, the database is the same
-// in-memory D1 from the lib tests above.
+// Route tests: the database is the same in-memory D1 from the lib tests
+// above, and the caller authenticates with a real session cookie instead
+// of a mocked session: a mock.module("../src/lib/session", ...) here
+// leaks into other test files that import the real session helpers
+// (e.g. auth-http.test.ts), because Bun shares the mocked module across
+// files in one `bun test` run.
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
 	getEncryptionSecret: () => SECRET,
+	getImagesBucket: () => {
+		throw new Error("IMAGES_BUCKET is unavailable in this test");
+	},
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => ({
-		id: USER_ID,
-		name: "Test User",
-		username: "testuser",
-		role: "user",
-		passwordHash: "",
-		createdAt: "",
-		updatedAt: "",
-	}),
-}));
+
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
+
+let sessionCookie = "";
+async function authHeaders(): Promise<Record<string, string>> {
+	if (!sessionCookie) {
+		const created = await createSession(USER_ID);
+		sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
+	}
+	return { Cookie: sessionCookie };
+}
 
 const keyByIdRoute = await import("../src/app/api/keys/[id]/route");
 const keyUsageRoute = await import("../src/app/api/keys/usage/route");
@@ -374,11 +383,14 @@ test("PATCH sets a limit, resets it to the provider default on null, rejects jun
 		SECRET,
 	);
 	const params = { params: Promise.resolve({ id: String(key.id) }) };
-	const patch = (body: unknown) =>
+	const patch = async (body: unknown) =>
 		keyByIdRoute.PATCH(
 			new Request("http://localhost/api/keys/1", {
 				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					...(await authHeaders()),
+				},
 				body: JSON.stringify(body),
 			}),
 			params,
@@ -421,7 +433,10 @@ test("PATCH on another user's key is not found", async () => {
 	const response = await keyByIdRoute.PATCH(
 		new Request("http://localhost/api/keys/1", {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				...(await authHeaders()),
+			},
 			body: JSON.stringify({ enabled: false }),
 		}),
 		{ params: Promise.resolve({ id: String(otherKey.id) }) },
@@ -450,7 +465,9 @@ test("GET /api/keys/usage returns current windows per own key", async () => {
 	await insertUsageRow(key.id, "model-a", "tokens", 25, now - 5_000);
 
 	const response = await keyUsageRoute.GET(
-		new Request("http://localhost/api/keys/usage"),
+		new Request("http://localhost/api/keys/usage", {
+			headers: await authHeaders(),
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {

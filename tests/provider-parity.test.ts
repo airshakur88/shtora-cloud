@@ -101,19 +101,19 @@ async function firstModelId(platform: string): Promise<string | null> {
 test("chat catalog covers all feed chat providers and target-only direct providers", async () => {
 	const providers = await listProviders(db);
 	const ids = new Set(providers.map((item) => item.id));
-	expect(ids.size).toBe(49);
+	expect(ids.size).toBe(50);
 	const modelCount = await db
 		.prepare(
 			"SELECT COUNT(*) AS count FROM models WHERE enabled = 1 AND platform IN (SELECT id FROM providers)",
 		)
 		.first<{ count: number }>();
-	expect(modelCount?.count).toBe(303);
+	expect(modelCount?.count).toBe(307);
 	const chatProviderCount = await db
 		.prepare(
 			"SELECT COUNT(*) AS count FROM (SELECT DISTINCT platform FROM models WHERE enabled = 1 AND platform IN (SELECT id FROM providers))",
 		)
 		.first<{ count: number }>();
-	expect(chatProviderCount?.count).toBe(31);
+	expect(chatProviderCount?.count).toBe(32);
 	for (const id of [
 		"agnes",
 		"aihorde",
@@ -127,7 +127,10 @@ test("chat catalog covers all feed chat providers and target-only direct provide
 	]) {
 		expect(ids.has(id)).toBe(true);
 	}
-	for (const id of ["openai", "anthropic"]) {
+	// anthropic is a catalog provider since migration 0015 (C3); openai
+	// still has no row in `providers`.
+	expect(ids.has("anthropic")).toBe(true);
+	for (const id of ["openai"]) {
 		expect(ids.has(id)).toBe(false);
 	}
 	for (const id of ["cerebras", "together", "xai"]) {
@@ -553,14 +556,17 @@ test("Google translates chat messages, image data and tools, then maps function 
 	expect(captured.body?.systemInstruction).toEqual({
 		parts: [{ text: "Be concise." }],
 	});
+	// The SDK normalizes JSON-schema `type` values to the Gemini API's
+	// uppercase Type enum (STRING, OBJECT, ...) — the manual fetch code
+	// passed the client's lowercase values through verbatim.
 	expect(captured.body?.tools).toEqual([
 		{
 			functionDeclarations: [
 				{
 					name: "weather",
 					parameters: {
-						type: "object",
-						properties: { city: { type: "string" } },
+						type: "OBJECT",
+						properties: { city: { type: "STRING" } },
 					},
 				},
 			],

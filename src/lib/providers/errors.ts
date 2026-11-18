@@ -56,7 +56,7 @@ export function parseRetryAfterMs(
 	return undefined;
 }
 
-function classifyStatus(status: number): FailureKind {
+export function classifyStatus(status: number): FailureKind {
 	if (status === 429) return "rate_limit";
 	if (status === 401) return "auth";
 	if (status === 402) return "payment";

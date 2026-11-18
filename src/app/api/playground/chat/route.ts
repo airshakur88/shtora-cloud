@@ -1,6 +1,7 @@
 import { routeError } from "@/lib/api-error";
 import { parseChatCompletionRequest } from "@/lib/chat-request";
 import { getDb, getEncryptionSecret } from "@/lib/env";
+import { InferenceHttpError, readInferenceJson } from "@/lib/inference-http";
 import {
 	PlaygroundImageError,
 	resolvePlaygroundImages,
@@ -47,14 +48,20 @@ export async function POST(request: Request): Promise<Response> {
 		const user = await requireUser(request);
 		const db = getDb();
 
+		// Same 1 MB cap as the /v1 routes: the body is read through the
+		// shared bounded reader, so an oversized or chunked body is
+		// rejected before anything else touches it.
 		let body: unknown;
 		try {
-			body = await request.json();
-		} catch {
-			return Response.json(
-				{ error: { message: "Invalid request", type: "validation_error" } },
-				{ status: 400 },
-			);
+			body = await readInferenceJson(request);
+		} catch (err) {
+			if (err instanceof InferenceHttpError) {
+				return Response.json(
+					{ error: { message: err.message, type: "validation_error" } },
+					{ status: err.status },
+				);
+			}
+			throw err;
 		}
 		const bodyObj = (body ?? {}) as Record<string, unknown>;
 
@@ -131,9 +138,29 @@ export async function POST(request: Request): Promise<Response> {
 				? bodyObj.modelId.trim()
 				: session.modelId;
 
+		// Strict validation runs before any image is fetched from R2: a
+		// body that fails the message/part/size limits is rejected while
+		// the images are still just URLs, never materialized as base64.
+		const parsed = parseChatCompletionRequest({
+			model: modelId,
+			messages,
+			stream: true,
+		});
+		if (!parsed) {
+			return Response.json(
+				{
+					error: {
+						message: "Invalid request body",
+						type: "validation_error",
+					},
+				},
+				{ status: 400 },
+			);
+		}
+
 		let resolvedMessages: typeof messages;
 		try {
-			resolvedMessages = await resolvePlaygroundImages(messages);
+			resolvedMessages = await resolvePlaygroundImages(parsed.messages);
 		} catch (err) {
 			if (err instanceof PlaygroundImageError) {
 				return Response.json(
@@ -150,12 +177,16 @@ export async function POST(request: Request): Promise<Response> {
 			throw err;
 		}
 
-		const parsed = parseChatCompletionRequest({
+		// Resolution swaps short R2 URLs for base64 payloads, so the
+		// per-part size cap has to hold on the resolved messages too:
+		// an image whose base64 exceeds 1 MB is rejected exactly as the
+		// parse did before resolution moved after it.
+		const resolved = parseChatCompletionRequest({
 			model: modelId,
 			messages: resolvedMessages,
 			stream: true,
 		});
-		if (!parsed) {
+		if (!resolved) {
 			return Response.json(
 				{
 					error: {
@@ -173,7 +204,8 @@ export async function POST(request: Request): Promise<Response> {
 				db,
 				secret: getEncryptionSecret(),
 				user,
-				request: parsed,
+				request: resolved,
+				signal: request.signal,
 			});
 		} catch (err) {
 			console.error(
