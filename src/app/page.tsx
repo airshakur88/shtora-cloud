@@ -268,10 +268,6 @@ export default async function HomePage() {
 								</dt>
 								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{freeModelCount}
-									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
-										{" "}
-										em {freeProviderCount} provedores
-									</span>
 								</dd>
 							</div>
 							<div className="border-l border-[#2a2b2e] pl-[34px] max-[800px]:pl-5 max-[480px]:pl-[10px]">
@@ -280,10 +276,6 @@ export default async function HomePage() {
 								</dt>
 								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{keylessCount}
-									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
-										{" "}
-										{keylessProviders.map((p) => p.name).join(", ")}
-									</span>
 								</dd>
 							</div>
 							<div className="border-l border-[#2a2b2e] pl-[34px] max-[800px]:pl-5 max-[480px]:pl-[10px]">
@@ -292,10 +284,6 @@ export default async function HomePage() {
 								</dt>
 								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{catalog.providers.length}
-									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
-										{" "}
-										no total
-									</span>
 								</dd>
 							</div>
 						</dl>
@@ -538,30 +526,35 @@ export default async function HomePage() {
 					>
 						s.
 					</span>
-					<span>
-						shtora
-						<span className="text-xs font-normal tracking-[-0.4px] text-[#94918d]">
-							{" "}
-							/ cloud
-						</span>
-					</span>
+					<span>shtora</span>
 				</Link>
 				<p className="m-0 text-[13px] text-[#94918d] max-[480px]:order-3 max-[480px]:m-0 max-[480px]:w-full">
 					{freeModelCount} modelos gratuitos em {freeProviderCount} provedores.
 				</p>
 				<div className="flex gap-[25px] text-[13px]">
-					<Link
-						className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
-						href="/login"
-					>
-						Entrar
-					</Link>
-					<Link
-						href="/register"
-						className={`inline-flex items-center gap-2 hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
-					>
-						Criar conta <ArrowRight size={13} aria-hidden="true" />
-					</Link>
+					{user ? (
+						<Link
+							href="/dashboard"
+							className={`inline-flex items-center gap-2 hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+						>
+							{user.username} <ArrowUpRight size={13} aria-hidden="true" />
+						</Link>
+					) : (
+						<>
+							<Link
+								className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+								href="/login"
+							>
+								Entrar
+							</Link>
+							<Link
+								href="/register"
+								className={`inline-flex items-center gap-2 hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+							>
+								Criar conta <ArrowRight size={13} aria-hidden="true" />
+							</Link>
+						</>
+					)}
 				</div>
 			</footer>
 		</div>
