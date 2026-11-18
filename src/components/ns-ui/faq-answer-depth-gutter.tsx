@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { cn } from "@/lib/utils";
 
 const OPEN_MS = 260;
 const CLOSE_MS = 200;
@@ -129,34 +130,47 @@ export function FaqDepthGutter({
 	};
 
 	return (
-		<div className={`ns-fdg-root ${className}`.trim()}>
-			<style>{CSS}</style>
-
-			{items.map((item) => {
+		<div className={cn("w-full pl-[14px] text-[#eeeae5]", className)}>
+			{items.map((item, index) => {
 				const isOpen = openIds.has(item.id);
 				const triggerId = `${baseId}-q-${item.id}`;
 				const panelId = `${baseId}-a-${item.id}`;
 
 				return (
-					<div key={item.id} className="ns-fdg-row" data-open={isOpen}>
-						<h3 className="ns-fdg-h3">
+					<div
+						key={item.id}
+						className={cn(
+							"relative before:absolute before:-left-[14px] before:top-[26px] before:h-[18px] before:w-[2px] before:rounded-full before:bg-transparent before:transition-[background-color_160ms_ease]",
+							index > 0 && "border-t border-[#2a2b2e]",
+							isOpen && "before:bg-[#e3ab88]",
+						)}
+						data-open={isOpen}
+					>
+						<h3 className="m-0 text-[inherit] font-[inherit]">
 							<button
 								type="button"
 								id={triggerId}
 								data-faq-trigger=""
-								className="ns-fdg-trigger"
+								className="group flex w-full cursor-pointer items-center justify-between gap-5 rounded-md border-0 bg-transparent py-[22px] text-left text-base leading-[1.4] text-[#eeeae5] focus-visible:outline-2 focus-visible:outline-[#e3ab88] focus-visible:outline-offset-[3px]"
 								aria-expanded={isOpen}
 								aria-controls={panelId}
 								onClick={() => toggle(item.id)}
 							>
-								<span className="ns-fdg-question">{item.question}</span>
+								<span className="min-w-0 transition-colors duration-160 group-hover:text-[#e3ab88] motion-reduce:transition-none">
+									{item.question}
+								</span>
 								<span
-									className="ns-fdg-sign"
+									className="relative size-[10px] shrink-0"
 									data-open={isOpen}
 									aria-hidden="true"
 								>
-									<span className="ns-fdg-sign-h" />
-									<span className="ns-fdg-sign-v" />
+									<span className="absolute top-[4.25px] left-0 h-[1.5px] w-[10px] bg-[#aaa6a1]" />
+									<span
+										className={cn(
+											"absolute top-0 left-[4.25px] h-[10px] w-[1.5px] origin-center bg-[#aaa6a1] transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+											isOpen && "scale-y-0",
+										)}
+									/>
 								</span>
 							</button>
 						</h3>
@@ -181,10 +195,12 @@ export function FaqDepthGutter({
 							data-faq-panel=""
 							data-open={isOpen}
 							aria-labelledby={triggerId}
-							className="ns-fdg-panel"
+							className="h-0 overflow-hidden"
 							onTransitionEnd={(e) => onPanelTransitionEnd(e, item.id)}
 						>
-							<div className="ns-fdg-answer">{item.answer}</div>
+							<div className="pb-5 text-[14.5px] leading-[1.8] text-[#aaa6a1] [&_p]:m-0 [&_p+p]:mt-[11px]">
+								{item.answer}
+							</div>
 						</section>
 					</div>
 				);
@@ -192,45 +208,3 @@ export function FaqDepthGutter({
 		</div>
 	);
 }
-
-const CSS = `
-.ns-fdg-root{width:100%;color:var(--foreground);padding-left:14px;}
-.ns-fdg-root *,.ns-fdg-root *::before,.ns-fdg-root *::after{box-sizing:border-box;}
-
-.ns-fdg-row{position:relative;}
-.ns-fdg-row + .ns-fdg-row{border-top:1px solid var(--border);}
-/* Open-row rail: fixed height, so two open rows never join into one bar. */
-.ns-fdg-row::before{
-  content:"";position:absolute;left:-14px;top:18px;width:2px;height:18px;
-  border-radius:9999px;background-color:transparent;
-  transition:background-color 160ms ease;
-}
-.ns-fdg-row[data-open="true"]::before{background-color:var(--ns-accent);}
-
-.ns-fdg-h3{margin:0;font-size:inherit;font-weight:inherit;}
-.ns-fdg-trigger{
-  display:flex;width:100%;align-items:center;justify-content:space-between;gap:20px;
-  padding:16px 0;border:0;background:none;
-  color:var(--foreground);font:inherit;font-size:15px;line-height:1.4;
-  text-align:left;cursor:pointer;border-radius:6px;
-}
-.ns-fdg-trigger:hover .ns-fdg-question{color:var(--ns-accent);}
-.ns-fdg-trigger:focus-visible{outline:2px solid var(--ns-accent);outline-offset:3px;}
-.ns-fdg-question{min-width:0;transition:color 160ms ease;}
-
-.ns-fdg-sign{position:relative;flex:0 0 10px;width:10px;height:10px;}
-.ns-fdg-sign-h,.ns-fdg-sign-v{position:absolute;left:0;top:0;background-color:var(--ns-muted);}
-.ns-fdg-sign-h{width:10px;height:1.5px;top:4.25px;}
-.ns-fdg-sign-v{width:1.5px;height:10px;left:4.25px;transition:transform 200ms ${EASE};transform-origin:center;}
-.ns-fdg-sign[data-open="true"] .ns-fdg-sign-v{transform:scaleY(0);}
-
-.ns-fdg-panel{overflow:hidden;height:0;}
-.ns-fdg-panel[hidden]{display:none;}
-.ns-fdg-answer{padding:0 0 20px 0;color:var(--ns-muted);font-size:13.5px;line-height:1.65;}
-.ns-fdg-answer p{margin:0;}
-.ns-fdg-answer p + p{margin-top:11px;}
-
-@media (prefers-reduced-motion: reduce){
-  .ns-fdg-sign-v,.ns-fdg-question{transition-duration:0ms !important;}
-}
-`;

@@ -1,4 +1,4 @@
-﻿import {
+import {
 	ArrowDown,
 	ArrowRight,
 	ArrowUpRight,
@@ -136,47 +136,100 @@ const questions = [
 	},
 ];
 
+const FOCUS_VISIBLE =
+	"focus-visible:outline-2 focus-visible:outline-[#e3ab88] focus-visible:outline-offset-[5px]";
+const WRAP =
+	"w-[min(1400px,calc(100%-64px))] max-[1100px]:w-[calc(100%-48px)] max-[480px]:w-[calc(100%-32px)] mx-auto";
+const EYEBROW =
+	"m-0 mb-5 flex items-center gap-[9px] font-[ui-monospace,Consolas,monospace] text-xs leading-[1.5] tracking-[1.4px] text-[#e3ab88] max-[480px]:text-[11px] max-[480px]:tracking-[1px]";
+const H2 =
+	"m-0 mb-5 text-[clamp(28px,2.8vw,40px)] leading-[1.18] font-[450] tracking-[-1.3px] max-[480px]:text-[28px] max-[480px]:tracking-[-1px]";
+const INTRO_P = "m-0 max-w-[520px] text-[15.5px] leading-[1.75] text-[#aaa6a1]";
+const TEXT_LINK = `inline-flex items-center gap-[10px] text-sm hover:text-[#e3ab88] ${FOCUS_VISIBLE}`;
+const BUTTON = `inline-flex min-h-12 items-center justify-between gap-[22px] rounded border border-[#e3ab88] bg-[#e3ab88] px-[22px] py-3 text-sm font-[650] text-[#17120f] transition-[background-color_150ms,border-color_150ms] hover:border-[#f5c5a6] hover:bg-[#f5c5a6] ${FOCUS_VISIBLE}`;
+
 export default async function HomePage() {
 	const user = await getCurrentSessionUser();
 	return (
-		<div className="landing dark" lang="pt-BR">
-			<Link className="landing-skip" href="#conteudo">
+		<div
+			className="dark bg-[#0c0d0f] font-['Segoe_UI',Arial,sans-serif] text-base leading-[1.6] text-[#eeeae5] [color-scheme:dark] selection:bg-[#e3ab88] selection:text-[#0c0d0f] motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none [&_a]:no-underline [&_button]:cursor-pointer"
+			lang="pt-BR"
+		>
+			<Link
+				className="fixed top-3 left-4 z-50 -translate-y-[160%] bg-[#eeeae5] px-4 py-[10px] text-[#0c0d0f] focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-[#e3ab88] focus-visible:outline-offset-[5px]"
+				href="#conteudo"
+			>
 				Pular para o conteúdo
 			</Link>
-			<header className="landing-header landing-wrap">
+			<header
+				className={`flex h-[88px] items-center justify-between border-b border-[#2a2b2e] max-[800px]:h-[76px] ${WRAP}`}
+			>
 				<Link
 					href="/"
-					className="landing-brand"
+					className={`inline-flex items-center gap-[10px] text-[22px] font-[650] tracking-[-1px] hover:text-[#e3ab88] max-[480px]:text-[20px] ${FOCUS_VISIBLE}`}
 					aria-label="Shtora Cloud, início"
 				>
-					<span className="brand-mark" aria-hidden="true">
+					<span
+						className="inline-flex h-[34px] w-8 items-center justify-center border border-[#675243] font-[Georgia,serif] text-[28px] font-bold text-[#e3ab88] italic"
+						aria-hidden="true"
+					>
 						s.
 					</span>
 				</Link>
-				<nav aria-label="Navegação principal">
-					<Link href="#recursos">Recursos</Link>
-					<Link href="#integracao">Integração</Link>
-					<Link href="#duvidas">Dúvidas</Link>
+				<nav
+					aria-label="Navegação principal"
+					className="flex gap-9 text-sm text-[#b7b3ae] max-[800px]:gap-5 max-[480px]:hidden"
+				>
+					<Link
+						className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+						href="#recursos"
+					>
+						Recursos
+					</Link>
+					<Link
+						className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+						href="#integracao"
+					>
+						Integração
+					</Link>
+					<Link
+						className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+						href="#duvidas"
+					>
+						Dúvidas
+					</Link>
 				</nav>
 				<LandingNav user={user} />
 			</header>
 
 			<main id="conteudo">
-				<section className="landing-hero-full" aria-labelledby="hero-title">
+				<section
+					className="relative flex min-h-[92dvh] flex-col justify-center overflow-hidden scroll-mt-7"
+					aria-labelledby="hero-title"
+				>
 					<HeroBackground />
-					<div className="hero-overlay" aria-hidden="true" />
-					<div className="landing-wrap hero-content">
-						<div className="hero-copy">
-							<p className="landing-eyebrow">
-								<span className="status-dot" /> MODELOS GRATUITOS DE VÁRIOS
-								PROVEDORES
+					<div
+						className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(to_top,#0c0d0f_0%,transparent_55%)]"
+						aria-hidden="true"
+					/>
+					<div className={`relative z-[2] pt-[120px] pb-14 ${WRAP}`}>
+						<div>
+							<p className={EYEBROW}>
+								<span className="inline-block size-[6px] shrink-0 rounded-full bg-[#e3ab88]" />{" "}
+								MODELOS GRATUITOS DE VÁRIOS PROVEDORES
 							</p>
-							<h1 id="hero-title">
+							<h1
+								id="hero-title"
+								className="m-0 text-[clamp(40px,4.1vw,56px)] leading-[1.1] font-medium tracking-[-2.2px] max-[1100px]:text-[clamp(38px,4.6vw,48px)] max-[1100px]:tracking-[-1.8px] max-[480px]:text-[clamp(34px,8.5vw,42px)] max-[480px]:tracking-[-1.5px]"
+							>
 								Grátis em vários
 								<br />
-								lugares. <span>Um só lugar.</span>
+								lugares.{" "}
+								<span className="font-[Georgia,'Times_New_Roman',serif] font-normal tracking-[-1.8px] text-[#e3ab88] italic">
+									Um só lugar.
+								</span>
 							</h1>
-							<p className="hero-description">
+							<p className="my-6 mb-7 max-w-[580px] text-[17px] leading-[1.75] text-[#aaa6a1] max-[800px]:max-w-[550px] max-[800px]:text-base max-[480px]:text-[15px]">
 								O catálogo reúne {catalog.providers.length} provedores e{" "}
 								{catalog.providers.reduce((s, p) => s + p.models.length, 0)}{" "}
 								modelos — {freeModelCount} deles gratuitos em{" "}
@@ -190,44 +243,59 @@ export default async function HomePage() {
 								habilitada entra num pool comunitário que aumenta a cota de
 								todos.
 							</p>
-							<div className="hero-actions">
-								<Link className="landing-button" href="/register">
+							<div className="flex flex-wrap items-center gap-6 max-[480px]:gap-[18px]">
+								<Link className={BUTTON} href="/register">
 									Criar minha conta{" "}
 									<ArrowUpRight size={18} aria-hidden="true" />
 								</Link>
-								<Link className="landing-text-link" href="#integracao">
+								<Link className={TEXT_LINK} href="#integracao">
 									Ver a integração <ArrowDown size={15} aria-hidden="true" />
 								</Link>
 							</div>
-							<p className="hero-note">
+							<p className="mt-[18px] text-[13px] text-[#94918d] max-[480px]:text-xs">
 								Sem chave para {keylessCount} provedores. Pool de chaves
 								compartilhado. Sem trocar de SDK.
 							</p>
 						</div>
 					</div>
 				</section>
-				<div className="stats-band">
-					<div className="landing-wrap">
-						<dl className="landing-stats">
-							<div>
-								<dt>Modelos gratuitos</dt>
-								<dd>
+				<div className="w-full border-t border-[#2a2b2e] bg-[#0c0d0f]">
+					<div className={WRAP}>
+						<dl className="m-0 grid grid-cols-3 pt-[26px] pb-8 max-[480px]:gap-[10px]">
+							<div className="border-l-0 pl-0">
+								<dt className="mb-[5px] text-[13px] text-[#aaa6a1] max-[480px]:text-[11.5px]">
+									Modelos gratuitos
+								</dt>
+								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{freeModelCount}
-									<span> em {freeProviderCount} provedores</span>
+									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
+										{" "}
+										em {freeProviderCount} provedores
+									</span>
 								</dd>
 							</div>
-							<div>
-								<dt>Provedores sem chave</dt>
-								<dd>
+							<div className="border-l border-[#2a2b2e] pl-[34px] max-[800px]:pl-5 max-[480px]:pl-[10px]">
+								<dt className="mb-[5px] text-[13px] text-[#aaa6a1] max-[480px]:text-[11.5px]">
+									Provedores sem chave
+								</dt>
+								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{keylessCount}
-									<span> {keylessProviders.map((p) => p.name).join(", ")}</span>
+									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
+										{" "}
+										{keylessProviders.map((p) => p.name).join(", ")}
+									</span>
 								</dd>
 							</div>
-							<div>
-								<dt>Provedores no catálogo</dt>
-								<dd>
+							<div className="border-l border-[#2a2b2e] pl-[34px] max-[800px]:pl-5 max-[480px]:pl-[10px]">
+								<dt className="mb-[5px] text-[13px] text-[#aaa6a1] max-[480px]:text-[11.5px]">
+									Provedores no catálogo
+								</dt>
+								<dd className="m-0 text-[32px] font-[450] tracking-[-1px] max-[480px]:text-[26px]">
 									{catalog.providers.length}
-									<span> no total</span>
+									<span className="ml-[9px] text-[13px] tracking-[0] text-[#aaa6a1] max-[800px]:ml-0 max-[800px]:block max-[480px]:text-[11.5px]">
+										{" "}
+										no total
+									</span>
 								</dd>
 							</div>
 						</dl>
@@ -237,83 +305,111 @@ export default async function HomePage() {
 				<RequestLayers />
 
 				<section
-					className="landing-section landing-wrap"
+					className={`scroll-mt-7 py-24 max-[800px]:py-[72px] ${WRAP}`}
 					id="recursos"
 					aria-labelledby="features-title"
 				>
-					<div className="section-heading">
-						<p className="landing-eyebrow">O GATEWAY TRABALHA NOS BASTIDORES</p>
-						<h2 id="features-title">
+					<div className="mb-10">
+						<p className={EYEBROW}>O GATEWAY TRABALHA NOS BASTIDORES</p>
+						<h2 id="features-title" className={H2}>
 							Construa sua aplicação.
 							<br />
-							<span>Não outra camada de remendos.</span>
+							<span className="text-[#96928d]">
+								Não outra camada de remendos.
+							</span>
 						</h2>
-						<p>
+						<p className={INTRO_P}>
 							Uma integração para gerenciar o que muda entre provedores, sem
 							esconder o que acontece nas requisições.
 						</p>
 					</div>
-					<div className="capability-grid">
+					<div className="grid grid-cols-3 border-t border-l border-[#2a2b2e] max-[800px]:grid-cols-2 max-[480px]:grid-cols-1">
 						{capabilities.map(({ icon: Icon, title, body, tag }) => (
-							<article key={tag} className="capability">
-								<div className="capability-label">
+							<article
+								key={tag}
+								className="border-r border-b border-[#2a2b2e] px-[22px] pt-[22px] pb-6 transition-colors duration-150 hover:bg-[#141516] max-[1100px]:px-[18px] max-[1100px]:py-5 max-[480px]:p-5"
+							>
+								<div className="mb-[18px] flex items-center justify-between text-[#e3ab88] max-[480px]:mb-4">
 									<Icon size={20} strokeWidth={1.5} aria-hidden="true" />
-									<span>{tag}</span>
+									<span className="font-[ui-monospace,Consolas,monospace] text-[11.5px] tracking-[0.9px] text-[#aaa6a1]">
+										{tag}
+									</span>
 								</div>
-								<h3>{title}</h3>
-								<p>{body}</p>
+								<h3 className="m-0 mb-[10px] max-w-[300px] text-[17px] leading-[1.4] font-medium tracking-[-0.3px] max-[480px]:max-w-none">
+									{title}
+								</h3>
+								<p className="m-0 text-sm leading-[1.7] text-[#aaa6a1]">
+									{body}
+								</p>
 							</article>
 						))}
 					</div>
 				</section>
 
-				<section className="why-section" aria-labelledby="why-title">
-					<div className="landing-wrap why-layout">
+				<section
+					className="border-y border-[#2a2b2e] bg-[#121315] py-20 max-[800px]:py-16"
+					aria-labelledby="why-title"
+				>
+					<div
+						className={`grid grid-cols-[0.95fr_1.15fr] items-center gap-14 max-[1100px]:gap-[35px] max-[800px]:grid-cols-1 max-[800px]:gap-[35px] ${WRAP}`}
+					>
 						<div>
-							<p className="landing-eyebrow">POR QUE PAGAR ANTES DE TESTAR?</p>
-							<h2 id="why-title">
+							<p className={EYEBROW}>POR QUE PAGAR ANTES DE TESTAR?</p>
+							<h2 id="why-title" className={H2}>
 								Comece de graça.
 								<br />
-								<span>Depois você escolhe.</span>
+								<span className="text-[#96928d]">Depois você escolhe.</span>
 							</h2>
-							<p>
+							<p className={INTRO_P}>
 								{freeModelCount} modelos gratuitos em {freeProviderCount}{" "}
 								provedores já funcionam aqui, e toda chave habilitada entra num
 								pool comunitário que soma cota para todo mundo. Quando precisar
 								de mais, a troca de provedor acontece no gateway, não no seu
 								código.
 							</p>
-							<Link href="/register" className="landing-text-link">
+							<Link href="/register" className={`${TEXT_LINK} mt-5`}>
 								Centralizar minhas conexões{" "}
 								<ArrowUpRight size={16} aria-hidden="true" />
 							</Link>
 						</div>
-						<div className="comparison">
-							<div className="comparison-column">
-								<h3>Conexões espalhadas</h3>
-								<ul>
+						<div className="grid grid-cols-2 rounded border border-[#2a2b2e] max-[480px]:grid-cols-1">
+							<div className="px-[18px] py-5 max-[1100px]:px-[14px] max-[1100px]:py-[18px] max-[480px]:p-[18px]">
+								<h3 className="m-0 mb-[18px] flex min-h-[30px] items-center gap-[10px] text-[14.5px] font-medium">
+									Conexões espalhadas
+								</h3>
+								<ul className="m-0 grid list-none gap-[14px] p-0 text-[13.5px] text-[#aaa6a1]">
 									<li>Credenciais em várias integrações</li>
 									<li>Tratamento de falhas por provedor</li>
 									<li>Cotas verificadas separadamente</li>
 									<li>Uso dividido entre painéis</li>
 								</ul>
 							</div>
-							<div className="comparison-column comparison-shtora">
-								<h3>
-									<span className="brand-mark" aria-hidden="true">
+							<div className="border-l border-[#514134] bg-[#211c174d] px-[18px] py-5 max-[1100px]:px-[14px] max-[1100px]:py-[18px] max-[480px]:border-t max-[480px]:border-l-0 max-[480px]:p-[18px]">
+								<h3 className="m-0 mb-[18px] flex min-h-[30px] items-center gap-[10px] text-[14.5px] font-medium text-[#e3ab88]">
+									<span
+										className="inline-flex h-[26px] w-[23px] items-center justify-center border border-[#675243] font-[Georgia,serif] text-[24px] font-bold text-[#e3ab88] italic"
+										aria-hidden="true"
+									>
 										s.
 									</span>{" "}
 									Com Shtora Cloud
 								</h3>
-								<ul>
+								<ul className="m-0 grid list-none gap-[14px] p-0 text-[13.5px] text-[#aaa6a1]">
 									{[
 										"Um token para sua aplicação",
 										"Roteamento e fallback centralizados",
 										"Limites configurados por chave",
 										"Métricas no mesmo painel",
 									].map((item) => (
-										<li key={item}>
-											<Check size={16} aria-hidden="true" />
+										<li
+											key={item}
+											className="flex items-center gap-2 text-[#d8c5b7]"
+										>
+											<Check
+												size={16}
+												aria-hidden="true"
+												className="shrink-0 text-[#e3ab88]"
+											/>
 											{item}
 										</li>
 									))}
@@ -324,43 +420,61 @@ export default async function HomePage() {
 				</section>
 
 				<section
-					className="landing-section landing-wrap integration-layout"
+					className={`grid scroll-mt-7 grid-cols-[0.85fr_1.15fr] items-center gap-16 py-24 max-[1100px]:gap-[35px] max-[800px]:grid-cols-1 max-[800px]:gap-[35px] max-[800px]:py-[72px] ${WRAP}`}
 					id="integracao"
 					aria-labelledby="integration-title"
 				>
 					<div>
-						<p className="landing-eyebrow">POUCAS LINHAS. OUTRA ROTA.</p>
-						<h2 id="integration-title">
+						<p className={EYEBROW}>POUCAS LINHAS. OUTRA ROTA.</p>
+						<h2 id="integration-title" className={H2}>
 							Seu SDK continua.
 							<br />
-							<span>A URL muda.</span>
+							<span className="text-[#96928d]">A URL muda.</span>
 						</h2>
-						<p>
+						<p className={INTRO_P}>
 							Use seu token Shtora no lugar da chave do provedor. Peça um modelo
 							canônico com <code>shtora/&lt;modelo&gt;</code> — o gateway roteia
 							entre todos os provedores que expõem aquele modelo — ou use{" "}
 							<code>auto</code> para permitir alternativas compatíveis.
 						</p>
-						<ol className="setup-steps">
-							<li>
-								<span>01</span>
+						<ol className="mt-[30px] grid list-none gap-5 p-0">
+							<li className="flex gap-4">
+								<span className="pt-[3px] font-[ui-monospace,Consolas,monospace] text-xs text-[#e3ab88]">
+									01
+								</span>
 								<div>
-									<h3>Crie sua conta</h3>
-									<p>Abra seu painel com usuário e senha.</p>
+									<h3 className="m-0 mb-1 text-[15px] font-[550]">
+										Crie sua conta
+									</h3>
+									<p className="m-0 text-[13.5px] text-[#aaa6a1]">
+										Abra seu painel com usuário e senha.
+									</p>
 								</div>
 							</li>
-							<li>
-								<span>02</span>
+							<li className="flex gap-4">
+								<span className="pt-[3px] font-[ui-monospace,Consolas,monospace] text-xs text-[#e3ab88]">
+									02
+								</span>
 								<div>
-									<h3>Conecte seus provedores</h3>
-									<p>Cadastre chaves ou habilite opções sem chave.</p>
+									<h3 className="m-0 mb-1 text-[15px] font-[550]">
+										Conecte seus provedores
+									</h3>
+									<p className="m-0 text-[13.5px] text-[#aaa6a1]">
+										Cadastre chaves ou habilite opções sem chave.
+									</p>
 								</div>
 							</li>
-							<li>
-								<span>03</span>
+							<li className="flex gap-4">
+								<span className="pt-[3px] font-[ui-monospace,Consolas,monospace] text-xs text-[#e3ab88]">
+									03
+								</span>
 								<div>
-									<h3>Gere um token de acesso</h3>
-									<p>Configure a URL base e envie a primeira requisição.</p>
+									<h3 className="m-0 mb-1 text-[15px] font-[550]">
+										Gere um token de acesso
+									</h3>
+									<p className="m-0 text-[13.5px] text-[#aaa6a1]">
+										Configure a URL base e envie a primeira requisição.
+									</p>
 								</div>
 							</li>
 						</ol>
@@ -369,18 +483,18 @@ export default async function HomePage() {
 				</section>
 
 				<section
-					className="landing-wrap faq-layout"
+					className={`grid scroll-mt-7 grid-cols-[0.8fr_1.2fr] gap-16 pb-24 max-[1100px]:gap-[35px] max-[800px]:grid-cols-1 max-[800px]:gap-[35px] max-[800px]:pb-[72px] ${WRAP}`}
 					id="duvidas"
 					aria-labelledby="faq-title"
 				>
 					<div>
-						<p className="landing-eyebrow">ANTES DA PRIMEIRA REQUISIÇÃO</p>
-						<h2 id="faq-title">
+						<p className={EYEBROW}>ANTES DA PRIMEIRA REQUISIÇÃO</p>
+						<h2 id="faq-title" className={H2}>
 							Sem letras
 							<br />
-							<span>miúdas.</span>
+							<span className="text-[#96928d]">miúdas.</span>
 						</h2>
-						<p>
+						<p className={INTRO_P}>
 							O que o gateway resolve.
 							<br />E o que continua com o provedor.
 						</p>
@@ -389,39 +503,61 @@ export default async function HomePage() {
 				</section>
 
 				<section
-					className="landing-wrap final-section"
+					className={`flex items-center justify-between gap-[30px] border-t border-[#514134] pt-[55px] pb-[65px] max-[800px]:flex-col max-[800px]:items-start ${WRAP}`}
 					aria-labelledby="final-title"
 				>
 					<div>
-						<p className="landing-eyebrow">
+						<p className={EYEBROW}>
 							COMEÇA GRÁTIS, SEM CHAVE EM PARTE DOS PROVEDORES
 						</p>
-						<h2 id="final-title">
+						<h2 id="final-title" className={`${H2} mb-0`}>
 							{freeModelCount} modelos grátis
 							<br />
-							<span>esperando no catálogo.</span>
+							<span className="font-[Georgia,serif] text-[#e3ab88] italic">
+								esperando no catálogo.
+							</span>
 						</h2>
 					</div>
-					<Link className="landing-button" href="/register">
+					<Link className={`${BUTTON} shrink-0`} href="/register">
 						Começar com Shtora <ArrowUpRight size={20} aria-hidden="true" />
 					</Link>
 				</section>
 			</main>
-			<footer className="landing-footer landing-wrap">
-				<Link href="/" className="landing-brand">
-					<span className="brand-mark" aria-hidden="true">
+			<footer
+				className={`flex items-center justify-between gap-[25px] border-t border-[#2a2b2e] pt-[25px] pb-[34px] max-[800px]:flex-wrap ${WRAP}`}
+			>
+				<Link
+					href="/"
+					className={`inline-flex items-center gap-[10px] text-[17px] font-[650] tracking-[-1px] hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+				>
+					<span
+						className="inline-flex h-[34px] w-8 items-center justify-center border border-[#675243] font-[Georgia,serif] text-[28px] font-bold text-[#e3ab88] italic"
+						aria-hidden="true"
+					>
 						s.
 					</span>
 					<span>
-						shtora<span className="brand-cloud"> / cloud</span>
+						shtora
+						<span className="text-xs font-normal tracking-[-0.4px] text-[#94918d]">
+							{" "}
+							/ cloud
+						</span>
 					</span>
 				</Link>
-				<p>
+				<p className="m-0 text-[13px] text-[#94918d] max-[480px]:order-3 max-[480px]:m-0 max-[480px]:w-full">
 					{freeModelCount} modelos gratuitos em {freeProviderCount} provedores.
 				</p>
-				<div>
-					<Link href="/login">Entrar</Link>
-					<Link href="/register">
+				<div className="flex gap-[25px] text-[13px]">
+					<Link
+						className={`hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+						href="/login"
+					>
+						Entrar
+					</Link>
+					<Link
+						href="/register"
+						className={`inline-flex items-center gap-2 hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
+					>
 						Criar conta <ArrowRight size={13} aria-hidden="true" />
 					</Link>
 				</div>

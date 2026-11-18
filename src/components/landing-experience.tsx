@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { Check, Copy } from "lucide-react";
 import Image from "next/image";
 import { createRef, useEffect, useId, useMemo, useRef, useState } from "react";
 import { AnimatedBeam } from "@/components/magicui/animated-beam";
+import { cn } from "@/lib/utils";
 
 interface ProviderLeaf {
 	name: string;
@@ -124,6 +125,16 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 	},
 ];
 
+const WRAP =
+	"w-[min(1400px,calc(100%-64px))] max-[1100px]:w-[calc(100%-48px)] max-[480px]:w-[calc(100%-32px)] mx-auto";
+const EYEBROW =
+	"m-0 mb-5 flex items-center gap-[9px] font-[ui-monospace,Consolas,monospace] text-xs leading-[1.5] tracking-[1.4px] text-[#e3ab88] max-[480px]:text-[11px] max-[480px]:tracking-[1px]";
+const H2 =
+	"m-0 mb-5 text-[clamp(28px,2.8vw,40px)] leading-[1.18] font-[450] tracking-[-1.3px] max-[480px]:text-[28px] max-[480px]:tracking-[-1px]";
+const FOCUS_VISIBLE =
+	"focus-visible:outline-2 focus-visible:outline-[#e3ab88] focus-visible:outline-offset-[5px]";
+const MONO = "font-[ui-monospace,Consolas,monospace]";
+
 export function RequestLayers() {
 	const stageRef = useRef<HTMLDivElement>(null);
 	const originRef = useRef<HTMLDivElement>(null);
@@ -162,32 +173,37 @@ export function RequestLayers() {
 
 	return (
 		<section
-			className="request-layers"
+			className="scroll-mt-7 border-t border-[#2a2b2e] bg-[#0c0d0f] py-24"
 			id="como-funciona"
 			aria-label="Como funciona o roteamento"
 		>
-			<div className="landing-wrap">
-				<div className="mindmap-head">
+			<div className={WRAP}>
+				<div className="mb-9 flex flex-wrap items-end justify-between gap-8">
 					<div>
-						<p className="landing-eyebrow">
-							<span className="status-dot" /> MAPA MENTAL DE ROTEAMENTO
+						<p className={EYEBROW}>
+							<span className="inline-block size-[6px] shrink-0 rounded-full bg-[#e3ab88]" />{" "}
+							MAPA MENTAL DE ROTEAMENTO
 						</p>
-						<h2>
+						<h2 className={cn(H2, "mb-0")}>
 							O caminho da sua
 							<br />
-							<span>requisição.</span>
+							<span className="text-[#96928d]">requisição.</span>
 						</h2>
 					</div>
-					<p className="mindmap-subtitle">
-						Um único endpoint ramifica sua chamada pelo gateway <code>s.</code>{" "}
+					<p className="m-0 max-w-[490px] text-[15.5px] leading-[1.75] text-[#aaa6a1] text-pretty">
+						Um único endpoint ramifica sua chamada pelo gateway{" "}
+						<code className={cn(MONO, "text-[13px] text-[#e3ab88]")}>s.</code>{" "}
 						até 49 provedores gratuitos — com pool comunitário e failover
 						silencioso. Clique ou passe o cursor para inspecionar uma rota.
 					</p>
 				</div>
 
-				<div className="mindmap-canvas">
-					<div className="mindmap-stage" ref={stageRef}>
-						<div className="mindmap-beams" aria-hidden="true">
+				<div className="rounded-[20px] border border-[color-mix(in_srgb,#2a2b2e_85%,transparent)] bg-[#0e0f12] bg-[radial-gradient(ellipse_54%_46%_at_50%_34%,rgba(227,171,136,0.085),transparent_70%),radial-gradient(rgba(238,234,229,0.07)_1px,transparent_1px)] bg-[length:100%_100%,24px_24px] px-8 pt-9 pb-[22px] max-[1024px]:px-5 max-[1024px]:pt-[26px] max-[1024px]:pb-5">
+					<div className="relative" ref={stageRef}>
+						<div
+							className="pointer-events-none absolute inset-0 z-0 max-[1024px]:hidden"
+							aria-hidden="true"
+						>
 							<AnimatedBeam
 								containerRef={stageRef}
 								fromRef={originRef}
@@ -221,59 +237,119 @@ export function RequestLayers() {
 							})}
 						</div>
 
-						<div className="mindmap-vertical">
-							<div className="mindmap-tier-origin">
-								<div className="mindmap-node-bezel" ref={originRef}>
-									<div className="mindmap-origin-card">
-										<span className="mindmap-node-kicker">ENTRADA ÚNICA</span>
-										<strong>Sua Aplicação</strong>
-										<code>POST /v1/chat/completions</code>
-										<span className="mindmap-origin-model">
+						<div className="relative z-[1] flex flex-col items-center">
+							<div className="mb-[52px] w-[min(260px,100%)] max-[1024px]:mb-0">
+								<div className="w-full rounded-[14px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.025)] p-1">
+									<div
+										className="flex flex-col items-center gap-[3px] rounded-[10px] bg-[#131417] px-[14px] py-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+										ref={originRef}
+									>
+										<span
+											className={cn(
+												MONO,
+												"text-[10.5px] leading-[1.2] tracking-[1.3px] text-[#e3ab88]",
+											)}
+										>
+											ENTRADA ÚNICA
+										</span>
+										<strong className="mt-[2px] text-[15px] font-[550] tracking-[-0.2px]">
+											Sua Aplicação
+										</strong>
+										<code
+											className={cn(
+												MONO,
+												"mt-[2px] text-[11.5px] leading-[1.4] text-[#d4c6b8]",
+											)}
+										>
+											POST /v1/chat/completions
+										</code>
+										<span
+											className={cn(
+												MONO,
+												"text-[11.5px] leading-[1.4] text-[#aaa6a1]",
+											)}
+										>
 											model: &ldquo;shtora/&lt;modelo&gt;&rdquo;
 										</span>
 									</div>
 								</div>
 							</div>
 
-							<div className="mindmap-mobile-stem" aria-hidden="true" />
+							<div
+								className="hidden h-5 w-px bg-[rgba(227,171,136,0.45)] max-[1024px]:block max-[1024px]:mx-auto"
+								aria-hidden="true"
+							/>
 
-							<div className="mindmap-tier-hub">
-								<div className="mindmap-hub-bezel" ref={hubRef}>
-									<div className="mindmap-hub-core">
-										<span className="mindmap-hub-mark" aria-hidden="true">
+							<div className="mb-16 w-[min(200px,100%)] max-[1024px]:mb-0">
+								<div className="w-full rounded-[18px] border border-[rgba(227,171,136,0.3)] bg-[rgba(227,171,136,0.06)] p-[5px] shadow-[0_0_48px_rgba(227,171,136,0.12)]">
+									<div
+										className="flex flex-col items-center gap-[3px] rounded-[13px] bg-[#1b1612] px-[14px] py-[14px] text-center shadow-[inset_0_1px_0_rgba(227,171,136,0.22)]"
+										ref={hubRef}
+									>
+										<span
+											className="mb-[2px] font-[Georgia,serif] text-[32px] leading-[0.9] font-bold text-[#e3ab88] italic"
+											aria-hidden="true"
+										>
 											s.
 										</span>
-										<strong>Shtora Cloud</strong>
-										<span className="mindmap-hub-meta">
+										<strong className="text-[15px] font-semibold tracking-[-0.2px] text-[#f5e6d8]">
+											Shtora Cloud
+										</strong>
+										<span
+											className={cn(
+												MONO,
+												"text-[11px] leading-[1.4] tracking-[0.3px] text-[#b79c86]",
+											)}
+										>
 											Pool · Failover · Grátis
 										</span>
 									</div>
 								</div>
 							</div>
 
-							<div className="mindmap-mobile-stem" aria-hidden="true" />
+							<div
+								className="hidden h-5 w-px bg-[rgba(227,171,136,0.45)] max-[1024px]:block max-[1024px]:mx-auto"
+								aria-hidden="true"
+							/>
 
-							<ul className="mindmap-branches">
+							<ul className="m-0 grid w-full list-none grid-cols-[repeat(4,minmax(0,1fr))] items-start gap-5 p-0 max-[1024px]:grid-cols-2 max-[640px]:grid-cols-1">
 								{ROUTING_BRANCHES.map((branch, index) => {
 									const isBranchActive = branch.id === activeBranch.id;
 									return (
-										<li
-											key={branch.id}
-											className={`mindmap-branch-col${isBranchActive ? " is-active" : ""}`}
-										>
+										<li key={branch.id} className="flex flex-col items-stretch">
 											<button
 												ref={branchRefs[index]}
 												type="button"
-												className="mindmap-branch-node"
+												className={cn(
+													"relative flex w-full flex-col items-start gap-[2px] rounded-[10px] border border-[#2b2c30] bg-[#131417] px-[13px] py-[10px] text-left text-[#eeeae5] transition-[transform_180ms_cubic-bezier(0.23,1,0.32,1),border-color_180ms_cubic-bezier(0.23,1,0.32,1),background-color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:top-[-4px] before:left-1/2 before:size-[7px] before:-translate-x-1/2 before:rounded-full before:border before:border-[#675243] before:bg-[#3a342e] before:transition-[background-color_180ms_cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] hover:border-[#7c5c46]",
+													FOCUS_VISIBLE,
+													isBranchActive &&
+														"border-[#9d7051] bg-[#1b1612] before:bg-[#e3ab88]",
+												)}
 												aria-pressed={isBranchActive}
 												onClick={() => selectBranch(branch)}
 												onMouseEnter={() => selectBranch(branch)}
 											>
-												<span className="branch-title">{branch.title}</span>
-												<span className="branch-rule">{branch.rule}</span>
+												<span
+													className={cn(
+														"text-[14px] font-[550] tracking-[-0.2px] text-[#eeeae5]",
+														isBranchActive && "text-[#f5c5a6]",
+													)}
+												>
+													{branch.title}
+												</span>
+												<span className="text-xs leading-[1.35] text-[#aaa6a1]">
+													{branch.rule}
+												</span>
 											</button>
 
-											<div className="mindmap-leaves">
+											<div
+												className={cn(
+													"relative mt-3 ml-4 flex flex-col items-start gap-[7px] border-l border-[#2f2c28] pl-4 transition-[border-color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:-top-3 before:-left-px before:h-3 before:w-px before:bg-[#2f2c28]",
+													isBranchActive &&
+														"border-l-[rgba(227,171,136,0.6)] before:bg-[rgba(227,171,136,0.6)]",
+												)}
+											>
 												{branch.providers.map((provider) => {
 													const isProviderActive =
 														isBranchActive &&
@@ -282,14 +358,21 @@ export function RequestLayers() {
 														<button
 															key={provider.slug}
 															type="button"
-															className={`mindmap-leaf${isProviderActive ? " is-active" : ""}`}
+															className={cn(
+																"relative inline-flex max-w-full items-center gap-2 rounded-full border border-[#27282d] bg-[#121316] py-[5px] pr-[11px] pl-[5px] text-[13px] leading-[1.2] font-medium text-[#cbc6c0] transition-[transform_180ms_cubic-bezier(0.23,1,0.32,1),border-color_180ms_cubic-bezier(0.23,1,0.32,1),background-color_180ms_cubic-bezier(0.23,1,0.32,1),color_180ms_cubic-bezier(0.23,1,0.32,1)] before:absolute before:top-1/2 before:-left-[17px] before:h-px before:w-4 before:bg-[#2f2c28] before:transition-[background-color_180ms_cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] hover:translate-x-[2px] hover:border-[#9d7051] hover:text-[#eeeae5]",
+																FOCUS_VISIBLE,
+																isBranchActive &&
+																	"before:bg-[rgba(227,171,136,0.45)]",
+																isProviderActive &&
+																	"border-[#e3ab88] bg-[#211a15] text-[#eeeae5] before:bg-[#e3ab88]",
+															)}
 															aria-pressed={isProviderActive}
 															onClick={() => selectProvider(branch, provider)}
 															onMouseEnter={() =>
 																selectProvider(branch, provider)
 															}
 														>
-															<span className="mindmap-leaf-icon">
+															<span className="inline-flex size-[22px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.16)] bg-[#eeeae5]">
 																<Image
 																	src={`/providers/${provider.slug}.png`}
 																	width={14}
@@ -311,22 +394,31 @@ export function RequestLayers() {
 						</div>
 					</div>
 
-					<div className="mindmap-inspector" role="status" aria-live="polite">
-						<div className="inspector-trace">
-							<span className="inspector-step">Sua Aplicação</span>
-							<span className="inspector-sep" aria-hidden="true">
+					<div
+						className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-[color-mix(in_srgb,#2a2b2e_75%,transparent)] pt-[18px]"
+						role="status"
+						aria-live="polite"
+					>
+						<div
+							className={cn(
+								MONO,
+								"flex flex-wrap items-center gap-2 text-[12.5px]",
+							)}
+						>
+							<span className="text-[#aaa6a1]">Sua Aplicação</span>
+							<span className="text-[#5c4938]" aria-hidden="true">
 								→
 							</span>
-							<span className="inspector-step inspector-hub">s. Gateway</span>
-							<span className="inspector-sep" aria-hidden="true">
+							<span className="text-[#e3ab88]">s. Gateway</span>
+							<span className="text-[#5c4938]" aria-hidden="true">
 								→
 							</span>
-							<span className="inspector-step">{activeBranch.title}</span>
-							<span className="inspector-sep" aria-hidden="true">
+							<span className="text-[#aaa6a1]">{activeBranch.title}</span>
+							<span className="text-[#5c4938]" aria-hidden="true">
 								→
 							</span>
-							<span className="inspector-provider">
-								<span className="mindmap-leaf-icon is-small">
+							<span className="inline-flex items-center gap-[7px] text-[#eeeae5]">
+								<span className="inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.16)] bg-[#eeeae5]">
 									<Image
 										src={`/providers/${activeProvider.slug}.png`}
 										width={14}
@@ -336,10 +428,10 @@ export function RequestLayers() {
 										unoptimized
 									/>
 								</span>
-								<strong>{activeProvider.name}</strong>
+								<strong className="font-semibold">{activeProvider.name}</strong>
 							</span>
 						</div>
-						<p className="inspector-detail">
+						<p className="m-0 text-[13px] text-[#aaa6a1]">
 							{activeProvider.endpointHint} · Todos os provedores oferecem
 							modelos gratuitos (+34 no catálogo)
 						</p>
@@ -356,7 +448,7 @@ const examples = {
 	Anthropic: (origin: string) =>
 		`import Anthropic from "@anthropic-ai/sdk";\n\nconst client = new Anthropic({\n  baseURL: "${origin}",\n  apiKey: process.env.SHTORA_API_KEY,\n});\n\nconst response = await client.messages.create({\n  model: "shtora/gpt-oss-120b",\n  max_tokens: 1024,\n  messages: [{ role: "user", content: "Olá, Shtora." }],\n});`,
 	cURL: (origin: string) =>
-		`curl "${origin}/v1/chat/completions" \\\n  -H "Authorization: Bearer $SHTORA_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "model": "shtora/gpt-oss-120b",\n    "messages": [{ "role": "user", "content": "Olá, Shtora." }]\n  }'`,
+		`curl "${origin}/v1/chat/completions" \\\n  -H "Authorization: Bearer $SHTORA_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "model": "shtora/gpt-oss-120b",\n    "messages": [{ role: "user", content: "Olá, Shtora." }]\n  }'`,
 };
 
 export function IntegrationCode() {
@@ -379,13 +471,21 @@ export function IntegrationCode() {
 	}
 
 	return (
-		<div className="integration-code">
-			<div className="code-toolbar">
-				<fieldset className="code-options" aria-label="Exemplo de integração">
+		<div className="min-w-0 overflow-hidden rounded-[5px] border border-[#2a2b2e] bg-[#111214]">
+			<div className="flex items-center justify-between gap-2 border-b border-[#2a2b2e] px-[15px] max-[480px]:px-2">
+				<fieldset
+					className="m-0 flex min-w-0 border-0 p-0"
+					aria-label="Exemplo de integração"
+				>
 					{(Object.keys(examples) as (keyof typeof examples)[]).map((name) => (
 						<button
 							key={name}
 							type="button"
+							className={cn(
+								"border-0 border-b border-transparent bg-transparent px-3 py-[15px] text-[13px] text-[#aaa6a1] max-[480px]:px-[10px]",
+								FOCUS_VISIBLE,
+								selected === name && "border-b-[#e3ab88] text-[#e3ab88]",
+							)}
 							aria-pressed={selected === name}
 							aria-controls={id}
 							onClick={() => {
@@ -398,7 +498,10 @@ export function IntegrationCode() {
 					))}
 				</fieldset>
 				<button
-					className="copy-code"
+					className={cn(
+						"inline-flex items-center gap-[7px] border-0 bg-transparent px-[2px] py-[10px] text-xs text-[#aaa6a1]",
+						FOCUS_VISIBLE,
+					)}
 					type="button"
 					onClick={copy}
 					aria-label="Copiar exemplo de integração"
@@ -408,16 +511,29 @@ export function IntegrationCode() {
 					) : (
 						<Copy size={15} aria-hidden="true" />
 					)}
-					<span>{copyState === "copied" ? "Copiado" : "Copiar"}</span>
+					<span className="max-[480px]:hidden">
+						{copyState === "copied" ? "Copiado" : "Copiar"}
+					</span>
 				</button>
 			</div>
-			<section aria-label={`Código ${selected}`} className="code-scroll">
-				<pre id={id}>
+			<section aria-label={`Código ${selected}`}>
+				<pre
+					className={cn(
+						MONO,
+						"m-0 min-h-[270px] overflow-x-auto p-[22px] text-[13px] leading-[1.85] text-[#d4c6b8] max-[480px]:px-4 max-[480px]:py-[18px] max-[480px]:text-xs",
+					)}
+					id={id}
+				>
 					<code>{code}</code>
 				</pre>
 			</section>
-			<div className="code-foot">
-				<span>
+			<div
+				className={cn(
+					MONO,
+					"flex flex-col gap-1 border-t border-[#2a2b2e] px-[22px] py-[14px] text-[11.5px] leading-[1.6] text-[#aaa6a1] max-[480px]:px-4",
+				)}
+			>
+				<span className="text-[#c8a487]">
 					{selected === "Anthropic"
 						? "POST /v1/messages"
 						: "POST /v1/chat/completions"}
