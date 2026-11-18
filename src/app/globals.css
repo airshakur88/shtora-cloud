@@ -107,4 +107,34 @@ a {
 	html {
 		@apply font-sans;
 	}
+
+	/* Global scrollbar, matching the ScrollArea component that used to
+	   wrap the whole app: 10px track, 1px inset around the thumb, round
+	   thumb in the border color, transparent track. Native page scrolling
+	   now applies everywhere instead of the single viewport the component
+	   created, and these rules live in the base layer so the
+	   `no-scrollbar` utility still hides scrollbars where it is used. */
+	html {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--border);
+		border-radius: 9999px;
+		border: 1px solid transparent;
+		background-clip: padding-box;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		filter: brightness(1.6);
+	}
+	::-webkit-scrollbar-corner {
+		background: transparent;
+	}
 }

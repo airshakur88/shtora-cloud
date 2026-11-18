@@ -1,5 +1,32 @@
 import type { D1Database, PlaygroundSession } from "./types";
 
+/** Name given to a session until its first message renames it. */
+export const DEFAULT_SESSION_NAME = "New Session";
+
+/** Maximum length of an auto-generated session title, in characters. */
+export const SESSION_TITLE_MAX_LENGTH = 50;
+
+/**
+ * Derives a one-line session title from the first user message.
+ * Returns null when there is no usable text (empty or attachments-only).
+ * Long titles are cut at the last word boundary within the limit so no
+ * word is split in half; a single over-long word is hard-cut instead.
+ */
+export function deriveSessionTitle(content: string): string | null {
+	const firstLine = content
+		.split("\n")
+		.map((line) => line.trim())
+		.find((line) => line.length > 0);
+	if (!firstLine) return null;
+	const text = firstLine.replace(/\s+/g, " ").trim();
+	if (!text) return null;
+	if (text.length <= SESSION_TITLE_MAX_LENGTH) return text;
+	const cut = text.slice(0, SESSION_TITLE_MAX_LENGTH);
+	const lastSpace = cut.lastIndexOf(" ");
+	const head = lastSpace > 0 ? cut.slice(0, lastSpace) : cut;
+	return `${head}…`;
+}
+
 export async function createSession(
 	db: D1Database,
 	userId: string,
@@ -12,12 +39,12 @@ export async function createSession(
 			`INSERT INTO playground_sessions (id, user_id, name, model_id, created_at_ms, updated_at_ms)
 			 VALUES (?, ?, ?, ?, ?, ?)`,
 		)
-		.bind(id, userId, "New Session", modelId, now, now)
+		.bind(id, userId, DEFAULT_SESSION_NAME, modelId, now, now)
 		.run();
 	return {
 		id,
 		userId,
-		name: "New Session",
+		name: DEFAULT_SESSION_NAME,
 		modelId,
 		createdAtMs: now,
 		updatedAtMs: now,

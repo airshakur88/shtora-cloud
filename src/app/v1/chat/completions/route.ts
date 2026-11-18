@@ -6,6 +6,11 @@ import {
 	readInferenceJson,
 } from "@/lib/inference-http";
 import { routeChatCompletion } from "@/lib/router";
+import {
+	methodNotAllowedHead,
+	openAiMethodNotAllowed,
+	optionsResponse,
+} from "@/lib/v1-http";
 
 function errorResponse(
 	message: string,
@@ -51,4 +56,28 @@ export async function POST(request: Request): Promise<Response> {
 		);
 		return errorResponse("Internal error", "server_error", 500);
 	}
+}
+
+export function GET(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function PUT(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function PATCH(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function DELETE(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function HEAD(): Response {
+	return methodNotAllowedHead("OPTIONS, POST");
+}
+
+export function OPTIONS(): Response {
+	return optionsResponse("OPTIONS, POST");
 }

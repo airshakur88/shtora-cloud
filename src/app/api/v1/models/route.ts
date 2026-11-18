@@ -10,6 +10,7 @@ import {
 	EXCLUDED_CANONICAL_MODELS,
 	ROUTER_MODEL_PREFIX,
 } from "@/lib/model-canonical";
+import { openAiMethodNotAllowed, optionsResponse } from "@/lib/v1-http";
 import {
 	listingVirtualRouters,
 	virtualRouterProviders,
@@ -135,4 +136,24 @@ export async function GET(request: Request): Promise<Response> {
 		object: "list",
 		data: models,
 	});
+}
+
+export function POST(): Response {
+	return openAiMethodNotAllowed("GET", "GET, HEAD, OPTIONS");
+}
+
+export function PUT(): Response {
+	return openAiMethodNotAllowed("GET", "GET, HEAD, OPTIONS");
+}
+
+export function PATCH(): Response {
+	return openAiMethodNotAllowed("GET", "GET, HEAD, OPTIONS");
+}
+
+export function DELETE(): Response {
+	return openAiMethodNotAllowed("GET", "GET, HEAD, OPTIONS");
+}
+
+export function OPTIONS(): Response {
+	return optionsResponse("GET, HEAD, OPTIONS");
 }

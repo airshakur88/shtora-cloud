@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -22,9 +21,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" className={cn("dark font-sans", inter.variable)}>
-			<body className="h-dvh overflow-hidden">
+			<body>
 				<TooltipProvider>
-					<ScrollArea className="h-full">{children}</ScrollArea>
+					{children}
 					<Toaster />
 				</TooltipProvider>
 			</body>

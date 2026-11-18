@@ -6,6 +6,11 @@ import {
 import { parseChatCompletionRequest } from "@/lib/chat-request";
 import { getDb, getEncryptionSecret } from "@/lib/env";
 import { routeChatCompletion } from "@/lib/router";
+import {
+	methodNotAllowedHead,
+	openAiMethodNotAllowed,
+	optionsResponse,
+} from "@/lib/v1-http";
 
 export async function POST(request: Request): Promise<Response> {
 	let auth: Awaited<ReturnType<typeof authenticateAccessKey>> | null = null;
@@ -66,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
 			return result.response;
 		}
 
-		return Response.json(result.response);
+		return result.response;
 	} catch (error) {
 		console.error(
 			JSON.stringify({ event: "api_error", path: "/api/v1/chat/completions" }),
@@ -77,4 +82,28 @@ export async function POST(request: Request): Promise<Response> {
 			{ status: 500 },
 		);
 	}
+}
+
+export function GET(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function PUT(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function PATCH(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function DELETE(): Response {
+	return openAiMethodNotAllowed("POST", "OPTIONS, POST");
+}
+
+export function HEAD(): Response {
+	return methodNotAllowedHead("OPTIONS, POST");
+}
+
+export function OPTIONS(): Response {
+	return optionsResponse("OPTIONS, POST");
 }

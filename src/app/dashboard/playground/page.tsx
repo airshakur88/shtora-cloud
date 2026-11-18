@@ -3,7 +3,6 @@
 import {
 	Copy,
 	LoaderCircle,
-	MessageSquare,
 	MoreVertical,
 	Paperclip,
 	Pencil,
@@ -34,6 +33,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { apiErrorMessage } from "@/lib/api-error";
 import { canonicalModelId } from "@/lib/model-canonical";
+import {
+	DEFAULT_SESSION_NAME,
+	deriveSessionTitle,
+} from "@/lib/playground-sessions";
 import { readChatResponse } from "./chat-response";
 
 interface SessionSummary {
@@ -85,6 +88,8 @@ const emptyConversation: Conversation = {
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 const MAX_ATTACHMENTS = 10;
 const ATTACHMENT_MIME_TYPES = "image/png,image/jpeg,image/webp,image/gif";
+/** Key of the client-only conversation used before the first message. */
+const DRAFT_SESSION_KEY = "__draft__";
 /** Maps a stored model id to the current catalog id if they refer to the same logical model. */
 function resolveModelId(raw: string): string {
 	const canonical = canonicalModelId(raw);
@@ -122,6 +127,10 @@ export default function PlaygroundPage() {
 	const [operationError, setOperationError] = useState<string | null>(null);
 	const [sessionsRevision, setSessionsRevision] = useState(0);
 	const [sessionSearch, setSessionSearch] = useState("");
+	// Model picked while no session exists yet (the draft has no session
+	// to store it on). Once the first message creates the session, the
+	// model lives on the session itself.
+	const [pendingModelId, setPendingModelId] = useState("");
 
 	const [historyOpen, setHistoryOpen] = useState(false);
 	const [renaming, setRenaming] = useState(false);
@@ -136,13 +145,13 @@ export default function PlaygroundPage() {
 	const conversationRef = useRef<HTMLDivElement>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const followResponse = useRef(true);
-	const autoSessionCreated = useRef(false);
 	const activeSession = sessions.find(
 		(session) => session.id === activeSessionId,
 	);
-	const conversation = activeSessionId
-		? (conversations[activeSessionId] ?? emptyConversation)
-		: emptyConversation;
+	// Before the first message there is no session: the conversation lives
+	// only in the client under the draft key, nothing is created server-side.
+	const conversationKey = activeSessionId ?? DRAFT_SESSION_KEY;
+	const conversation = conversations[conversationKey] ?? emptyConversation;
 	const availableModels = models.filter((model) => model.enabled);
 	// After the provider suffix is stripped from display names, a few
 	// distinct models share a name ("Llama 4 Scout" is three canonicals).
@@ -159,17 +168,29 @@ export default function PlaygroundPage() {
 	}, [availableModels]);
 	const selectedModelId = activeSession
 		? resolveModelId(activeSession.modelId)
-		: (availableModels[0]?.id ?? "");
+		: pendingModelId || availableModels[0]?.id || "";
 	const selectedModel = models.find((model) => model.id === selectedModelId);
+	// Display name of the model a session uses (sessions store the raw id).
+	const modelNameByCanonical = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const model of models) map.set(model.canonical, model.name);
+		return map;
+	}, [models]);
+	function sessionModelName(session: SessionSummary): string {
+		return (
+			modelNameByCanonical.get(canonicalModelId(session.modelId)) ??
+			session.modelId
+		);
+	}
 	const visibleSessions = sessions.filter((session) =>
-		`${session.name} ${session.modelId}`
+		`${session.name} ${session.modelId} ${sessionModelName(session)}`
 			.toLowerCase()
 			.includes(sessionSearch.toLowerCase().trim()),
 	);
 	const locked = busy || submitting;
+	// Sending no longer needs a session: the first message creates it.
 	const canSend = Boolean(
-		activeSession &&
-			selectedModel?.enabled &&
+		selectedModel?.enabled &&
 			!modelsLoading &&
 			!modelsError &&
 			!locked &&
@@ -253,7 +274,7 @@ export default function PlaygroundPage() {
 	}, [renaming]);
 
 	useEffect(() => {
-		if (activeSessionId && !submitting) inputRef.current?.focus();
+		if (!submitting) inputRef.current?.focus();
 	}, [activeSessionId, submitting]);
 
 	// Grow the composer with its content instead of relying on a manual resize.
@@ -263,24 +284,6 @@ export default function PlaygroundPage() {
 		element.style.height = "auto";
 		element.style.height = `${element.scrollHeight}px`;
 	}, [conversation.draft]);
-
-	// Start a session as soon as the page opens so the composer is usable.
-	useEffect(() => {
-		if (autoSessionCreated.current) return;
-		if (sessionsLoading || modelsLoading) return;
-		if (sessionsError || modelsError) return;
-		if (activeSessionId) return;
-		if (!availableModels.length) return;
-		autoSessionCreated.current = true;
-		void mutateSession("POST");
-	}, [
-		activeSessionId,
-		availableModels.length,
-		modelsError,
-		modelsLoading,
-		sessionsError,
-		sessionsLoading,
-	]);
 
 	useEffect(() => {
 		if (conversation.messages.length || conversation.partial) {
@@ -306,8 +309,19 @@ export default function PlaygroundPage() {
 		followResponse.current = true;
 	}
 
+	// Back to an unsent draft: no session is created, the composer just
+	// works against the client-only draft conversation.
+	function startDraft() {
+		if (operation.current) return;
+		setActiveSessionId(null);
+		setRenaming(false);
+		setOperationError(null);
+		setHistoryOpen(false);
+		followResponse.current = true;
+	}
+
 	async function mutateSession(
-		method: "POST" | "PATCH" | "DELETE",
+		method: "PATCH" | "DELETE",
 		session?: SessionSummary,
 		updates?: { name?: string; modelId?: string },
 	) {
@@ -351,7 +365,6 @@ export default function PlaygroundPage() {
 			}
 			setRenaming(false);
 			setHistoryOpen(false);
-			if (method === "POST") setSessionSearch("");
 		} catch (cause) {
 			if (!controller.signal.aborted)
 				setOperationError(
@@ -378,7 +391,7 @@ export default function PlaygroundPage() {
 	}
 
 	async function uploadAttachments(files: FileList | null) {
-		if (!files || files.length === 0 || !activeSessionId) return;
+		if (!files || files.length === 0) return;
 		const selected = Array.from(files);
 		const current = conversation.attachments;
 		if (current.length + selected.length > MAX_ATTACHMENTS) {
@@ -430,7 +443,7 @@ export default function PlaygroundPage() {
 				name: String(image.name),
 				url: String(image.url),
 			}));
-			updateConversation(activeSessionId, {
+			updateConversation(conversationKey, {
 				attachments: [...current, ...uploaded],
 			});
 		} catch (cause) {
@@ -444,8 +457,7 @@ export default function PlaygroundPage() {
 	}
 
 	function removeAttachment(id: string) {
-		if (!activeSessionId) return;
-		updateConversation(activeSessionId, {
+		updateConversation(conversationKey, {
 			attachments: conversation.attachments.filter(
 				(attachment) => attachment.id !== id,
 			),
@@ -454,15 +466,16 @@ export default function PlaygroundPage() {
 
 	async function submit() {
 		if (
-			!activeSession ||
 			!canSend ||
 			(!conversation.draft.trim() && !conversation.attachments.length) ||
 			operation.current
 		)
 			return;
-		const id = activeSession.id;
 		const controller = new AbortController();
 		operation.current = controller;
+		// The conversation lives under the draft key until the first message
+		// creates a real session; after creation it moves to the session id.
+		let key = conversationKey;
 		const previousMessages = conversation.messages;
 		const draft = conversation.draft;
 		const attachments = conversation.attachments;
@@ -475,9 +488,11 @@ export default function PlaygroundPage() {
 				timestamp: Date.now(),
 			},
 		];
+		const isFirstMessage = previousMessages.length === 0;
+		const derivedTitle = isFirstMessage ? deriveSessionTitle(draft) : null;
 		setSubmitting(true);
 		followResponse.current = true;
-		updateConversation(id, {
+		updateConversation(key, {
 			messages: nextMessages,
 			draft: "",
 			partial: "",
@@ -485,11 +500,59 @@ export default function PlaygroundPage() {
 			attachments: [],
 		});
 		try {
+			let sessionId = activeSessionId;
+			if (!sessionId) {
+				// Lazy creation: exactly one session, created on first send.
+				// `operation.current` is already set, so a double submit
+				// returns early above and cannot create a second one.
+				const created = await requestJson<SessionSummary>(
+					"/api/playground/sessions",
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ modelId: selectedModelId }),
+						signal: controller.signal,
+					},
+				);
+				if (controller.signal.aborted) return;
+				sessionId = created.id;
+				const createdSession = derivedTitle
+					? { ...created, name: derivedTitle }
+					: created;
+				setSessions((current) => [
+					createdSession,
+					...current.filter((item) => item.id !== created.id),
+				]);
+				setActiveSessionId(created.id);
+				setConversations((current) => {
+					const next = { ...current };
+					const draftConversation =
+						next[DRAFT_SESSION_KEY] ?? emptyConversation;
+					delete next[DRAFT_SESSION_KEY];
+					next[created.id] = { ...emptyConversation, ...draftConversation };
+					return next;
+				});
+				key = created.id;
+			} else if (
+				isFirstMessage &&
+				derivedTitle &&
+				activeSession?.name === DEFAULT_SESSION_NAME
+			) {
+				// Existing session that never got a message (e.g. created
+				// before lazy creation): title it from this first message.
+				// The server does the same; this only updates the list
+				// immediately, without a reload.
+				setSessions((current) =>
+					current.map((item) =>
+						item.id === sessionId ? { ...item, name: derivedTitle } : item,
+					),
+				);
+			}
 			const response = await fetch("/api/playground/chat", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					sessionId: id,
+					sessionId,
 					modelId: selectedModelId,
 					messages: nextMessages.map(({ role, content, attachments }) => ({
 						role,
@@ -507,10 +570,10 @@ export default function PlaygroundPage() {
 				signal: controller.signal,
 			});
 			const content = await readChatResponse(response, (partial) => {
-				if (!controller.signal.aborted) updateConversation(id, { partial });
+				if (!controller.signal.aborted) updateConversation(key, { partial });
 			});
 			if (!controller.signal.aborted)
-				updateConversation(id, {
+				updateConversation(key, {
 					messages: [
 						...nextMessages,
 						{
@@ -524,7 +587,7 @@ export default function PlaygroundPage() {
 				});
 		} catch (cause) {
 			if (!controller.signal.aborted)
-				updateConversation(id, {
+				updateConversation(key, {
 					messages: previousMessages,
 					draft,
 					attachments,
@@ -565,7 +628,7 @@ export default function PlaygroundPage() {
 										modelsLoading ||
 										!availableModels.length
 									}
-									onClick={() => void mutateSession("POST")}
+									onClick={() => startDraft()}
 								>
 									<Plus className="size-4" aria-hidden="true" /> New session
 								</Button>
@@ -619,7 +682,7 @@ export default function PlaygroundPage() {
 													{session.name}
 												</span>
 												<span className="mt-1 block truncate text-xs text-muted-foreground">
-													{session.modelId}
+													{sessionModelName(session)}
 												</span>
 											</button>
 											<div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -812,33 +875,7 @@ export default function PlaygroundPage() {
 							}}
 							className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-6"
 						>
-							{!activeSession ? (
-								<div className="mx-auto flex h-full max-w-sm flex-col items-center justify-center gap-3 text-center">
-									<MessageSquare
-										className="size-7 text-muted-foreground"
-										aria-hidden="true"
-									/>
-									<h3 className="font-medium text-foreground">
-										Start a conversation
-									</h3>
-									<p className="text-sm leading-6 text-muted-foreground">
-										Create a session to try a model, or open an existing session
-										from the list.
-									</p>
-									<Button
-										disabled={
-											locked ||
-											sessionsLoading ||
-											Boolean(sessionsError) ||
-											modelsLoading ||
-											!availableModels.length
-										}
-										onClick={() => void mutateSession("POST")}
-									>
-										New session
-									</Button>
-								</div>
-							) : !conversation.messages.length && !conversation.partial ? (
+							{!conversation.messages.length && !conversation.partial ? (
 								<div className="mx-auto flex h-full max-w-sm flex-col justify-center gap-2 text-center">
 									<h3 className="font-medium text-foreground">
 										What would you like to try?
@@ -934,17 +971,29 @@ export default function PlaygroundPage() {
 									) : availableModels.length ? (
 										<Combobox
 											value={selectedModelId}
+											// The input shows the selected item's label: without
+											// this it falls back to the raw value (the model id).
+											itemToStringLabel={(value) =>
+												models.find((model) => model.id === value)?.name ??
+												String(value)
+											}
 											onValueChange={(value) => {
-												if (
-													activeSession &&
-													value !== selectedModelId &&
-													typeof value === "string"
-												)
-													void mutateSession("PATCH", activeSession, {
-														modelId: value,
-													});
+												if (typeof value !== "string") return;
+												if (activeSession) {
+													if (value !== selectedModelId)
+														void mutateSession("PATCH", activeSession, {
+															modelId: value,
+														});
+												} else {
+													setPendingModelId(value);
+												}
 											}}
-											disabled={!activeSession || locked || renaming}
+											disabled={
+												locked ||
+												renaming ||
+												modelsLoading ||
+												!availableModels.length
+											}
 										>
 											<ComboboxInput
 												placeholder="Select model..."
@@ -1023,10 +1072,11 @@ export default function PlaygroundPage() {
 										size="icon"
 										className="min-h-10 shrink-0"
 										disabled={
-											!activeSession ||
 											locked ||
 											renaming ||
 											uploading ||
+											modelsLoading ||
+											!availableModels.length ||
 											conversation.attachments.length >= MAX_ATTACHMENTS
 										}
 										aria-label="Attach images"
@@ -1046,13 +1096,18 @@ export default function PlaygroundPage() {
 										ref={inputRef}
 										id="chat-message"
 										value={conversation.draft}
-										disabled={!activeSession || locked || renaming}
+										disabled={
+											locked ||
+											renaming ||
+											modelsLoading ||
+											Boolean(modelsError) ||
+											!availableModels.length
+										}
 										aria-describedby={`composer-hint${conversation.error ? " chat-error" : ""}`}
 										onChange={(event) => {
-											if (activeSessionId)
-												updateConversation(activeSessionId, {
-													draft: event.target.value,
-												});
+											updateConversation(conversationKey, {
+												draft: event.target.value,
+											});
 										}}
 										onKeyDown={(event) => {
 											if (
@@ -1065,9 +1120,9 @@ export default function PlaygroundPage() {
 											}
 										}}
 										placeholder={
-											activeSession
+											availableModels.length
 												? "Write a message…"
-												: "Create or select a session first"
+												: "Loading models…"
 										}
 										rows={1}
 										className="max-h-48 min-h-9 min-w-0 flex-1 resize-none overflow-y-auto bg-transparent px-2 py-1 text-sm leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-60"

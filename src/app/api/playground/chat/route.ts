@@ -5,11 +5,35 @@ import {
 	PlaygroundImageError,
 	resolvePlaygroundImages,
 } from "@/lib/playground-images";
-import { getSession } from "@/lib/playground-sessions";
+import {
+	DEFAULT_SESSION_NAME,
+	deriveSessionTitle,
+	getSession,
+	updateSession,
+} from "@/lib/playground-sessions";
 import type { RouteResult } from "@/lib/router";
 import { routeChatCompletion } from "@/lib/router";
 import { requireUser } from "@/lib/session";
 import type { ChatContent, ChatMessage, ChatRole } from "@/lib/types";
+
+/** Plain text of a chat message (multimodal parts other than text ignored). */
+function messageText(content: ChatContent): string {
+	if (typeof content === "string") return content;
+	if (Array.isArray(content))
+		return content
+			.filter(
+				(part): part is { type: "text"; text: string } =>
+					typeof part === "object" &&
+					part !== null &&
+					"type" in part &&
+					part.type === "text" &&
+					"text" in part &&
+					typeof part.text === "string",
+			)
+			.map((part) => part.text)
+			.join("\n");
+	return "";
+}
 
 const VALID_ROLES: Record<ChatRole, true> = {
 	system: true,
@@ -89,6 +113,17 @@ export async function POST(request: Request): Promise<Response> {
 				{ error: { message: "Session not found", type: "not_found" } },
 				{ status: 404 },
 			);
+		}
+
+		// Title the session from its first user message, server-side so it
+		// holds no matter which client sent it. Only the default name is
+		// replaced — a session the user renamed keeps its name.
+		if (session.name === DEFAULT_SESSION_NAME) {
+			const firstUser = messages.find((msg) => msg.role === "user");
+			const title = firstUser
+				? deriveSessionTitle(messageText(firstUser.content))
+				: null;
+			if (title) await updateSession(db, sessionId, user.id, { name: title });
 		}
 
 		const modelId =
