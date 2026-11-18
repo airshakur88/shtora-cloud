@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, expect, mock, test } from "bun:test";
+import { encryptApiKey } from "../src/lib/crypto";
 import {
 	effectiveKeyLimits,
 	getKeyUsageWindows,
@@ -6,7 +7,7 @@ import {
 	parseOptionalLimit,
 	withEffectiveLimits,
 } from "../src/lib/key-limits";
-import { createApiKey } from "../src/lib/key-store";
+import { createApiKey, sha256Hex } from "../src/lib/key-store";
 import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
@@ -492,4 +493,77 @@ test("GET /api/keys/usage returns current windows per own key", async () => {
 		(item) => item.requestsMinute === 0 && item.requestsDay === 0,
 	);
 	expect(unused).toBeDefined();
+});
+
+test("GET /api/keys/usage stays 200 when one of the user's keys cannot be decrypted", async () => {
+	const key = await createApiKey(
+		db,
+		{
+			userId: USER_ID,
+			platform: "groq",
+			rawKey: "gsk-usage-corrupt",
+			keyLabel: null,
+			baseUrl: null,
+			rpmLimit: null,
+			tpmLimit: null,
+			rpdLimit: null,
+			tpdLimit: null,
+		},
+		SECRET,
+	);
+	// A stored key whose ciphertext no longer authenticates (tampered
+	// bytes, or a secret that changed): before the fix, decrypting it
+	// inside listApiKeys rejected the whole listing and the route
+	// answered 500.
+	const encrypted = await encryptApiKey("sk-corrupt-1234", SECRET);
+	const last = encrypted.ciphertext.slice(-1);
+	const tampered =
+		encrypted.ciphertext.slice(0, -1) + (last === "0" ? "1" : "0");
+	const corruptId = (
+		await db
+			.prepare(
+				"INSERT INTO api_keys (user_id, platform, key_label, encrypted_key, iv, auth_tag, enabled, unified_token) VALUES (?, 'groq', 'corrupt', ?, ?, ?, 1, ?) RETURNING id",
+			)
+			.bind(
+				USER_ID,
+				tampered,
+				encrypted.iv,
+				encrypted.authTag,
+				await sha256Hex("flmr-cccccccc-1111-2222-3333-444444444444"),
+			)
+			.all<{ id: number }>()
+	).results[0].id;
+	const now = Date.now();
+	await insertUsageRow(key.id, "model-a", "request", null, now - 5_000);
+
+	const response = await keyUsageRoute.GET(
+		new Request("http://localhost/api/keys/usage", {
+			headers: await authHeaders(),
+		}),
+	);
+	expect(response.status).toBe(200);
+	const body = (await response.json()) as {
+		usage: Array<{
+			keyId: number;
+			requestsMinute: number;
+			tokensMinute: number;
+			requestsDay: number;
+			tokensDay: number;
+		}>;
+	};
+	expect(body.usage.find((item) => item.keyId === key.id)).toEqual({
+		keyId: key.id,
+		requestsMinute: 1,
+		tokensMinute: 0,
+		requestsDay: 1,
+		tokensDay: 0,
+	});
+	// The unreadable key still lists, with zeros, because it never served.
+	expect(body.usage.find((item) => item.keyId === corruptId)).toEqual({
+		keyId: corruptId,
+		requestsMinute: 0,
+		tokensMinute: 0,
+		requestsDay: 0,
+		tokensDay: 0,
+	});
 });

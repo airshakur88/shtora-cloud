@@ -4,7 +4,9 @@ import { decryptApiKey, encryptApiKey } from "../src/lib/crypto";
 import {
 	createApiKey,
 	deleteApiKey,
+	exportApiKeys,
 	getApiKeyOwnerByToken,
+	getEnabledKeysForPlatform,
 	listApiKeys,
 	rotateUnifiedToken,
 	setApiKeyEnabled,
@@ -144,6 +146,79 @@ test("rotating a unified token invalidates the old one", async () => {
 		expect(await rotateUnifiedToken(db, created.id, "not-the-owner")).toBe(
 			null,
 		);
+	} finally {
+		db.close();
+	}
+});
+
+test("a key that cannot be decrypted does not take down the key listing", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind("u1", "Test User", "testuser", "hash")
+			.run();
+		const good = await createApiKey(
+			db,
+			{
+				userId: "u1",
+				platform: "groq",
+				keyLabel: "good",
+				rawKey: "sk-good-1234",
+			},
+			SECRET,
+		);
+		// Tampered ciphertext: valid hex, but the auth tag no longer
+		// matches, so AES-GCM rejects it.
+		const encrypted = await encryptApiKey("sk-tampered-1234", SECRET);
+		const last = encrypted.ciphertext.slice(-1);
+		const tampered =
+			encrypted.ciphertext.slice(0, -1) + (last === "0" ? "1" : "0");
+		await db
+			.prepare(
+				"INSERT INTO api_keys (user_id, platform, key_label, encrypted_key, iv, auth_tag, enabled, unified_token) VALUES ('u1', 'groq', 'tampered', ?, ?, ?, 1, ?)",
+			)
+			.bind(
+				tampered,
+				encrypted.iv,
+				encrypted.authTag,
+				await sha256Hex("flmr-aaaaaaaa-1111-2222-3333-444444444444"),
+			)
+			.run();
+		// Garbage encoding: not hex at all.
+		await db
+			.prepare(
+				"INSERT INTO api_keys (user_id, platform, key_label, encrypted_key, iv, auth_tag, enabled, unified_token) VALUES ('u1', 'groq', 'garbage', 'not-hex!!', '00', '00', 1, ?)",
+			)
+			.bind(await sha256Hex("flmr-bbbbbbbb-1111-2222-3333-444444444444"))
+			.run();
+
+		const listed = await listApiKeys(db, "u1", SECRET);
+		expect(listed).toHaveLength(3);
+		expect(listed.find((key) => key.id === good.id)?.maskedKey).toBe(
+			"••••1234",
+		);
+		// The bad rows stay visible so the owner can delete them, but
+		// carry no key material.
+		for (const label of ["tampered", "garbage"]) {
+			expect(listed.find((key) => key.keyLabel === label)?.maskedKey).toBe(
+				"•••• unreadable",
+			);
+		}
+		// The router and the export only see keys they can actually read:
+		// one bad row must not lose the whole platform.
+		const platformKeys = await getEnabledKeysForPlatform(
+			db,
+			"u1",
+			"groq",
+			SECRET,
+		);
+		expect(platformKeys.map((key) => key.id)).toEqual([good.id]);
+		const exported = await exportApiKeys(db, "u1", SECRET);
+		expect(exported).toHaveLength(1);
+		expect(exported[0].key).toBe("sk-good-1234");
 	} finally {
 		db.close();
 	}

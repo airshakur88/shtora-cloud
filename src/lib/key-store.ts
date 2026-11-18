@@ -19,6 +19,46 @@ function maskKey(rawKey: string): string {
 }
 
 /**
+ * Mask shown for a stored key that cannot be decrypted (corrupt
+ * ciphertext, or a secret that no longer matches). The row stays in the
+ * listing so the owner can see it and delete it; it carries no key
+ * material and can never serve traffic.
+ */
+export const UNREADABLE_KEY_MASK = "•••• unreadable";
+
+/**
+ * Decrypt one stored key row, or null when the row cannot be read. A
+ * single bad row must never take down a whole listing or a whole
+ * platform's pool: callers skip nulls (the listing shows the placeholder
+ * mask instead). The failure is logged with the key id only, never key
+ * material.
+ */
+async function tryDecryptApiKey(
+	row: Pick<KeyRow, "id" | "platform" | "encrypted_key" | "iv" | "auth_tag">,
+	secret: string,
+): Promise<string | null> {
+	try {
+		return await decryptApiKey(
+			{
+				ciphertext: row.encrypted_key,
+				iv: row.iv,
+				authTag: row.auth_tag,
+			},
+			secret,
+		);
+	} catch {
+		console.error(
+			JSON.stringify({
+				event: "key_decrypt_failed",
+				keyId: row.id,
+				platform: row.platform,
+			}),
+		);
+		return null;
+	}
+}
+
+/**
  * SHA-256 hex of a value, the same construction `access-keys.ts` uses for
  * `ska-…` keys. Unified tokens are stored only as this hash.
  */
@@ -115,28 +155,29 @@ export async function listApiKeys(
 		.all<KeyRow>();
 	// Decryptions are independent (one AES-GCM call per row, no shared
 	// state), so they run in parallel instead of one await per key (C4).
+	// A row that cannot be decrypted stays listed with the placeholder
+	// mask instead of rejecting the whole listing.
 	return Promise.all(
-		rows.results.map(async (row) => ({
-			id: row.id,
-			platform: row.platform,
-			keyLabel: row.key_label,
-			enabled: row.enabled === 1,
-			lastHealthCheckAt: row.last_health_check_at,
-			lastHealthCheckStatus: row.last_health_check_status,
-			// No unifiedToken here: only the hash is stored, and the
-			// plaintext is shown once at creation / rotation.
-			createdAt: row.created_at,
-			maskedKey: maskKey(
-				await decryptApiKey(
-					{ ciphertext: row.encrypted_key, iv: row.iv, authTag: row.auth_tag },
-					secret,
-				),
-			),
-			rpmLimit: row.rpm_limit,
-			tpmLimit: row.tpm_limit,
-			rpdLimit: row.rpd_limit,
-			tpdLimit: row.tpd_limit,
-		})),
+		rows.results.map(async (row) => {
+			const decrypted = await tryDecryptApiKey(row, secret);
+			return {
+				id: row.id,
+				platform: row.platform,
+				keyLabel: row.key_label,
+				enabled: row.enabled === 1,
+				lastHealthCheckAt: row.last_health_check_at,
+				lastHealthCheckStatus: row.last_health_check_status,
+				// No unifiedToken here: only the hash is stored, and the
+				// plaintext is shown once at creation / rotation.
+				createdAt: row.created_at,
+				maskedKey:
+					decrypted === null ? UNREADABLE_KEY_MASK : maskKey(decrypted),
+				rpmLimit: row.rpm_limit,
+				tpmLimit: row.tpm_limit,
+				rpdLimit: row.rpd_limit,
+				tpdLimit: row.tpd_limit,
+			};
+		}),
 	);
 }
 
@@ -162,17 +203,21 @@ export async function exportApiKeys(
 		)
 		.bind(userId)
 		.all<KeyRow>();
-	// Decryptions are independent: run them in parallel (C4).
-	return Promise.all(
-		rows.results.map(async (row) => ({
-			platform: row.platform,
-			key: await decryptApiKey(
-				{ ciphertext: row.encrypted_key, iv: row.iv, authTag: row.auth_tag },
-				secret,
-			),
-			label: row.key_label,
-		})),
+	// Decryptions are independent: run them in parallel (C4). Rows that
+	// cannot be decrypted are skipped: there is no value to export for
+	// them, and one bad row must not fail the whole export.
+	const exported = await Promise.all(
+		rows.results.map(async (row) => {
+			const decrypted = await tryDecryptApiKey(row, secret);
+			if (decrypted === null) return null;
+			return {
+				platform: row.platform,
+				key: decrypted,
+				label: row.key_label,
+			};
+		}),
 	);
+	return exported.filter((entry): entry is ExportedKey => entry !== null);
 }
 
 /**
@@ -281,20 +326,28 @@ export async function getEnabledKeysForPlatform(
 	// Decryptions are independent (one AES-GCM call per row, no shared
 	// state), so they run in parallel instead of one await per key: the
 	// old sequential loop paid a full decrypt latency per key on every
-	// chat request, once per model in the chain (C4 residual).
-	return Promise.all(
-		rows.results.map(async (row) => ({
-			id: row.id,
-			apiKey: await decryptApiKey(
-				{ ciphertext: row.encrypted_key, iv: row.iv, authTag: row.auth_tag },
-				secret,
-			),
-			baseUrl: row.base_url,
-			rpmLimit: row.rpm_limit,
-			tpmLimit: row.tpm_limit,
-			rpdLimit: row.rpd_limit,
-			tpdLimit: row.tpd_limit,
-		})),
+	// chat request, once per model in the chain (C4 residual). Rows that
+	// cannot be decrypted are skipped: a bad row must not lose the
+	// whole platform's pool.
+	const decrypted = await Promise.all(
+		rows.results.map(async (row) => {
+			// The query selects no platform column; the platform is the
+			// function's own argument, passed along for the failure log.
+			const apiKey = await tryDecryptApiKey({ ...row, platform }, secret);
+			if (apiKey === null) return null;
+			return {
+				id: row.id,
+				apiKey,
+				baseUrl: row.base_url,
+				rpmLimit: row.rpm_limit,
+				tpmLimit: row.tpm_limit,
+				rpdLimit: row.rpd_limit,
+				tpdLimit: row.tpd_limit,
+			};
+		}),
+	);
+	return decrypted.filter(
+		(entry): entry is DecryptedPlatformKey => entry !== null,
 	);
 }
 

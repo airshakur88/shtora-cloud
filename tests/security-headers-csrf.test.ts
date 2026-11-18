@@ -22,6 +22,11 @@ test("next.config.ts applies the full security header set to every path", async 
 	expect(csp).toContain("frame-ancestors 'none'");
 	expect(csp).toContain("object-src 'none'");
 	expect(csp).toContain("upgrade-insecure-requests");
+	// Cloudflare Web Analytics injects beacon.min.js from this host at
+	// the edge; without it every page logs a CSP violation.
+	expect(csp).toContain(
+		"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+	);
 	expect(byKey.get("X-Frame-Options")).toBe("DENY");
 	expect(byKey.get("Strict-Transport-Security")).toContain("max-age=63072000");
 	expect(byKey.get("Strict-Transport-Security")).toContain("includeSubDomains");

@@ -8,16 +8,23 @@ import type { NextConfig } from "next";
  * headers live here instead of in a middleware file.
  *
  * CSP notes: script/style 'unsafe-inline' stays because Next.js RSC
- * streaming and Tailwind rely on inline scripts and styles; there is no
- * external script, font or image origin in the app (next/font self-hosts
- * Inter), so every other directive is 'self' or stricter.
+ * streaming and Tailwind rely on inline scripts and styles. The one
+ * external script origin is Cloudflare Web Analytics: with automatic
+ * setup the edge injects `beacon.min.js` from
+ * `static.cloudflareinsights.com` into HTML responses, so script-src
+ * allows that host. The beacon reports to the site's own `/cdn-cgi/rum`,
+ * which connect-src 'self' already covers. `cloudflareinsights.com`
+ * is only needed for a manually embedded snippet, which this app does
+ * not use. If Web Analytics is disabled in the Cloudflare dashboard the
+ * entry is inert. next/font self-hosts Inter, so no other external
+ * origin is needed.
  */
 const securityHeaders = [
 	{
 		key: "Content-Security-Policy",
 		value: [
 			"default-src 'self'",
-			"script-src 'self' 'unsafe-inline'",
+			"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' data: blob:",
 			"font-src 'self'",
