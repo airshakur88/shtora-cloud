@@ -49,6 +49,8 @@ interface CatalogResponse {
 		contextWindow: number;
 		globalKeyCount: number;
 		personalKeyCount: number;
+		description?: string;
+		members?: string[];
 	}>;
 }
 
@@ -232,4 +234,51 @@ test("response includes Cache-Control: private, no-store", async () => {
 	const response = await GET(authRequest());
 	expect(response.status).toBe(200);
 	expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+});
+
+test("excludes shtora/auto as an ordinary model and lists virtual routers", async () => {
+	// Upstream auto row must never appear as an ordinary model.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','auto','Upstream Auto',32768,1,1,1)",
+		)
+		.run();
+	// Kilo free-router row must appear as shtora/kilo-free, never shtora/free.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('kilo','kilo-auto/free','Kilo Auto Free',32768,1,1,1)",
+		)
+		.run();
+	// A coding member so shtora/coding has a routable member.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','qwen3-coder-plus','Qwen3 Coder Plus',32768,1,1,1)",
+		)
+		.run();
+	// An auto member so shtora/auto has a routable member.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision,enabled) VALUES ('groq','qwen3-8-max','Qwen3 8 Max',32768,1,1,1)",
+		)
+		.run();
+
+	const body = await getCatalog();
+	const ids = body.models.map((m) => m.id);
+
+	expect(ids).not.toContain("shtora/free");
+	expect(ids).toContain("shtora/kilo-free");
+	// shtora/auto exists exactly once — as the virtual router, not as an
+	// ordinary model entry for the upstream "auto" rows.
+	expect(ids.filter((id) => id === "shtora/auto")).toHaveLength(1);
+
+	const coding = body.models.find((m) => m.id === "shtora/coding");
+	expect(coding).toBeDefined();
+	expect(coding?.members).toContain("qwen3-coder-plus");
+	expect(coding?.name).toBe("Shtora Coding");
+
+	const auto = body.models.find((m) => m.id === "shtora/auto");
+	expect(auto).toBeDefined();
+	expect(auto?.name).toBe("Shtora Auto");
+	expect(auto?.members).toContain("qwen3-8-max");
+	expect(auto?.members).not.toContain("auto");
 });

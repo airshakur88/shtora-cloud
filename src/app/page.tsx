@@ -49,7 +49,7 @@ const capabilities = [
 	{
 		icon: Route,
 		title: "O provedor falhou. Sua integração não precisa mudar.",
-		body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo — o erro nunca chega ao seu cliente. Seleção por prioridade, velocidade ou confiabilidade, com cooldown para chaves com falhas. Use auto para permitir alternativas de modelo.",
+		body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo — o erro nunca chega ao seu cliente. Seleção por prioridade, velocidade ou confiabilidade, com cooldown para chaves com falhas. Use shtora/auto, o roteador curado, para permitir alternativas de modelo — ou shtora/coding para programar.",
 		tag: "ROTEAMENTO",
 	},
 	{
@@ -115,7 +115,7 @@ const questions = [
 		id: "models",
 		question: "O fallback pode trocar o modelo que eu escolhi?",
 		answer:
-			'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem — se um falhar, vai para o próximo. Use model: "auto" para permitir alternativas entre modelos compatíveis. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
+			'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem — se um falhar, vai para o próximo. Use model: "shtora/auto", o roteador curado, para permitir alternativas entre modelos compatíveis — ou "shtora/coding" para programar. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
 	},
 	{
 		id: "sdk",
@@ -435,7 +435,9 @@ export default async function HomePage() {
 							Use seu token Shtora no lugar da chave do provedor. Peça um modelo
 							canônico com <code>shtora/&lt;modelo&gt;</code> — o gateway roteia
 							entre todos os provedores que expõem aquele modelo — ou use{" "}
-							<code>auto</code> para permitir alternativas compatíveis.
+							<code>shtora/auto</code>, o roteador curado — ou{" "}
+							<code>shtora/coding</code> para programar — para permitir
+							alternativas compatíveis.
 						</p>
 						<ol className="mt-[30px] grid list-none gap-5 p-0">
 							<li className="flex gap-4">

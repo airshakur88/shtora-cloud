@@ -1,7 +1,15 @@
 import { nativeModels } from "@/lib/anthropic-models";
 import { getDb, getEncryptionSecret } from "@/lib/env";
 import { getApiKeyOwnerByToken } from "@/lib/key-store";
-import { canonicalModelId, ROUTER_MODEL_PREFIX } from "@/lib/model-canonical";
+import {
+	canonicalModelId,
+	EXCLUDED_CANONICAL_MODELS,
+	ROUTER_MODEL_PREFIX,
+} from "@/lib/model-canonical";
+import {
+	listingVirtualRouters,
+	virtualRouterProviders,
+} from "@/lib/virtual-routers";
 
 function unauthorized(): Response {
 	return Response.json(
@@ -50,6 +58,9 @@ export async function GET(request: Request): Promise<Response> {
 		for (const row of result.results) {
 			if (!enabledPlatforms.has(row.platform)) continue;
 			const canonical = canonicalModelId(row.model_id);
+			// Excluded canonicals (e.g. "auto") are virtual routers, not
+			// ordinary models — they are appended below, once each.
+			if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
 			const existing = byCanonical.get(canonical);
 			if (existing) {
 				if (!existing.providers.includes(row.platform))
@@ -62,16 +73,56 @@ export async function GET(request: Request): Promise<Response> {
 				});
 			}
 		}
-		return Response.json({
-			object: "list",
-			data: [...byCanonical.values()].map((entry) => ({
-				id: entry.id,
+		// Virtual-router entries carry description/members; ordinary entries do not.
+		interface ModelEntry {
+			id: string;
+			object: string;
+			created: number;
+			owned_by: string;
+			name: string;
+			description?: string;
+			providers: string[];
+			members?: string[];
+		}
+		const models: ModelEntry[] = [...byCanonical.values()].map((entry) => ({
+			id: entry.id,
+			object: "model",
+			created: 0,
+			owned_by: "shtora",
+			name: entry.name,
+			providers: entry.providers,
+		}));
+		// Curated virtual routers, with the providers of their members that
+		// are present in this listing. A router with no member here is skipped.
+		const providersByCanonical = new Map<string, readonly string[]>(
+			[...byCanonical.entries()].map(([canonical, entry]) => [
+				canonical,
+				entry.providers,
+			]),
+		);
+		for (const router of listingVirtualRouters()) {
+			const providers = virtualRouterProviders(
+				router.members,
+				providersByCanonical,
+			);
+			const members = router.members.filter((member) =>
+				providersByCanonical.has(member),
+			);
+			if (members.length === 0) continue;
+			models.push({
+				id: router.id,
 				object: "model",
 				created: 0,
 				owned_by: "shtora",
-				name: entry.name,
-				providers: entry.providers,
-			})),
+				name: router.name,
+				description: router.description,
+				providers,
+				members,
+			});
+		}
+		return Response.json({
+			object: "list",
+			data: models,
 		});
 	} catch {
 		return Response.json(

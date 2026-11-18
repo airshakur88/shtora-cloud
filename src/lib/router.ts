@@ -47,6 +47,7 @@ import type {
 	D1Database,
 	ModelsCatalog,
 } from "./types";
+import { getVirtualRouter, isVirtualRouter } from "./virtual-routers";
 
 // ---------------------------------------------------------------------------
 // Shape
@@ -152,6 +153,16 @@ function isMatch(model: RouterModel, requested: string): boolean {
 		return true;
 	if (isRouterModel(requested)) {
 		const bare = stripRouterPrefix(requested);
+		// Virtual routers match by curated membership only: a DB row matches
+		// shtora/<router> iff its canonical id is in the router's member
+		// list. In particular the upstream "auto" rows (canonical "auto")
+		// are NOT members of shtora/auto, so they never match it.
+		if (isVirtualRouter(bare)) {
+			const router = getVirtualRouter(bare);
+			return (
+				router?.members.includes(canonicalModelId(model.model_id)) ?? false
+			);
+		}
 		return canonicalModelId(model.model_id) === canonicalModelId(bare);
 	}
 	return false;

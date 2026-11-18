@@ -17,7 +17,17 @@ export function canonicalModelId(modelId: string): string {
 		// Only treat it as a prefix when something meaningful remains.
 		if (rest.length > 0 && !rest.includes("/")) value = rest;
 	}
+	// Strip a leading "free" segment ("free/glm-5.3-flash", "free-glm-5.3-flash").
+	// A trailing "-free" is NOT stripped: "qwen3.8-27b-free" is a distinct
+	// variant of the model, not the free tier of "qwen3.8-27b".
+	while (value.startsWith("free/") || value.startsWith("free-")) {
+		value = value.slice(5);
+	}
 	value = value.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+	// The bare canonical "free" is the Kilo free router: it comes only from
+	// kilo-auto/free ("Kilo Auto Free") and openrouter/free ("Free Router
+	// (Kilo)"), both platform=kilo. It is published as shtora/kilo-free.
+	if (value === "free") return "kilo-free";
 	return value;
 }
 
@@ -33,3 +43,11 @@ export function isRouterModel(requested: string): boolean {
 export function stripRouterPrefix(requested: string): string {
 	return requested.slice(ROUTER_MODEL_PREFIX.length);
 }
+
+/**
+ * Canonical model ids that must never be listed as ordinary models.
+ * "auto" is a curated virtual router (see ./virtual-routers), not an
+ * upstream model — the upstream "auto" rows are router rows of other
+ * providers, not members of it.
+ */
+export const EXCLUDED_CANONICAL_MODELS: ReadonlySet<string> = new Set(["auto"]);

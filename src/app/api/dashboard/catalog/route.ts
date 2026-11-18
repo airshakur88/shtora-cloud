@@ -1,11 +1,18 @@
 import { getDb } from "@/lib/env";
-import { canonicalModelId } from "@/lib/model-canonical";
+import {
+	canonicalModelId,
+	EXCLUDED_CANONICAL_MODELS,
+} from "@/lib/model-canonical";
 import catalog from "@/lib/models-catalog.json";
 import {
 	ForbiddenError,
 	requireUser,
 	UnauthenticatedError,
 } from "@/lib/session";
+import {
+	listingVirtualRouters,
+	virtualRouterProviders,
+} from "@/lib/virtual-routers";
 
 interface CountRow {
 	platform: string;
@@ -72,6 +79,9 @@ export async function GET(request: Request): Promise<Response> {
 		>();
 		for (const row of modelRows.results) {
 			const canonical = canonicalModelId(row.model_id);
+			// Excluded canonicals (e.g. "auto") are virtual routers, not
+			// ordinary models — they are appended below, once each.
+			if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
 			const entry = canonicalByModel.get(canonical);
 			if (!entry) {
 				canonicalByModel.set(canonical, { row, platforms: [row.platform] });
@@ -81,40 +91,104 @@ export async function GET(request: Request): Promise<Response> {
 				entry.platforms.push(row.platform);
 		}
 
-		const models = [...canonicalByModel.values()].map(({ row, platforms }) => {
-			const globalKeys = platforms.reduce(
+		// Virtual-router entries carry description/members; ordinary entries do not.
+		interface CatalogModelEntry {
+			id: string;
+			canonical: string;
+			name: string;
+			description?: string;
+			members?: string[];
+			platform: string;
+			enabled: boolean;
+			supportsTools: boolean;
+			supportsVision: boolean;
+			contextWindow: number;
+			globalKeyCount: number;
+			personalKeyCount: number;
+		}
+		const models: CatalogModelEntry[] = [...canonicalByModel.values()].map(
+			({ row, platforms }) => {
+				const globalKeys = platforms.reduce(
+					(sum, p) => sum + (globalByPlatform.get(p) ?? 0),
+					0,
+				);
+				const personalKeys = platforms.reduce(
+					(sum, p) => sum + (personalByPlatform.get(p) ?? 0),
+					0,
+				);
+				return {
+					id: `shtora/${canonicalModelId(row.model_id)}`,
+					canonical: canonicalModelId(row.model_id),
+					name: row.name,
+					platform: platforms.join(", "),
+					enabled: row.enabled === 1,
+					supportsTools:
+						platforms.some((p) => {
+							const r = modelRows.results.find(
+								(mr) => mr.platform === p && mr.model_id === row.model_id,
+							);
+							return r?.supports_tools === 1;
+						}) || row.supports_tools === 1,
+					supportsVision:
+						platforms.some((p) => {
+							const r = modelRows.results.find(
+								(mr) => mr.platform === p && mr.model_id === row.model_id,
+							);
+							return r?.supports_vision === 1;
+						}) || row.supports_vision === 1,
+					contextWindow: row.context_window,
+					globalKeyCount: globalKeys,
+					personalKeyCount: personalKeys,
+				};
+			},
+		);
+
+		// Curated virtual routers, aggregated over the member rows present
+		// in this listing. A router with no member here is skipped.
+		const providersByCanonical = new Map<string, readonly string[]>(
+			[...canonicalByModel.entries()].map(([canonical, entry]) => [
+				canonical,
+				entry.platforms,
+			]),
+		);
+		for (const router of listingVirtualRouters()) {
+			const members = router.members.filter((member) =>
+				providersByCanonical.has(member),
+			);
+			if (members.length === 0) continue;
+			const providers = virtualRouterProviders(
+				router.members,
+				providersByCanonical,
+			);
+			const memberRows = modelRows.results.filter((row) =>
+				members.includes(canonicalModelId(row.model_id)),
+			);
+			const globalKeys = providers.reduce(
 				(sum, p) => sum + (globalByPlatform.get(p) ?? 0),
 				0,
 			);
-			const personalKeys = platforms.reduce(
+			const personalKeys = providers.reduce(
 				(sum, p) => sum + (personalByPlatform.get(p) ?? 0),
 				0,
 			);
-			return {
-				id: `shtora/${canonicalModelId(row.model_id)}`,
-				canonical: canonicalModelId(row.model_id),
-				name: row.name,
-				platform: platforms.join(", "),
-				enabled: row.enabled === 1,
-				supportsTools:
-					platforms.some((p) => {
-						const r = modelRows.results.find(
-							(mr) => mr.platform === p && mr.model_id === row.model_id,
-						);
-						return r?.supports_tools === 1;
-					}) || row.supports_tools === 1,
-				supportsVision:
-					platforms.some((p) => {
-						const r = modelRows.results.find(
-							(mr) => mr.platform === p && mr.model_id === row.model_id,
-						);
-						return r?.supports_vision === 1;
-					}) || row.supports_vision === 1,
-				contextWindow: row.context_window,
+			models.push({
+				id: router.id,
+				canonical: router.id.slice("shtora/".length),
+				name: router.name,
+				description: router.description,
+				members,
+				platform: providers.join(", "),
+				enabled: true,
+				supportsTools: memberRows.some((row) => row.supports_tools === 1),
+				supportsVision: memberRows.some((row) => row.supports_vision === 1),
+				contextWindow: Math.max(
+					0,
+					...memberRows.map((row) => row.context_window),
+				),
 				globalKeyCount: globalKeys,
 				personalKeyCount: personalKeys,
-			};
-		});
+			});
+		}
 
 		return Response.json(
 			{ providers, models },

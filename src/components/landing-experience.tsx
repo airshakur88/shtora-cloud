@@ -99,7 +99,7 @@ const ROUTING_BRANCHES: RoutingBranch[] = [
 	{
 		id: "pools",
 		title: "Pools & roteadores",
-		rule: "Fallback automático em cadeia",
+		rule: "Fallback automático em cadeia · shtora/auto, coding, fast, smart e vision",
 		providers: [
 			{
 				name: "OpenRouter",
