@@ -50,6 +50,14 @@ jobs:
       - name: Lint (Biome)
         run: bun x biome check
 
+      # O `tsc` precisa dos tipos gerados do Cloudflare (`.cloudflare/types`,
+      # que declara o módulo `cloudflare:workers` e os globais como `R2Bucket`).
+      # O diretório é gerado localmente pelo build e está no .gitignore, então
+      # um checkout limpo não o tem — sem este passo o Typecheck falha com
+      # TS2307/TS2304. Não precisa de credenciais da Cloudflare.
+      - name: Gerar tipos do Cloudflare
+        run: bun run cf-typegen
+
       - name: Typecheck
         run: bun x tsc --noEmit
 
