@@ -25,7 +25,13 @@ const OTHER: AppUser = {
 };
 
 let db: MemoryD1;
-let currentUser: AppUser | null = USER;
+// Real session for USER, created per test: the routes authenticate
+// through the real session module, not a mock. A mock.module for
+// ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files), which
+// broke key-limits.test.ts on the deploy runner: its createSession
+// calls hit this file's throwing mock. Keep session unmocked.
+let sessionCookie = "";
 
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
@@ -34,24 +40,9 @@ mock.module("../src/lib/env", () => ({
 		throw new Error("IMAGES_BUCKET is unavailable in this test");
 	},
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const usageRoute = await import("../src/app/api/usage/route");
 const metricsRoute = await import("../src/app/api/dashboard/metrics/route");
@@ -110,9 +101,10 @@ function todayAt(hour: number): string {
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	await insertUser(USER.id, USER.username);
 	await insertUser(OTHER.id, OTHER.username);
+	const created = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
 test("GET /api/usage lists only the caller's requests with totals", async () => {
@@ -150,7 +142,9 @@ test("GET /api/usage lists only the caller's requests with totals", async () => 
 		createdAt: todayAt(10),
 	});
 	const response = await usageRoute.GET(
-		new Request("http://localhost/api/usage"),
+		new Request("http://localhost/api/usage", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -192,25 +186,30 @@ test("GET /api/usage honours limit and clamps it to 500", async () => {
 		});
 	}
 	const limited = await usageRoute.GET(
-		new Request("http://localhost/api/usage?limit=2"),
+		new Request("http://localhost/api/usage?limit=2", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	const limitedBody = (await limited.json()) as { requests: unknown[] };
 	expect(limitedBody.requests).toHaveLength(2);
 	const zero = await usageRoute.GET(
-		new Request("http://localhost/api/usage?limit=0"),
+		new Request("http://localhost/api/usage?limit=0", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	const zeroBody = (await zero.json()) as { requests: unknown[] };
 	// limit=0 is not a positive integer, so the default 100 applies.
 	expect(zeroBody.requests).toHaveLength(3);
 	const huge = await usageRoute.GET(
-		new Request("http://localhost/api/usage?limit=1000"),
+		new Request("http://localhost/api/usage?limit=1000", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	const hugeBody = (await huge.json()) as { requests: unknown[] };
 	expect(hugeBody.requests).toHaveLength(3);
 });
 
 test("GET /api/usage without a session answers 401", async () => {
-	currentUser = null;
 	const response = await usageRoute.GET(
 		new Request("http://localhost/api/usage"),
 	);
@@ -264,7 +263,9 @@ test("GET /api/dashboard/metrics aggregates the caller's requests by day, provid
 		createdAt: todayAt(10),
 	});
 	const response = await metricsRoute.GET(
-		new Request("http://localhost/api/dashboard/metrics"),
+		new Request("http://localhost/api/dashboard/metrics", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -320,7 +321,9 @@ test("GET /api/dashboard/metrics aggregates the caller's requests by day, provid
 
 test("metrics with no requests return empty aggregates, not errors", async () => {
 	const response = await metricsRoute.GET(
-		new Request("http://localhost/api/dashboard/metrics"),
+		new Request("http://localhost/api/dashboard/metrics", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -338,7 +341,6 @@ test("metrics with no requests return empty aggregates, not errors", async () =>
 });
 
 test("GET /api/dashboard/metrics without a session answers 401", async () => {
-	currentUser = null;
 	const response = await metricsRoute.GET(
 		new Request("http://localhost/api/dashboard/metrics"),
 	);

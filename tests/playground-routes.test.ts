@@ -29,7 +29,11 @@ const OTHER: AppUser = {
 };
 
 let db: MemoryD1;
-let currentUser: AppUser | null = USER;
+// Real session for USER, created per test: the routes authenticate
+// through the real session module, not a mock. A mock.module for
+// ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files).
+let sessionCookie = "";
 // The fake R2 bucket: only `get` is used by the chat route (image
 // resolution); uploads are covered by playground-images-security.test.ts.
 const bucketGet = mock(async (_key: string) => null);
@@ -43,24 +47,9 @@ mock.module("../src/lib/env", () => ({
 		delete: async () => {},
 	}),
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const sessionsRoute = await import("../src/app/api/playground/sessions/route");
 const sessionByIdRoute = await import(
@@ -70,10 +59,13 @@ const chatRoute = await import("../src/app/api/playground/chat/route");
 
 const originalFetch = globalThis.fetch;
 
-function postJson(url: string, body: unknown): Request {
+function postJson(url: string, body: unknown, withAuth = true): Request {
 	return new Request(url, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			"Content-Type": "application/json",
+			...(withAuth ? { Cookie: sessionCookie } : {}),
+		},
 		body: JSON.stringify(body),
 	});
 }
@@ -134,9 +126,10 @@ function mockUpstreamStream(content: string): void {
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	await insertUser(USER.id, USER.username);
 	await insertUser(OTHER.id, OTHER.username);
+	const created = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
 afterEach(() => {
@@ -162,7 +155,9 @@ test("GET /api/playground/sessions lists only the caller's sessions", async () =
 	await createPlaygroundSession(db, USER.id, "groq/model-a");
 	await createPlaygroundSession(db, OTHER.id, "groq/model-a");
 	const response = await sessionsRoute.GET(
-		new Request("http://localhost/api/playground/sessions"),
+		new Request("http://localhost/api/playground/sessions", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
@@ -173,7 +168,6 @@ test("GET /api/playground/sessions lists only the caller's sessions", async () =
 });
 
 test("GET /api/playground/sessions without a session answers 401", async () => {
-	currentUser = null;
 	const response = await sessionsRoute.GET(
 		new Request("http://localhost/api/playground/sessions"),
 	);
@@ -184,7 +178,9 @@ test("GET /api/playground/sessions/[id] returns the session and hides other user
 	const mine = await createPlaygroundSession(db, USER.id, "groq/model-a");
 	const theirs = await createPlaygroundSession(db, OTHER.id, "groq/model-a");
 	const found = await sessionByIdRoute.GET(
-		new Request(`http://localhost/api/playground/sessions/${mine.id}`),
+		new Request(`http://localhost/api/playground/sessions/${mine.id}`, {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: mine.id }) },
 	);
 	expect(found.status).toBe(200);
@@ -193,12 +189,16 @@ test("GET /api/playground/sessions/[id] returns the session and hides other user
 	};
 	expect(foundBody.session.id).toBe(mine.id);
 	const hidden = await sessionByIdRoute.GET(
-		new Request(`http://localhost/api/playground/sessions/${theirs.id}`),
+		new Request(`http://localhost/api/playground/sessions/${theirs.id}`, {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: theirs.id }) },
 	);
 	expect(hidden.status).toBe(404);
 	const missing = await sessionByIdRoute.GET(
-		new Request("http://localhost/api/playground/sessions/nope"),
+		new Request("http://localhost/api/playground/sessions/nope", {
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: "nope" }) },
 	);
 	expect(missing.status).toBe(404);
@@ -211,7 +211,10 @@ test("PATCH renames a session, validates the model and rejects empty names", asy
 	const renamed = await sessionByIdRoute.PATCH(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ name: "My chat", modelId: "groq/model-b" }),
 		}),
 		params,
@@ -227,7 +230,10 @@ test("PATCH renames a session, validates the model and rejects empty names", asy
 	const emptyName = await sessionByIdRoute.PATCH(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ name: "   " }),
 		}),
 		params,
@@ -237,7 +243,10 @@ test("PATCH renames a session, validates the model and rejects empty names", asy
 	const unknownModel = await sessionByIdRoute.PATCH(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ modelId: "nope/nope" }),
 		}),
 		params,
@@ -247,7 +256,10 @@ test("PATCH renames a session, validates the model and rejects empty names", asy
 	const router = await sessionByIdRoute.PATCH(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ modelId: "shtora/auto" }),
 		}),
 		params,
@@ -260,7 +272,10 @@ test("PATCH on another user's session answers 404", async () => {
 	const response = await sessionByIdRoute.PATCH(
 		new Request(`http://localhost/api/playground/sessions/${theirs.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ name: "hijack" }),
 		}),
 		{ params: Promise.resolve({ id: theirs.id }) },
@@ -274,6 +289,7 @@ test("DELETE removes a session and a second DELETE answers 404", async () => {
 	const deleted = await sessionByIdRoute.DELETE(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "DELETE",
+			headers: { Cookie: sessionCookie },
 		}),
 		params,
 	);
@@ -282,6 +298,7 @@ test("DELETE removes a session and a second DELETE answers 404", async () => {
 	const again = await sessionByIdRoute.DELETE(
 		new Request(`http://localhost/api/playground/sessions/${session.id}`, {
 			method: "DELETE",
+			headers: { Cookie: sessionCookie },
 		}),
 		params,
 	);
@@ -383,12 +400,15 @@ test("chat with a missing playground image answers 422", async () => {
 });
 
 test("chat without a session answers 401", async () => {
-	currentUser = null;
 	const response = await chatRoute.POST(
-		postJson("http://localhost/api/playground/chat", {
-			sessionId: "whatever",
-			messages: [{ role: "user", content: "hi" }],
-		}),
+		postJson(
+			"http://localhost/api/playground/chat",
+			{
+				sessionId: "whatever",
+				messages: [{ role: "user", content: "hi" }],
+			},
+			false,
+		),
 	);
 	expect(response.status).toBe(401);
 });

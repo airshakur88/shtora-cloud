@@ -70,7 +70,11 @@ const USER: AppUser = {
 };
 
 let db: MemoryD1;
-let currentUser: AppUser | null = USER;
+// Real session for USER, created per test: the route authenticates
+// through the real session module, not a mock. A mock.module for
+// ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files).
+let sessionCookie = "";
 
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
@@ -81,36 +85,22 @@ mock.module("../src/lib/env", () => ({
 		delete: async () => {},
 	}),
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const { POST } = await import("../src/app/api/playground/images/route");
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	await db
 		.prepare(
 			"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
 		)
 		.bind(USER.id, USER.name, USER.username, "hash")
 		.run();
+	const created = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
 test("image upload with a cross-site Origin answers 403 before auth runs", async () => {
@@ -119,7 +109,10 @@ test("image upload with a cross-site Origin answers 403 before auth runs", async
 	const response = await POST(
 		new Request("http://localhost/api/playground/images", {
 			method: "POST",
-			headers: { Origin: "https://evil.example" },
+			headers: {
+				Origin: "https://evil.example",
+				Cookie: sessionCookie,
+			},
 			body: form,
 		}),
 	);
@@ -131,9 +124,9 @@ test("image upload with a cross-site Origin answers 403 before auth runs", async
 });
 
 test("image upload with a same-origin Origin passes the origin check and reaches auth", async () => {
-	currentUser = null;
 	const form = new FormData();
 	form.append("image", new File(["x"], "a.png", { type: "image/png" }));
+	// No session cookie: the origin check passed and authentication ran.
 	const response = await POST(
 		new Request("http://localhost/api/playground/images", {
 			method: "POST",

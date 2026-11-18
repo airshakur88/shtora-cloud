@@ -5,7 +5,7 @@ import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
 // Access-key routes (M29): create/list/toggle/delete over the route
-// handlers, with the session mocked to one user.
+// handlers, with a real session for one user.
 const USER: AppUser = {
 	id: "user-1",
 	name: "Test User",
@@ -23,7 +23,13 @@ const OTHER: AppUser = {
 };
 
 let db: MemoryD1;
-let currentUser: AppUser | null = USER;
+// Real session for USER, created per test: the routes authenticate
+// through the real session module, not a mock. A mock.module for
+// ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files), which
+// broke key-limits.test.ts on the deploy runner: its createSession
+// calls hit this file's throwing mock. Keep session unmocked.
+let sessionCookie = "";
 
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
@@ -32,32 +38,20 @@ mock.module("../src/lib/env", () => ({
 		throw new Error("IMAGES_BUCKET is unavailable in this test");
 	},
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const listRoute = await import("../src/app/api/access-keys/route");
 const byIdRoute = await import("../src/app/api/access-keys/[id]/route");
 
-function postJson(url: string, body: unknown): Request {
+function postJson(url: string, body: unknown, withAuth = true): Request {
 	return new Request(url, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			"Content-Type": "application/json",
+			...(withAuth ? { Cookie: sessionCookie } : {}),
+		},
 		body: JSON.stringify(body),
 	});
 }
@@ -73,9 +67,10 @@ async function insertUser(id: string, username: string): Promise<void> {
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	await insertUser(USER.id, USER.username);
 	await insertUser(OTHER.id, OTHER.username);
+	const created = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
 test("POST creates an access key and returns it once, GET lists only the caller's keys", async () => {
@@ -95,7 +90,9 @@ test("POST creates an access key and returns it once, GET lists only the caller'
 
 	await createAccessKey(db, OTHER.id, { name: "theirs" });
 	const listed = await listRoute.GET(
-		new Request("http://localhost/api/access-keys"),
+		new Request("http://localhost/api/access-keys", {
+			headers: { Cookie: sessionCookie },
+		}),
 	);
 	expect(listed.status).toBe(200);
 	const listedBody = (await listed.json()) as {
@@ -130,7 +127,10 @@ test("POST validates name and expiry", async () => {
 	const badJson = await listRoute.POST(
 		new Request("http://localhost/api/access-keys", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: "{broken",
 		}),
 	);
@@ -157,13 +157,12 @@ test("POST with an expiry stores it and the key stops validating after it", asyn
 });
 
 test("access-key routes without a session answer 401", async () => {
-	currentUser = null;
 	const listed = await listRoute.GET(
 		new Request("http://localhost/api/access-keys"),
 	);
 	expect(listed.status).toBe(401);
 	const created = await listRoute.POST(
-		postJson("http://localhost/api/access-keys", { name: "cli" }),
+		postJson("http://localhost/api/access-keys", { name: "cli" }, false),
 	);
 	expect(created.status).toBe(401);
 });
@@ -174,7 +173,10 @@ test("PATCH toggles enabled and a disabled key stops validating", async () => {
 	const disabled = await byIdRoute.PATCH(
 		new Request(`http://localhost/api/access-keys/${created.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ enabled: false }),
 		}),
 		params,
@@ -185,7 +187,10 @@ test("PATCH toggles enabled and a disabled key stops validating", async () => {
 	const enabled = await byIdRoute.PATCH(
 		new Request(`http://localhost/api/access-keys/${created.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ enabled: true }),
 		}),
 		params,
@@ -199,7 +204,10 @@ test("PATCH without a boolean enabled answers 400 and bad ids answer 400", async
 	const missing = await byIdRoute.PATCH(
 		new Request(`http://localhost/api/access-keys/${created.id}`, {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({}),
 		}),
 		{ params: Promise.resolve({ id: String(created.id) }) },
@@ -208,14 +216,20 @@ test("PATCH without a boolean enabled answers 400 and bad ids answer 400", async
 	const badId = await byIdRoute.PATCH(
 		new Request("http://localhost/api/access-keys/abc", {
 			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: sessionCookie,
+			},
 			body: JSON.stringify({ enabled: false }),
 		}),
 		{ params: Promise.resolve({ id: "abc" }) },
 	);
 	expect(badId.status).toBe(400);
 	const badDelete = await byIdRoute.DELETE(
-		new Request("http://localhost/api/access-keys/0", { method: "DELETE" }),
+		new Request("http://localhost/api/access-keys/0", {
+			method: "DELETE",
+			headers: { Cookie: sessionCookie },
+		}),
 		{ params: Promise.resolve({ id: "0" }) },
 	);
 	expect(badDelete.status).toBe(400);
@@ -244,6 +258,7 @@ test("DELETE removes the caller's key but not another user's", async () => {
 	const deleted = await byIdRoute.DELETE(
 		new Request(`http://localhost/api/access-keys/${mine.id}`, {
 			method: "DELETE",
+			headers: { Cookie: sessionCookie },
 		}),
 		{ params: Promise.resolve({ id: String(mine.id) }) },
 	);
@@ -253,6 +268,7 @@ test("DELETE removes the caller's key but not another user's", async () => {
 	const kept = await byIdRoute.DELETE(
 		new Request(`http://localhost/api/access-keys/${theirs.id}`, {
 			method: "DELETE",
+			headers: { Cookie: sessionCookie },
 		}),
 		{ params: Promise.resolve({ id: String(theirs.id) }) },
 	);

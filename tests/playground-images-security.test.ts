@@ -24,7 +24,14 @@ const OTHER: AppUser = {
 };
 
 let db: MemoryD1;
-let currentUser: AppUser | null = USER;
+// Real sessions for USER and OTHER, created per test: the routes
+// authenticate through the real session module, not a mock. A mock.module
+// for ../src/lib/session here would leak into every other test file in the
+// same `bun test` run (Bun shares mocked modules across files), which
+// broke other test files on the deploy runner: their createSession calls
+// hit this file's throwing mock. Keep session unmocked.
+let sessionCookie = "";
+let otherSessionCookie = "";
 
 // In-memory R2 stand-in.
 interface StoredObject {
@@ -71,24 +78,10 @@ mock.module("../src/lib/env", () => ({
 	getEncryptionSecret: () => "images-test-secret-0123456789-abcdefghij",
 	getImagesBucket: () => bucket,
 }));
-mock.module("../src/lib/session", () => ({
-	requireUser: async () => {
-		if (!currentUser) {
-			const error = new Error("Not authenticated");
-			error.name = "UnauthenticatedError";
-			throw error;
-		}
-		return currentUser;
-	},
-	clearedSessionCookie: () => "",
-	sessionCookie: () => "",
-	createSession: async () => {
-		throw new Error("unexpected session creation in this test");
-	},
-	deleteSession: async () => {},
-	deleteAllSessionsForUser: async () => {},
-	getSessionUser: async () => currentUser,
-}));
+
+const { SESSION_COOKIE_NAME, createSession } = await import(
+	"../src/lib/session"
+);
 
 const { POST, detectImageMime } = await import(
 	"../src/app/api/playground/images/route"
@@ -110,12 +103,22 @@ const GIF = new Uint8Array([
 ]);
 const TEXT = new TextEncoder().encode("hello world, not an image");
 
-function uploadRequest(files: File[]): Request {
+function uploadRequest(files: File[], cookie: string = sessionCookie): Request {
 	const form = new FormData();
 	for (const file of files) form.append("image", file);
 	return new Request("http://localhost/api/playground/images", {
 		method: "POST",
+		headers: { Cookie: cookie },
 		body: form,
+	});
+}
+
+function imageRequest(
+	key: string,
+	cookie: string | null = sessionCookie,
+): Request {
+	return new Request(`http://localhost/api/playground/images/${key}`, {
+		headers: cookie ? { Cookie: cookie } : {},
 	});
 }
 
@@ -133,7 +136,6 @@ async function ownershipRows(userId: string): Promise<number> {
 
 beforeEach(async () => {
 	db = await createParityDatabase();
-	currentUser = USER;
 	bucketStore.clear();
 	await db
 		.prepare(
@@ -147,6 +149,10 @@ beforeEach(async () => {
 		)
 		.bind(OTHER.id, OTHER.name, OTHER.username, "hash")
 		.run();
+	const userSession = await createSession(USER.id);
+	sessionCookie = `${SESSION_COOKIE_NAME}=${userSession.token}`;
+	const otherSession = await createSession(OTHER.id);
+	otherSessionCookie = `${SESSION_COOKIE_NAME}=${otherSession.token}`;
 });
 
 test("detectImageMime sniffs PNG, JPEG, WebP and GIF from magic bytes", () => {
@@ -191,10 +197,9 @@ test("POST uploads a valid PNG, records ownership and serves it back to the owne
 	expect(bucketStore.has(key)).toBe(true);
 	expect(await ownershipRows(USER.id)).toBe(1);
 
-	const served = await GET(
-		new Request(`http://localhost/api/playground/images/${key}`),
-		{ params: Promise.resolve({ key }) },
-	);
+	const served = await GET(imageRequest(key), {
+		params: Promise.resolve({ key }),
+	});
 	expect(served.status).toBe(200);
 	expect(served.headers.get("Content-Type")).toBe("image/png");
 	expect(served.headers.get("Cache-Control")).toBe("private, max-age=3600");
@@ -263,18 +268,13 @@ test("GET answers 404 for another user's image, an unknown key and a malformed k
 			.split("/")
 			.pop() ?? "";
 
-	currentUser = OTHER;
-	const theirs = await GET(
-		new Request(`http://localhost/api/playground/images/${key}`),
-		{ params: Promise.resolve({ key }) },
-	);
+	const theirs = await GET(imageRequest(key, otherSessionCookie), {
+		params: Promise.resolve({ key }),
+	});
 	expect(theirs.status).toBe(404);
 
-	currentUser = USER;
 	const unknown = await GET(
-		new Request(
-			"http://localhost/api/playground/images/22222222-2222-4222-8222-222222222222.png",
-		),
+		imageRequest("22222222-2222-4222-8222-222222222222.png"),
 		{
 			params: Promise.resolve({
 				key: "22222222-2222-4222-8222-222222222222.png",
@@ -282,29 +282,24 @@ test("GET answers 404 for another user's image, an unknown key and a malformed k
 		},
 	);
 	expect(unknown.status).toBe(404);
-	const malformed = await GET(
-		new Request("http://localhost/api/playground/images/not-a-key"),
-		{ params: Promise.resolve({ key: "not-a-key" }) },
-	);
+	const malformed = await GET(imageRequest("not-a-key"), {
+		params: Promise.resolve({ key: "not-a-key" }),
+	});
 	expect(malformed.status).toBe(400);
 });
 
 test("GET without a session answers 401 and an object without an ownership row answers 404", async () => {
 	const key = "33333333-3333-4333-8333-333333333333.png";
 	bucketStore.set(key, { bytes: PNG, contentType: "image/png" });
-	currentUser = null;
-	const unauthenticated = await GET(
-		new Request(`http://localhost/api/playground/images/${key}`),
-		{ params: Promise.resolve({ key }) },
-	);
+	const unauthenticated = await GET(imageRequest(key, null), {
+		params: Promise.resolve({ key }),
+	});
 	expect(unauthenticated.status).toBe(401);
 	// Object exists in the bucket but no playground_images row (e.g. an
 	// upload from before migration 0016): not served to anyone.
-	currentUser = USER;
-	const noRow = await GET(
-		new Request(`http://localhost/api/playground/images/${key}`),
-		{ params: Promise.resolve({ key }) },
-	);
+	const noRow = await GET(imageRequest(key), {
+		params: Promise.resolve({ key }),
+	});
 	expect(noRow.status).toBe(404);
 });
 
