@@ -23,8 +23,7 @@ import {
 	isRouterModel,
 	stripRouterPrefix,
 } from "./model-canonical";
-import catalogJson from "./models-catalog.json";
-import { getProviderConfig } from "./provider-catalog";
+import { listProviders } from "./provider-catalog";
 import { ProviderError, sendChat, sendNativeMessages } from "./providers";
 import type { FailureSource } from "./quarantine";
 import {
@@ -41,12 +40,7 @@ import {
 	parseCompletionTokenCounts,
 	promptInputCharacters,
 } from "./token-estimates";
-import type {
-	AppUser,
-	ChatCompletionRequest,
-	D1Database,
-	ModelsCatalog,
-} from "./types";
+import type { AppUser, ChatCompletionRequest, D1Database } from "./types";
 import { getVirtualRouter, isVirtualRouter } from "./virtual-routers";
 
 // ---------------------------------------------------------------------------
@@ -108,7 +102,7 @@ const STRATEGY_WEIGHTS: Record<
 		intelligence: 0.25,
 		budget: 0.25,
 	},
-	smartest: { reliability: 0.1, speed: 0.1, intelligence: 0.7, budget: 0.1 },
+	smartest: { reliability: 0.7, speed: 0.1, intelligence: 0.1, budget: 0.1 },
 	fastest: { reliability: 0.1, speed: 0.7, intelligence: 0.1, budget: 0.1 },
 	reliable: { reliability: 0.7, speed: 0.1, intelligence: 0.1, budget: 0.1 },
 };
@@ -135,11 +129,6 @@ const HEALTH_BY_KIND: Record<
 	timeout: "error",
 	network: "error",
 };
-
-/** Catalog platform ids: upstream base URL comes from the catalog Map. */
-const CATALOG_PLATFORMS: ReadonlySet<string> = new Set<string>(
-	(catalogJson as unknown as ModelsCatalog).providers.map((p) => p.id),
-);
 
 // ---------------------------------------------------------------------------
 // Chain
@@ -395,6 +384,12 @@ export async function routeChatCompletion(args: {
 		supports_tools: Number(row.supports_tools ?? 0),
 		supports_vision: Number(row.supports_vision ?? 0),
 	}));
+	// Provider runtime config (base URL, protocol, ...) comes from the D1
+	// `providers` table; loaded once per request and reused by the chain
+	// filter and the attempt loop below.
+	const providerConfigs = new Map(
+		(await listProviders(db)).map((provider) => [provider.id, provider]),
+	);
 	const native = args.native;
 	const needsTools =
 		(request.tools?.length ?? 0) > 0 ||
@@ -409,7 +404,7 @@ export async function routeChatCompletion(args: {
 	const compatibleModels = models.filter((model) => {
 		if (native) {
 			const direct =
-				getProviderConfig(model.platform)?.protocol === "anthropic_messages";
+				providerConfigs.get(model.platform)?.protocol === "anthropic_messages";
 			if (requested !== "auto" && !isMatch(model, requested)) return false;
 			if (
 				(native.operation === "count_tokens" || native.bound) &&
@@ -418,7 +413,7 @@ export async function routeChatCompletion(args: {
 				return false;
 			if (
 				!direct &&
-				!canTranslateNative(native, getProviderConfig(model.platform))
+				!canTranslateNative(native, providerConfigs.get(model.platform))
 			)
 				return false;
 			if (direct) return true;
@@ -553,7 +548,7 @@ export async function routeChatCompletion(args: {
 					platform: model.platform,
 					modelId: model.model_id,
 					apiKey: key.apiKey,
-					baseUrl: CATALOG_PLATFORMS.has(model.platform) ? null : key.baseUrl,
+					baseUrl: providerConfigs.has(model.platform) ? null : key.baseUrl,
 					messages: request.messages,
 					stream,
 					temperature: request.temperature,
@@ -565,10 +560,11 @@ export async function routeChatCompletion(args: {
 				};
 				const direct =
 					native &&
-					getProviderConfig(model.platform)?.protocol === "anthropic_messages";
+					providerConfigs.get(model.platform)?.protocol ===
+						"anthropic_messages";
 				response = direct
-					? await sendNativeMessages(input, native, signal)
-					: await sendChat(input, signal);
+					? await sendNativeMessages(input, native, signal, db)
+					: await sendChat(input, signal, db);
 				clearTimeout(timeout);
 				if (native && !stream) {
 					const data = await readInferenceJson(response);

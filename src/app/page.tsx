@@ -19,120 +19,160 @@ import {
 } from "@/components/landing-experience";
 import { LandingNav } from "@/components/landing-nav";
 import { FaqDepthGutter } from "@/components/ns-ui/faq-answer-depth-gutter";
-import catalog from "@/lib/models-catalog.json";
+import { getDb } from "@/lib/env";
 import { getCurrentSessionUser } from "@/lib/server-session";
 
-const keylessProviders = catalog.providers.filter(
-	(provider) => "keyless" in provider && provider.keyless,
-);
-const keylessCount = keylessProviders.length;
-// O catálogo espelha o FreeLLMAPI, que só lista modelos gratuitos: o JSON
-// não tem nenhum campo de preço e nenhum modelo pago. Todo modelo do
-// catálogo é gratuito, então a contagem de "gratuitos" é a contagem total
-// de modelos por provedor.
-const freeModelsByProvider = catalog.providers
-	.map((provider) => ({
-		name: provider.name,
-		count: provider.models.length,
-	}))
-	.filter((entry) => entry.count > 0)
-	.sort((a, b) => b.count - a.count);
-const freeModelCount = freeModelsByProvider.reduce(
-	(total, entry) => total + entry.count,
-	0,
-);
-const freeProviderCount = freeModelsByProvider.length;
+// The landing is rendered per request, not at build time: every number on
+// the page comes from D1, so a catalog change reaches the landing on the
+// next deploy without a rebuild of static content.
+export const dynamic = "force-dynamic";
 
-const capabilities = [
-	{
-		icon: Route,
-		title: "O provedor falhou. Sua integração não precisa mudar.",
-		body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo. Só quando todos falham o cliente recebe um erro 502. O roteador ordena a cadeia pelo desempenho dos últimos 7 dias: taxa de sucesso, latência e qualidade do modelo. Use shtora/auto, o roteador curado, para permitir alternativas de modelo, ou shtora/coding para programar.",
-		tag: "ROTEAMENTO",
-	},
-	{
-		icon: KeyRound,
-		title: "Suas chaves guardadas no gateway.",
-		body: "Credenciais dos provedores criptografadas em repouso. Sua aplicação recebe um token unificado; as chaves de origem continuam no gateway.",
-		tag: "BYOK",
-	},
-	{
-		icon: Users,
-		title: "Sua chave vira cota da comunidade.",
-		body: "Toda chave habilitada entra num pool compartilhado entre os usuários do gateway. Suas chaves são tentadas primeiro; se a cota delas acabar, a requisição usa as chaves da comunidade. Cada chave continua com seus próprios limites.",
-		tag: "POOL COMUNITÁRIO",
-	},
-	{
-		icon: SlidersHorizontal,
-		title: "Limites por chave, no painel.",
-		body: "Limites de requisições e tokens por minuto e por dia, configurados por chave. O painel mostra o uso de cada chave.",
-		tag: "CONTROLE",
-	},
-	{
-		icon: Terminal,
-		title: "Teste o modelo antes de escrever a integração.",
-		body: "Playground com streaming e histórico de sessões. Explore o catálogo e compare contexto, visão e ferramentas de cada modelo.",
-		tag: "PLAYGROUND",
-	},
-	{
-		icon: Unplug,
-		title: "Tudo gratuito. Sem versão paga.",
-		body: `O catálogo tem ${freeModelCount} modelos gratuitos em ${freeProviderCount} provedores, como ${freeModelsByProvider
-			.slice(0, 3)
-			.map((entry) => entry.name)
-			.join(
-				", ",
-			)}. ${keylessCount} deles nem pedem chave. Traga suas chaves ou use as da comunidade.`,
-		tag: "SEM CUSTO",
-	},
-	{
-		icon: LockKeyhole,
-		title: "Cada requisição registrada.",
-		body: "Requisições, tokens, falhas, latência e tempo até o primeiro token no painel, com as tentativas de fallback.",
-		tag: "OBSERVABILIDADE",
-	},
-];
+interface LandingCatalog {
+	keylessProviders: { name: string }[];
+	freeModelsByProvider: { name: string; count: number }[];
+	freeModelCount: number;
+	freeProviderCount: number;
+	totalProviderCount: number;
+}
 
-const questions = [
-	{
-		id: "keys",
-		question: "Preciso ter uma chave de cada provedor?",
-		answer: `Não. ${keylessProviders
-			.map((provider) => provider.name)
-			.join(
-				", ",
-			)} funcionam sem chave. O catálogo tem ${catalog.providers.length} provedores, ${freeProviderCount} deles com modelos. Dá para importar várias chaves de uma vez (export JSON) ou cadastrar uma a uma. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
-	},
-	{
-		id: "pool",
-		question: "Minha chave de provedor é usada por outros usuários?",
-		answer:
-			"Sim, se ela estiver habilitada. Todas as chaves habilitadas formam um pool comunitário que o roteador usa para todos os usuários. Suas chaves são tentadas primeiro; se a cota delas acabar, a requisição usa uma chave da comunidade. Cada chave continua aplicando os próprios limites (rpm/tpm/rpd/tpd), então compartilhar aumenta a capacidade total sem remover os limites individuais. Desabilite a chave para tirá-la do pool.",
-	},
-	{
-		id: "models",
-		question: "O fallback pode trocar o modelo que eu escolhi?",
-		answer:
-			'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem. Se um falhar, vai para o próximo. Use model: "shtora/auto", o roteador curado, para permitir alternativas entre modelos compatíveis, ou "shtora/coding" para programar. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
-	},
-	{
-		id: "sdk",
-		question: "Posso continuar com meu SDK OpenAI ou Anthropic?",
-		answer:
-			"Sim. Configure a URL base do Shtora e seu token unificado. A API OpenAI usa /v1/chat/completions; a API Anthropic usa /v1/messages. Recursos nativos exigem um provedor compatível; opções sem suporte retornam erro explícito.",
-	},
-	{
-		id: "cost",
-		question: "Usar o gateway custa alguma coisa?",
-		answer: `Não. O Shtora não cobra nada e todos os ${freeModelCount} modelos do catálogo são gratuitos. Cada provedor aplica os próprios limites da cota gratuita, por requisições e tokens por minuto e por dia. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
-	},
-	{
-		id: "privacy",
-		question: "Por onde passam meus prompts e minhas chaves?",
-		answer:
-			"As requisições passam pelo gateway em Cloudflare Workers e são enviadas ao provedor selecionado. As chaves ficam criptografadas em repouso. O processamento de prompts também está sujeito à política do provedor de destino.",
-	},
-];
+// One grouped query over the providers table (LEFT JOIN models): the
+// catalog is the providers table, so direct rows such as the Anthropic
+// models from migration 0005 (platform `anthropic`, not a catalog provider)
+// are excluded, and the counts stay 303 models / 31 providers with models.
+async function getLandingCatalog(): Promise<LandingCatalog> {
+	const result = await getDb()
+		.prepare(
+			`SELECT p.name AS name, p.keyless AS keyless, COUNT(m.id) AS model_count
+			 FROM providers p LEFT JOIN models m ON m.platform = p.id AND m.enabled = 1
+			 GROUP BY p.id, p.name, p.keyless ORDER BY model_count DESC`,
+		)
+		.all<{ name: string; keyless: number; model_count: number }>();
+	const rows = result.results;
+	const freeModelsByProvider = rows
+		.filter((row) => row.model_count > 0)
+		.map((row) => ({ name: row.name, count: row.model_count }));
+	return {
+		keylessProviders: rows
+			.filter((row) => row.keyless === 1)
+			.map((row) => ({ name: row.name })),
+		freeModelsByProvider,
+		freeModelCount: freeModelsByProvider.reduce(
+			(total, entry) => total + entry.count,
+			0,
+		),
+		freeProviderCount: freeModelsByProvider.length,
+		totalProviderCount: rows.length,
+	};
+}
+
+function landingCapabilities({
+	freeModelCount,
+	freeProviderCount,
+	freeModelsByProvider,
+	keylessProviders,
+}: LandingCatalog) {
+	const keylessCount = keylessProviders.length;
+	// O catálogo só lista modelos gratuitos: todo modelo do catálogo é
+	// gratuito, então a contagem de "gratuitos" é a contagem total de
+	// modelos por provedor.
+	return [
+		{
+			icon: Route,
+			title: "O provedor falhou. Sua integração não precisa mudar.",
+			body: "Modelos canônicos shtora/<modelo> roteiam entre todos os provedores que expõem aquele modelo. Se um falhar, a requisição vai para o próximo. Só quando todos falham o cliente recebe um erro 502. O roteador ordena a cadeia pelo desempenho dos últimos 7 dias: taxa de sucesso, latência e qualidade do modelo. Use shtora/auto, o roteador curado, para permitir alternativas de modelo, ou shtora/coding para programar.",
+			tag: "ROTEAMENTO",
+		},
+		{
+			icon: KeyRound,
+			title: "Suas chaves guardadas no gateway.",
+			body: "Credenciais dos provedores criptografadas em repouso. Sua aplicação recebe um token unificado; as chaves de origem continuam no gateway.",
+			tag: "BYOK",
+		},
+		{
+			icon: Users,
+			title: "Sua chave vira cota da comunidade.",
+			body: "Toda chave habilitada entra num pool compartilhado entre os usuários do gateway. Suas chaves são tentadas primeiro; se a cota delas acabar, a requisição usa as chaves da comunidade. Cada chave continua com seus próprios limites.",
+			tag: "POOL COMUNITÁRIO",
+		},
+		{
+			icon: SlidersHorizontal,
+			title: "Limites por chave, no painel.",
+			body: "Limites de requisições e tokens por minuto e por dia, configurados por chave. O painel mostra o uso de cada chave.",
+			tag: "CONTROLE",
+		},
+		{
+			icon: Terminal,
+			title: "Teste o modelo antes de escrever a integração.",
+			body: "Playground com streaming e histórico de sessões. Explore o catálogo e compare contexto, visão e ferramentas de cada modelo.",
+			tag: "PLAYGROUND",
+		},
+		{
+			icon: Unplug,
+			title: "Tudo gratuito. Sem versão paga.",
+			body: `O catálogo tem ${freeModelCount} modelos gratuitos em ${freeProviderCount} provedores, como ${freeModelsByProvider
+				.slice(0, 3)
+				.map((entry) => entry.name)
+				.join(
+					", ",
+				)}. ${keylessCount} deles nem pedem chave. Traga suas chaves ou use as da comunidade.`,
+			tag: "SEM CUSTO",
+		},
+		{
+			icon: LockKeyhole,
+			title: "Cada requisição registrada.",
+			body: "Requisições, tokens, falhas, latência e tempo até o primeiro token no painel, com as tentativas de fallback.",
+			tag: "OBSERVABILIDADE",
+		},
+	];
+}
+
+function landingQuestions({
+	freeModelCount,
+	freeProviderCount,
+	keylessProviders,
+	totalProviderCount,
+}: LandingCatalog) {
+	return [
+		{
+			id: "keys",
+			question: "Preciso ter uma chave de cada provedor?",
+			answer: `Não. ${keylessProviders
+				.map((provider) => provider.name)
+				.join(
+					", ",
+				)} funcionam sem chave. O catálogo tem ${totalProviderCount} provedores, ${freeProviderCount} deles com modelos. Dá para importar várias chaves de uma vez (export JSON) ou cadastrar uma a uma. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
+		},
+		{
+			id: "pool",
+			question: "Minha chave de provedor é usada por outros usuários?",
+			answer:
+				"Sim, se ela estiver habilitada. Todas as chaves habilitadas formam um pool comunitário que o roteador usa para todos os usuários. Suas chaves são tentadas primeiro; se a cota delas acabar, a requisição usa uma chave da comunidade. Cada chave continua aplicando os próprios limites (rpm/tpm/rpd/tpd), então compartilhar aumenta a capacidade total sem remover os limites individuais. Desabilite a chave para tirá-la do pool.",
+		},
+		{
+			id: "models",
+			question: "O fallback pode trocar o modelo que eu escolhi?",
+			answer:
+				'Um ID canônico como "shtora/gpt-oss-120b" mantém a requisição naquele modelo lógico e roteia entre todos os provedores que o expõem. Se um falhar, vai para o próximo. Use model: "shtora/auto", o roteador curado, para permitir alternativas entre modelos compatíveis, ou "shtora/coding" para programar. O endpoint GET /v1/models lista apenas os modelos dos provedores com chave habilitada. Requisições com ferramentas, visão ou opções nativas precisam de suporte equivalente no destino.',
+		},
+		{
+			id: "sdk",
+			question: "Posso continuar com meu SDK OpenAI ou Anthropic?",
+			answer:
+				"Sim. Configure a URL base do Shtora e seu token unificado. A API OpenAI usa /v1/chat/completions; a API Anthropic usa /v1/messages. Recursos nativos exigem um provedor compatível; opções sem suporte retornam erro explícito.",
+		},
+		{
+			id: "cost",
+			question: "Usar o gateway custa alguma coisa?",
+			answer: `Não. O Shtora não cobra nada e todos os ${freeModelCount} modelos do catálogo são gratuitos. Cada provedor aplica os próprios limites da cota gratuita, por requisições e tokens por minuto e por dia. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
+		},
+		{
+			id: "privacy",
+			question: "Por onde passam meus prompts e minhas chaves?",
+			answer:
+				"As requisições passam pelo gateway em Cloudflare Workers e são enviadas ao provedor selecionado. As chaves ficam criptografadas em repouso. O processamento de prompts também está sujeito à política do provedor de destino.",
+		},
+	];
+}
 
 const FOCUS_VISIBLE =
 	"focus-visible:outline-2 focus-visible:outline-[#e3ab88] focus-visible:outline-offset-[5px]";
@@ -147,7 +187,14 @@ const TEXT_LINK = `inline-flex items-center gap-[10px] text-sm hover:text-[#e3ab
 const BUTTON = `inline-flex min-h-12 items-center justify-between gap-[22px] rounded border border-[#e3ab88] bg-[#e3ab88] px-[22px] py-3 text-sm font-[650] text-[#17120f] transition-[background-color_150ms,border-color_150ms] hover:border-[#f5c5a6] hover:bg-[#f5c5a6] ${FOCUS_VISIBLE}`;
 
 export default async function HomePage() {
-	const user = await getCurrentSessionUser();
+	const [user, catalog] = await Promise.all([
+		getCurrentSessionUser(),
+		getLandingCatalog(),
+	]);
+	const { keylessProviders, freeModelCount, freeProviderCount } = catalog;
+	const keylessCount = keylessProviders.length;
+	const capabilities = landingCapabilities(catalog);
+	const questions = landingQuestions(catalog);
 	return (
 		<div
 			className="dark bg-[#0c0d0f] font-['Segoe_UI',Arial,sans-serif] text-base leading-[1.6] text-[#eeeae5] [color-scheme:dark] selection:bg-[#e3ab88] selection:text-[#0c0d0f] motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none [&_a]:no-underline [&_button]:cursor-pointer"

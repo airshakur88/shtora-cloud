@@ -1,4 +1,5 @@
-import { normalizeProviderKey, providerById } from "./provider-catalog";
+import { isKnownProvider, normalizeProviderKey } from "./provider-catalog";
+import type { D1Database } from "./types";
 
 /** Maximum number of keys to accept */
 const _MAX_KEY_COUNT = 500;
@@ -92,9 +93,10 @@ type ValidationResult =
 /**
  * Validate and extract a key candidate from a key entry object
  */
-function validateAndExtractKey(
+async function validateAndExtractKey(
 	entry: Record<string, unknown>,
-): ValidationResult {
+	db?: D1Database,
+): Promise<ValidationResult> {
 	const platform = getValueByAliases(entry, PROVIDER_FIELDS);
 	const rawKey = getValueByAliases(entry, KEY_FIELDS);
 
@@ -116,7 +118,7 @@ function validateAndExtractKey(
 	}
 
 	// Check if platform is supported
-	if (!providerById.has(normalizedPlatform)) {
+	if (!(await isKnownProvider(normalizedPlatform, db))) {
 		return { valid: false, reason: "unsupported_platform" };
 	}
 
@@ -126,7 +128,12 @@ function validateAndExtractKey(
 	}
 
 	// Check if normalizeProviderKey accepts it
-	const normalized = normalizeProviderKey(normalizedPlatform, rawKey.trim());
+	const normalized = await normalizeProviderKey(
+		normalizedPlatform,
+		rawKey.trim(),
+		undefined,
+		db,
+	);
 	if (normalized === null) {
 		return { valid: false, reason: "invalid_key" };
 	}
@@ -146,17 +153,19 @@ function validateAndExtractKey(
 /**
  * Validate a key candidate and return skip reason if invalid
  */
-function validateKeyCandidate(
+async function validateKeyCandidate(
 	platform: string,
 	rawKey: string,
-):
+	db?: D1Database,
+): Promise<
 	| { valid: true }
 	| {
 			valid: false;
 			reason: "unsupported_platform" | "empty_key" | "invalid_key";
-	  } {
+	  }
+> {
 	// Check if platform is supported
-	if (!providerById.has(platform)) {
+	if (!(await isKnownProvider(platform, db))) {
 		return { valid: false, reason: "unsupported_platform" };
 	}
 
@@ -166,7 +175,12 @@ function validateKeyCandidate(
 	}
 
 	// Check if normalizeProviderKey accepts it
-	const normalized = normalizeProviderKey(platform, rawKey);
+	const normalized = await normalizeProviderKey(
+		platform,
+		rawKey,
+		undefined,
+		db,
+	);
 	if (normalized === null) {
 		return { valid: false, reason: "invalid_key" };
 	}
@@ -185,7 +199,10 @@ function validateKeyCandidate(
  * 5. freellmapi keys-only: {keys: [...]} without version/source
  * 6. single-key object: {platform, key, label} (freellmapi-style)
  */
-export function parseKeyImport(value: unknown): ParseResult {
+export async function parseKeyImport(
+	value: unknown,
+	db?: D1Database,
+): Promise<ParseResult> {
 	// Reject non-objects
 	if (value === null || typeof value !== "object") {
 		return {
@@ -231,7 +248,10 @@ export function parseKeyImport(value: unknown): ParseResult {
 
 		// freellmapi/shtora-cloud format or keys array format
 		for (const entry of input.keys) {
-			const result = validateAndExtractKey(entry as Record<string, unknown>);
+			const result = await validateAndExtractKey(
+				entry as Record<string, unknown>,
+				db,
+			);
 			if (result.valid) {
 				keys.push(result.data);
 			} else {
@@ -258,9 +278,10 @@ export function parseKeyImport(value: unknown): ParseResult {
 		}
 
 		for (const candidate of result.keys) {
-			const validation = validateKeyCandidate(
+			const validation = await validateKeyCandidate(
 				candidate.platform,
 				candidate.key,
+				db,
 			);
 			if (validation.valid) {
 				keys.push(candidate);
@@ -272,7 +293,7 @@ export function parseKeyImport(value: unknown): ParseResult {
 	}
 
 	// Try as single-key object (freellmapi-style single key or shtora-cloud style)
-	const singleResult = validateAndExtractKey(input);
+	const singleResult = await validateAndExtractKey(input, db);
 	if (singleResult.valid) {
 		keys.push(singleResult.data);
 		return { success: true, data: { keys, skipped } };

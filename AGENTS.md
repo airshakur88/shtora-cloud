@@ -105,9 +105,10 @@ As métricas de uso/latência/economia ficam em `src/lib/usage-metrics.ts`.
   e usam o tema escuro da landing (`bg-background`/`bg-card`, acento copper
   `primary`) via classe `dark` no root — visualmente consistentes com a landing.
   Usam shadcn/ui `Input`/`Label`/`Button` (nunca inputs raw) e `next/link`.
-- **Landing page** (`src/app/page.tsx`): o conteúdo é gerado a partir de
-  `src/lib/models-catalog.json` em build time (contagens de provedores/modelos/
-  free), então se atualiza sozinho quando o catálogo muda. `RoutingMap` e
+- **Landing page** (`src/app/page.tsx`): o conteúdo (contagens de
+  provedores/modelos) é lido do D1 em tempo de requisição
+  (`export const dynamic = "force-dynamic"`), então se atualiza sozinho
+  quando o catálogo no banco muda. `RoutingMap` e
   `IntegrationCode` ficam em `src/components/landing-experience.tsx`.
 
 ---
@@ -388,17 +389,69 @@ bun test
 
 ## Model Catalog
 
-`src/lib/models-catalog.json` mirrors the upstream FreeLLMAPI catalog exactly:
+O catálogo vive **unicamente no D1** — não existe mais JSON de catálogo no
+repo. Duas tabelas:
 
-- **Source**: `https://freellmapi.co/models` — the page renders from `window.CATALOG_SNAPSHOT` embedded in `https://freellmapi.co/assets/data.js` (the same bundle the site itself displays). Alternative live feed: `https://api.freellmapi.co/v1/latest` (JSON; may be one snapshot newer than the page bundle).
-- **Update procedure**:
-  1. Fetch the current catalog: `curl -sL https://freellmapi.co/assets/data.js` (JS object literal — parse with `new Function("return (" + literal + ");")` via bun) or the JSON feed `curl -sL https://api.freellmapi.co/v1/latest`.
-  2. For each site platform, regenerate models: `modelId → id`, `displayName → name`, `contextWindow ?? 0`, `supportsTools → supportsFunctions` + `"tools"` capability, `supportsVision → "vision"` capability, `intelligenceRank ?? 0`. Capabilities vocabulary: `"chat"` for text modality, else the modality string (`"audio"`, `"image"`, `"video"`).
-  3. **Preserve this app's runtime config per provider** (the site snapshot does not publish it): `baseUrl`, `authType`, `protocol`, `keyless`, `keyHint`, `modelIdentity`, `extraHeaders`, `forceSingleToolCall`, `modelAliases`, `electronHubProxyError`, `ensureDone`.
-  4. Keep the extra providers not listed on the site (BYOK targets + key-import support): `cerebras`, `together`, `xai`, `bai`, `huggingface`, `ollama`, `orcarouter`. (`openai` and `anthropic` were removed as providers; the OpenAI-compatible and Anthropic endpoint protocols remain supported for routing.)
-  5. Update `sourceSnapshot` to the site snapshot's `version`/`generatedAt`.
-  6. Run `bun run lint`, then re-seed the DB so the `models` table matches: `bun run scripts/seed.mjs` (uses `context_window NOT NULL` — nulls must be coerced to 0).
-- **Rate-limit defaults**: `src/lib/models-catalog.json` includes per-provider `limits` derived from the site snapshot's per-model `limits.rpm/rpd/tpm/tpd` (aggregated as min across models when they vary; exact value used when identical). Auto-populated at `POST /api/keys` via `providerCatalog.find(id)?.limits ?? {rpmLimit:30,tpmLimit:100_000,rpdLimit:1_000,tpdLimit:1_000_000}` (fallback defined in `src/lib/ratelimit.ts`). Existing DB rows keep their manually-set values until seed overwrites them on re-seed.
+- **`providers`** (migração 0010): uma linha por provedor (`id`, `name`,
+  `baseUrl`, `authType`, `protocol`, `description`, `keyless`, `keyHint`,
+  `extraHeaders`, `forceSingleToolCall`, `modelIdentity`, `modelAliases`,
+  `electronHubProxyError`, `ensureDone`, `limits` como JSON). É a única fonte
+  da config de runtime que o roteador usa (`src/lib/provider-catalog.ts` lê
+  daqui via `getDb()`; nunca importe config de provedor de outro lugar).
+- **`models`**: uma linha por (provedor, modelo). O `name` guardado já é o
+  nome limpo — sem o sufixo " (Provedor)" (migrações 0011–0014 aplicam o
+  `displayModelName()` de `src/lib/model-canonical.ts`; 11 nomes mantêm o
+  parêntese de propósito: datas de versão, FP4, OVH safety). As rotas
+  mantêm o `displayModelName()` ao servir como defesa, mas o banco já guarda
+  o nome limpo.
+
+- **Fonte original**: `https://freellmapi.co/models` — a página renderiza de
+  `window.CATALOG_SNAPSHOT` embutido em `https://freellmapi.co/assets/data.js`
+  (o mesmo bundle que o site exibe). Feed alternativo:
+  `https://api.freellmapi.co/v1/latest` (JSON; pode estar um snapshot à frente
+  do bundle da página). Snapshot atual no banco: `2026.11.14.64a371`
+  (49 provedores, 303 modelos, 31 com modelos; + 4 modelos diretos Anthropic
+  da migração 0005, que não são provedores do catálogo).
+- **Atualizar o catálogo**: escreva uma NOVA migração (nunca edite as
+  aplicadas). Para cada provedor/mudança: `INSERT INTO providers ... ON
+  CONFLICT(id) DO UPDATE ...` e `INSERT INTO models ... ON CONFLICT(platform,
+  model_id) DO UPDATE ...` no mesmo formato das 0011–0014, sem tocar em
+  `enabled` nem em nenhuma outra tabela. Gere os modelos a partir do feed:
+  `modelId → id`, `displayName → name` (limpo com `displayModelName()`),
+  `contextWindow ?? 0`, `supportsTools → supportsFunctions` + `"tools"`,
+  `supportsVision → "vision"`, `intelligenceRank ?? 0`. Vocabulário de
+  capabilities: `"chat"` para texto, senão a string da modalidade (`"audio"`,
+  `"image"`, `"video"`).
+- **Limite de tamanho de migração**: o `cf d1 migrations apply` envia cada
+  arquivo como um único lote e o D1 rejeita arquivos acima de ~100 KB
+  (`SQLITE_TOOBIG`). Mantenha cada arquivo de migração com dados abaixo de
+  ~50 KB — as 0011–0014 têm ~44 KB cada (76 modelos por arquivo). A migração
+  0006, com 60 KB, é o maior arquivo anterior que já foi aplicado.
+- **Aplicar migrations**: local `bun x cf d1 migrations apply
+  5a731b04-a5ac-4897-91cd-bd212e80699b --dir migrations --local`; produção é
+  o mesmo comando sem `--local`. O workflow de deploy (`.github/workflows/
+  deploy.yml`) aplica as migrations antes do `bun run deploy` e falha o job
+  se a migração falhar — nunca deployar com o banco desatualizado.
+- **Seed**: `bun run scripts/seed.mjs` aplica `migrations/*.sql` em ordem
+  (local: arquivo SQLite em `LOCAL_D1_PATH`, padrão `./.dev-d1.sqlite`;
+  remoto: binding D1) e depois garante settings padrão, fallback chain e o
+  admin inicial. O seed não lê mais catálogo nenhum — as migrations são a
+  única fonte.
+- **Preservar a config de runtime por provedor** (o snapshot do site não
+  publica): `baseUrl`, `authType`, `protocol`, `keyless`, `keyHint`,
+  `modelIdentity`, `extraHeaders`, `forceSingleToolCall`, `modelAliases`,
+  `electronHubProxyError`, `ensureDone`.
+- **Provedores extras fora do site** (BYOK + importação de chave): `cerebras`,
+  `together`, `xai`, `bai`, `huggingface`, `ollama`, `orcarouter`. (`openai` e
+  `anthropic` foram removidos como provedores; os protocolos de endpoint
+  OpenAI-compatível e Anthropic permanecem suportados para roteamento.)
+- **Rate-limit defaults**: a coluna `limits` de `providers` guarda os
+  `limits.rpm/rpd/tpm/tpd` por provedor (mínimo entre os modelos quando
+  variam; valor exato quando idênticos). No `POST /api/keys`, o limite
+  informado pelo usuário vence; senão vale o da tabela. Sem nenhum dos dois,
+  `src/lib/ratelimit.ts` aplica os defaults (rpm 60, tpm 200.000, rpd 5.000,
+  tpd 5.000.000). Linhas existentes no banco mantêm os valores definidos
+  manualmente até uma migração sobrescrevê-los.
 - **Key format reference** (key prefixes seen upstream): `sk-` generic, `sk-air-` airforce, `sk-bl-` bazaarlink, `sk-or-v1-` openrouter, `sk-orca-` orcarouter, `sk-speka-live-` speka, `sk-xt-` xkiro, `mstrl_` mistral, `nvapi-` nvidia, `fc-` firecrawl, `tvly-dev-` tavily, `hf_` huggingface, `rqsty-sk-` requesty, `rc-` radeon, `ek...` aihorde/electronhub, `AQ.Ab8...` google cloud project key, `email:token` cloudflare, `id.secret` zhipu/ollama-cloud, plus merged from freellmapi-keys.json export (2026-11-17): `blaze-` blaze, `dp-` dreamprompting, `sk-free-` freeai, `inf_` inferbase, `llmtr-` llmtr, `lfu_` logfare, `sk-r9k-` router9, `sk-onomeo-` onomeo, `cmp-` lucidity, `kn-` kenari, `kios_live_` kiosapi, `ick_live_` iteracompute, `ft_live_` freetts. Extra chat providers merged from that export: airforce, blaze, dreamprompting, electronhub, freeai, inferbase, llmtr, logfare, moondream, radeon, router9, routeway, speka, xkiro, beatapi, iteracompute, kenari, kiosapi, lucidity, onomeo, siliconflow, exa, firecrawl, tavily, freetts.
 
 ---

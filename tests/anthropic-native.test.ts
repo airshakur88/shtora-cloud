@@ -47,6 +47,12 @@ const { GET: getModel } = await import("../src/app/v1/models/[...model]/route");
 
 beforeEach(async () => {
 	db = await createParityDatabase();
+	// The native endpoint lists every enabled model ordered by platform, so
+	// the tests pin a minimal catalog: keep only the Anthropic rows from
+	// migration 0005 (the endpoint's own models) and the groq fixture below.
+	// Without this, the 303 migrated catalog rows sort first (platform
+	// `agnes`, ...) and change pagination/routing assertions.
+	await db.prepare("DELETE FROM models WHERE platform != 'anthropic'").run();
 	await db
 		.prepare(
 			"INSERT INTO user (id,name,username,password_hash) VALUES ('native-user','Native','native','unused')",

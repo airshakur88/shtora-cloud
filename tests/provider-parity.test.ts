@@ -1,8 +1,11 @@
-import { afterEach, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { parseChatCompletionRequest } from "../src/lib/chat-request";
 import { createApiKey } from "../src/lib/key-store";
-import catalog from "../src/lib/models-catalog.json";
-import { normalizeProviderKey } from "../src/lib/provider-catalog";
+import {
+	getProviderConfig,
+	listProviders,
+	normalizeProviderKey,
+} from "../src/lib/provider-catalog";
 import { ProviderError, sendChat } from "../src/lib/providers";
 import { routeChatCompletion } from "../src/lib/router";
 import type {
@@ -10,6 +13,7 @@ import type {
 	ChatCompletionResponse,
 	ProviderCatalog,
 } from "../src/lib/types";
+import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "provider-test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
@@ -23,6 +27,16 @@ const USER: AppUser = {
 	updatedAt: "2026-11-12 00:00:00",
 };
 const originalFetch = globalThis.fetch;
+
+// Providers/models for the sendChat tests come from the migrated D1 catalog
+// (migrations 0001-0010 applied to an in-memory database), never from JSON.
+let db: MemoryD1;
+beforeAll(async () => {
+	db = await createParityDatabase();
+});
+afterAll(() => {
+	db.close();
+});
 
 afterEach(() => {
 	globalThis.fetch = originalFetch;
@@ -68,23 +82,38 @@ function chatResponse(model: string, content = "ok"): ChatCompletionResponse {
 	};
 }
 
-function provider(id: string): ProviderCatalog {
-	const result = catalog.providers.find((candidate) => candidate.id === id);
+async function providerConfig(id: string): Promise<ProviderCatalog> {
+	const result = await getProviderConfig(id, db);
 	if (!result) throw new Error(`Missing test provider ${id}`);
-	return result as unknown as ProviderCatalog;
+	return result;
 }
 
-test("chat catalog covers all feed chat providers and target-only direct providers", () => {
-	const ids = new Set(catalog.providers.map((item) => item.id));
+async function firstModelId(platform: string): Promise<string | null> {
+	const row = await db
+		.prepare(
+			"SELECT model_id FROM models WHERE platform = ? ORDER BY id LIMIT 1",
+		)
+		.bind(platform)
+		.first<{ model_id: string }>();
+	return row?.model_id ?? null;
+}
+
+test("chat catalog covers all feed chat providers and target-only direct providers", async () => {
+	const providers = await listProviders(db);
+	const ids = new Set(providers.map((item) => item.id));
 	expect(ids.size).toBe(49);
-	expect(catalog.sourceSnapshot?.version).toBe("2026.11.14.64a371");
-	const chatProviders = catalog.providers.filter(
-		(item) => item.models.length > 0,
-	);
-	expect(chatProviders).toHaveLength(31);
-	expect(
-		catalog.providers.reduce((sum, item) => sum + item.models.length, 0),
-	).toBe(303);
+	const modelCount = await db
+		.prepare(
+			"SELECT COUNT(*) AS count FROM models WHERE enabled = 1 AND platform IN (SELECT id FROM providers)",
+		)
+		.first<{ count: number }>();
+	expect(modelCount?.count).toBe(303);
+	const chatProviderCount = await db
+		.prepare(
+			"SELECT COUNT(*) AS count FROM (SELECT DISTINCT platform FROM models WHERE enabled = 1 AND platform IN (SELECT id FROM providers))",
+		)
+		.first<{ count: number }>();
+	expect(chatProviderCount?.count).toBe(31);
 	for (const id of [
 		"agnes",
 		"aihorde",
@@ -102,19 +131,25 @@ test("chat catalog covers all feed chat providers and target-only direct provide
 		expect(ids.has(id)).toBe(false);
 	}
 	for (const id of ["cerebras", "together", "xai"]) {
-		expect(provider(id).models).toHaveLength(0);
+		const count = await db
+			.prepare("SELECT COUNT(*) AS count FROM models WHERE platform = ?")
+			.bind(id)
+			.first<{ count: number }>();
+		expect(count?.count).toBe(0);
 	}
 	for (const id of ["speechify", "linkup", "pinecone"]) {
 		expect(ids.has(id)).toBe(false);
 	}
-	for (const item of catalog.providers) {
+	for (const item of providers) {
 		expect(item.protocol).toBeTruthy();
 		expect(item.baseUrl).toBeTruthy();
 	}
 	const models = new Set(
-		catalog.providers.flatMap((item) =>
-			item.models.map((model) => `${item.id}|${model.id}`),
-		),
+		(
+			await db
+				.prepare("SELECT platform, model_id FROM models")
+				.all<{ platform: string; model_id: string }>()
+		).results.map((row) => `${row.platform}|${row.model_id}`),
 	);
 	// Models newly added by the 2026.11.13 feed snapshot that were absent before.
 	for (const id of []) {
@@ -138,7 +173,7 @@ test("chat catalog covers all feed chat providers and target-only direct provide
 });
 test("OpenAI-compatible chat forwards bearer auth and request body", async () => {
 	const expected = chatResponse("llama-3.1-70b-instruct");
-	const groq = provider("groq");
+	const groq = await providerConfig("groq");
 	const captured: {
 		authorization: string | null;
 		body?: Record<string, unknown>;
@@ -152,14 +187,18 @@ test("OpenAI-compatible chat forwards bearer auth and request body", async () =>
 		return jsonResponse(expected);
 	});
 
-	const response = await sendChat({
-		platform: "groq",
-		modelId: "llama-3.1-70b-instruct",
-		apiKey: "provider-secret",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hello" }],
-		stream: false,
-	});
+	const response = await sendChat(
+		{
+			platform: "groq",
+			modelId: "llama-3.1-70b-instruct",
+			apiKey: "provider-secret",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hello" }],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 
 	expect(response.status).toBe(200);
 	expect(captured.authorization).toBe("Bearer provider-secret");
@@ -168,11 +207,12 @@ test("OpenAI-compatible chat forwards bearer auth and request body", async () =>
 	expect(calls).toHaveLength(1);
 });
 test("every OpenAI-compatible catalog provider uses its configured endpoint and auth", async () => {
-	const openAiProviders = catalog.providers.filter(
+	const openAiProviders = (await listProviders(db)).filter(
 		(item) => item.protocol === "openai_compatible",
-	) as unknown as ProviderCatalog[];
+	);
 	for (const config of openAiProviders) {
-		const modelId = config.models[0]?.id ?? `test-model/${config.id}`;
+		const modelId =
+			(await firstModelId(config.id)) ?? `test-model/${config.id}`;
 		const captured: {
 			url: string;
 			authorization: string | null;
@@ -190,15 +230,19 @@ test("every OpenAI-compatible catalog provider uses its configured endpoint and 
 			captured.body = JSON.parse(String(init.body)) as Record<string, unknown>;
 			return jsonResponse(chatResponse(String(captured.body.model)));
 		});
-		const response = await sendChat({
-			platform: config.id,
-			modelId,
-			apiKey: config.keyless ? "no-key" : "provider-test-key",
-			baseUrl: null,
-			messages: [{ role: "user", content: "test" }],
-			stop: "END",
-			stream: false,
-		});
+		const response = await sendChat(
+			{
+				platform: config.id,
+				modelId,
+				apiKey: config.keyless ? "no-key" : "provider-test-key",
+				baseUrl: null,
+				messages: [{ role: "user", content: "test" }],
+				stop: "END",
+				stream: false,
+			},
+			undefined,
+			db,
+		);
 		expect(response.status).toBe(200);
 		expect(captured.body?.stop).toEqual(
 			config.modelIdentity === "simplellm" ? ["END"] : "END",
@@ -230,25 +274,30 @@ test("OpenAI-compatible streaming response is passed through unchanged", async (
 				headers: { "Content-Type": "text/event-stream" },
 			}),
 	);
-	const response = await sendChat({
-		platform: "groq",
-		modelId: "llama-3.1-70b-instruct",
-		apiKey: "provider-test-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "test" }],
-		stream: true,
-	});
+	const response = await sendChat(
+		{
+			platform: "groq",
+			modelId: "llama-3.1-70b-instruct",
+			apiKey: "provider-test-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "test" }],
+			stream: true,
+		},
+		undefined,
+		db,
+	);
 	expect(await response.text()).toBe(upstream);
 });
 
 test("Router9 streams receive a single OpenAI completion sentinel", async () => {
-	const config = provider("router9");
-	const model = config.models[0];
+	const config = await providerConfig("router9");
+	const modelId = await firstModelId("router9");
+	if (!modelId) throw new Error("Missing test model for router9");
 	const upstream = `data: ${JSON.stringify({
 		id: "router9-stream",
 		object: "chat.completion.chunk",
 		created: 1,
-		model: model.id,
+		model: modelId,
 		choices: [{ index: 0, delta: { content: "hi" }, finish_reason: null }],
 	})}\n\n`;
 	mockFetch(
@@ -257,14 +306,18 @@ test("Router9 streams receive a single OpenAI completion sentinel", async () => 
 				headers: { "Content-Type": "text/event-stream" },
 			}),
 	);
-	const response = await sendChat({
-		platform: config.id,
-		modelId: model.id,
-		apiKey: "router9-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "test" }],
-		stream: true,
-	});
+	const response = await sendChat(
+		{
+			platform: config.id,
+			modelId,
+			apiKey: "router9-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "test" }],
+			stream: true,
+		},
+		undefined,
+		db,
+	);
 	const stream = await response.text();
 	expect(stream).toContain('"content":"hi"');
 	expect(stream.match(/data: \[DONE\]/g)).toHaveLength(1);
@@ -288,14 +341,19 @@ test("ElectronHub streaming proxy errors fail before returning a completion", as
 			}),
 	);
 	await expect(
-		sendChat({
-			platform: "electronhub",
-			modelId: provider("electronhub").models[0].id,
-			apiKey: "electronhub-key",
-			baseUrl: null,
-			messages: [{ role: "user", content: "test" }],
-			stream: true,
-		}),
+		sendChat(
+			{
+				platform: "electronhub",
+				modelId:
+					(await firstModelId("electronhub")) ?? "test-model/electronhub",
+				apiKey: "electronhub-key",
+				baseUrl: null,
+				messages: [{ role: "user", content: "test" }],
+				stream: true,
+			},
+			undefined,
+			db,
+		),
 	).rejects.toMatchObject({
 		status: 502,
 		message: "Upstream proxy failed",
@@ -346,10 +404,14 @@ test("chat parser accepts standard multimodal content and tool-call history", ()
 	).toBeNull();
 });
 
-test("keyless credentials are optional only for configured providers", () => {
-	expect(normalizeProviderKey("aihorde", "")).toBe("no-key");
-	expect(normalizeProviderKey("kilo", undefined)).toBe("no-key");
-	expect(normalizeProviderKey("groq", "")).toBeNull();
+test("keyless credentials are optional only for configured providers", async () => {
+	expect(await normalizeProviderKey("aihorde", "", undefined, db)).toBe(
+		"no-key",
+	);
+	expect(await normalizeProviderKey("kilo", undefined, undefined, db)).toBe(
+		"no-key",
+	);
+	expect(await normalizeProviderKey("groq", "", undefined, db)).toBeNull();
 });
 
 test("keyless OpenAI-compatible providers omit bearer auth for the sentinel", async () => {
@@ -361,14 +423,18 @@ test("keyless OpenAI-compatible providers omit bearer auth for the sentinel", as
 		return jsonResponse(chatResponse("kilo-auto/free"));
 	});
 
-	await sendChat({
-		platform: "kilo",
-		modelId: "kilo-auto/free",
-		apiKey: "no-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hello" }],
-		stream: false,
-	});
+	await sendChat(
+		{
+			platform: "kilo",
+			modelId: "kilo-auto/free",
+			apiKey: "no-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hello" }],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 
 	expect(captured.authorization).toBeNull();
 });
@@ -389,15 +455,19 @@ test("Cloudflare Workers AI splits account id from token and uses the account UR
 		return jsonResponse(chatResponse("@cf/openai/gpt-oss-20b"));
 	});
 
-	await sendChat({
-		platform: "cloudflare",
-		modelId: "@cf/openai/gpt-oss-20b",
-		apiKey: "0123456789abcdef0123456789abcdef:cf-api-token",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hello" }],
-		stop: "END",
-		stream: false,
-	});
+	await sendChat(
+		{
+			platform: "cloudflare",
+			modelId: "@cf/openai/gpt-oss-20b",
+			apiKey: "0123456789abcdef0123456789abcdef:cf-api-token",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hello" }],
+			stop: "END",
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 
 	expect(captured.authorization).toBe("Bearer cf-api-token");
 	expect(captured.requestModel).toBe("@cf/openai/gpt-oss-20b");
@@ -437,39 +507,43 @@ test("Google translates chat messages, image data and tools, then maps function 
 		});
 	});
 
-	const response = await sendChat({
-		platform: "google",
-		modelId: "gemini-2.5-flash",
-		apiKey: "google-key",
-		baseUrl: null,
-		messages: [
-			{ role: "system", content: "Be concise." },
-			{
-				role: "user",
-				content: [
-					{ type: "text", text: "What is this?" },
-					{
-						type: "image_url",
-						image_url: { url: "data:image/png;base64,AQID" },
-					},
-				],
-			},
-		],
-		tools: [
-			{
-				type: "function",
-				function: {
-					name: "weather",
-					parameters: {
-						type: "object",
-						properties: { city: { type: "string" } },
+	const response = await sendChat(
+		{
+			platform: "google",
+			modelId: "gemini-2.5-flash",
+			apiKey: "google-key",
+			baseUrl: null,
+			messages: [
+				{ role: "system", content: "Be concise." },
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "What is this?" },
+						{
+							type: "image_url",
+							image_url: { url: "data:image/png;base64,AQID" },
+						},
+					],
+				},
+			],
+			tools: [
+				{
+					type: "function",
+					function: {
+						name: "weather",
+						parameters: {
+							type: "object",
+							properties: { city: { type: "string" } },
+						},
 					},
 				},
-			},
-		],
-		stop: "END",
-		stream: false,
-	});
+			],
+			stop: "END",
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 	const result = (await response.json()) as ChatCompletionResponse;
 
 	expect(calls[0]).toBe(
@@ -520,19 +594,23 @@ test("Google rejects remote and file image URLs without fetching them", async ()
 		"file:///tmp/photo.png",
 	]) {
 		await expect(
-			sendChat({
-				platform: "google",
-				modelId: "gemini-2.5-flash",
-				apiKey: "google-key",
-				baseUrl: null,
-				messages: [
-					{
-						role: "user",
-						content: [{ type: "image_url", image_url: { url } }],
-					},
-				],
-				stream: false,
-			}),
+			sendChat(
+				{
+					platform: "google",
+					modelId: "gemini-2.5-flash",
+					apiKey: "google-key",
+					baseUrl: null,
+					messages: [
+						{
+							role: "user",
+							content: [{ type: "image_url", image_url: { url } }],
+						},
+					],
+					stream: false,
+				},
+				undefined,
+				db,
+			),
 		).rejects.toMatchObject({ status: 400, kind: "bad_request" });
 	}
 	expect(calls).toHaveLength(0);
@@ -551,34 +629,42 @@ test("Google round-trips assistant tool calls and tool results", async () => {
 			],
 		});
 	});
-	await sendChat({
-		platform: "google",
-		modelId: "gemini-3.5-flash",
-		apiKey: "google-key",
-		baseUrl: null,
-		messages: [
-			{ role: "user", content: "What is the weather?" },
-			{
-				role: "assistant",
-				content: null,
-				tool_calls: [
-					{
-						id: "call-weather",
-						type: "function",
-						function: { name: "get_weather", arguments: '{"city":"Lima"}' },
-					},
-				],
-			},
-			{ role: "tool", tool_call_id: "call-weather", content: "18C and sunny" },
-		],
-		tools: [
-			{
-				type: "function",
-				function: { name: "get_weather", parameters: { type: "object" } },
-			},
-		],
-		stream: false,
-	});
+	await sendChat(
+		{
+			platform: "google",
+			modelId: "gemini-3.5-flash",
+			apiKey: "google-key",
+			baseUrl: null,
+			messages: [
+				{ role: "user", content: "What is the weather?" },
+				{
+					role: "assistant",
+					content: null,
+					tool_calls: [
+						{
+							id: "call-weather",
+							type: "function",
+							function: { name: "get_weather", arguments: '{"city":"Lima"}' },
+						},
+					],
+				},
+				{
+					role: "tool",
+					tool_call_id: "call-weather",
+					content: "18C and sunny",
+				},
+			],
+			tools: [
+				{
+					type: "function",
+					function: { name: "get_weather", parameters: { type: "object" } },
+				},
+			],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 	const contents = body?.contents as Array<{
 		role: string;
 		parts: Array<Record<string, unknown>>;
@@ -628,20 +714,24 @@ test("Google streams text and function-call deltas as OpenAI SSE", async () => {
 			}),
 	);
 
-	const response = await sendChat({
-		platform: "google",
-		modelId: "gemini-2.5-flash",
-		apiKey: "google-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hi" }],
-		tools: [
-			{
-				type: "function",
-				function: { name: "weather", parameters: { type: "object" } },
-			},
-		],
-		stream: true,
-	});
+	const response = await sendChat(
+		{
+			platform: "google",
+			modelId: "gemini-2.5-flash",
+			apiKey: "google-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hi" }],
+			tools: [
+				{
+					type: "function",
+					function: { name: "weather", parameters: { type: "object" } },
+				},
+			],
+			stream: true,
+		},
+		undefined,
+		db,
+	);
 	const stream = await response.text();
 
 	expect(response.headers.get("content-type")).toContain("text/event-stream");
@@ -674,28 +764,32 @@ test("Anthropic Messages maps system, tools, output blocks and auth", async () =
 		});
 	});
 
-	const response = await sendChat({
-		platform: "anthropic",
-		modelId: "claude-3-7-sonnet-20250219",
-		apiKey: "anthropic-key",
-		baseUrl: null,
-		messages: [
-			{ role: "system", content: "Be concise." },
-			{ role: "user", content: "What is the weather?" },
-		],
-		tools: [
-			{
-				type: "function",
-				function: {
-					name: "weather",
-					description: "Weather",
-					parameters: { type: "object" },
+	const response = await sendChat(
+		{
+			platform: "anthropic",
+			modelId: "claude-3-7-sonnet-20250219",
+			apiKey: "anthropic-key",
+			baseUrl: null,
+			messages: [
+				{ role: "system", content: "Be concise." },
+				{ role: "user", content: "What is the weather?" },
+			],
+			tools: [
+				{
+					type: "function",
+					function: {
+						name: "weather",
+						description: "Weather",
+						parameters: { type: "object" },
+					},
 				},
-			},
-		],
-		stop: ["STOP"],
-		stream: false,
-	});
+			],
+			stop: ["STOP"],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 	const result = (await response.json()) as ChatCompletionResponse;
 
 	expect(calls).toHaveLength(1);
@@ -759,14 +853,18 @@ test("Anthropic streaming events become OpenAI SSE chunks", async () => {
 			new Response(sse, { headers: { "Content-Type": "text/event-stream" } }),
 	);
 
-	const response = await sendChat({
-		platform: "anthropic",
-		modelId: "claude-3-7-sonnet-20250219",
-		apiKey: "anthropic-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hi" }],
-		stream: true,
-	});
+	const response = await sendChat(
+		{
+			platform: "anthropic",
+			modelId: "claude-3-7-sonnet-20250219",
+			apiKey: "anthropic-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hi" }],
+			stream: true,
+		},
+		undefined,
+		db,
+	);
 	const stream = await response.text();
 
 	expect(stream).toContain('"content":"hi"');
@@ -798,15 +896,19 @@ test("AI Horde uses its anonymous sentinel and emits a buffered OpenAI stream", 
 		});
 	});
 
-	const response = await sendChat({
-		platform: "aihorde",
-		modelId: "aphrodite/TheDrummer/Cydonia-24B-v4.3",
-		apiKey: "no-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hi" }],
-		stream: true,
-		stop: "STOP",
-	});
+	const response = await sendChat(
+		{
+			platform: "aihorde",
+			modelId: "aphrodite/TheDrummer/Cydonia-24B-v4.3",
+			apiKey: "no-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hi" }],
+			stream: true,
+			stop: "STOP",
+		},
+		undefined,
+		db,
+	);
 	const stream = await response.text();
 
 	expect(captured.authorization).toBe("Bearer 0000000000");
@@ -829,28 +931,32 @@ test("Cohere uses its compatibility path and removes unsupported tool schema key
 		captured.body = JSON.parse(String(init.body)) as Record<string, unknown>;
 		return jsonResponse(chatResponse("command-a-reasoning-08-2025"));
 	});
-	await sendChat({
-		platform: "cohere",
-		modelId: "command-a-reasoning-08-2025",
-		apiKey: "cohere-key",
-		baseUrl: null,
-		messages: [{ role: "user", content: "hi" }],
-		tools: [
-			{
-				type: "function",
-				function: {
-					name: "f",
-					parameters: {
-						type: "object",
-						$schema: "ignored",
-						additionalProperties: false,
-						properties: { city: { type: "string" } },
+	await sendChat(
+		{
+			platform: "cohere",
+			modelId: "command-a-reasoning-08-2025",
+			apiKey: "cohere-key",
+			baseUrl: null,
+			messages: [{ role: "user", content: "hi" }],
+			tools: [
+				{
+					type: "function",
+					function: {
+						name: "f",
+						parameters: {
+							type: "object",
+							$schema: "ignored",
+							additionalProperties: false,
+							properties: { city: { type: "string" } },
+						},
 					},
 				},
-			},
-		],
-		stream: false,
-	});
+			],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 
 	expect(captured.url).toBe(
 		"https://api.cohere.ai/compatibility/v1/chat/completions",
@@ -881,53 +987,65 @@ test("Moondream rejects tool calls and remote image URLs instead of silently dro
 	});
 
 	await expect(
-		sendChat({
-			platform: "moondream",
-			modelId: "moondream3.1-9B-A2B",
-			apiKey: "moondream-key",
-			baseUrl: null,
-			messages: [{ role: "user", content: "hi" }],
-			tools: [
-				{
-					type: "function",
-					function: { name: "f", parameters: { type: "object" } },
-				},
-			],
-			stream: false,
-		}),
+		sendChat(
+			{
+				platform: "moondream",
+				modelId: "moondream3.1-9B-A2B",
+				apiKey: "moondream-key",
+				baseUrl: null,
+				messages: [{ role: "user", content: "hi" }],
+				tools: [
+					{
+						type: "function",
+						function: { name: "f", parameters: { type: "object" } },
+					},
+				],
+				stream: false,
+			},
+			undefined,
+			db,
+		),
 	).rejects.toBeInstanceOf(ProviderError);
 
 	await expect(
-		sendChat({
-			platform: "moondream",
-			modelId: "moondream3.1-9B-A2B",
-			apiKey: "moondream-key",
-			baseUrl: null,
-			messages: [
-				{
-					role: "user",
-					content: [
-						{
-							type: "image_url",
-							image_url: { url: "https://example.com/image.png" },
-						},
-					],
-				},
-			],
-			stream: false,
-		}),
+		sendChat(
+			{
+				platform: "moondream",
+				modelId: "moondream3.1-9B-A2B",
+				apiKey: "moondream-key",
+				baseUrl: null,
+				messages: [
+					{
+						role: "user",
+						content: [
+							{
+								type: "image_url",
+								image_url: { url: "https://example.com/image.png" },
+							},
+						],
+					},
+				],
+				stream: false,
+			},
+			undefined,
+			db,
+		),
 	).rejects.toBeInstanceOf(ProviderError);
 
 	await expect(
-		sendChat({
-			platform: "moondream",
-			modelId: "moondream3.1-9B-A2B",
-			apiKey: "moondream-key",
-			baseUrl: null,
-			messages: [{ role: "user", content: "hi" }],
-			stop: "STOP",
-			stream: false,
-		}),
+		sendChat(
+			{
+				platform: "moondream",
+				modelId: "moondream3.1-9B-A2B",
+				apiKey: "moondream-key",
+				baseUrl: null,
+				messages: [{ role: "user", content: "hi" }],
+				stop: "STOP",
+				stream: false,
+			},
+			undefined,
+			db,
+		),
 	).rejects.toMatchObject({ status: 400, kind: "bad_request" });
 	expect(calls).toBe(0);
 });
@@ -949,24 +1067,28 @@ test("Moondream forwards inline vision over its OpenAI-compatible transport", as
 			chatResponse("moondream3.1-9B-A2B", "looks like a cat"),
 		);
 	});
-	const response = await sendChat({
-		platform: "moondream",
-		modelId: "moondream3.1-9B-A2B",
-		apiKey: "moondream-key",
-		baseUrl: null,
-		messages: [
-			{
-				role: "user",
-				content: [
-					{
-						type: "image_url",
-						image_url: { url: "data:image/png;base64,AQID" },
-					},
-				],
-			},
-		],
-		stream: false,
-	});
+	const response = await sendChat(
+		{
+			platform: "moondream",
+			modelId: "moondream3.1-9B-A2B",
+			apiKey: "moondream-key",
+			baseUrl: null,
+			messages: [
+				{
+					role: "user",
+					content: [
+						{
+							type: "image_url",
+							image_url: { url: "data:image/png;base64,AQID" },
+						},
+					],
+				},
+			],
+			stream: false,
+		},
+		undefined,
+		db,
+	);
 	const result = (await response.json()) as ChatCompletionResponse;
 	expect(captured.url).toBe("https://api.moondream.ai/v1/chat/completions");
 	expect(captured.authorization).toBe("Bearer moondream-key");

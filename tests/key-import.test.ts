@@ -1,30 +1,44 @@
-import { expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { parseKeyImport } from "../src/lib/key-import";
 import { createApiKey, exportApiKeys } from "../src/lib/key-store";
+import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
 
-test("rejects null input", () => {
-	const result = parseKeyImport(null);
+// Key import validates platforms against the D1 `providers` table
+// (migrations 0001-0010 applied to an in-memory database), never from JSON.
+let db: MemoryD1;
+beforeAll(async () => {
+	db = await createParityDatabase();
+});
+afterAll(() => {
+	db.close();
+});
+
+test("rejects null input", async () => {
+	const result = await parseKeyImport(null, db);
 	expect(result.success).toBe(false);
 	if (!result.success) {
 		expect(result.error.code).toBe("invalid_json");
 	}
 });
 
-test("rejects array at root (not in keys array) - wrap in {keys: [...]}", () => {
-	const result = parseKeyImport([
-		{ platform: "openai", key: "sk-test" },
-		{ platform: "groq", key: "gsk-test" },
-	]);
+test("rejects array at root (not in keys array) - wrap in {keys: [...]}", async () => {
+	const result = await parseKeyImport(
+		[
+			{ platform: "openai", key: "sk-test" },
+			{ platform: "groq", key: "gsk-test" },
+		],
+		db,
+	);
 	expect(result.success).toBe(false);
 	if (!result.success) {
 		expect(result.error.code).toBe("invalid_json");
 	}
 });
 
-test("parses freellmapi format with version and source", () => {
+test("parses freellmapi format with version and source", async () => {
 	const input = {
 		version: 1,
 		exportedBy: "test-user",
@@ -35,7 +49,7 @@ test("parses freellmapi format with version and source", () => {
 			{ platform: "aihorde", key: "ek-test-key", label: "" },
 		],
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(2);
@@ -46,11 +60,11 @@ test("parses freellmapi format with version and source", () => {
 	}
 });
 
-test("parses freellmapi format without version/source wrapper", () => {
+test("parses freellmapi format without version/source wrapper", async () => {
 	const input = {
 		keys: [{ platform: "openai", key: "sk-test-openai", label: "gpt-4" }],
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(1);
@@ -58,13 +72,13 @@ test("parses freellmapi format without version/source wrapper", () => {
 	}
 });
 
-test("parses single-key object (freellmapi-style)", () => {
+test("parses single-key object (freellmapi-style)", async () => {
 	const input = {
 		platform: "groq",
 		key: "gsk-test-groq-key",
 		label: "my groq key",
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(1);
@@ -74,13 +88,13 @@ test("parses single-key object (freellmapi-style)", () => {
 	}
 });
 
-test("parses flat map format {provider: key}", () => {
+test("parses flat map format {provider: key}", async () => {
 	const input = {
 		openai: "sk-test-openai-key",
 		groq: "gsk-test-groq-key",
 		anthropic: "sk-test-anthropic-key",
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(3);
@@ -89,7 +103,7 @@ test("parses flat map format {provider: key}", () => {
 	}
 });
 
-test("parses array format with platform/key aliases inside keys array", () => {
+test("parses array format with platform/key aliases inside keys array", async () => {
 	const input = {
 		keys: [
 			{ provider: "openai", apiKey: "sk-provider-openai" },
@@ -98,20 +112,20 @@ test("parses array format with platform/key aliases inside keys array", () => {
 			{ id: "google", token: "sk-google-key" },
 		],
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(4);
 	}
 });
 
-test("normalizes platform to lowercase and trims values", () => {
+test("normalizes platform to lowercase and trims values", async () => {
 	const input = {
 		platform: "  OpenAI  ",
 		key: "  sk-test  ",
 		label: "  test label  ",
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys[0].platform).toBe("openai");
@@ -120,14 +134,14 @@ test("normalizes platform to lowercase and trims values", () => {
 	}
 });
 
-test("skips unsupported platforms with reason", () => {
+test("skips unsupported platforms with reason", async () => {
 	const input = {
 		keys: [
 			{ platform: "openai", key: "sk-test" },
 			{ platform: "unknown-fake-platform", key: "sk-test" },
 		],
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		// unknown-fake-platform is not in the provider catalog
@@ -135,7 +149,7 @@ test("skips unsupported platforms with reason", () => {
 	}
 });
 
-test("skips empty keys", () => {
+test("skips empty keys", async () => {
 	const input = {
 		keys: [
 			{ platform: "openai", key: "sk-valid" },
@@ -143,7 +157,7 @@ test("skips empty keys", () => {
 			{ platform: "anthropic", key: "   " },
 		],
 	};
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(1);
@@ -151,14 +165,14 @@ test("skips empty keys", () => {
 	}
 });
 
-test("rejects non-object input", () => {
-	expect(parseKeyImport("not an object").success).toBe(false);
-	expect(parseKeyImport(123).success).toBe(false);
-	expect(parseKeyImport(undefined).success).toBe(false);
+test("rejects non-object input", async () => {
+	expect((await parseKeyImport("not an object", db)).success).toBe(false);
+	expect((await parseKeyImport(123, db)).success).toBe(false);
+	expect((await parseKeyImport(undefined, db)).success).toBe(false);
 });
 
-test("handles empty keys array", () => {
-	const result = parseKeyImport({ keys: [] });
+test("handles empty keys array", async () => {
+	const result = await parseKeyImport({ keys: [] }, db);
 	expect(result.success).toBe(true);
 	if (result.success) {
 		expect(result.data.keys).toHaveLength(0);
@@ -270,7 +284,7 @@ test("round-trip: create -> export -> import preserves key data", async () => {
 		};
 
 		// Parse and verify
-		const parseResult = parseKeyImport(exportData);
+		const parseResult = await parseKeyImport(exportData, db);
 		expect(parseResult.success).toBe(true);
 
 		if (parseResult.success) {
@@ -291,7 +305,7 @@ test("round-trip: create -> export -> import preserves key data", async () => {
 	}
 });
 
-test("parses user's freellmapi export format correctly", () => {
+test("parses user's freellmapi export format correctly", async () => {
 	// Simulating the user's actual export file structure
 	// Using fake keys like the user's real format
 	const input = {
@@ -309,7 +323,7 @@ test("parses user's freellmapi export format correctly", () => {
 		],
 	};
 
-	const result = parseKeyImport(input);
+	const result = await parseKeyImport(input, db);
 	expect(result.success).toBe(true);
 
 	if (result.success) {

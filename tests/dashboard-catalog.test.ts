@@ -57,6 +57,11 @@ interface CatalogResponse {
 beforeEach(async () => {
 	db = await createParityDatabase();
 
+	// Fixtures replace the migrated catalog: the catalog route tests pin
+	// exact models, so the 303 catalog rows must not compete with them.
+	// The providers table stays — the route reads provider names from it.
+	await db.prepare("DELETE FROM models").run();
+
 	await db
 		.prepare(
 			"INSERT INTO user (id,name,username,password_hash) VALUES ('test-user','Test User','testuser','unused')",

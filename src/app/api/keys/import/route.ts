@@ -39,7 +39,7 @@ export async function POST(request: Request): Promise<Response> {
 		}
 
 		// Parse and validate the import data
-		const parseResult = parseKeyImport(body);
+		const parseResult = await parseKeyImport(body, getDb());
 		if (!parseResult.success) {
 			return Response.json(
 				{

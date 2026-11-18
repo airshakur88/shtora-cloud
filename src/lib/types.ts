@@ -162,17 +162,6 @@ export type ProviderProtocol =
 	| "ai_horde"
 	| "moondream";
 
-export interface CatalogModel {
-	id: string;
-	name: string;
-	contextWindow: number | null;
-	maxOutputTokens?: number;
-	supportsStreaming: boolean;
-	supportsFunctions: boolean;
-	capabilities: string[];
-	intelligenceRank?: number;
-}
-
 export interface OptionalLimits {
 	rpmLimit?: number | null;
 	tpmLimit?: number | null;
@@ -196,12 +185,6 @@ export interface ProviderCatalog {
 	electronHubProxyError?: boolean;
 	ensureDone?: boolean;
 	limits?: OptionalLimits;
-	models: CatalogModel[];
-}
-
-export interface ModelsCatalog {
-	sourceSnapshot?: { version: string; generatedAt: string };
-	providers: ProviderCatalog[];
 }
 
 export type ChatRole = "system" | "user" | "assistant" | "tool";

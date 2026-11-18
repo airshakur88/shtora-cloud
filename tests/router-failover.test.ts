@@ -387,20 +387,31 @@ test("non-stream malformed usage falls back to emitted text and tool arguments",
 	}
 });
 test("custom provider URLs reject literal private addresses before fetch", async () => {
-	let calls = 0;
-	fetchImpl = async () => {
-		calls += 1;
-		return new Response("unexpected fetch", { status: 200 });
-	};
-	await expect(
-		sendChat({
-			platform: "custom",
-			modelId: "model-a",
-			apiKey: "secret",
-			baseUrl: "https://127.0.0.1/v1",
-			messages: [{ role: "user", content: "hi" }],
-			stream: false,
-		}),
-	).rejects.toThrow("Invalid upstream configuration");
-	expect(calls).toBe(0);
+	// sendChat resolves the provider config from D1: pass an explicit
+	// database (plain `bun test` has no Workers binding to fall back to).
+	const db = await createParityDatabase();
+	try {
+		let calls = 0;
+		fetchImpl = async () => {
+			calls += 1;
+			return new Response("unexpected fetch", { status: 200 });
+		};
+		await expect(
+			sendChat(
+				{
+					platform: "custom",
+					modelId: "model-a",
+					apiKey: "secret",
+					baseUrl: "https://127.0.0.1/v1",
+					messages: [{ role: "user", content: "hi" }],
+					stream: false,
+				},
+				undefined,
+				db,
+			),
+		).rejects.toThrow("Invalid upstream configuration");
+		expect(calls).toBe(0);
+	} finally {
+		db.close();
+	}
 });

@@ -1,7 +1,10 @@
 import { routeError } from "@/lib/api-error";
 import { getDb, getEncryptionSecret } from "@/lib/env";
 import { createApiKey, listApiKeys } from "@/lib/key-store";
-import { normalizeProviderKey, providerCatalog } from "@/lib/provider-catalog";
+import {
+	getProviderConfig,
+	normalizeProviderKey,
+} from "@/lib/provider-catalog";
 import { isPrivateEndpointHost } from "@/lib/providers/public-url";
 import { requireUser } from "@/lib/session";
 import type { KeyInput } from "@/lib/types";
@@ -52,16 +55,18 @@ export async function POST(request: Request): Promise<Response> {
 		const normalizedPlatform =
 			typeof platform === "string" ? platform.trim().toLowerCase() : "";
 		const isKeyless = fields.keyless === true;
-		const normalizedRawKey = normalizeProviderKey(
+		const normalizedRawKey = await normalizeProviderKey(
 			normalizedPlatform,
 			rawKey,
 			isKeyless,
+			getDb(),
 		);
 		const keyLabel = fields.keyLabel;
 		const baseUrl = fields.baseUrl;
 
-		const catalogProvider = providerCatalog.find(
-			(p) => p.id === normalizedPlatform,
+		const catalogProvider = await getProviderConfig(
+			normalizedPlatform,
+			getDb(),
 		);
 		const catalogLimits = catalogProvider?.limits;
 

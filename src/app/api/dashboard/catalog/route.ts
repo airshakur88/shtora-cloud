@@ -4,7 +4,6 @@ import {
 	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 } from "@/lib/model-canonical";
-import catalog from "@/lib/models-catalog.json";
 import {
 	ForbiddenError,
 	requireUser,
@@ -35,25 +34,29 @@ export async function GET(request: Request): Promise<Response> {
 		const user = await requireUser(request);
 		const db = getDb();
 
-		const [globalRows, personalRows, modelRows] = await Promise.all([
-			db
-				.prepare(
-					"SELECT platform, COUNT(*) AS count FROM api_keys GROUP BY platform",
-				)
-				.all<CountRow>(),
-			db
-				.prepare(
-					"SELECT platform, COUNT(*) AS count FROM api_keys WHERE user_id = ? AND enabled = 1 GROUP BY platform",
-				)
-				.bind(user.id)
-				.all<CountRow>(),
-			db
-				.prepare(
-					`SELECT platform, model_id, name, enabled, supports_tools, supports_vision, context_window
+		const [globalRows, personalRows, modelRows, providerRows] =
+			await Promise.all([
+				db
+					.prepare(
+						"SELECT platform, COUNT(*) AS count FROM api_keys GROUP BY platform",
+					)
+					.all<CountRow>(),
+				db
+					.prepare(
+						"SELECT platform, COUNT(*) AS count FROM api_keys WHERE user_id = ? AND enabled = 1 GROUP BY platform",
+					)
+					.bind(user.id)
+					.all<CountRow>(),
+				db
+					.prepare(
+						`SELECT platform, model_id, name, enabled, supports_tools, supports_vision, context_window
 					 FROM models WHERE enabled = 1 ORDER BY platform, name`,
-				)
-				.all<ModelRow>(),
-		]);
+					)
+					.all<ModelRow>(),
+				db
+					.prepare("SELECT id, name FROM providers ORDER BY id")
+					.all<{ id: string; name: string }>(),
+			]);
 
 		const globalByPlatform = new Map<string, number>(
 			globalRows.results.map((row) => [row.platform, row.count]),
@@ -62,10 +65,7 @@ export async function GET(request: Request): Promise<Response> {
 			personalRows.results.map((row) => [row.platform, row.count]),
 		);
 
-		const providersCatalog = catalog.providers as Array<{
-			id: string;
-			name: string;
-		}>;
+		const providersCatalog = providerRows.results;
 
 		// Upstream display names end with the provider in parentheses
 		// ("Cydonia 24B v4.3 (AI Horde)"); the provider already has its own

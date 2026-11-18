@@ -7,7 +7,6 @@ import {
 	EXCLUDED_CANONICAL_MODELS,
 	ROUTER_MODEL_PREFIX,
 } from "@/lib/model-canonical";
-import catalog from "@/lib/models-catalog.json";
 import {
 	listingVirtualRouters,
 	virtualRouterProviders,
@@ -59,10 +58,11 @@ export async function GET(request: Request): Promise<Response> {
 		// routable, so list models only for those platforms.
 		// Upstream display names end with the provider in parentheses; the
 		// provider already has its own field, so names are served without it.
+		const providerRows = await getDb()
+			.prepare("SELECT id, name FROM providers ORDER BY id")
+			.all<{ id: string; name: string }>();
 		const providerNameById = new Map(
-			(catalog.providers as Array<{ id: string; name: string }>).map(
-				(provider) => [provider.id, provider.name],
-			),
+			providerRows.results.map((provider) => [provider.id, provider.name]),
 		);
 		for (const row of result.results) {
 			if (!enabledPlatforms.has(row.platform)) continue;

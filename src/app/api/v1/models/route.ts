@@ -3,13 +3,13 @@ import {
 	authenticateAccessKey,
 	createAuthErrorResponse,
 } from "@/lib/access-auth";
+import { getDb } from "@/lib/env";
 import {
 	canonicalModelId,
 	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
 	ROUTER_MODEL_PREFIX,
 } from "@/lib/model-canonical";
-import catalog from "@/lib/models-catalog.json";
 import {
 	listingVirtualRouters,
 	virtualRouterProviders,
@@ -29,27 +29,48 @@ export async function GET(request: Request): Promise<Response> {
 	}
 
 	// One router-routed entry per logical model: shtora/<canonical>.
+	// Only models of catalog providers (the `providers` table) are listed —
+	// the same scope the JSON catalog had; direct rows such as the Anthropic
+	// models from migration 0005 are not catalog entries.
+	const db = getDb();
+	const [modelRows, providerRows] = await Promise.all([
+		db
+			.prepare(
+				`SELECT platform, model_id, name FROM models
+				 WHERE enabled = 1 AND platform IN (SELECT id FROM providers)
+				 ORDER BY platform, model_id`,
+			)
+			.all<{ platform: string; model_id: string; name: string }>(),
+		db
+			.prepare("SELECT id, name FROM providers ORDER BY id")
+			.all<{ id: string; name: string }>(),
+	]);
+	const providerNameById = new Map(
+		providerRows.results.map((provider) => [provider.id, provider.name]),
+	);
 	const byCanonical = new Map<
 		string,
 		{ id: string; name: string; providers: string[] }
 	>();
-	for (const provider of catalog.providers) {
-		for (const model of provider.models) {
-			const canonical = canonicalModelId(model.id);
-			// Excluded canonicals (e.g. "auto") are virtual routers, not
-			// ordinary models — they are appended below, once each.
-			if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
-			const existing = byCanonical.get(canonical);
-			if (existing) {
-				if (!existing.providers.includes(provider.id))
-					existing.providers.push(provider.id);
-			} else {
-				byCanonical.set(canonical, {
-					id: `${ROUTER_MODEL_PREFIX}${canonical}`,
-					name: displayModelName(model.name, provider.id, provider.name),
-					providers: [provider.id],
-				});
-			}
+	for (const row of modelRows.results) {
+		const canonical = canonicalModelId(row.model_id);
+		// Excluded canonicals (e.g. "auto") are virtual routers, not
+		// ordinary models — they are appended below, once each.
+		if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
+		const existing = byCanonical.get(canonical);
+		if (existing) {
+			if (!existing.providers.includes(row.platform))
+				existing.providers.push(row.platform);
+		} else {
+			byCanonical.set(canonical, {
+				id: `${ROUTER_MODEL_PREFIX}${canonical}`,
+				name: displayModelName(
+					row.name,
+					row.platform,
+					providerNameById.get(row.platform),
+				),
+				providers: [row.platform],
+			});
 		}
 	}
 	// Virtual-router entries carry description/members; ordinary entries do not.

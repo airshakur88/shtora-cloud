@@ -16,6 +16,9 @@ const USER: AppUser = {
 };
 
 async function seedDb(db: D1Database): Promise<void> {
+	// Fixtures replace the migrated catalog: the router tests pin exact
+	// models/ranks, so the 303 catalog rows must not compete with them.
+	await db.prepare("DELETE FROM models").run();
 	await db
 		.prepare(
 			"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",

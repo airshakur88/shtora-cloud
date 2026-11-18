@@ -29,7 +29,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { apiErrorMessage } from "@/lib/api-error";
-import catalog from "@/lib/models-catalog.json";
 import type { ApiKeyResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -94,17 +93,19 @@ const emptyForm: KeyForm = {
 	keyless: false,
 };
 
-const providersCatalog: { id: string; name: string }[] = catalog.providers.map(
-	(p) => ({ id: p.id, name: p.name }),
-);
-
 export default function DashboardProvidersPage() {
 	const [providers, setProviders] = useState<ProviderStats[] | null>(null);
+	// Provider id/name list comes from the same /api/dashboard/catalog
+	// response as the stats above — the D1 `providers` table, not a bundle.
+	const providersCatalog = useMemo(
+		() => (providers ?? []).map((p) => ({ id: p.id, name: p.name })),
+		[providers],
+	);
 	const [keys, setKeys] = useState<ApiKeyResponse[] | null>(null);
 	const [keysLoading, setKeysLoading] = useState(false);
 	const [form, setForm] = useState<KeyForm>({
 		...emptyForm,
-		platform: providersCatalog[0]?.id ?? "google",
+		platform: "google",
 	});
 	const [formOpen, setFormOpen] = useState(false);
 	const [busyId, setBusyId] = useState<number | null>(null);

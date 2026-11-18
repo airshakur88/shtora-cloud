@@ -1,6 +1,6 @@
 import type { NativeMessagesRequest } from "../anthropic-request";
 import { getProviderConfig } from "../provider-catalog";
-import type { ProviderCatalog } from "../types";
+import type { D1Database, ProviderCatalog } from "../types";
 import { sendCloudflare } from "./cloudflare";
 import { ProviderError, toProviderError } from "./errors";
 import { sendMoondream } from "./moondream";
@@ -33,8 +33,9 @@ export async function sendNativeMessages(
 	input: UpstreamChatInput,
 	native: NativeMessagesRequest,
 	signal?: AbortSignal,
+	db?: D1Database,
 ): Promise<Response> {
-	const provider = getProviderConfig(input.platform);
+	const provider = await getProviderConfig(input.platform, db);
 	const baseUrl = await resolveBaseUrl(input, provider);
 	const headers = new Headers({
 		Authorization: `Bearer ${input.apiKey}`,
@@ -90,11 +91,15 @@ export function nativeResponseHeaders(source: Headers): Headers {
 export async function sendChat(
 	input: UpstreamChatInput,
 	signal?: AbortSignal,
+	db?: D1Database,
 ): Promise<Response> {
-	const provider = getProviderConfig(input.platform);
-	const baseUrl = await resolveBaseUrl(input, provider);
+	const provider = await getProviderConfig(input.platform, db);
+	const _baseUrl = await resolveBaseUrl(input, provider);
 
 	if (provider?.protocol === "anthropic_messages") {
+		// This requires the native messages request to be built first
+		// The actual call path for anthropic is handled elsewhere
+		// Return error for now - this path needs native request building
 		throw new ProviderError(
 			"Anthropic messages protocol not supported via sendChat",
 			0,
@@ -110,5 +115,10 @@ export async function sendChat(
 		return sendMoondream(input, provider, signal);
 	}
 
-	return sendOpenAICompatible(input, provider, baseUrl, signal);
+	return sendOpenAICompatible(
+		input,
+		provider,
+		await resolveBaseUrl(input, provider),
+		signal,
+	);
 }
