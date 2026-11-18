@@ -32,7 +32,6 @@ jobs:
       - name: Reescrever arquivos com LF
         run: git rm --cached -r .; git reset --hard HEAD
 
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
