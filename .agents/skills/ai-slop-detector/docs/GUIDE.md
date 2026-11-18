@@ -23,6 +23,7 @@ Think of this skill like working with a really good editor who's obsessed with o
 They're not changing your ideas. They're not restructuring your argument. They're doing a very specific job: finding every phrase that sounds like a machine wrote it, and replacing it with something that sounds like you wrote it.
 
 It's the difference between:
+
 - "The solution leverages cutting-edge technology to facilitate enhanced user experiences"
 - "The solution uses new tech to make things easier for users"
 
@@ -31,6 +32,7 @@ Same meaning. Completely different feel.
 ## How You Actually Use It
 
 Drop in any text and say one of these:
+
 - "Run this through the slop detector"
 - "Clean this up"
 - "Remove the AI fingerprints"

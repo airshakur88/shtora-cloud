@@ -19,20 +19,20 @@
 
 Not all documentation applies equally. Adapt to your audience:
 
-| Documentation | Public Library | Private Library |
-| --- | --- | --- |
-| Doc comments on exported symbols | Required | Required |
-| Package comments | Required | Required |
-| README.md | Required | Required |
-| Code examples in comments | Generous | Generous |
-| `ExampleXxx()` test functions | Recommended | Recommended |
-| Go Playground demos | Recommended | N/A (code not public) |
-| pkg.go.dev / godoc | Primary docs surface | Use `go doc` locally or internal tooling |
-| Documentation website | Large projects | Only if many teams consume the library |
-| Register in Context7/DeepWiki/etc. | Recommended | N/A |
-| llms.txt | Recommended | Optional |
-| CHANGELOG.md | Recommended | Recommended |
-| CONTRIBUTING.md | Recommended | Recommended (internal wiki may suffice) |
+| Documentation                      | Public Library       | Private Library                          |
+| ---------------------------------- | -------------------- | ---------------------------------------- |
+| Doc comments on exported symbols   | Required             | Required                                 |
+| Package comments                   | Required             | Required                                 |
+| README.md                          | Required             | Required                                 |
+| Code examples in comments          | Generous             | Generous                                 |
+| `ExampleXxx()` test functions      | Recommended          | Recommended                              |
+| Go Playground demos                | Recommended          | N/A (code not public)                    |
+| pkg.go.dev / godoc                 | Primary docs surface | Use `go doc` locally or internal tooling |
+| Documentation website              | Large projects       | Only if many teams consume the library   |
+| Register in Context7/DeepWiki/etc. | Recommended          | N/A                                      |
+| llms.txt                           | Recommended          | Optional                                 |
+| CHANGELOG.md                       | Recommended          | Recommended                              |
+| CONTRIBUTING.md                    | Recommended          | Recommended (internal wiki may suffice)  |
 
 **Private libraries** should still have excellent doc comments and examples — teams rotate, people forget, and AI agents need context to help effectively. The main difference is you skip public-facing artifacts (playground, pkg.go.dev, registries).
 
@@ -186,13 +186,13 @@ Both can be deployed on Vercel.
 
 Follow the [Diataxis framework](https://diataxis.fr/) for organizing documentation:
 
-| Section | Purpose | Example |
-| --- | --- | --- |
-| Getting Started | First steps, installation, hello world | "Install and run your first query in 5 minutes" |
-| Tutorial | Step-by-step learning | "Build a REST API with authentication" |
-| How-to Guides | Task-oriented recipes | "How to configure connection pooling" |
-| Reference | Complete API documentation | Auto-generated from godoc |
-| Deep dive / internals | Conceptual understanding | "How the scheduler algorithm works" |
+| Section               | Purpose                                | Example                                         |
+| --------------------- | -------------------------------------- | ----------------------------------------------- |
+| Getting Started       | First steps, installation, hello world | "Install and run your first query in 5 minutes" |
+| Tutorial              | Step-by-step learning                  | "Build a REST API with authentication"          |
+| How-to Guides         | Task-oriented recipes                  | "How to configure connection pooling"           |
+| Reference             | Complete API documentation             | Auto-generated from godoc                       |
+| Deep dive / internals | Conceptual understanding               | "How the scheduler algorithm works"             |
 
 ### llms.txt
 

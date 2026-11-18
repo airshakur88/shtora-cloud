@@ -1,20 +1,20 @@
 {
-  "$schema": "https://skills.sh/schema.json",
-  "name": "anti-slop-engineering",
-  "version": "1.6.0",
-  "description": "An Engineering Discipline Playbook & Guard System for AI Coding Agents. Enforces Google SRE, Clean-Room Senior Dev Ladders, and Rust/Go Microservices.",
-  "repository": "https://github.com/imMamdouhaboammar/anti-slop-engineering",
-  "author": "Mamdouh Aboammar",
-  "license": "MIT",
-  "skill": "SKILL.md",
-  "tags": [
-    "agent-skill",
-    "anti-slop",
-    "code-quality",
-    "code-review",
-    "testing",
-    "engineering-discipline",
-    "sre",
-    "google-sre"
-  ]
+	"$schema": "https://skills.sh/schema.json",
+	"name": "anti-slop-engineering",
+	"version": "1.6.0",
+	"description": "An Engineering Discipline Playbook & Guard System for AI Coding Agents. Enforces Google SRE, Clean-Room Senior Dev Ladders, and Rust/Go Microservices.",
+	"repository": "https://github.com/imMamdouhaboammar/anti-slop-engineering",
+	"author": "Mamdouh Aboammar",
+	"license": "MIT",
+	"skill": "SKILL.md",
+	"tags": [
+		"agent-skill",
+		"anti-slop",
+		"code-quality",
+		"code-review",
+		"testing",
+		"engineering-discipline",
+		"sre",
+		"google-sre"
+	]
 }

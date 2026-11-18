@@ -1,220 +1,220 @@
 {
-  "sqli": [
-    {
-      "id": "cs-sqli-command-interpolation",
-      "regex": "new\\s+(?:Sql|Npgsql|MySql|OleDb|Odbc)Command\\s*\\(\\s*\\$@?[\\\"]",
-      "vuln_type": "sqli",
-      "confidence": "likely",
-      "description": "ADO.NET command text is built with string interpolation"
-    },
-    {
-      "id": "cs-sqli-command-concatenation",
-      "regex": "new\\s+(?:Sql|Npgsql|MySql|OleDb|Odbc)Command\\s*\\([^;]*(?:SELECT|INSERT|UPDATE|DELETE)[^;]*\\+\\s*[A-Za-z_$]",
-      "vuln_type": "sqli",
-      "confidence": "likely",
-      "description": "ADO.NET command text is built with string concatenation"
-    },
-    {
-      "id": "cs-sqli-ef-raw-interpolation",
-      "regex": "\\.(?:FromSqlRaw|ExecuteSqlRaw(?:Async)?|SqlQueryRaw)\\s*\\(\\s*\\$@?[\\\"]",
-      "vuln_type": "sqli",
-      "confidence": "likely",
-      "description": "EF Core raw SQL API receives an interpolated string; use an interpolated API or bound parameters"
-    },
-    {
-      "id": "cs-sqli-dapper-interpolation",
-      "regex": "\\.(?:Query|QueryAsync|QueryFirst|QueryFirstAsync|QuerySingle|QuerySingleAsync|Execute|ExecuteAsync)(?:\\s*<[^>]+>)?\\s*\\(\\s*\\$@?[\\\"]",
-      "vuln_type": "sqli",
-      "confidence": "likely",
-      "description": "Dapper SQL is built with string interpolation instead of a parameter object"
-    },
-    {
-      "id": "cs-sqli-commandtext-interpolation",
-      "regex": "\\.CommandText\\s*=\\s*\\$@?[\\\"]",
-      "vuln_type": "sqli",
-      "confidence": "likely",
-      "description": "ADO.NET CommandText is assigned interpolated SQL"
-    }
-  ],
-  "cmdi": [
-    {
-      "id": "cs-cmdi-request-process-start",
-      "regex": "Process\\.Start\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "cmdi",
-      "confidence": "likely",
-      "description": "Process.Start receives ASP.NET request data"
-    },
-    {
-      "id": "cs-cmdi-shell-interpolation",
-      "regex": "(?:cmd(?:\\.exe)?|powershell(?:\\.exe)?|/bin/(?:ba)?sh)[^;]*\\$@?[\\\"]",
-      "vuln_type": "cmdi",
-      "confidence": "likely",
-      "description": "A shell command contains string interpolation"
-    },
-    {
-      "id": "cs-cmdi-process-arguments-request",
-      "regex": "\\.Arguments\\s*=\\s*[^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "cmdi",
-      "confidence": "likely",
-      "description": "Process arguments are assigned directly from ASP.NET request data"
-    }
-  ],
-  "path_traversal": [
-    {
-      "id": "cs-path-file-request",
-      "regex": "File\\.(?:ReadAllText|ReadAllBytes|WriteAllText|WriteAllBytes|Open|OpenRead|OpenWrite|Delete)\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "path_traversal",
-      "confidence": "likely",
-      "description": "A filesystem operation receives ASP.NET request data directly"
-    },
-    {
-      "id": "cs-path-filestream-request",
-      "regex": "new\\s+FileStream\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "path_traversal",
-      "confidence": "likely",
-      "description": "A FileStream path comes directly from ASP.NET request data"
-    },
-    {
-      "id": "cs-path-physicalfile-request",
-      "regex": "PhysicalFile\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "path_traversal",
-      "confidence": "likely",
-      "description": "An ASP.NET physical-file response uses a request-controlled path"
-    }
-  ],
-  "ssrf": [
-    {
-      "id": "cs-ssrf-httpclient-request",
-      "regex": "\\.(?:GetAsync|GetStringAsync|GetByteArrayAsync|PostAsync|PutAsync|SendAsync)\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "ssrf",
-      "confidence": "likely",
-      "description": "An HttpClient request uses an ASP.NET request-controlled destination"
-    },
-    {
-      "id": "cs-ssrf-webrequest-request",
-      "regex": "(?:WebRequest|HttpWebRequest)\\.Create\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "ssrf",
-      "confidence": "likely",
-      "description": "WebRequest.Create uses an ASP.NET request-controlled destination"
-    },
-    {
-      "id": "cs-ssrf-http-request-message",
-      "regex": "new\\s+HttpRequestMessage\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "ssrf",
-      "confidence": "likely",
-      "description": "HttpRequestMessage uses an ASP.NET request-controlled destination"
-    }
-  ],
-  "xss": [
-    {
-      "id": "cs-xss-html-raw-request",
-      "regex": "(?:@?Html|HtmlHelper)\\.Raw\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "xss",
-      "confidence": "likely",
-      "description": "Razor raw HTML output receives ASP.NET request data"
-    },
-    {
-      "id": "cs-xss-blazor-markup-request",
-      "regex": "(?:new\\s+MarkupString\\s*\\(|\\(\\s*MarkupString\\s*\\))[^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "xss",
-      "confidence": "likely",
-      "description": "Blazor MarkupString bypasses encoding for request data"
-    }
-  ],
-  "open_redirect": [
-    {
-      "id": "cs-redirect-request",
-      "regex": "(?<!Local)Redirect(?:Permanent|PreserveMethod|PermanentPreserveMethod)?\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
-      "vuln_type": "open_redirect",
-      "confidence": "likely",
-      "description": "ASP.NET Redirect receives a request-controlled destination; use LocalRedirect or validate it"
-    }
-  ],
-  "deserialization": [
-    {
-      "id": "cs-deser-binary-formatter",
-      "regex": "(?:BinaryFormatter|SoapFormatter|LosFormatter|ObjectStateFormatter)[^;]*\\.Deserialize\\s*\\(",
-      "vuln_type": "deserialization",
-      "confidence": "likely",
-      "description": "An unsafe legacy .NET formatter deserializes data"
-    },
-    {
-      "id": "cs-deser-netdatacontract",
-      "regex": "NetDataContractSerializer[^;]*\\.(?:Deserialize|ReadObject)\\s*\\(",
-      "vuln_type": "deserialization",
-      "confidence": "likely",
-      "description": "NetDataContractSerializer can instantiate attacker-selected types"
-    },
-    {
-      "id": "cs-deser-type-name-handling",
-      "regex": "TypeNameHandling\\s*=\\s*TypeNameHandling\\.(?!None\\b)\\w+",
-      "vuln_type": "deserialization",
-      "confidence": "likely",
-      "description": "Newtonsoft.Json polymorphic type loading is enabled"
-    }
-  ],
-  "xxe": [
-    {
-      "id": "cs-xxe-dtd-parse",
-      "regex": "DtdProcessing\\s*=\\s*DtdProcessing\\.Parse",
-      "vuln_type": "xxe",
-      "confidence": "likely",
-      "description": "XML DTD processing is explicitly enabled"
-    },
-    {
-      "id": "cs-xxe-url-resolver",
-      "regex": "XmlResolver\\s*=\\s*new\\s+XmlUrlResolver",
-      "vuln_type": "xxe",
-      "confidence": "likely",
-      "description": "An XML parser is configured with an external URL resolver"
-    }
-  ],
-  "tls": [
-    {
-      "id": "cs-tls-validation-callback",
-      "regex": "ServerCertificateCustomValidationCallback\\s*=\\s*[^;]*=>\\s*true",
-      "vuln_type": "tls_bypass",
-      "confidence": "likely",
-      "description": "TLS certificate validation always succeeds"
-    },
-    {
-      "id": "cs-tls-dangerous-validator",
-      "regex": "DangerousAcceptAnyServerCertificateValidator",
-      "vuln_type": "tls_bypass",
-      "confidence": "likely",
-      "description": "TLS certificate validation is disabled"
-    }
-  ],
-  "crypto": [
-    {
-      "id": "cs-crypto-weak-hash",
-      "regex": "(?:MD5|SHA1)\\.Create\\s*\\(",
-      "vuln_type": "weak_crypto",
-      "confidence": "possible",
-      "description": "MD5 or SHA-1 is used; verify it is not a security-sensitive hash or signature"
-    },
-    {
-      "id": "cs-crypto-ecb",
-      "regex": "CipherMode\\.ECB",
-      "vuln_type": "weak_crypto",
-      "confidence": "likely",
-      "description": "ECB mode leaks plaintext structure"
-    },
-    {
-      "id": "cs-crypto-insecure-random",
-      "regex": "new\\s+Random\\s*\\(",
-      "vuln_type": "insecure_random",
-      "confidence": "possible",
-      "description": "System.Random is not suitable for security-sensitive values"
-    }
-  ],
-  "cors": [
-    {
-      "id": "cs-cors-reflect-credentials",
-      "regex": "SetIsOriginAllowed\\s*\\([^;]*=>\\s*true\\s*\\)[^;]*AllowCredentials\\s*\\(",
-      "vuln_type": "cors",
-      "confidence": "likely",
-      "description": "Credentialed CORS accepts every origin"
-    }
-  ]
+	"sqli": [
+		{
+			"id": "cs-sqli-command-interpolation",
+			"regex": "new\\s+(?:Sql|Npgsql|MySql|OleDb|Odbc)Command\\s*\\(\\s*\\$@?[\\\"]",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "ADO.NET command text is built with string interpolation"
+		},
+		{
+			"id": "cs-sqli-command-concatenation",
+			"regex": "new\\s+(?:Sql|Npgsql|MySql|OleDb|Odbc)Command\\s*\\([^;]*(?:SELECT|INSERT|UPDATE|DELETE)[^;]*\\+\\s*[A-Za-z_$]",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "ADO.NET command text is built with string concatenation"
+		},
+		{
+			"id": "cs-sqli-ef-raw-interpolation",
+			"regex": "\\.(?:FromSqlRaw|ExecuteSqlRaw(?:Async)?|SqlQueryRaw)\\s*\\(\\s*\\$@?[\\\"]",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "EF Core raw SQL API receives an interpolated string; use an interpolated API or bound parameters"
+		},
+		{
+			"id": "cs-sqli-dapper-interpolation",
+			"regex": "\\.(?:Query|QueryAsync|QueryFirst|QueryFirstAsync|QuerySingle|QuerySingleAsync|Execute|ExecuteAsync)(?:\\s*<[^>]+>)?\\s*\\(\\s*\\$@?[\\\"]",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Dapper SQL is built with string interpolation instead of a parameter object"
+		},
+		{
+			"id": "cs-sqli-commandtext-interpolation",
+			"regex": "\\.CommandText\\s*=\\s*\\$@?[\\\"]",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "ADO.NET CommandText is assigned interpolated SQL"
+		}
+	],
+	"cmdi": [
+		{
+			"id": "cs-cmdi-request-process-start",
+			"regex": "Process\\.Start\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Process.Start receives ASP.NET request data"
+		},
+		{
+			"id": "cs-cmdi-shell-interpolation",
+			"regex": "(?:cmd(?:\\.exe)?|powershell(?:\\.exe)?|/bin/(?:ba)?sh)[^;]*\\$@?[\\\"]",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "A shell command contains string interpolation"
+		},
+		{
+			"id": "cs-cmdi-process-arguments-request",
+			"regex": "\\.Arguments\\s*=\\s*[^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Process arguments are assigned directly from ASP.NET request data"
+		}
+	],
+	"path_traversal": [
+		{
+			"id": "cs-path-file-request",
+			"regex": "File\\.(?:ReadAllText|ReadAllBytes|WriteAllText|WriteAllBytes|Open|OpenRead|OpenWrite|Delete)\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "path_traversal",
+			"confidence": "likely",
+			"description": "A filesystem operation receives ASP.NET request data directly"
+		},
+		{
+			"id": "cs-path-filestream-request",
+			"regex": "new\\s+FileStream\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "path_traversal",
+			"confidence": "likely",
+			"description": "A FileStream path comes directly from ASP.NET request data"
+		},
+		{
+			"id": "cs-path-physicalfile-request",
+			"regex": "PhysicalFile\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "path_traversal",
+			"confidence": "likely",
+			"description": "An ASP.NET physical-file response uses a request-controlled path"
+		}
+	],
+	"ssrf": [
+		{
+			"id": "cs-ssrf-httpclient-request",
+			"regex": "\\.(?:GetAsync|GetStringAsync|GetByteArrayAsync|PostAsync|PutAsync|SendAsync)\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "An HttpClient request uses an ASP.NET request-controlled destination"
+		},
+		{
+			"id": "cs-ssrf-webrequest-request",
+			"regex": "(?:WebRequest|HttpWebRequest)\\.Create\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "WebRequest.Create uses an ASP.NET request-controlled destination"
+		},
+		{
+			"id": "cs-ssrf-http-request-message",
+			"regex": "new\\s+HttpRequestMessage\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "HttpRequestMessage uses an ASP.NET request-controlled destination"
+		}
+	],
+	"xss": [
+		{
+			"id": "cs-xss-html-raw-request",
+			"regex": "(?:@?Html|HtmlHelper)\\.Raw\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Razor raw HTML output receives ASP.NET request data"
+		},
+		{
+			"id": "cs-xss-blazor-markup-request",
+			"regex": "(?:new\\s+MarkupString\\s*\\(|\\(\\s*MarkupString\\s*\\))[^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Blazor MarkupString bypasses encoding for request data"
+		}
+	],
+	"open_redirect": [
+		{
+			"id": "cs-redirect-request",
+			"regex": "(?<!Local)Redirect(?:Permanent|PreserveMethod|PermanentPreserveMethod)?\\s*\\([^;]*(?:Request\\.|HttpContext\\.Request)",
+			"vuln_type": "open_redirect",
+			"confidence": "likely",
+			"description": "ASP.NET Redirect receives a request-controlled destination; use LocalRedirect or validate it"
+		}
+	],
+	"deserialization": [
+		{
+			"id": "cs-deser-binary-formatter",
+			"regex": "(?:BinaryFormatter|SoapFormatter|LosFormatter|ObjectStateFormatter)[^;]*\\.Deserialize\\s*\\(",
+			"vuln_type": "deserialization",
+			"confidence": "likely",
+			"description": "An unsafe legacy .NET formatter deserializes data"
+		},
+		{
+			"id": "cs-deser-netdatacontract",
+			"regex": "NetDataContractSerializer[^;]*\\.(?:Deserialize|ReadObject)\\s*\\(",
+			"vuln_type": "deserialization",
+			"confidence": "likely",
+			"description": "NetDataContractSerializer can instantiate attacker-selected types"
+		},
+		{
+			"id": "cs-deser-type-name-handling",
+			"regex": "TypeNameHandling\\s*=\\s*TypeNameHandling\\.(?!None\\b)\\w+",
+			"vuln_type": "deserialization",
+			"confidence": "likely",
+			"description": "Newtonsoft.Json polymorphic type loading is enabled"
+		}
+	],
+	"xxe": [
+		{
+			"id": "cs-xxe-dtd-parse",
+			"regex": "DtdProcessing\\s*=\\s*DtdProcessing\\.Parse",
+			"vuln_type": "xxe",
+			"confidence": "likely",
+			"description": "XML DTD processing is explicitly enabled"
+		},
+		{
+			"id": "cs-xxe-url-resolver",
+			"regex": "XmlResolver\\s*=\\s*new\\s+XmlUrlResolver",
+			"vuln_type": "xxe",
+			"confidence": "likely",
+			"description": "An XML parser is configured with an external URL resolver"
+		}
+	],
+	"tls": [
+		{
+			"id": "cs-tls-validation-callback",
+			"regex": "ServerCertificateCustomValidationCallback\\s*=\\s*[^;]*=>\\s*true",
+			"vuln_type": "tls_bypass",
+			"confidence": "likely",
+			"description": "TLS certificate validation always succeeds"
+		},
+		{
+			"id": "cs-tls-dangerous-validator",
+			"regex": "DangerousAcceptAnyServerCertificateValidator",
+			"vuln_type": "tls_bypass",
+			"confidence": "likely",
+			"description": "TLS certificate validation is disabled"
+		}
+	],
+	"crypto": [
+		{
+			"id": "cs-crypto-weak-hash",
+			"regex": "(?:MD5|SHA1)\\.Create\\s*\\(",
+			"vuln_type": "weak_crypto",
+			"confidence": "possible",
+			"description": "MD5 or SHA-1 is used; verify it is not a security-sensitive hash or signature"
+		},
+		{
+			"id": "cs-crypto-ecb",
+			"regex": "CipherMode\\.ECB",
+			"vuln_type": "weak_crypto",
+			"confidence": "likely",
+			"description": "ECB mode leaks plaintext structure"
+		},
+		{
+			"id": "cs-crypto-insecure-random",
+			"regex": "new\\s+Random\\s*\\(",
+			"vuln_type": "insecure_random",
+			"confidence": "possible",
+			"description": "System.Random is not suitable for security-sensitive values"
+		}
+	],
+	"cors": [
+		{
+			"id": "cs-cors-reflect-credentials",
+			"regex": "SetIsOriginAllowed\\s*\\([^;]*=>\\s*true\\s*\\)[^;]*AllowCredentials\\s*\\(",
+			"vuln_type": "cors",
+			"confidence": "likely",
+			"description": "Credentialed CORS accepts every origin"
+		}
+	]
 }

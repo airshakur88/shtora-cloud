@@ -1,4 +1,5 @@
 ---
+
 name: test-harden
 description: "Install determinism safety rails in a pytest suite — autouse conftest fixtures that block real network, freeze the clock, seed randomness, and redirect HOME/XDG to tmp_path. Audits existing flaky patterns. Use once per repo to make the suite deterministic by default; essential before handing the repo to an AI agent that runs pytest in a loop."
 ---
@@ -22,21 +23,21 @@ Scope: Python / pytest only.
    - Clock freezing: `time_machine.travel`, `freeze_time`, `freezegun`, clock-injection fixtures.
    - Random seeding: `random.seed`, `np.random.seed`, `torch.manual_seed`.
    - Filesystem isolation: `monkeypatch.setenv("HOME", ...)` patterns.
-   
+
    **Do not overwrite existing rails.** Record which are already installed; skip them in Step 4.
 
 ## Step 2: Audit for flaky patterns
 
 Scan all test files and the production code they import for:
 
-| Pattern | Rail that catches it |
-|---|---|
-| `datetime.now()`, `datetime.utcnow()`, `time.time()`, `time.monotonic()` | clock |
-| `random.*`, `np.random.*`, `torch.rand*` without seed | random |
-| `uuid.uuid4()` | random (seeded UUID4 is deterministic in tests) |
-| `requests.`, `httpx.`, `urllib.`, `aiohttp.`, `socket.` without a patch | network |
-| `/tmp/`, `os.getcwd()` writes, `Path("./out")` writes | fs |
-| `@pytest.mark.flaky`, `pytest-rerunfailures` in config | all (these are symptoms) |
+| Pattern                                                                  | Rail that catches it                            |
+| ------------------------------------------------------------------------ | ----------------------------------------------- |
+| `datetime.now()`, `datetime.utcnow()`, `time.time()`, `time.monotonic()` | clock                                           |
+| `random.*`, `np.random.*`, `torch.rand*` without seed                    | random                                          |
+| `uuid.uuid4()`                                                           | random (seeded UUID4 is deterministic in tests) |
+| `requests.`, `httpx.`, `urllib.`, `aiohttp.`, `socket.` without a patch  | network                                         |
+| `/tmp/`, `os.getcwd()` writes, `Path("./out")` writes                    | fs                                              |
+| `@pytest.mark.flaky`, `pytest-rerunfailures` in config                   | all (these are symptoms)                        |
 
 Produce a findings table: `file:line`, pattern, proposed fix. This goes in the report.
 
@@ -192,7 +193,7 @@ Report:
 ## Rules
 
 - **Opt-out, not opt-in.** Rails are autouse so forgotten tests are still protected. Individual integration tests opt out with markers.
-- **Ambient only.** These fixtures patch *boundaries* (clock, network, fs, randomness). Do not add business-domain mocking here — that belongs in a separate conftest.
+- **Ambient only.** These fixtures patch _boundaries_ (clock, network, fs, randomness). Do not add business-domain mocking here — that belongs in a separate conftest.
 - **Function scope.** Do not widen to session scope. Cost is negligible.
 - **Do not overwrite.** If a rail exists, skip it. Report what was found.
 - **Do not install retry plugins.** `pytest-rerunfailures` trains the team and the AI to ignore failures. If there is a flake, fix determinism instead.

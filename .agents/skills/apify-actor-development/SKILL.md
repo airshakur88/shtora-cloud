@@ -1,4 +1,5 @@
 ---
+
 name: apify-actor-development
 description: Create, modify, debug, and deploy Apify Actors, and write their input and output schemas. Use when building an Actor from scratch, changing or troubleshooting Actor code, generating or updating .actor schema files, or pushing an Actor to the Apify platform. To wrap an existing non-Actor project, use apify-actorization instead.
 ---
@@ -25,18 +26,20 @@ Pass `--user-agent apify-agent-skills/apify-actor-development` on **every** `api
 Skip the steps that do not apply when modifying an existing Actor.
 
 1. **Create the project.**
+
    ```bash
    apify create <actor-name> -t <template-id> --user-agent apify-agent-skills/apify-actor-development
    ```
+
    Pick the template from what the Actor does:
 
-   | Actor does | TypeScript | JavaScript | Python |
-   |---|---|---|---|
-   | Crawls static HTML | `ts-crawlee-cheerio` | `js-crawlee-cheerio` | `python-crawlee-beautifulsoup` |
-   | Crawls JavaScript-rendered pages | `ts-crawlee-playwright-chrome` | `js-crawlee-playwright-chrome` | `python-crawlee-playwright` |
-   | Serves HTTP requests (API, webhook) | `ts-standby` | `js-standby` | `python-standby` |
-   | Is an MCP server | `ts-mcp-empty` | — | `python-mcp-empty` |
-   | Anything else (API polling, data processing) | `ts-empty` | `js-empty` | `python-empty` |
+   | Actor does                                   | TypeScript                     | JavaScript                     | Python                         |
+   | -------------------------------------------- | ------------------------------ | ------------------------------ | ------------------------------ |
+   | Crawls static HTML                           | `ts-crawlee-cheerio`           | `js-crawlee-cheerio`           | `python-crawlee-beautifulsoup` |
+   | Crawls JavaScript-rendered pages             | `ts-crawlee-playwright-chrome` | `js-crawlee-playwright-chrome` | `python-crawlee-playwright`    |
+   | Serves HTTP requests (API, webhook)          | `ts-standby`                   | `js-standby`                   | `python-standby`               |
+   | Is an MCP server                             | `ts-mcp-empty`                 | —                              | `python-mcp-empty`             |
+   | Anything else (API polling, data processing) | `ts-empty`                     | `js-empty`                     | `python-empty`                 |
 
    For other stacks (Puppeteer, Camoufox, Scrapy, AI agent frameworks), `apify templates ls` lists every template with its language and use cases. With `-t` the command runs without prompts, which is what an agent needs. Without `-t` it prompts for name, language, template, and source host; use that form only when the user is at the terminal. Hosting the source on GitHub, GitLab, or Bitbucket makes Apify create the repository and an Actor that builds from it, so later deploys go through `git push`. Dependencies are installed for you. Done when `<name>/.actor/actor.json` exists; `cd` into it before continuing.
 2. **Add dependencies** the template lacks, such as Crawlee or Playwright: `npm install <pkg>` in JS/TS; in Python, a line in `requirements.txt` followed by `pip install -r requirements.txt`, or `uv add <pkg>` when the project has `pyproject.toml` and `uv.lock`. Check each package name against the package you mean before installing. Pin exact versions and commit the lockfile (`package-lock.json`, `uv.lock`, or `pkg==1.2.3` lines in `requirements.txt`).

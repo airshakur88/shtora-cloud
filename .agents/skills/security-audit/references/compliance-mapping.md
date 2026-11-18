@@ -31,18 +31,18 @@ Constraints on every report produced with this file:
 
 Current edition is the 8th, released November 2025. Use the 2025 numbering in reports and state the year explicitly, because A03 and A10 changed meaning against 2021 and an unqualified "A03" is ambiguous.
 
-| # | Category | Change vs 2021 |
-|---|----------|----------------|
-| A01:2025 | Broken Access Control | Held #1. Now absorbs SSRF, which was 2021 A10. Explicitly covers BOLA and BFLA API authorization. |
-| A02:2025 | Security Misconfiguration | Up from #5. |
-| A03:2025 | Software Supply Chain Failures | Expanded from 2021 A06 "Vulnerable and Outdated Components". Broader than dependency versions. |
-| A04:2025 | Cryptographic Failures | Down from #2. |
-| A05:2025 | Injection | Down from #3. |
-| A06:2025 | Insecure Design | Down from #4. |
-| A07:2025 | Authentication Failures | Renamed, was "Identification and Authentication Failures". |
-| A08:2025 | Software or Data Integrity Failures | Held #8. |
-| A09:2025 | Security Logging and Alerting Failures | Renamed, was "Security Logging and Monitoring Failures". |
-| A10:2025 | Mishandling of Exceptional Conditions | NEW. Error handling, fail-open behaviour, logic errors. |
+| #        | Category                               | Change vs 2021                                                                                    |
+| -------- | -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| A01:2025 | Broken Access Control                  | Held #1. Now absorbs SSRF, which was 2021 A10. Explicitly covers BOLA and BFLA API authorization. |
+| A02:2025 | Security Misconfiguration              | Up from #5.                                                                                       |
+| A03:2025 | Software Supply Chain Failures         | Expanded from 2021 A06 "Vulnerable and Outdated Components". Broader than dependency versions.    |
+| A04:2025 | Cryptographic Failures                 | Down from #2.                                                                                     |
+| A05:2025 | Injection                              | Down from #3.                                                                                     |
+| A06:2025 | Insecure Design                        | Down from #4.                                                                                     |
+| A07:2025 | Authentication Failures                | Renamed, was "Identification and Authentication Failures".                                        |
+| A08:2025 | Software or Data Integrity Failures    | Held #8.                                                                                          |
+| A09:2025 | Security Logging and Alerting Failures | Renamed, was "Security Logging and Monitoring Failures".                                          |
+| A10:2025 | Mishandling of Exceptional Conditions  | NEW. Error handling, fail-open behaviour, logic errors.                                           |
 
 Three changes matter most when categorizing findings:
 
@@ -52,53 +52,53 @@ Three changes matter most when categorizing findings:
 
 Scan domain coverage:
 
-| Scan domain | Categories typically evidenced |
-|---|---|
-| SAST | A01, A04, A05, A08, A10 |
-| DAST | A01, A02, A05, A07 |
-| SCA | A03 |
+| Scan domain     | Categories typically evidenced                             |
+| --------------- | ---------------------------------------------------------- |
+| SAST            | A01, A04, A05, A08, A10                                    |
+| DAST            | A01, A02, A05, A07                                         |
+| SCA             | A03                                                        |
 | Secret scanning | A02 and A04, plus A07 when the credential is auth material |
-| Config review | A02 |
+| Config review   | A02                                                        |
 
 ## OWASP LLM Top 10 (2025)
 
 Apply this list only when the target integrates an LLM. Do not add it to a report for a system with no AI component.
 
-| # | Category |
-|---|---|
-| LLM01 | Prompt Injection |
+| #     | Category                         |
+| ----- | -------------------------------- |
+| LLM01 | Prompt Injection                 |
 | LLM02 | Sensitive Information Disclosure |
-| LLM03 | Supply Chain |
-| LLM04 | Data and Model Poisoning |
-| LLM05 | Improper Output Handling |
-| LLM06 | Excessive Agency |
-| LLM07 | System Prompt Leakage |
-| LLM08 | Vector and Embedding Weaknesses |
-| LLM09 | Misinformation |
-| LLM10 | Unbounded Consumption |
+| LLM03 | Supply Chain                     |
+| LLM04 | Data and Model Poisoning         |
+| LLM05 | Improper Output Handling         |
+| LLM06 | Excessive Agency                 |
+| LLM07 | System Prompt Leakage            |
+| LLM08 | Vector and Embedding Weaknesses  |
+| LLM09 | Misinformation                   |
+| LLM10 | Unbounded Consumption            |
 
 Mappings a scan can support directly:
 
-| Finding type | Category |
-|---|---|
-| Secrets in code, especially inside prompt templates | LLM07 |
-| SCA over model, SDK, and package provenance | LLM03 |
-| Output sanitization review on model responses reaching a sink | LLM05 |
+| Finding type                                                  | Category |
+| ------------------------------------------------------------- | -------- |
+| Secrets in code, especially inside prompt templates           | LLM07    |
+| SCA over model, SDK, and package provenance                   | LLM03    |
+| Output sanitization review on model responses reaching a sink | LLM05    |
 
 ## ISO/IEC 27001:2022 Annex A
 
 Annex A controls are evidenced by the scan activity and its records, not by the absence of findings. Cite the control number and title together.
 
-| Scan domain | Control(s) |
-|---|---|
-| SAST | A.8.28 Secure Coding; A.8.25 Secure Development Life Cycle; A.8.29 Security Testing in Development and Acceptance; A.8.26 Application Security Requirements |
-| DAST | A.8.29; A.8.8 Management of Technical Vulnerabilities; A.8.27 Secure System Architecture and Engineering Principles |
-| SCA | A.8.8; A.5.21 Managing Information Security in the ICT Supply Chain; A.5.19 and A.5.20 Supplier Relationships and Agreements; A.5.23 Cloud Services |
-| Secret scanning | A.8.4 Access to Source Code; A.8.24 Use of Cryptography; A.8.12 Data Leakage Prevention; A.5.17 Authentication Information |
-| PII in code or logs | A.8.12; A.8.15 Logging; A.5.34 Privacy and Protection of PII |
-| IaC and config scanning | A.8.9 Configuration Management; A.8.31 Separation of Development, Test and Production Environments |
-| Recurring CI scans plus triage records | A.8.8; A.8.16 Monitoring Activities; A.8.32 Change Management |
-| Human code review records | A.8.25; A.8.28; A.8.29 |
+| Scan domain                            | Control(s)                                                                                                                                                  |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SAST                                   | A.8.28 Secure Coding; A.8.25 Secure Development Life Cycle; A.8.29 Security Testing in Development and Acceptance; A.8.26 Application Security Requirements |
+| DAST                                   | A.8.29; A.8.8 Management of Technical Vulnerabilities; A.8.27 Secure System Architecture and Engineering Principles                                         |
+| SCA                                    | A.8.8; A.5.21 Managing Information Security in the ICT Supply Chain; A.5.19 and A.5.20 Supplier Relationships and Agreements; A.5.23 Cloud Services         |
+| Secret scanning                        | A.8.4 Access to Source Code; A.8.24 Use of Cryptography; A.8.12 Data Leakage Prevention; A.5.17 Authentication Information                                  |
+| PII in code or logs                    | A.8.12; A.8.15 Logging; A.5.34 Privacy and Protection of PII                                                                                                |
+| IaC and config scanning                | A.8.9 Configuration Management; A.8.31 Separation of Development, Test and Production Environments                                                          |
+| Recurring CI scans plus triage records | A.8.8; A.8.16 Monitoring Activities; A.8.32 Change Management                                                                                               |
+| Human code review records              | A.8.25; A.8.28; A.8.29                                                                                                                                      |
 
 Certification depends on the Statement of Applicability, the ISMS, and the audit itself. A scan contributes records to specific controls and nothing more.
 
@@ -106,30 +106,30 @@ Certification depends on the Statement of Applicability, the ISMS, and the audit
 
 AI management system standard. 38 Annex A controls across A.2 to A.10, with applicability determined by the organization's Statement of Applicability. Cite it only for AI-integrated systems.
 
-| Domain in an AI-integrated app | Control |
-|---|---|
+| Domain in an AI-integrated app                                                      | Control                                                                                                 |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | SAST and DAST of AI-feature code, including prompt handling and output sanitization | A.6.1.3 Processes for Responsible Design and Development; A.6.2.4 AI System Verification and Validation |
-| Security requirements specified for LLM features | A.6.2.2 AI System Requirements and Specification |
-| SCA over model, SDK, and vector database dependencies | A.4.4 Tooling Resources; A.10.3 Suppliers |
-| Scan reports archived per release | A.6.2.3 Documentation of Design and Development; A.6.2.7 AI System Technical Documentation |
-| Pre-deploy scan gate | A.6.2.5 AI System Deployment |
-| Continuous scanning and monitoring in production | A.6.2.6 AI System Operation and Monitoring; A.6.2.8 Recording of Event Logs |
-| PII and secret scanning of training or RAG data pipelines | A.7.2 Data for Development and Enhancement; A.7.5 Data Provenance; A.7.6 Data Preparation |
-| Security risk findings feeding an impact assessment | A.5.2 AI System Impact Assessment Process |
+| Security requirements specified for LLM features                                    | A.6.2.2 AI System Requirements and Specification                                                        |
+| SCA over model, SDK, and vector database dependencies                               | A.4.4 Tooling Resources; A.10.3 Suppliers                                                               |
+| Scan reports archived per release                                                   | A.6.2.3 Documentation of Design and Development; A.6.2.7 AI System Technical Documentation              |
+| Pre-deploy scan gate                                                                | A.6.2.5 AI System Deployment                                                                            |
+| Continuous scanning and monitoring in production                                    | A.6.2.6 AI System Operation and Monitoring; A.6.2.8 Recording of Event Logs                             |
+| PII and secret scanning of training or RAG data pipelines                           | A.7.2 Data for Development and Enhancement; A.7.5 Data Provenance; A.7.6 Data Preparation               |
+| Security risk findings feeding an impact assessment                                 | A.5.2 AI System Impact Assessment Process                                                               |
 
 ## GDPR
 
 The strongest direct mapping for any scanning programme is Article 32(1)(d), which requires "a process for regularly testing, assessing and evaluating the effectiveness of technical and organisational measures". Note the word "regularly": a single run evidences a test, a schedule evidences the process.
 
-| Scan domain | Article |
-|---|---|
-| SAST, DAST, SCA run regularly on a schedule or in CI | Art. 32(1)(d), regular testing of effectiveness |
-| Crypto misuse such as weak TLS, hardcoded keys, plaintext storage | Art. 32(1)(a), pseudonymisation and encryption |
-| Vulnerabilities affecting availability or integrity, plus remediation | Art. 32(1)(b), confidentiality, integrity, availability and resilience |
-| Security gates in the SDLC from design onward | Art. 25(1) data protection by design; Art. 25(2) by default |
-| Secret scanning, since exposed credentials are a breach vector | Art. 32(1). Actual exposure may itself be notifiable, so Art. 33 to the authority within 72 hours and Art. 34 to data subjects where risk is high |
-| PII in code or logs | Art. 5(1)(f) integrity and confidentiality, with Art. 32. Unminimized PII in logs also implicates Art. 5(1)(c) minimisation. Exposure triggers Arts. 33 and 34 |
-| Logging and alerting findings | Art. 32(1)(b) and (d). Detection capability underpins the 72 hour Art. 33 clock, which starts on becoming "aware of" the breach |
+| Scan domain                                                           | Article                                                                                                                                                        |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SAST, DAST, SCA run regularly on a schedule or in CI                  | Art. 32(1)(d), regular testing of effectiveness                                                                                                                |
+| Crypto misuse such as weak TLS, hardcoded keys, plaintext storage     | Art. 32(1)(a), pseudonymisation and encryption                                                                                                                 |
+| Vulnerabilities affecting availability or integrity, plus remediation | Art. 32(1)(b), confidentiality, integrity, availability and resilience                                                                                         |
+| Security gates in the SDLC from design onward                         | Art. 25(1) data protection by design; Art. 25(2) by default                                                                                                    |
+| Secret scanning, since exposed credentials are a breach vector        | Art. 32(1). Actual exposure may itself be notifiable, so Art. 33 to the authority within 72 hours and Art. 34 to data subjects where risk is high              |
+| PII in code or logs                                                   | Art. 5(1)(f) integrity and confidentiality, with Art. 32. Unminimized PII in logs also implicates Art. 5(1)(c) minimisation. Exposure triggers Arts. 33 and 34 |
+| Logging and alerting findings                                         | Art. 32(1)(b) and (d). Detection capability underpins the 72 hour Art. 33 clock, which starts on becoming "aware of" the breach                                |
 
 PII found in source code or logs is not merely a finding. It is potential evidence of an Art. 32 failure, and if it has been exposed it is a personal data breach under Art. 4(12). Escalate such findings rather than listing them at their raw scanner severity.
 
@@ -149,15 +149,15 @@ Obligations:
 
 Penalties: up to Rs 250 crore for failure of security safeguards under s.8(5), and up to Rs 200 crore for failure to notify a breach.
 
-| Scan domain | Provision |
-|---|---|
-| SAST and DAST with a remediation trail | s.8(5) with Rule 6(1), reasonable security safeguards |
-| Crypto findings | Rule 6(1)(a), encryption, obfuscation, masking, virtual tokens |
-| SCA plus processor and vendor SDK scanning | Rule 6(1)(f), processor contract safeguards; s.8(2) |
-| Secret scanning | Rule 6(1)(b), access control. A lapse falls in the s.8(5) Rs 250 crore tier |
-| PII in code or logs | s.8(5) risk. Rule 6(1)(c) log visibility holds only if the logs themselves are protected. Over-retention conflicts with s.8(7) and Rule 8 erasure |
-| Logging and monitoring findings | Rule 6(1)(c), logs, monitoring and review with one year retention. Underpins the 72 hour Rule 7 report to the Board |
-| Timestamped scan reports and fix history | Demonstrates the "reasonable" standard if the Board investigates after a breach. This is the primary mitigation evidence against the Rs 250 crore tier |
+| Scan domain                                | Provision                                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| SAST and DAST with a remediation trail     | s.8(5) with Rule 6(1), reasonable security safeguards                                                                                                  |
+| Crypto findings                            | Rule 6(1)(a), encryption, obfuscation, masking, virtual tokens                                                                                         |
+| SCA plus processor and vendor SDK scanning | Rule 6(1)(f), processor contract safeguards; s.8(2)                                                                                                    |
+| Secret scanning                            | Rule 6(1)(b), access control. A lapse falls in the s.8(5) Rs 250 crore tier                                                                            |
+| PII in code or logs                        | s.8(5) risk. Rule 6(1)(c) log visibility holds only if the logs themselves are protected. Over-retention conflicts with s.8(7) and Rule 8 erasure      |
+| Logging and monitoring findings            | Rule 6(1)(c), logs, monitoring and review with one year retention. Underpins the 72 hour Rule 7 report to the Board                                    |
+| Timestamped scan reports and fix history   | Demonstrates the "reasonable" standard if the Board investigates after a breach. This is the primary mitigation evidence against the Rs 250 crore tier |
 
 ## Writing the appendix
 
@@ -176,25 +176,25 @@ Scan run: <date> | Scope: <repos, branches, environments> | Tools: <tool list>
 
 ### Finding to control mapping
 
-| # | Finding | Severity | OWASP 2025 | ISO 27001:2022 | GDPR | DPDPA 2023 / Rules 2025 |
-|---|---------|----------|------------|----------------|------|-------------------------|
-| 1 | Hardcoded API key in `src/config.ts` | High | A02:2025 Security Misconfiguration | A.8.4 Access to Source Code; A.5.17 Authentication Information | Art. 32(1) | Rule 6(1)(b) access control; s.8(5) |
-| 2 | Dependency `<pkg>@<ver>` with known CVE | High | A03:2025 Software Supply Chain Failures | A.8.8 Management of Technical Vulnerabilities; A.5.21 ICT Supply Chain | Art. 32(1)(b) | Rule 6(1)(f); s.8(2) |
-| 3 | User email written to application log | Medium | A09:2025 Security Logging and Alerting Failures | A.8.12 Data Leakage Prevention; A.8.15 Logging; A.5.34 Privacy and Protection of PII | Art. 5(1)(f); Art. 5(1)(c); Art. 32 | s.8(5); Rule 6(1)(c) |
+| #   | Finding                                 | Severity | OWASP 2025                                      | ISO 27001:2022                                                                       | GDPR                                | DPDPA 2023 / Rules 2025             |
+| --- | --------------------------------------- | -------- | ----------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------- | ----------------------------------- |
+| 1   | Hardcoded API key in `src/config.ts`    | High     | A02:2025 Security Misconfiguration              | A.8.4 Access to Source Code; A.5.17 Authentication Information                       | Art. 32(1)                          | Rule 6(1)(b) access control; s.8(5) |
+| 2   | Dependency `<pkg>@<ver>` with known CVE | High     | A03:2025 Software Supply Chain Failures         | A.8.8 Management of Technical Vulnerabilities; A.5.21 ICT Supply Chain               | Art. 32(1)(b)                       | Rule 6(1)(f); s.8(2)                |
+| 3   | User email written to application log   | Medium   | A09:2025 Security Logging and Alerting Failures | A.8.12 Data Leakage Prevention; A.8.15 Logging; A.5.34 Privacy and Protection of PII | Art. 5(1)(f); Art. 5(1)(c); Art. 32 | s.8(5); Rule 6(1)(c)                |
 
 ### Controls exercised by this scan run
 
 Independent of findings, running and recording this scan produces evidence for
 the following controls. Each entry requires the run to be recorded and retained.
 
-| Control | What evidences it | Standing requirement |
-|---------|-------------------|----------------------|
-| GDPR Art. 32(1)(d), regular testing of effectiveness | This scan, its date, scope and tool versions | Recurrence. One run evidences a test, a schedule evidences the process |
-| ISO 27001 A.8.29 Security Testing in Development and Acceptance | Scan executed before release and result recorded | Retained report per release |
-| ISO 27001 A.8.8 Management of Technical Vulnerabilities | Findings identified, severity assigned, remediation tracked | Closed-loop triage records |
-| ISO 27001 A.8.25 Secure Development Life Cycle | Scan integrated into the development pipeline | Documented pipeline gate |
-| ISO 27001 A.8.32 Change Management | Findings raised and resolved through change records | Linked tickets or commits |
-| DPDPA s.8(5) reasonable security safeguards | Timestamped report plus fix history | Continuous record, retained for Board scrutiny |
+| Control                                                         | What evidences it                                           | Standing requirement                                                   |
+| --------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
+| GDPR Art. 32(1)(d), regular testing of effectiveness            | This scan, its date, scope and tool versions                | Recurrence. One run evidences a test, a schedule evidences the process |
+| ISO 27001 A.8.29 Security Testing in Development and Acceptance | Scan executed before release and result recorded            | Retained report per release                                            |
+| ISO 27001 A.8.8 Management of Technical Vulnerabilities         | Findings identified, severity assigned, remediation tracked | Closed-loop triage records                                             |
+| ISO 27001 A.8.25 Secure Development Life Cycle                  | Scan integrated into the development pipeline               | Documented pipeline gate                                               |
+| ISO 27001 A.8.32 Change Management                              | Findings raised and resolved through change records         | Linked tickets or commits                                              |
+| DPDPA s.8(5) reasonable security safeguards                     | Timestamped report plus fix history                         | Continuous record, retained for Board scrutiny                         |
 
 ### Not evidenced by this scan
 

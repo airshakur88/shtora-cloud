@@ -1,4 +1,5 @@
 ---
+
 title: Never Use Timed Prompts or Press-Any-Key Screens
 impact: HIGH
 impactDescription: prevents wall-clock waste on every retry

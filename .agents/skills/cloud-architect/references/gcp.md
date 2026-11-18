@@ -46,6 +46,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Compute
 
 **Compute Engine**
+
 - Machine types: E2 (cost-optimized), N2 (balanced), C2 (compute-optimized), M2 (memory-optimized)
 - Custom machine types for specific needs
 - Preemptible VMs (up to 80% discount, max 24 hours)
@@ -54,6 +55,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use latest generation, committed use discounts, Spot for batch jobs
 
 **Cloud Run**
+
 - Fully managed serverless container platform
 - Auto-scaling to zero
 - Pay per request
@@ -61,6 +63,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Stateless containers, optimize cold starts, use Cloud Run jobs for batch
 
 **Cloud Functions**
+
 - Event-driven serverless functions
 - 1st gen: HTTP and background functions
 - 2nd gen: Built on Cloud Run, better performance
@@ -68,6 +71,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use 2nd gen, minimize cold starts, implement retry logic
 
 **Google Kubernetes Engine (GKE)**
+
 - Managed Kubernetes with GCP integration
 - Autopilot mode: Fully managed, per-pod pricing
 - Standard mode: More control, node management
@@ -76,6 +80,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use Autopilot for simplicity, enable Workload Identity, implement network policies
 
 **App Engine**
+
 - Fully managed platform (PaaS)
 - Standard environment (sandboxed, auto-scaling)
 - Flexible environment (Docker containers, custom runtimes)
@@ -85,6 +90,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Storage
 
 **Cloud Storage**
+
 - Storage classes: Standard, Nearline (30-day), Coldline (90-day), Archive (365-day)
 - Object lifecycle management
 - Object versioning and retention policies
@@ -93,6 +99,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use Autoclass, enable versioning, implement lifecycle policies
 
 **Persistent Disk**
+
 - Types: Standard (HDD), Balanced SSD, SSD, Extreme
 - Zonal and regional persistent disks
 - Snapshots for backup (incremental)
@@ -100,12 +107,14 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use Balanced SSD for most workloads, enable snapshots
 
 **Filestore**
+
 - Managed NFS file storage
 - Tiers: Basic (1-63.9 TB), Enterprise (1-10 TB, better performance)
 - Backup to Cloud Storage
 - Best practices: Use Enterprise for production, implement backups
 
 **Cloud Storage for Firebase**
+
 - Object storage for mobile and web apps
 - Client SDKs for direct upload/download
 - Security rules for access control
@@ -113,6 +122,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Database
 
 **Cloud SQL**
+
 - Managed MySQL, PostgreSQL, SQL Server
 - High availability configuration (regional)
 - Read replicas for scaling
@@ -120,6 +130,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Enable HA, use read replicas, implement connection pooling with Cloud SQL Proxy
 
 **Cloud Spanner**
+
 - Globally distributed relational database
 - Horizontal scalability with strong consistency
 - Multi-region for 99.999% availability
@@ -127,6 +138,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Design proper schema splits, use commit timestamps, optimize hotspots
 
 **Firestore (Native mode)**
+
 - NoSQL document database
 - Real-time synchronization
 - Offline support for mobile
@@ -134,6 +146,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Design document structure carefully, use collection group queries wisely
 
 **Bigtable**
+
 - NoSQL wide-column database
 - Petabyte-scale with single-digit millisecond latency
 - HBase API compatible
@@ -141,11 +154,13 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Design row keys to avoid hotspots, use replication for HA
 
 **Memorystore**
+
 - Managed Redis and Memcached
 - Standard tier (HA with replica) and Basic tier
 - Best practices: Use Standard tier for production, implement connection pooling
 
 **BigQuery**
+
 - Serverless data warehouse
 - SQL analytics on petabyte-scale data
 - Column-oriented storage
@@ -155,6 +170,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Networking
 
 **VPC (Virtual Private Cloud)**
+
 - Global resource (subnets are regional)
 - Custom or auto mode networks
 - Firewall rules (stateful)
@@ -163,6 +179,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use custom mode VPC, plan IP ranges, implement firewall rules
 
 **Cloud Load Balancing**
+
 - Global load balancing (HTTP(S), TCP/SSL Proxy, external TCP/UDP)
 - Regional load balancing (internal HTTP(S), internal TCP/UDP)
 - Anycast IP for global distribution
@@ -170,24 +187,28 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use global for multi-region, enable CDN, configure health checks
 
 **Cloud CDN**
+
 - Global content delivery network
 - Cache invalidation and signed URLs
 - Integration with Cloud Storage and compute
 - Best practices: Enable compression, use cache-control headers
 
 **Cloud Interconnect and VPN**
+
 - Dedicated Interconnect (10 Gbps or 100 Gbps)
 - Partner Interconnect (50 Mbps to 50 Gbps)
 - Cloud VPN (HA VPN for 99.99% SLA)
 - Best practices: Use HA VPN for redundancy, Dedicated Interconnect for high bandwidth
 
 **Cloud Armor**
+
 - DDoS protection and WAF
 - Preconfigured and custom rules
 - Adaptive protection (ML-based)
 - Best practices: Enable for internet-facing services, use preconfigured rules
 
 **Private Service Connect**
+
 - Private connectivity to Google APIs and services
 - Service Directory for service discovery
 - Best practices: Use for all managed services in production
@@ -195,6 +216,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Serverless and Event-Driven
 
 **Pub/Sub**
+
 - Global message queue
 - At-least-once delivery
 - Push and pull subscriptions
@@ -203,17 +225,20 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use message attributes for filtering, implement idempotent processing
 
 **Eventarc**
+
 - Event-driven architecture
 - Triggers for Cloud Run, Workflows, GKE
 - Sources: Audit Logs, Pub/Sub, custom events
 - Best practices: Use for decoupled architectures, implement event filtering
 
 **Cloud Scheduler**
+
 - Fully managed cron service
 - HTTP, Pub/Sub, and App Engine targets
 - Best practices: Use for periodic tasks, implement retry logic
 
 **Workflows**
+
 - Orchestrate and automate GCP and HTTP services
 - YAML-based workflow definition
 - Built-in error handling and retry
@@ -222,6 +247,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### Security and Identity
 
 **Cloud IAM**
+
 - Resource hierarchy: Organization -> Folders -> Projects -> Resources
 - Roles: Primitive (Owner, Editor, Viewer), Predefined, Custom
 - Service accounts for applications
@@ -229,6 +255,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use predefined roles, least privilege, service accounts for apps
 
 **Cloud Key Management (KMS)**
+
 - Encryption key management
 - Customer-managed encryption keys (CMEK)
 - Hardware Security Module (HSM) backed
@@ -236,18 +263,21 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Enable automatic rotation, use separate keys per environment
 
 **Secret Manager**
+
 - Store API keys, passwords, certificates
 - Versioning and access control
 - Automatic rotation integration
 - Best practices: Rotate secrets regularly, use IAM for access control
 
 **Security Command Center**
+
 - Centralized security and risk management
 - Asset discovery and vulnerability scanning
 - Threat detection and compliance monitoring
 - Best practices: Enable all detectors, review findings regularly
 
 **VPC Service Controls**
+
 - Create security perimeters around GCP resources
 - Prevent data exfiltration
 - Best practices: Use for sensitive data, implement access levels
@@ -255,6 +285,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### AI and Machine Learning
 
 **Vertex AI**
+
 - Unified ML platform
 - AutoML for custom models
 - Pre-trained models (Vision, Natural Language, etc.)
@@ -262,6 +293,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 - Best practices: Use AutoML for quick start, implement feature store
 
 **BigQuery ML**
+
 - Create and execute ML models using SQL
 - Model types: Linear regression, logistic regression, clustering, etc.
 - Integration with Vertex AI
@@ -272,6 +304,7 @@ Comprehensive guide for Google Cloud Platform services, patterns, and architectu
 ### High Availability
 
 **Multi-Zone Pattern**
+
 ```
 Global HTTP(S) Load Balancer
     |
@@ -286,6 +319,7 @@ Cloud Storage (multi-region)
 ```
 
 **Multi-Region Pattern**
+
 ```
 Global HTTP(S) Load Balancer
     |
@@ -299,6 +333,7 @@ Global HTTP(S) Load Balancer
 ### Serverless Architecture
 
 **Event-Driven Pattern**
+
 ```
 Cloud Storage upload event
     |
@@ -313,6 +348,7 @@ Firestore (metadata storage)
 ```
 
 **API-First Pattern**
+
 ```
 Cloud Endpoints or API Gateway
     |
@@ -326,6 +362,7 @@ Cloud Run (multiple services)
 ### Microservices on GKE
 
 **GKE with Service Mesh**
+
 ```
 Global Load Balancer
     |
@@ -358,6 +395,7 @@ Looker or Data Studio (visualization)
 ```
 
 **Batch Processing**
+
 ```
 Cloud Storage (raw data)
     |
@@ -389,6 +427,7 @@ Organization
 ### Network Design
 
 **Shared VPC Pattern**
+
 ```
 Host Project (networking team)
 ├── Shared VPC
@@ -403,6 +442,7 @@ Service Projects (application teams)
 ```
 
 **Hub-and-Spoke with VPN**
+
 ```
 On-premises Network
     |
@@ -420,18 +460,21 @@ Hub VPC (shared services)
 ### Governance
 
 **Organization Policies**
+
 - Restrict public IP assignment
 - Enforce uniform bucket-level access
 - Restrict VM external IP
 - Define allowed resource locations
 
 **IAM Strategy**
+
 - Use Google Groups for role assignments
 - Separate duties (network admin, security admin, etc.)
 - Service accounts per application
 - Workload Identity for GKE workloads
 
 **Logging and Monitoring**
+
 ```
 All Projects
     |
@@ -449,12 +492,14 @@ Log Router
 ### Migrate to Virtual Machines
 
 **Tools**
+
 - Migrate to Virtual Machines (formerly Migrate for Compute Engine)
 - Supports VMware, AWS, Azure, physical servers
 - Agentless or agent-based migration
 - Waves and test clones
 
 **Process**
+
 1. Assess: Fit assessment and TCO analysis
 2. Plan: Group VMs, define migration waves
 3. Deploy: Set up infrastructure (VPC, firewall rules)
@@ -464,11 +509,13 @@ Log Router
 ### Database Migration
 
 **Database Migration Service**
+
 - Minimal downtime migrations
 - Supports MySQL, PostgreSQL, SQL Server, Oracle
 - Continuous replication for cutover flexibility
 
 **Transfer Appliance**
+
 - Physical device for large data transfers
 - Up to 1 PB capacity
 - Offline data transfer
@@ -478,21 +525,25 @@ Log Router
 ### Compute Savings
 
 **Committed Use Discounts**
+
 - 1-year or 3-year commitments
 - Up to 57% savings for VMs
 - Resource-based or spend-based
 
 **Sustained Use Discounts**
+
 - Automatic discounts for running VMs >25% of month
 - Up to 30% savings
 - No commitment required
 
 **Preemptible and Spot VMs**
+
 - Up to 80% discount
 - Can be terminated by GCP
 - Best for batch processing, fault-tolerant workloads
 
 **Recommender**
+
 - VM rightsizing recommendations
 - Idle resource identification
 - Committed use discount recommendations
@@ -500,12 +551,14 @@ Log Router
 ### Storage Savings
 
 **Cloud Storage**
+
 - Autoclass for automatic tier transitions
 - Lifecycle policies (delete or transition)
 - Nearline (30+ days), Coldline (90+ days), Archive (365+ days)
 - Requester pays for data transfer
 
 **Persistent Disk**
+
 - Delete orphaned disks
 - Use balanced SSD instead of SSD when possible
 - Resize disks to match actual usage
@@ -513,16 +566,19 @@ Log Router
 ### BigQuery Savings
 
 **On-Demand Pricing**
+
 - $5 per TB processed
 - Use partitioning and clustering
 - Query cache for free repeated queries
 
 **Flat-Rate Pricing**
+
 - Predictable costs for heavy users
 - Autoscaling slots available
 - Flex slots for short-term commitments
 
 **Best Practices**
+
 - Use approximate aggregation functions (APPROX_COUNT_DISTINCT)
 - Avoid SELECT *, specify columns
 - Use materialized views for common queries
@@ -531,6 +587,7 @@ Log Router
 ### Monitoring Costs
 
 **Cloud Billing**
+
 - Budgets and alerts
 - Cost breakdown by project, service, SKU
 - Export to BigQuery for analysis
@@ -541,12 +598,14 @@ Log Router
 ### Backup Strategies
 
 **VM Backups**
+
 - Persistent disk snapshots (incremental)
 - Machine images (include metadata and config)
 - Cross-region snapshot copy
 - Snapshot schedules for automation
 
 **Database Backups**
+
 - Cloud SQL: Automated backups (7-365 days retention)
 - Cloud Spanner: Backups on demand or scheduled
 - Firestore: Automated daily exports
@@ -556,19 +615,21 @@ Log Router
 
 **RTO/RPO Matrix**
 
-| Pattern | RPO | RTO | Cost |
-|---------|-----|-----|------|
-| Active-Active Multi-Region | Seconds | Seconds | High |
-| Active-Passive with Replication | Minutes | Minutes | Medium |
-| Warm Standby | Minutes | 10-30 min | Medium |
-| Backup and Restore | Hours | Hours | Low |
+| Pattern                         | RPO     | RTO       | Cost   |
+| ------------------------------- | ------- | --------- | ------ |
+| Active-Active Multi-Region      | Seconds | Seconds   | High   |
+| Active-Passive with Replication | Minutes | Minutes   | Medium |
+| Warm Standby                    | Minutes | 10-30 min | Medium |
+| Backup and Restore              | Hours   | Hours     | Low    |
 
 **Cloud SQL HA**
+
 - Regional configuration with synchronous replication
 - Automatic failover
 - 99.95% SLA (vs 99.5% for single zone)
 
 **Cloud Spanner**
+
 - Multi-region configuration
 - 99.999% availability SLA
 - Synchronous replication across regions
@@ -585,12 +646,14 @@ Log Router
 ### Cloud Monitoring (formerly Stackdriver)
 
 **Metrics**
+
 - System metrics (CPU, memory, disk, network)
 - Custom metrics via Cloud Monitoring API
 - Metric scopes for multi-project monitoring
 - Uptime checks for availability
 
 **Dashboards and Charts**
+
 - Predefined dashboards for GCP services
 - Custom dashboards with filters and grouping
 - SLO monitoring with error budgets
@@ -598,12 +661,14 @@ Log Router
 ### Cloud Logging
 
 **Log Types**
+
 - Admin Activity logs (always enabled, no charge)
 - Data Access logs (must be enabled)
 - System Event logs
 - Access Transparency logs (for Google access)
 
 **Log Sinks**
+
 - Route logs to BigQuery, Cloud Storage, Pub/Sub
 - Aggregated sinks at organization/folder level
 - Exclusion filters to reduce costs
@@ -611,6 +676,7 @@ Log Router
 ### Cloud Trace
 
 **Distributed Tracing**
+
 - Automatic instrumentation for App Engine, Cloud Run, GKE
 - Manual instrumentation with client libraries
 - Latency analysis and performance insights
@@ -619,6 +685,7 @@ Log Router
 ### Cloud Profiler
 
 **Continuous Profiling**
+
 - CPU and memory profiling
 - Low overhead (< 0.5% CPU)
 - Flame graphs for visualization
@@ -627,6 +694,7 @@ Log Router
 ### Error Reporting
 
 **Aggregated Error Tracking**
+
 - Automatic error grouping
 - Stack trace analysis
 - Integration with Cloud Logging

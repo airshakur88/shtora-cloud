@@ -1,4 +1,5 @@
 ---
+
 name: windows-diagnostics
 description: "360-degree Windows system health diagnostics — covers CPU, memory, disk, network, security, startup programs, services, system info, hardware, and installed software. Use this skill whenever the user mentions system diagnostics, PC health check, performance issues, 'why is my computer slow', disk space, memory usage, startup optimization, security audit, bloatware removal, system cleanup, laptop health, or wants to keep their PC in prime condition. Also use when the user asks about high CPU, RAM usage, what's eating their disk, or wants a full system report."
 ---
@@ -28,6 +29,7 @@ python "C:/Users/simon/.claude/skills/windows-diagnostics/scripts/generate_repor
 This reads the JSON, applies severity rules, and produces a styled HTML report at `./SystemHealthReport_YYYY-MM-DD.html` (in the current working directory). It also prints a summary to stdout.
 
 Optionally specify a custom output path:
+
 ```bash
 python "C:/Users/simon/.claude/skills/windows-diagnostics/scripts/generate_report.py" "/path/to/report.html"
 ```
@@ -46,6 +48,7 @@ For each finding, include the recommendation. Be specific and actionable.
 ### Step 4: Offer follow-up actions
 
 Based on findings, offer to help with:
+
 - Removing bloatware (`Get-AppxPackage -Name "..." | Remove-AppxPackage`)
 - Disabling unnecessary startup programs
 - Running Disk Cleanup
@@ -56,6 +59,7 @@ Based on findings, offer to help with:
 ## Admin vs Non-Admin
 
 The script works without admin, but these features require elevation:
+
 - Windows Defender detailed status
 - Full event log access
 - Physical disk SMART data
@@ -69,6 +73,7 @@ To re-run elevated, the user should open an admin terminal and run the same comm
 ## Interpreting Results
 
 Read `references/severity_rules.md` for the full classification rules. Key thresholds:
+
 - Disk: <5% free = CRITICAL, <15% = WARNING
 - Memory: >95% = CRITICAL, >85% = WARNING
 - CPU: >95% = CRITICAL, >90% = WARNING

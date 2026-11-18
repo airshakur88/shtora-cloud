@@ -101,11 +101,11 @@ withAnimation(.elastic(duration: 0.5)) { isActive.toggle() }
 
 ### Supporting Types
 
-| Type | Role |
-|---|---|
+| Type                  | Role                                        |
+| --------------------- | ------------------------------------------- |
 | `AnimationContext<V>` | Carries environment and per-animation state |
-| `AnimationState` | Key-value storage for persisted state |
-| `AnimationStateKey` | Protocol for defining custom state keys |
+| `AnimationState`      | Key-value storage for persisted state       |
+| `AnimationStateKey`   | Protocol for defining custom state keys     |
 
 ## Spring Type -- All Initializer Variants
 
@@ -394,12 +394,12 @@ KeyframeAnimator(
 
 ### Keyframe Type Reference
 
-| Type | Interpolation | Use case |
-|---|---|---|
-| `LinearKeyframe(value, duration:)` | Straight line between values | Steady movement |
-| `CubicKeyframe(value, duration:)` | Cubic bezier curve | Smooth easing |
-| `SpringKeyframe(value, duration:, spring:)` | Spring physics | Natural settle |
-| `MoveKeyframe(value)` | Instant jump | Reset to value immediately |
+| Type                                        | Interpolation                | Use case                   |
+| ------------------------------------------- | ---------------------------- | -------------------------- |
+| `LinearKeyframe(value, duration:)`          | Straight line between values | Steady movement            |
+| `CubicKeyframe(value, duration:)`           | Cubic bezier curve           | Smooth easing              |
+| `SpringKeyframe(value, duration:, spring:)` | Spring physics               | Natural settle             |
+| `MoveKeyframe(value)`                       | Instant jump                 | Reset to value immediately |
 
 ### Swift 6 Sendable Closure Captures
 
@@ -505,21 +505,21 @@ CardView(isExpanded: isExpanded)
 
 ### Built-in Transitions
 
-| Transition | Description | Example |
-|---|---|---|
-| `.opacity` | Fade in/out | `.transition(.opacity)` |
-| `.slide` | Slide from leading, exit trailing | `.transition(.slide)` |
-| `.scale` | Scale from zero | `.transition(.scale)` |
-| `.scale(_:anchor:)` | Scale with amount and anchor | `.transition(.scale(0.5, anchor: .bottom))` |
-| `.move(edge:)` | Move from specified edge | `.transition(.move(edge: .top))` |
-| `.push(from:)` | Push from edge with fade | `.transition(.push(from: .trailing))` |
-| `.offset(_:)` | Offset by CGSize | `.transition(.offset(CGSize(width: 0, height: 50)))` |
-| `.offset(x:y:)` | Offset by x and y | `.transition(.offset(x: 0, y: -100))` |
-| `.identity` | No visual change | `.transition(.identity)` |
-| `.blurReplace` | Blur and scale combined | `.transition(.blurReplace)` |
-| `.blurReplace(_:)` | Configurable blur replace | `.transition(.blurReplace(.downUp))` |
-| `.symbolEffect` | Default symbol effect | `.transition(.symbolEffect)` |
-| `.symbolEffect(_:options:)` | Custom symbol effect | `.transition(.symbolEffect(.appear))` |
+| Transition                  | Description                       | Example                                              |
+| --------------------------- | --------------------------------- | ---------------------------------------------------- |
+| `.opacity`                  | Fade in/out                       | `.transition(.opacity)`                              |
+| `.slide`                    | Slide from leading, exit trailing | `.transition(.slide)`                                |
+| `.scale`                    | Scale from zero                   | `.transition(.scale)`                                |
+| `.scale(_:anchor:)`         | Scale with amount and anchor      | `.transition(.scale(0.5, anchor: .bottom))`          |
+| `.move(edge:)`              | Move from specified edge          | `.transition(.move(edge: .top))`                     |
+| `.push(from:)`              | Push from edge with fade          | `.transition(.push(from: .trailing))`                |
+| `.offset(_:)`               | Offset by CGSize                  | `.transition(.offset(CGSize(width: 0, height: 50)))` |
+| `.offset(x:y:)`             | Offset by x and y                 | `.transition(.offset(x: 0, y: -100))`                |
+| `.identity`                 | No visual change                  | `.transition(.identity)`                             |
+| `.blurReplace`              | Blur and scale combined           | `.transition(.blurReplace)`                          |
+| `.blurReplace(_:)`          | Configurable blur replace         | `.transition(.blurReplace(.downUp))`                 |
+| `.symbolEffect`             | Default symbol effect             | `.transition(.symbolEffect)`                         |
+| `.symbolEffect(_:options:)` | Custom symbol effect              | `.transition(.symbolEffect(.appear))`                |
 
 ### Combining Transitions
 
@@ -591,10 +591,10 @@ are iOS 18+.
 
 ### Discrete Effects (trigger with `value:`)
 
-| Effect | Availability | Scope | Direction |
-|---|---|---|---|
-| `.bounce` | iOS 17+ | `.byLayer`, `.wholeSymbol` | -- |
-| `.wiggle` | iOS 18+ | `.byLayer`, `.wholeSymbol` | `.up`, `.down`, `.left`, `.right`, `.forward`, `.backward`, `.clockwise`, `.counterClockwise`, `.custom(angle:)` |
+| Effect    | Availability | Scope                      | Direction                                                                                                        |
+| --------- | ------------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `.bounce` | iOS 17+      | `.byLayer`, `.wholeSymbol` | --                                                                                                               |
+| `.wiggle` | iOS 18+      | `.byLayer`, `.wholeSymbol` | `.up`, `.down`, `.left`, `.right`, `.forward`, `.backward`, `.clockwise`, `.counterClockwise`, `.custom(angle:)` |
 
 ```swift
 Image(systemName: "bell.fill")
@@ -607,13 +607,13 @@ Image(systemName: "arrow.left.arrow.right")
 
 ### Indefinite Effects (toggle with `isActive:`)
 
-| Effect | Availability | Scope | Direction |
-|---|---|---|---|
-| `.pulse` | iOS 17+ | `.byLayer`, `.wholeSymbol` | -- |
-| `.variableColor` | iOS 17+ | `.byLayer`, `.wholeSymbol` | Chaining: `.cumulative`/`.iterative`, `.reversing`/`.nonReversing`, `.dimInactiveLayers`/`.hideInactiveLayers` |
-| `.scale` | iOS 17+ | `.byLayer`, `.wholeSymbol` | `.up`, `.down` |
-| `.breathe` | iOS 18+ | `.byLayer`, `.wholeSymbol` | -- |
-| `.rotate` | iOS 18+ | `.byLayer`, `.wholeSymbol` | `.clockwise`, `.counterClockwise` |
+| Effect           | Availability | Scope                      | Direction                                                                                                      |
+| ---------------- | ------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `.pulse`         | iOS 17+      | `.byLayer`, `.wholeSymbol` | --                                                                                                             |
+| `.variableColor` | iOS 17+      | `.byLayer`, `.wholeSymbol` | Chaining: `.cumulative`/`.iterative`, `.reversing`/`.nonReversing`, `.dimInactiveLayers`/`.hideInactiveLayers` |
+| `.scale`         | iOS 17+      | `.byLayer`, `.wholeSymbol` | `.up`, `.down`                                                                                                 |
+| `.breathe`       | iOS 18+      | `.byLayer`, `.wholeSymbol` | --                                                                                                             |
+| `.rotate`        | iOS 18+      | `.byLayer`, `.wholeSymbol` | `.clockwise`, `.counterClockwise`                                                                              |
 
 ```swift
 Image(systemName: "wifi")
@@ -843,6 +843,7 @@ ChildView()
 ### Profile with Instruments
 
 Use the Core Animation instrument in Xcode Instruments to verify:
+
 - The chosen sustainable target frame rate has no avoidable dropped frames; refresh rates are system-managed hints, not guarantees.
 - No offscreen rendering passes.
 - GPU utilization stays reasonable during animations.

@@ -1,10 +1,11 @@
 ---
+
 name: "ghost-report"
 description: "Ghost Security — combined security report. Aggregates findings from all scan skills (scan-deps, scan-secrets, scan-code) into a single prioritized report focused on the highest risk, highest confidence issues. Use when the user requests a security overview, vulnerability summary, full security audit, or combined scan results."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 license: apache-2.0
 metadata:
-  version: 1.1.0
+version: 1.1.0
 ---
 
 # Combined Security Report
@@ -18,6 +19,7 @@ $ARGUMENTS
 ## Step 0: Setup
 
 Run this Bash command to compute paths:
+
 ```bash
 repo_name=$(basename "$(pwd)") && remote_url=$(git remote get-url origin 2>/dev/null || pwd) && short_hash=$(printf '%s' "$remote_url" | git hash-object --stdin | cut -c1-8) && repo_id="${repo_name}-${short_hash}" && short_sha=$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d) && ghost_repo_dir="$HOME/.ghost/repos/${repo_id}" && scans_dir="${ghost_repo_dir}/scans/${short_sha}" && cache_dir="${ghost_repo_dir}/cache" && skill_dir=$(find . -path '*/skills/report/SKILL.md' 2>/dev/null | head -1 | xargs dirname) && echo "scans_dir=$scans_dir cache_dir=$cache_dir skill_dir=$skill_dir"
 ```
@@ -41,6 +43,7 @@ And stop. Do not regenerate it.
 ## Step 1: Read Repo Context
 
 Read `<cache_dir>/repo.md` if it exists. Extract:
+
 - Business criticality
 - Sensitive data types
 - Component map
@@ -52,6 +55,7 @@ If it does not exist, continue without it — this is not an error.
 ## Step 2: Discover Scan Results
 
 List the contents of `<scans_dir>` to see which scan-type directories exist. Recognized types:
+
 - `deps/` — SCA / dependency vulnerability scan
 - `secrets/` — secrets and credentials scan
 - `code/` — code security scan (SAST)
@@ -85,6 +89,7 @@ From each finding, also extract these metadata fields for filtering and sorting:
 ## Step 4: Filter and Sort
 
 **Filter:** Keep only high-confidence findings:
+
 - For `deps` findings: status is `confirmed-exploitable`
 - For `secrets` findings: status is NOT `clean` and NOT `rejected`
 - For `code` findings: status is `verified` or `unverified` (NOT `rejected`)
@@ -92,6 +97,7 @@ From each finding, also extract these metadata fields for filtering and sorting:
 **Exclude** any finding with status `clean`, `rejected`, or `false-positive`.
 
 **Sort** the remaining findings:
+
 1. By severity: high first, then medium, then low
 2. Within same severity: deps before secrets before code
 
@@ -100,6 +106,7 @@ From each finding, also extract these metadata fields for filtering and sorting:
 ## Step 5: Read Per-Scan Reports
 
 For `deps` and `secrets` scan types, read `<scans_dir>/<type>/report.md` if present. Extract:
+
 - Statistics (candidates scanned, confirmed findings, false positives filtered)
 - Executive summary highlights
 

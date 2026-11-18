@@ -1,4 +1,5 @@
 ---
+
 name: frontend-architecture
 description: Use when writing, reviewing, or refactoring TypeScript frontend code, including React components, Astro or Next.js apps, shared UI packages, client state, server-state fetching, forms, styling systems, routing, analytics, frontend tests, and frontend architecture decisions.
 license: MIT
@@ -85,29 +86,29 @@ Controller + primitive shape:
 
 ```tsx
 export function ResourcePickerController(): React.JSX.Element {
-  const { data = [] } = useQuery(resourceListQueryOptions)
-  const create = useCreateResourceMutation()
+	const { data = [] } = useQuery(resourceListQueryOptions);
+	const create = useCreateResourceMutation();
 
-  return (
-    <ResourcePicker
-      resources={data}
-      onCreate={(name) => create.mutateAsync({ name })}
-      renderEmpty={() => <EmptyState title="No resources yet" />}
-    />
-  )
+	return (
+		<ResourcePicker
+			resources={data}
+			onCreate={(name) => create.mutateAsync({ name })}
+			renderEmpty={() => <EmptyState title="No resources yet" />}
+		/>
+	);
 }
 
 export function ResourcePicker({
-  resources,
-  onCreate,
-  renderEmpty,
+	resources,
+	onCreate,
+	renderEmpty,
 }: {
-  resources: ResourceSummary[]
-  onCreate: (name: string) => Promise<void>
-  renderEmpty: () => React.ReactNode
+	resources: ResourceSummary[];
+	onCreate: (name: string) => Promise<void>;
+	renderEmpty: () => React.ReactNode;
 }): React.JSX.Element {
-  if (resources.length === 0) return <>{renderEmpty()}</>
-  return <ResourceList items={resources} onCreate={onCreate} />
+	if (resources.length === 0) return <>{renderEmpty()}</>;
+	return <ResourceList items={resources} onCreate={onCreate} />;
 }
 ```
 
@@ -138,19 +139,25 @@ Compound components are a good fit when a reusable layout has named regions:
 
 ```tsx
 type PanelProps = {
-  children: React.ReactNode
-  className?: string
-}
+	children: React.ReactNode;
+	className?: string;
+};
 
 function PanelRoot({ children, className }: PanelProps): React.JSX.Element {
-  return <section className={cn("rounded-md border bg-card", className)}>{children}</section>
+	return (
+		<section className={cn("rounded-md border bg-card", className)}>
+			{children}
+		</section>
+	);
 }
 
 function PanelActions({ children, className }: PanelProps): React.JSX.Element {
-  return <div className={cn("flex items-center gap-2", className)}>{children}</div>
+	return (
+		<div className={cn("flex items-center gap-2", className)}>{children}</div>
+	);
 }
 
-export const Panel = Object.assign(PanelRoot, { Actions: PanelActions })
+export const Panel = Object.assign(PanelRoot, { Actions: PanelActions });
 ```
 
 Do not add one-off props like `buttonLabel`, `actionSlotClassName`, or `isSpecialFeatureMode` to a generic container when a child component would make the caller clearer.
@@ -173,27 +180,28 @@ Create a shared API fetcher when many features call REST endpoints directly. It 
 Typed query options keep keys, fetchers, and cache policy together:
 
 ```ts
-import { queryOptions } from "@tanstack/react-query"
+import { queryOptions } from "@tanstack/react-query";
 
-export const resourceListQueryKey = ["resources", "list"] as const
-export const resourceDetailQueryKey = (id: string) => ["resources", "detail", id] as const
+export const resourceListQueryKey = ["resources", "list"] as const;
+export const resourceDetailQueryKey = (id: string) =>
+	["resources", "detail", id] as const;
 
 export const resourceListQueryOptions = queryOptions({
-  queryKey: resourceListQueryKey,
-  queryFn: fetchResources,
-  staleTime: 60_000,
-})
+	queryKey: resourceListQueryKey,
+	queryFn: fetchResources,
+	staleTime: 60_000,
+});
 
 export const resourceDetailQueryOptions = (id: string | undefined) =>
-  queryOptions({
-    queryKey: resourceDetailQueryKey(id ?? ""),
-    queryFn: () => {
-      if (!id) throw new Error("Resource ID is required")
-      return fetchResource(id)
-    },
-    enabled: Boolean(id),
-    staleTime: 30_000,
-  })
+	queryOptions({
+		queryKey: resourceDetailQueryKey(id ?? ""),
+		queryFn: () => {
+			if (!id) throw new Error("Resource ID is required");
+			return fetchResource(id);
+		},
+		enabled: Boolean(id),
+		staleTime: 30_000,
+	});
 ```
 
 For tRPC-style clients, keep the same ownership even if the generated hooks already expose query keys and invalidation helpers. A feature service hook may group related procedures and cache updates, but avoid becoming a hidden business layer with unrelated concerns.
@@ -202,19 +210,19 @@ For action-style APIs, service objects can group cache keys, fetcher stores, mut
 
 ```ts
 export const resourceService = {
-  keys: {
-    list: () => ["resources"],
-    detail: (id: string | null) => ["resource", String(id)],
-  },
-  useList: () => useLiveQuery($resources, []),
-  async update(id: string, payload: UpdateResourceInput) {
-    const { data, error } = await actions.resource.update({ id, ...payload })
-    if (error) throw error
-    mutateCache(resourceService.keys.detail(id), data)
-    revalidateKeys(resourceService.keys.list())
-    return data
-  },
-}
+	keys: {
+		list: () => ["resources"],
+		detail: (id: string | null) => ["resource", String(id)],
+	},
+	useList: () => useLiveQuery($resources, []),
+	async update(id: string, payload: UpdateResourceInput) {
+		const { data, error } = await actions.resource.update({ id, ...payload });
+		if (error) throw error;
+		mutateCache(resourceService.keys.detail(id), data);
+		revalidateKeys(resourceService.keys.list());
+		return data;
+	},
+};
 ```
 
 Do not let these services become unrelated grab bags. If a service groups cache operations, API calls, and derived selectors, they should all belong to one user workflow or domain.
@@ -233,28 +241,37 @@ Expected request failures should surface as typed errors or result shapes that U
 Optimistic mutation shape:
 
 ```tsx
-const renameMutation = useMutation<Resource, Error, string, { previous?: ResourceList }>({
-  mutationFn: (name) => updateResourceName({ id, name }),
-  onMutate: async (name) => {
-    await queryClient.cancelQueries({ queryKey: resourceListQueryKey })
-    const previous = queryClient.getQueryData<ResourceList>(resourceListQueryKey)
-    queryClient.setQueryData<ResourceList>(resourceListQueryKey, (current) =>
-      current ? current.map((item) => (item.id === id ? { ...item, name } : item)) : current,
-    )
-    return { previous }
-  },
-  onError: (error, _name, context) => {
-    if (context?.previous) queryClient.setQueryData(resourceListQueryKey, context.previous)
-    toast.error(error.message)
-  },
-  onSuccess: (resource) => {
-    queryClient.setQueryData(resourceDetailQueryKey(resource.id), resource)
-    track("resource:update_name")
-  },
-  onSettled: () => {
-    void queryClient.invalidateQueries({ queryKey: resourceListQueryKey })
-  },
-})
+const renameMutation = useMutation<
+	Resource,
+	Error,
+	string,
+	{ previous?: ResourceList }
+>({
+	mutationFn: (name) => updateResourceName({ id, name }),
+	onMutate: async (name) => {
+		await queryClient.cancelQueries({ queryKey: resourceListQueryKey });
+		const previous =
+			queryClient.getQueryData<ResourceList>(resourceListQueryKey);
+		queryClient.setQueryData<ResourceList>(resourceListQueryKey, (current) =>
+			current
+				? current.map((item) => (item.id === id ? { ...item, name } : item))
+				: current,
+		);
+		return { previous };
+	},
+	onError: (error, _name, context) => {
+		if (context?.previous)
+			queryClient.setQueryData(resourceListQueryKey, context.previous);
+		toast.error(error.message);
+	},
+	onSuccess: (resource) => {
+		queryClient.setQueryData(resourceDetailQueryKey(resource.id), resource);
+		track("resource:update_name");
+	},
+	onSettled: () => {
+		void queryClient.invalidateQueries({ queryKey: resourceListQueryKey });
+	},
+});
 ```
 
 Set query clients up at the app boundary with a stable instance, usually `useState(() => new QueryClient())`. In tests, use a deterministic query client with retries disabled.
@@ -287,26 +304,29 @@ Dirty editor-store shape:
 
 ```ts
 const $editor = map<EditorState>({
-  dirty: false,
-  config: structuredClone(DEFAULT_CONFIG),
-})
+	dirty: false,
+	config: structuredClone(DEFAULT_CONFIG),
+});
 
 const saveConfig = debounce((config: EditorConfig) => {
-  void actions.resourceConfig.update({ config }).then(() => previewStore.invalidate())
-}, 100)
+	void actions.resourceConfig
+		.update({ config })
+		.then(() => previewStore.invalidate());
+}, 100);
 
 $editor.listen((state) => {
-  if (typeof window === "undefined") return
-  if (!state.dirty) return
-  saveConfig(state.config)
-})
+	if (typeof window === "undefined") return;
+	if (!state.dirty) return;
+	saveConfig(state.config);
+});
 
 export const editorService = {
-  useState: () => useStore($editor),
-  reset: () => $editor.set({ dirty: false, config: structuredClone(DEFAULT_CONFIG) }),
-  updateConfig: (config: EditorConfig) => $editor.setKey("config", config),
-  markDirty: () => $editor.setKey("dirty", true),
-}
+	useState: () => useStore($editor),
+	reset: () =>
+		$editor.set({ dirty: false, config: structuredClone(DEFAULT_CONFIG) }),
+	updateConfig: (config: EditorConfig) => $editor.setKey("config", config),
+	markDirty: () => $editor.setKey("dirty", true),
+};
 ```
 
 For persisted UX state, use small named cookies, local storage helpers, or persistent atoms behind service methods like `saveDraft`, `getDraft`, and `clearDraft`. Do not scatter storage keys through components.
@@ -335,43 +355,49 @@ Form guidance:
 Compact pattern:
 
 ```tsx
-const optionalNameSchema = z.union([z.literal(""), ResourceSchema.shape.name])
+const optionalNameSchema = z.union([z.literal(""), ResourceSchema.shape.name]);
 
 export function ResourceForm({
-  defaultValues,
-  onSubmit,
+	defaultValues,
+	onSubmit,
 }: {
-  defaultValues?: { name?: string }
-  onSubmit: (values: { name?: string }) => Promise<void>
+	defaultValues?: { name?: string };
+	onSubmit: (values: { name?: string }) => Promise<void>;
 }): React.JSX.Element {
-  const form = useForm({
-    defaultValues: { name: defaultValues?.name ?? "" },
-    onSubmit: async ({ value }) => {
-      await onSubmit({ name: value.name.trim() || undefined })
-    },
-  })
+	const form = useForm({
+		defaultValues: { name: defaultValues?.name ?? "" },
+		onSubmit: async ({ value }) => {
+			await onSubmit({ name: value.name.trim() || undefined });
+		},
+	});
 
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault()
-        void form.handleSubmit()
-      }}
-    >
-      <form.Field name="name" validators={{ onBlur: optionalNameSchema, onSubmit: optionalNameSchema }}>
-        {(field) => (
-          <input
-            id={field.name}
-            name={field.name}
-            value={field.state.value}
-            onBlur={field.handleBlur}
-            onChange={(event) => field.handleChange(event.target.value)}
-            aria-invalid={field.state.meta.errors.length > 0}
-          />
-        )}
-      </form.Field>
-    </form>
-  )
+	return (
+		<form
+			onSubmit={(event) => {
+				event.preventDefault();
+				void form.handleSubmit();
+			}}
+		>
+			<form.Field
+				name="name"
+				validators={{
+					onBlur: optionalNameSchema,
+					onSubmit: optionalNameSchema,
+				}}
+			>
+				{(field) => (
+					<input
+						id={field.name}
+						name={field.name}
+						value={field.state.value}
+						onBlur={field.handleBlur}
+						onChange={(event) => field.handleChange(event.target.value)}
+						aria-invalid={field.state.meta.errors.length > 0}
+					/>
+				)}
+			</form.Field>
+		</form>
+	);
 }
 ```
 
@@ -411,19 +437,26 @@ Registry + transform shape:
 
 ```ts
 const widgetConfig = {
-  table: [TableEditor, buildTableWidget],
-  chart: [ChartEditor, buildChartWidget],
-  metric: [MetricEditor, buildMetricWidget],
-} as const
+	table: [TableEditor, buildTableWidget],
+	chart: [ChartEditor, buildChartWidget],
+	metric: [MetricEditor, buildMetricWidget],
+} as const;
 
-export type WidgetType = keyof typeof widgetConfig
-export type WidgetConfigValue = { id: string; type: WidgetType; title?: string }
+export type WidgetType = keyof typeof widgetConfig;
+export type WidgetConfigValue = {
+	id: string;
+	type: WidgetType;
+	title?: string;
+};
 
-export function buildWidget(config: WidgetConfigValue, data: ResultData): Widget | null {
-  const entry = widgetConfig[config.type]
-  if (!entry) return null
-  const [, build] = entry
-  return build(config, data)
+export function buildWidget(
+	config: WidgetConfigValue,
+	data: ResultData,
+): Widget | null {
+	const entry = widgetConfig[config.type];
+	if (!entry) return null;
+	const [, build] = entry;
+	return build(config, data);
 }
 ```
 

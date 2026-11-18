@@ -12,6 +12,7 @@ Query data stored in R2 using distributed SQL without extraction or ETL pipeline
 R2 SQL is a distributed SQL engine that allows querying data stored in R2 buckets without moving it. Query CSV, JSON, Parquet, and other structured formats directly from R2 using standard SQL syntax.
 
 **Key Benefits**:
+
 - **No ETL required** - Query data in place without extraction
 - **Cost-effective** - No data egress fees, pay only for compute
 - **Scalable** - Distributed execution across Cloudflare's network
@@ -19,6 +20,7 @@ R2 SQL is a distributed SQL engine that allows querying data stored in R2 bucket
 - **Real-time analytics** - Query fresh data instantly
 
 **Use Cases**:
+
 - Log analysis and monitoring
 - Business intelligence and reporting
 - Data exploration and ad-hoc queries
@@ -31,14 +33,14 @@ R2 SQL is a distributed SQL engine that allows querying data stored in R2 bucket
 
 R2 SQL can query these file formats:
 
-| Format | Description | Best For |
-|--------|-------------|----------|
-| **Parquet** | Columnar format, highly compressed | Large datasets, analytics |
-| **CSV** | Comma-separated values | Simple tabular data |
-| **JSON** | JavaScript Object Notation | Semi-structured data, logs |
-| **NDJSON** | Newline-delimited JSON | Streaming logs, events |
-| **ORC** | Optimized Row Columnar | Hadoop ecosystem data |
-| **Avro** | Binary serialization format | Schema evolution needs |
+| Format      | Description                        | Best For                   |
+| ----------- | ---------------------------------- | -------------------------- |
+| **Parquet** | Columnar format, highly compressed | Large datasets, analytics  |
+| **CSV**     | Comma-separated values             | Simple tabular data        |
+| **JSON**    | JavaScript Object Notation         | Semi-structured data, logs |
+| **NDJSON**  | Newline-delimited JSON             | Streaming logs, events     |
+| **ORC**     | Optimized Row Columnar             | Hadoop ecosystem data      |
+| **Avro**    | Binary serialization format        | Schema evolution needs     |
 
 **Recommended**: Parquet for best performance and compression.
 
@@ -49,49 +51,49 @@ R2 SQL can query these file formats:
 ### 1. Store Queryable Data in R2
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  DATA_BUCKET: R2Bucket;
+	DATA_BUCKET: R2Bucket;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Upload CSV data
-app.post('/upload/logs', async (c) => {
-  const csvData = `timestamp,level,message,user_id
+app.post("/upload/logs", async (c) => {
+	const csvData = `timestamp,level,message,user_id
 2025-01-15T10:00:00Z,INFO,"User login",123
 2025-01-15T10:01:00Z,ERROR,"Failed payment",456
 2025-01-15T10:02:00Z,INFO,"User logout",123`;
 
-  await c.env.DATA_BUCKET.put('logs/2025-01-15.csv', csvData, {
-    httpMetadata: {
-      contentType: 'text/csv',
-    },
-    customMetadata: {
-      format: 'csv',
-      schema: 'timestamp,level,message,user_id',
-    },
-  });
+	await c.env.DATA_BUCKET.put("logs/2025-01-15.csv", csvData, {
+		httpMetadata: {
+			contentType: "text/csv",
+		},
+		customMetadata: {
+			format: "csv",
+			schema: "timestamp,level,message,user_id",
+		},
+	});
 
-  return c.json({ success: true });
+	return c.json({ success: true });
 });
 
 // Upload Parquet data (binary format)
-app.post('/upload/analytics', async (c) => {
-  const parquetData = await c.req.arrayBuffer(); // From analytics pipeline
+app.post("/upload/analytics", async (c) => {
+	const parquetData = await c.req.arrayBuffer(); // From analytics pipeline
 
-  await c.env.DATA_BUCKET.put('analytics/2025-01-15.parquet', parquetData, {
-    httpMetadata: {
-      contentType: 'application/octet-stream',
-    },
-    customMetadata: {
-      format: 'parquet',
-      partitionDate: '2025-01-15',
-    },
-  });
+	await c.env.DATA_BUCKET.put("analytics/2025-01-15.parquet", parquetData, {
+		httpMetadata: {
+			contentType: "application/octet-stream",
+		},
+		customMetadata: {
+			format: "parquet",
+			partitionDate: "2025-01-15",
+		},
+	});
 
-  return c.json({ success: true });
+	return c.json({ success: true });
 });
 
 export default app;
@@ -143,38 +145,41 @@ ORDER BY event_count DESC;
 
 ```typescript
 type Bindings = {
-  DATA_BUCKET: R2Bucket;
-  R2_SQL: R2SQLEngine; // SQL engine binding
+	DATA_BUCKET: R2Bucket;
+	R2_SQL: R2SQLEngine; // SQL engine binding
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Execute SQL query
-app.post('/query', async (c) => {
-  const { sql, params } = await c.req.json();
+app.post("/query", async (c) => {
+	const { sql, params } = await c.req.json();
 
-  try {
-    const result = await c.env.R2_SQL.execute(sql, params);
+	try {
+		const result = await c.env.R2_SQL.execute(sql, params);
 
-    return c.json({
-      success: true,
-      rows: result.rows,
-      rowCount: result.rowCount,
-      columns: result.columns,
-    });
-  } catch (error: any) {
-    return c.json({
-      success: false,
-      error: error.message,
-    }, 400);
-  }
+		return c.json({
+			success: true,
+			rows: result.rows,
+			rowCount: result.rowCount,
+			columns: result.columns,
+		});
+	} catch (error: any) {
+		return c.json(
+			{
+				success: false,
+				error: error.message,
+			},
+			400,
+		);
+	}
 });
 
 // Predefined analytics query
-app.get('/analytics/daily-summary', async (c) => {
-  const date = c.req.query('date') || new Date().toISOString().split('T')[0];
+app.get("/analytics/daily-summary", async (c) => {
+	const date = c.req.query("date") || new Date().toISOString().split("T")[0];
 
-  const sql = `
+	const sql = `
     SELECT
       level,
       COUNT(*) as count,
@@ -184,12 +189,12 @@ app.get('/analytics/daily-summary', async (c) => {
     ORDER BY count DESC
   `;
 
-  const result = await c.env.R2_SQL.execute(sql);
+	const result = await c.env.R2_SQL.execute(sql);
 
-  return c.json({
-    date,
-    summary: result.rows,
-  });
+	return c.json({
+		date,
+		summary: result.rows,
+	});
 });
 
 export default app;
@@ -202,6 +207,7 @@ export default app;
 ### Supported SQL Operations
 
 **SELECT Statements**:
+
 ```sql
 SELECT column1, column2, aggregate_func(column3)
 FROM r2('bucket/path/*.format')
@@ -213,12 +219,14 @@ LIMIT 1000;
 ```
 
 **Aggregate Functions**:
+
 - `COUNT(*)`, `COUNT(DISTINCT column)`
 - `SUM(column)`, `AVG(column)`
 - `MIN(column)`, `MAX(column)`
 - `STDDEV(column)`, `VARIANCE(column)`
 
 **String Functions**:
+
 - `CONCAT(str1, str2)`
 - `SUBSTRING(str, start, length)`
 - `UPPER(str)`, `LOWER(str)`
@@ -226,12 +234,14 @@ LIMIT 1000;
 - `REGEXP_MATCHES(str, pattern)`
 
 **Date/Time Functions**:
+
 - `DATE(timestamp)`
 - `EXTRACT(field FROM timestamp)`
 - `DATE_TRUNC(precision, timestamp)`
 - `NOW()`, `CURRENT_DATE`, `CURRENT_TIME`
 
 **Conditional Logic**:
+
 ```sql
 SELECT
   CASE
@@ -268,6 +278,7 @@ data-bucket/
 ```
 
 **Query specific partitions**:
+
 ```sql
 -- Query only January 15 data
 SELECT *
@@ -286,44 +297,44 @@ Convert CSV to Parquet for 10x better performance:
 
 ```typescript
 // Example: Convert CSV logs to Parquet daily
-import parquet from 'parquetjs';
+import parquet from "parquetjs";
 
 async function convertCSVToParquet(csvKey: string, env: Bindings) {
-  // Fetch CSV data
-  const csvObject = await env.DATA_BUCKET.get(csvKey);
-  const csvText = await csvObject?.text();
+	// Fetch CSV data
+	const csvObject = await env.DATA_BUCKET.get(csvKey);
+	const csvText = await csvObject?.text();
 
-  if (!csvText) return;
+	if (!csvText) return;
 
-  // Parse CSV
-  const rows = parseCSV(csvText);
+	// Parse CSV
+	const rows = parseCSV(csvText);
 
-  // Define Parquet schema
-  const schema = new parquet.ParquetSchema({
-    timestamp: { type: 'TIMESTAMP_MILLIS' },
-    level: { type: 'UTF8' },
-    message: { type: 'UTF8' },
-    user_id: { type: 'INT64' },
-  });
+	// Define Parquet schema
+	const schema = new parquet.ParquetSchema({
+		timestamp: { type: "TIMESTAMP_MILLIS" },
+		level: { type: "UTF8" },
+		message: { type: "UTF8" },
+		user_id: { type: "INT64" },
+	});
 
-  // Write Parquet file
-  const writer = await parquet.ParquetWriter.openStream(schema);
+	// Write Parquet file
+	const writer = await parquet.ParquetWriter.openStream(schema);
 
-  for (const row of rows) {
-    await writer.appendRow(row);
-  }
+	for (const row of rows) {
+		await writer.appendRow(row);
+	}
 
-  await writer.close();
+	await writer.close();
 
-  // Upload Parquet to R2
-  const parquetKey = csvKey.replace('.csv', '.parquet');
-  await env.DATA_BUCKET.put(parquetKey, writer.outputStream, {
-    httpMetadata: {
-      contentType: 'application/octet-stream',
-    },
-  });
+	// Upload Parquet to R2
+	const parquetKey = csvKey.replace(".csv", ".parquet");
+	await env.DATA_BUCKET.put(parquetKey, writer.outputStream, {
+		httpMetadata: {
+			contentType: "application/octet-stream",
+		},
+	});
 
-  console.log(`Converted ${csvKey} to ${parquetKey}`);
+	console.log(`Converted ${csvKey} to ${parquetKey}`);
 }
 ```
 
@@ -452,26 +463,26 @@ ORDER BY date;
 
 ```typescript
 // Grafana data source endpoint
-app.post('/grafana/query', async (c) => {
-  const { targets, range } = await c.req.json();
+app.post("/grafana/query", async (c) => {
+	const { targets, range } = await c.req.json();
 
-  const results = [];
+	const results = [];
 
-  for (const target of targets) {
-    const sql = buildSQLFromTarget(target, range);
-    const result = await c.env.R2_SQL.execute(sql);
+	for (const target of targets) {
+		const sql = buildSQLFromTarget(target, range);
+		const result = await c.env.R2_SQL.execute(sql);
 
-    results.push({
-      target: target.target,
-      datapoints: result.rows.map(row => [row.value, row.timestamp]),
-    });
-  }
+		results.push({
+			target: target.target,
+			datapoints: result.rows.map((row) => [row.value, row.timestamp]),
+		});
+	}
 
-  return c.json(results);
+	return c.json(results);
 });
 
 function buildSQLFromTarget(target: any, range: any) {
-  return `
+	return `
     SELECT
       timestamp,
       ${target.metric} as value
@@ -595,6 +606,7 @@ await env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 });
 **Error**: "Query exceeded maximum execution time (30s)"
 
 **Solutions**:
+
 - Add date filters to reduce data scanned
 - Use Parquet instead of CSV
 - Partition data by date
@@ -605,6 +617,7 @@ await env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 });
 **Error**: "Column 'user_id' not found"
 
 **Solutions**:
+
 - Check CSV header row matches query
 - Verify Parquet schema with `parquet-tools`
 - Ensure all files have consistent schema
@@ -614,6 +627,7 @@ await env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 });
 **Error**: "Query exceeded memory limit"
 
 **Solutions**:
+
 - Reduce result size with LIMIT
 - Use aggregation instead of returning raw rows
 - Query smaller date ranges

@@ -1,4 +1,5 @@
 ---
+
 title: Monitoring
 description: Essential PostgreSQL monitoring views, pg_stat_statements, logging, host metrics, and statistics management
 tags: postgres, monitoring, pg_stat_statements, logging, pgbadger, metrics, operations

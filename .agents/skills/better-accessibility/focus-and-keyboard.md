@@ -11,21 +11,21 @@ The browser's unmodified indicator adapts to platform and forced-color settings 
 ```css
 /* Best: keep the browser ring, just give it breathing room */
 :focus-visible {
-  outline-offset: 2px;
+	outline-offset: 2px;
 }
 
 /* Custom ring when the design requires one: use the project's verified token */
 :focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
 }
 ```
 
 ```tsx
 // Tailwind: use the project's focus token or established focus-ring utility
 <button className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]">
-  Save
-</button>
+	Save
+</button>;
 ```
 
 Check the whole perimeter of a custom indicator against every adjacent color it crosses. That means component fills, page surfaces, images, gradients and hover and selected states. A token, brand color or `currentColor` passes only when that rendered check does.
@@ -40,7 +40,7 @@ Sticky chrome hides whatever scrolls under it, including the element that just r
 
 ```css
 html {
-  scroll-padding-top: 64px; /* the sticky header's height */
+	scroll-padding-top: 64px; /* the sticky header's height */
 }
 ```
 
@@ -52,12 +52,12 @@ Target `<main id="main">` and visually hide the link until focused:
 
 ```css
 .skip-link {
-  position: absolute;
-  inset-inline-start: -999px;
+	position: absolute;
+	inset-inline-start: -999px;
 }
 .skip-link:focus {
-  inset-inline-start: 16px;
-  inset-block-start: 16px;
+	inset-inline-start: 16px;
+	inset-block-start: 16px;
 }
 ```
 
@@ -83,17 +83,17 @@ Composite widgets, meaning tabs, menus, toolbars and radio groups, occupy one Ta
 
 ```tsx
 <div role="tablist">
-  {tabs.map((tab, i) => (
-    <button
-      role="tab"
-      tabIndex={i === activeIndex ? 0 : -1}
-      aria-selected={i === activeIndex}
-      onKeyDown={handleArrowKeys} // ArrowLeft/ArrowRight move activeIndex, wrapping
-    >
-      {tab.label}
-    </button>
-  ))}
-</div>
+	{tabs.map((tab, i) => (
+		<button
+			role="tab"
+			tabIndex={i === activeIndex ? 0 : -1}
+			aria-selected={i === activeIndex}
+			onKeyDown={handleArrowKeys} // ArrowLeft/ArrowRight move activeIndex, wrapping
+		>
+			{tab.label}
+		</button>
+	))}
+</div>;
 ```
 
 A combobox keeps DOM focus in its input instead. Point `aria-activedescendant` on the input at the `id` of the highlighted option and update it on arrow keys.
@@ -114,8 +114,10 @@ A custom overlay that can't use `<dialog>` needs `role="dialog"`, `aria-modal="t
 // On open
 document.getElementById("app-content").inert = true;
 const dialog = dialogRef.current;
-(dialog.querySelector("[autofocus]") ??
-  dialog.querySelector("button, [href], input, select, textarea"))?.focus();
+(
+	dialog.querySelector("[autofocus]") ??
+	dialog.querySelector("button, [href], input, select, textarea")
+)?.focus();
 
 // On close
 document.getElementById("app-content").inert = false;
@@ -131,14 +133,14 @@ Either way:
 
 Native elements come with these behaviors; custom widgets must implement them.
 
-| Widget | Keys |
-| --- | --- |
-| Dialog | Tab/Shift+Tab cycle inside (wrap at ends); Escape closes |
-| Tabs | Arrow keys move between tabs (wrapping); Tab exits to the panel; Home/End jump to first/last |
-| Menu button | Enter/Space/ArrowDown opens and focuses first item; ArrowUp opens and focuses last; arrows navigate; Escape closes and refocuses the button |
-| Disclosure / accordion | Header is a `<button aria-expanded>`; Enter and Space toggle |
-| Combobox | ArrowDown opens/moves into the list; Enter accepts; Escape closes and returns to the input; typing filters |
-| Listbox / radio group | Arrow keys move selection; one Tab stop for the whole group |
+| Widget                 | Keys                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dialog                 | Tab/Shift+Tab cycle inside (wrap at ends); Escape closes                                                                                    |
+| Tabs                   | Arrow keys move between tabs (wrapping); Tab exits to the panel; Home/End jump to first/last                                                |
+| Menu button            | Enter/Space/ArrowDown opens and focuses first item; ArrowUp opens and focuses last; arrows navigate; Escape closes and refocuses the button |
+| Disclosure / accordion | Header is a `<button aria-expanded>`; Enter and Space toggle                                                                                |
+| Combobox               | ArrowDown opens/moves into the list; Enter accepts; Escape closes and returns to the input; typing filters                                  |
+| Listbox / radio group  | Arrow keys move selection; one Tab stop for the whole group                                                                                 |
 
 Universal rules:
 

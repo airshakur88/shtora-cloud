@@ -14,12 +14,14 @@ not commercial traction. The signals mean different things.
 ## Executive Insights Company Profile: Brightwater Biologics
 
 ### 1. What This Entity Is
+
 Clinical-stage biotech developing therapies in a specialty indication. Pre-commercial:
 no approved product, no product revenue. Funded by venture rounds and a partnership.
 ~180 employees, roughly a quarter in clinical operations.
 [FACT — company site, public funding announcements]
 
 ### 2. How It Makes Money
+
 It does not, yet. Capital comes from investors and partnership milestones. The economic
 model is: spend years generating evidence, then either commercialize or license.
 [FACT — funding disclosures]
@@ -29,39 +31,46 @@ for the same capital. "Is this worth building" is really "is this worth NOT spen
 the program." [INFERENCE]
 
 ### 3. Who It Serves
+
 Two distinct populations. Externally: patients, investigators, regulators.
 Internally, for Trialpath: study coordinators at sites, CRA monitors, CRO partners.
 The internal users do not work for Brightwater — sites are independent organizations.
 [FACT — trial registry lists participating sites]
 
 ### 4. What It Sells or Delivers
+
 Currently: evidence. The deliverable is a data package that supports a regulatory
 submission. Trialpath exists to make producing that package faster and cleaner.
 [INFERENCE from the trial-stage profile]
 
 ### 5. Key Product Lines
+
 - Lead therapeutic program (the company's actual product)
 - Trialpath, internal platform — recently the subject of external licensing interest
-[FACT — job postings reference "platform productization"]
+  [FACT — job postings reference "platform productization"]
 
 ### 6. Business and Market Pressures
+
 - Trial timelines drive everything; a delayed readout moves the funding calendar
 - Site staffing shortages slow enrollment industry-wide
 - Small-sponsor funding is rate-sensitive
-[FACT/INFERENCE mix — see sources]
+  [FACT/INFERENCE mix — see sources]
 
 ### 7. Competitors and Alternatives
+
 For the therapy: other programs in the indication. For Trialpath: incumbent trial
 platforms, and the status quo of spreadsheets plus email at small sponsors.
 [INFERENCE — no public statement on platform competitors]
 
 ### 8. Important Trends and Risks
+
 - Decentralized trial designs shifting coordinator workflows
 - AI-assisted document review maturing, regulatory acceptability unsettled
 - **Concentration risk:** one lead program. A trial setback is a company event, and the
   platform team's funding is downstream of it [INFERENCE — high confidence]
 
 ### 9. Strategic Signals
+
 - **Hiring:** three product roles posted in six months, all platform-facing, none
   therapeutic. Language emphasizes "multi-tenant" and "validation documentation"
   [FACT — job postings, dated]
@@ -76,6 +85,7 @@ productization is being seriously explored rather than idly considered. [INFEREN
 three independent signals converging]
 
 ### 10. What This Means for Product Management
+
 - You would be building for users employed by other organizations. Access is scheduled,
   bounded, and mediated by site leadership
 - Validation documentation is likely the gating work item, not a compliance follow-up
@@ -84,6 +94,7 @@ three independent signals converging]
   undecided — and who decides?" The answer defines the job
 
 ### 11. Sources and Confidence
+
 - Company site, funding announcements, trial registry, job postings, conference agenda
   — all public, all dated
 - **Confidence: Medium-High** on structure and signals; **Low** on strategic intent,
@@ -99,7 +110,7 @@ three independent signals converging]
   lens produces "pre-revenue, high risk" and stops. The useful read is that capital allocation, not
   revenue, is the tension every internal product lives inside.
 - **Job postings did the heaviest lifting.** "Multi-tenant" and "validation documentation" in
-  postings for an *internal* tool is the strongest available signal that productization is real. No
+  postings for an _internal_ tool is the strongest available signal that productization is real. No
   press release said it.
 - **Three weak signals converging beat one strong claim.** The hire, the posting language, and the
   conference focus each mean little alone. Section 9 states the convergence explicitly and labels it

@@ -1,4 +1,5 @@
 ---
+
 name: maintaining-windows-health
 description: Hands-on playbook for Windows 11 disk cleanup, dev-machine optimization, and proactive health alerting. Use when the PC is full or slow, when a BSOD / Kernel-Power 41 / crash dump / commit-memory pressure happened, when the user asks to free disk space, audit storage, set up disk/memory alerts, or restore the same monitoring on a new PC. Built around native Microsoft-supported tooling (Storage Sense, cleanmgr, DISM, pnputil, vssadmin, wevtutil, powercfg) as the safety floor, a drift-protected HTML cleanup UI, and a Task Scheduler + BurntToast alerter. Covers dev machines with heavy AI/Docker/WSL workloads. Not for general Windows support, hardware diagnostics, GPU/driver troubleshooting, antivirus/malware removal, Windows Update repair, networking, or app-specific performance problems unrelated to disk or memory pressure.
 ---
@@ -34,26 +35,26 @@ Trigger on any of:
 
 ## Skill layout
 
-| File | Use for |
-|---|---|
-| `references/triage.md` | First 5 minutes — which signal fired (disk / commit-memory / BSOD-crash / "feels slow"), read-only snapshot |
-| `references/cleanup-tiers.md` | Tiered cleanup playbook (10 tiers, low-risk → discuss-first), copy-paste-safe PowerShell blocks |
-| `references/never-touch.md` | Categories that **must not** be deleted even elevated (hard-protected prefixes synced with the validator + Windows-only dangers) |
-| `references/native-tools.md` | The safety floor: native Microsoft tooling, project-artifact purge marker→target map, the apply-script validator rules, third-party caveats |
-| `references/alerting.md` | Full alerter design: 3 CRITICAL-only triggers, hysteresis, calibration, Task Scheduler interactive session, BurntToast + ntfy, S0ix/battery |
-| `assets/win-health-check.ps1` | Production PowerShell monitor (PS 5.1 compatible) |
-| `assets/win-health-check.config.ps1` | Default thresholds |
-| `assets/Install-WinHealthCheck.ps1` | Registers the scheduled task in the interactive user session; `-Test` / `-Uninstall` |
-| `assets/Audit-WinHealth.ps1` | Read-only preflight inventory (drives, Component Store, shadow storage, profiles, drivers, CFA, KFM, BitLocker, reparse points, dumps) |
-| `assets/render-cleanup-plan.py` | Interactive HTML cleanup-plan UI. Renders categorised checkboxes from a JSON of scan findings, serves on `127.0.0.1:18347`, opens the browser, waits for the user's selection, writes it to `%TEMP%\cleanup-selection-<ts>.json`. Used by Workflow A. **Requires Python 3.** |
-| `assets/apply-cleanup-selection.py` | The **only sanctioned way** to apply a cleanup selection. Reads `selected_items` from a selection JSON and executes each item's `command` via PowerShell. Windows-rewritten validator (NTFS canonicalization, deny/allow longest-prefix, provider/UNC/ADS/8.3/chaining refusal, two-tier wrappers) + operations log. Supports `--dry-run`. |
-| `assets/test_validate_command.py` | Adversarial unit tests for the validator — the safety-core gate. Runs on any OS. |
+| File                                 | Use for                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `references/triage.md`               | First 5 minutes — which signal fired (disk / commit-memory / BSOD-crash / "feels slow"), read-only snapshot                                                                                                                                                                                                                                |
+| `references/cleanup-tiers.md`        | Tiered cleanup playbook (10 tiers, low-risk → discuss-first), copy-paste-safe PowerShell blocks                                                                                                                                                                                                                                            |
+| `references/never-touch.md`          | Categories that **must not** be deleted even elevated (hard-protected prefixes synced with the validator + Windows-only dangers)                                                                                                                                                                                                           |
+| `references/native-tools.md`         | The safety floor: native Microsoft tooling, project-artifact purge marker→target map, the apply-script validator rules, third-party caveats                                                                                                                                                                                                |
+| `references/alerting.md`             | Full alerter design: 3 CRITICAL-only triggers, hysteresis, calibration, Task Scheduler interactive session, BurntToast + ntfy, S0ix/battery                                                                                                                                                                                                |
+| `assets/win-health-check.ps1`        | Production PowerShell monitor (PS 5.1 compatible)                                                                                                                                                                                                                                                                                          |
+| `assets/win-health-check.config.ps1` | Default thresholds                                                                                                                                                                                                                                                                                                                         |
+| `assets/Install-WinHealthCheck.ps1`  | Registers the scheduled task in the interactive user session; `-Test` / `-Uninstall`                                                                                                                                                                                                                                                       |
+| `assets/Audit-WinHealth.ps1`         | Read-only preflight inventory (drives, Component Store, shadow storage, profiles, drivers, CFA, KFM, BitLocker, reparse points, dumps)                                                                                                                                                                                                     |
+| `assets/render-cleanup-plan.py`      | Interactive HTML cleanup-plan UI. Renders categorised checkboxes from a JSON of scan findings, serves on `127.0.0.1:18347`, opens the browser, waits for the user's selection, writes it to `%TEMP%\cleanup-selection-<ts>.json`. Used by Workflow A. **Requires Python 3.**                                                               |
+| `assets/apply-cleanup-selection.py`  | The **only sanctioned way** to apply a cleanup selection. Reads `selected_items` from a selection JSON and executes each item's `command` via PowerShell. Windows-rewritten validator (NTFS canonicalization, deny/allow longest-prefix, provider/UNC/ADS/8.3/chaining refusal, two-tier wrappers) + operations log. Supports `--dry-run`. |
+| `assets/test_validate_command.py`    | Adversarial unit tests for the validator — the safety-core gate. Runs on any OS.                                                                                                                                                                                                                                                           |
 
 Read the relevant reference before acting. Do NOT operate from memory of these files — the details are calibrated to Windows-specific failure modes and small changes break safety.
 
 ## Core mental model
 
-1. **Native tooling is the safety floor.** Unlike macOS (Mole), Windows has no mature community safety tool — so Storage Sense / Cleanup recommendations / `cleanmgr` / DISM do the heavy lifting, and the apply-script validator is the *only* line behind project-artifact purge. Use the supported command for anything the OS maintains itself.
+1. **Native tooling is the safety floor.** Unlike macOS (Mole), Windows has no mature community safety tool — so Storage Sense / Cleanup recommendations / `cleanmgr` / DISM do the heavy lifting, and the apply-script validator is the _only_ line behind project-artifact purge. Use the supported command for anything the OS maintains itself.
 2. **Clean with commands, not by deleting folders.** WinSxS → DISM; Driver Store → pnputil; shadow copies → vssadmin; Event Logs → wevtutil; hiberfil → powercfg. Hand-deleting these corrupts the OS.
 3. **Commit %, not "available MB", is the memory signal.** `Available MBytes` includes reclaimable standby/cache; commit-limit exhaustion is the real Windows OOM.
 4. **Drift protection via the selection JSON.** The HTML UI writes exactly what the user picked; `apply-cleanup-selection.py` deletes only `selected_items`. Never hand-roll `Remove-Item` in the apply phase.
@@ -65,23 +66,25 @@ Read the relevant reference before acting. Do NOT operate from memory of these f
 
 1. **Triage** — read `references/triage.md`, identify which signal fired and how urgent. Run `assets/Audit-WinHealth.ps1` (read-only) for the preflight inventory (drives, Component Store, shadow storage, drivers, **CFA / OneDrive KFM / BitLocker / reparse points**).
 2. **Snapshot baseline** — record free GB on the target drive.
-3. **Run all scans, don't delete yet** — work the tiers in `references/cleanup-tiers.md` in *inventory* mode (list candidates, sizes, ages), including the large-file visibility pass. Capture everything before opening the browser; deletion comes only after the user picks via the UI. The cleanup UI should be a single final questionnaire containing safe cleanup candidates, protected/discuss-first items, and large suspicious user/workload files together, not a sequence of separate UI rounds.
+3. **Run all scans, don't delete yet** — work the tiers in `references/cleanup-tiers.md` in _inventory_ mode (list candidates, sizes, ages), including the large-file visibility pass. Capture everything before opening the browser; deletion comes only after the user picks via the UI. The cleanup UI should be a single final questionnaire containing safe cleanup candidates, protected/discuss-first items, and large suspicious user/workload files together, not a sequence of separate UI rounds.
 4. **Python gate** — the cleanup UI needs Python 3. Check for a real interpreter (`py -3 --version`, or a `python.exe` that isn't the Microsoft Store alias). **If Python is missing, ask the user for permission to install it** (`winget install Python.Python.3.12`), then continue. Do not silently skip the UI.
 5. **Resolve unknown items before building JSON** — for every candidate > 500 MB you cannot explain in one sentence (unfamiliar app/folder, vendor cache, VM/VHDX, model weights), research it first: check `references/never-touch.md`, then delegate a quick lookup to the `web-searcher` subagent ("what is `<path>` on Windows 11, safe to delete in 2026"). Write a concrete `description` (1–3 sentences in the user's language) into the item. **Never show vague placeholders like "unknown".**
 6. **Show large-but-not-safe items too** — any explainable item > 500 MB that is user-owned or workload-owned but not a safe cache must still appear in the same final UI, normally `protected: true`, `default_selected: false`, with a concrete `warning`. Examples: old `.7z/.zip/.iso` archives, `.gguf`/`.safetensors` model weights, project/game assets, app diagnostic dumps, profiler snapshots, synced-folder media, and VHDX files. Visibility is required because only the user can know whether these are still needed. Do not include hard-protected system internals as bare-delete candidates; show them only through supported tools, or omit deletion entirely if no supported action exists.
 7. **Build one data JSON** — every candidate becomes a structured `item` (id, label, path, size_bytes, age_days, kind, **PowerShell `command`**, mandatory `description`, optional `protected` + `warning`). Use the schema in `assets/render-cleanup-plan.py`. Irreversible-tool commands (DISM `/ResetBase`, `vssadmin delete`, `wevtutil cl`, `pnputil /delete-driver`, `powercfg /h off`) should be marked `protected: true`. Do not open the UI until this unified JSON contains both safe default-selected items and protected unchecked items.
 8. **Render and open the cleanup UI**:
+
    ```powershell
    python3 <skill>\assets\render-cleanup-plan.py %TEMP%\cleanup-data-<ts>.json
    ```
+
    It serves on `127.0.0.1:18347`, opens the browser, and **blocks** until Submit/Cancel. On submit it writes `%TEMP%\cleanup-selection-<ts>.json`. Tell the user out loud: "браузер открыт — поставь галочки, нажми Submit, потом пингани меня." Then **stop and wait**.
 9. **After the user pings** — read the selection JSON, render their choices back in chat (categories, item list, total GB, any protected overrides flagged), and **ask one explicit confirmation** before deleting.
 10. **Apply via the helper — never hand-rolled `Remove-Item`**:
-   ```powershell
-   python3 <skill>\assets\apply-cleanup-selection.py %TEMP%\cleanup-selection-<ts>.json
-   #   add --scan-root D:\projects to allow bare deletes on an external dev drive
-   ```
-   It reads `selected_items`, validates each `command` (NTFS canonicalization, deny/allow longest-prefix, provider/UNC/ADS/8.3/chaining refusal), skips protected items not in `protected_overrides`, runs each via `powershell.exe`, and logs to `%LOCALAPPDATA%\win-health\operations.log`. `--dry-run` previews. **The selection JSON is the single source of truth.**
+```powershell
+python3 <skill>\assets\apply-cleanup-selection.py %TEMP%\cleanup-selection-<ts>.json
+#   add --scan-root D:\projects to allow bare deletes on an external dev drive
+```
+It reads `selected_items`, validates each `command` (NTFS canonicalization, deny/allow longest-prefix, provider/UNC/ADS/8.3/chaining refusal), skips protected items not in `protected_overrides`, runs each via `powershell.exe`, and logs to `%LOCALAPPDATA%\win-health\operations.log`. `--dry-run` previews. **The selection JSON is the single source of truth.**
 11. **Post-check** — report the free-space delta, then `Dism /Online /Cleanup-Image /CheckHealth` + `sfc /scannow` to confirm nothing was broken. Stop at the goal.
 
 Hard-protected items (per `references/never-touch.md`) must always appear in the UI with `"protected": true` + a concrete `warning` — the UI dims them and requires a per-item confirm before they can be checked. Never omit a protected item user data depends on; visibility teaches the surrounding risk.
@@ -100,6 +103,7 @@ Then read `references/alerting.md` for tuning. The task is registered in the int
 ### C. Alerter stopped working / making noise
 
 Read `references/alerting.md` § Troubleshooting. Common causes:
+
 - Task running as SYSTEM / "whether user is logged on or not" → toasts silently never render. Re-run the installer (interactive principal).
 - BurntToast not installed → toast attributed to "PowerShell" or absent. `Install-Module BurntToast -Scope CurrentUser`.
 - Laptop never checks → was AC-only / paused in sleep. Re-run installer (battery flags + `-StartWhenAvailable`).

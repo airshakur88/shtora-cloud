@@ -1,4 +1,5 @@
 ---
+
 name: python-error-handling
 description: Python error handling patterns including input validation, exception hierarchies, and partial failure handling. Use when implementing validation logic, designing exception strategies, handling batch processing failures, or building robust APIs.
 ---
@@ -157,15 +158,15 @@ except ValidationError as e:
 
 Use Python's built-in exception types appropriately, adding context as needed.
 
-| Failure Type | Exception | Example |
-|--------------|-----------|---------|
-| Invalid input | `ValueError` | Bad parameter values |
-| Wrong type | `TypeError` | Expected string, got int |
-| Missing item | `KeyError` | Dict key not found |
-| Operational failure | `RuntimeError` | Service unavailable |
-| Timeout | `TimeoutError` | Operation took too long |
-| File not found | `FileNotFoundError` | Path doesn't exist |
-| Permission denied | `PermissionError` | Access forbidden |
+| Failure Type        | Exception           | Example                  |
+| ------------------- | ------------------- | ------------------------ |
+| Invalid input       | `ValueError`        | Bad parameter values     |
+| Wrong type          | `TypeError`         | Expected string, got int |
+| Missing item        | `KeyError`          | Dict key not found       |
+| Operational failure | `RuntimeError`      | Service unavailable      |
+| Timeout             | `TimeoutError`      | Operation took too long  |
+| File not found      | `FileNotFoundError` | Path doesn't exist       |
+| Permission denied   | `PermissionError`   | Access forbidden         |
 
 ```python
 # Good: Specific exception with context

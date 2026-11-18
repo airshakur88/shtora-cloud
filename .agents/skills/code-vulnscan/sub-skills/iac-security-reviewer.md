@@ -11,6 +11,7 @@ Find misconfigurations in infrastructure definitions that would create security 
 ### Dockerfile review
 
 **Running as root (high):**
+
 ```dockerfile
 # Flag: no USER directive, or USER root
 FROM ubuntu:20.04
@@ -24,11 +25,12 @@ USER appuser
 ```
 
 **Privileged or capability-escalated containers:**
+
 ```yaml
 # docker-compose.yml — flag these
 services:
   app:
-    privileged: true                    # full host access
+    privileged: true # full host access
     cap_add:
       - SYS_PTRACE
       - SYS_ADMIN
@@ -40,6 +42,7 @@ services:
 ```
 
 **Hardcoded secrets in Dockerfile:**
+
 ```dockerfile
 # Flag: secrets in ENV or ARG
 ENV DB_PASSWORD=supersecret123
@@ -50,6 +53,7 @@ RUN echo $DB_PASSWORD > /etc/dbconf
 ```
 
 **Image hygiene:**
+
 ```dockerfile
 # Flag: using latest tag — unpinned, non-reproducible builds
 FROM ubuntu:latest
@@ -63,6 +67,7 @@ COPY . .       # copies .env, .git, private keys if no .dockerignore
 ```
 
 **Port exposure:**
+
 ```dockerfile
 # Flag: exposing administrative ports
 EXPOSE 22      # SSH
@@ -73,6 +78,7 @@ EXPOSE 6379    # Redis
 ```
 
 **Package installation without version pinning:**
+
 ```dockerfile
 # Flag: latest packages installed — may introduce vulnerable versions
 RUN pip install flask requests     # no version constraints
@@ -86,17 +92,17 @@ RUN pip install flask requests     # no version constraints
 # Flag: privileged container
 spec:
   containers:
-  - name: app
-    securityContext:
-      privileged: true              # host kernel access
-      allowPrivilegeEscalation: true
-      runAsUser: 0                  # root
-      runAsNonRoot: false
-      readOnlyRootFilesystem: false
-      capabilities:
-        add:
-          - SYS_ADMIN
-          - NET_ADMIN
+    - name: app
+      securityContext:
+        privileged: true # host kernel access
+        allowPrivilegeEscalation: true
+        runAsUser: 0 # root
+        runAsNonRoot: false
+        readOnlyRootFilesystem: false
+        capabilities:
+          add:
+            - SYS_ADMIN
+            - NET_ADMIN
 
 # Safe securityContext
 securityContext:
@@ -114,19 +120,19 @@ securityContext:
 ```yaml
 # Flag: overly permissive ClusterRole
 rules:
-- apiGroups: ["*"]
-  resources: ["*"]        # all resources
-  verbs: ["*"]            # all operations — essentially cluster admin
+  - apiGroups: ["*"]
+    resources: ["*"] # all resources
+    verbs: ["*"] # all operations — essentially cluster admin
 
-# Flag: wildcard verbs
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["*"]            # should be ["get", "list"] at most
+  # Flag: wildcard verbs
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["*"] # should be ["get", "list"] at most
 
 # Flag: binding to cluster-admin
 roleRef:
   kind: ClusterRole
-  name: cluster-admin     # full cluster access for any service account binding
+  name: cluster-admin # full cluster access for any service account binding
 ```
 
 ### Secrets management in K8s
@@ -134,13 +140,13 @@ roleRef:
 ```yaml
 # Flag: secrets hardcoded in env vars (base64 is not encryption)
 env:
-- name: DB_PASSWORD
-  value: "plaintext-password"
+  - name: DB_PASSWORD
+    value: "plaintext-password"
 
-# Flag: Secret referenced but also hardcoded elsewhere
-# Also: Secrets mounted as env vars are visible in pod spec and logs
+  # Flag: Secret referenced but also hardcoded elsewhere
+  # Also: Secrets mounted as env vars are visible in pod spec and logs
 
-# Better: use Vault, AWS Secrets Manager, or K8s sealed-secrets
+  # Better: use Vault, AWS Secrets Manager, or K8s sealed-secrets
 ```
 
 ### Network policies
@@ -153,9 +159,9 @@ env:
 spec:
   podSelector: {}
   policyTypes:
-  - Ingress
+    - Ingress
   ingress:
-  - {}                    # allow all — same as no policy
+    - {} # allow all — same as no policy
 ```
 
 ### Service exposure
@@ -164,7 +170,7 @@ spec:
 # Flag: sensitive services exposed as LoadBalancer or NodePort
 kind: Service
 spec:
-  type: LoadBalancer      # exposed to internet
+  type: LoadBalancer # exposed to internet
   # For: database service, admin dashboard, internal APIs
 ```
 
@@ -173,12 +179,12 @@ spec:
 ```yaml
 # Flag: mounting host filesystem paths
 volumes:
-- name: host-root
-  hostPath:
-    path: /              # entire host root filesystem
-- name: docker-socket
-  hostPath:
-    path: /var/run/docker.sock   # Docker socket = container escape
+  - name: host-root
+    hostPath:
+      path: / # entire host root filesystem
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock # Docker socket = container escape
 ```
 
 ## Part 3: Terraform security
@@ -289,7 +295,7 @@ uses: some-org/some-action@abc123def456   # pinned to commit SHA
 ```yaml
 # Flag: variables with hardcoded secrets
 variables:
-  API_KEY: "hardcoded-value"    # visible to all pipeline users
+  API_KEY: "hardcoded-value" # visible to all pipeline users
 
 # Flag: artifacts containing sensitive files
 artifacts:
@@ -400,13 +406,13 @@ Check: for every script that calls `Start-Service sshd`, `systemctl start sshd`,
 
 ```json
 {
-  "file": "k8s/deployment.yaml",
-  "line": 34,
-  "category": "iac_privilege_escalation",
-  "title": "Container running as root with privilege escalation allowed",
-  "description": "The app container runs as root (runAsUser: 0) with allowPrivilegeEscalation: true. A container escape or application compromise grants root access to the underlying node.",
-  "remediation": "Set runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, and capabilities.drop: [ALL] in the container securityContext.",
-  "cwe": "CWE-250",
-  "severity": "high"
+	"file": "k8s/deployment.yaml",
+	"line": 34,
+	"category": "iac_privilege_escalation",
+	"title": "Container running as root with privilege escalation allowed",
+	"description": "The app container runs as root (runAsUser: 0) with allowPrivilegeEscalation: true. A container escape or application compromise grants root access to the underlying node.",
+	"remediation": "Set runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, and capabilities.drop: [ALL] in the container securityContext.",
+	"cwe": "CWE-250",
+	"severity": "high"
 }
 ```

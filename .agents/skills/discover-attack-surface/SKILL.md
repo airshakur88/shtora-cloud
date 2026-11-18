@@ -1,10 +1,11 @@
 ---
+
 name: discover-attack-surface
 description: Classify project-used dependency members and record the taint sources among them not covered by the built-in rules. Use for the source-discovery depth pass
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Discover Attack Surface
@@ -67,7 +68,12 @@ Short and concise report of what was done
 dependencies:
   - org.springframework:spring-websocket:6.1.0
 sources:
-  - { method: org.springframework.web.socket.TextMessage#getPayload, signature: "()Ljava/lang/String;", note: untrusted WebSocket frame data, rule_id: null }
+  - {
+      method: org.springframework.web.socket.TextMessage#getPayload,
+      signature: "()Ljava/lang/String;",
+      note: untrusted WebSocket frame data,
+      rule_id: null,
+    }
 stages:
   test_project: pending
   tests_passing: pending
@@ -81,10 +87,19 @@ The plan `.opentaint/tracking/rules/plans/<id>.yaml` — read your members from 
 id: lib-001
 scopes:
   <package-kebab>:
-    - { method: org.springframework.web.socket.TextMessage#getPayload, signature: "()Ljava/lang/String;" }
-    - { method: org.springframework.web.socket.WebSocketSession#getId, signature: "()Ljava/lang/String;" }
+    - {
+        method: org.springframework.web.socket.TextMessage#getPayload,
+        signature: "()Ljava/lang/String;",
+      }
+    - {
+        method: org.springframework.web.socket.WebSocketSession#getId,
+        signature: "()Ljava/lang/String;",
+      }
 source:
-  - { method: org.springframework.web.socket.TextMessage#getPayload, signature: "()Ljava/lang/String;" }
+  - {
+      method: org.springframework.web.socket.TextMessage#getPayload,
+      signature: "()Ljava/lang/String;",
+    }
 ```
 
 ## Constraints

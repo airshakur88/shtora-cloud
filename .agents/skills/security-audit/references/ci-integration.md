@@ -7,6 +7,7 @@ Never start by failing the build on hundreds of pre-existing findings. That gets
 whole thing switched off within a week.
 
 ## Contents
+
 - [Pre-commit hooks](#pre-commit-hooks)
 - [Husky and lint-staged](#husky-and-lint-staged)
 - [GitHub Actions](#github-actions)
@@ -27,7 +28,13 @@ repos:
     rev: v1.172.0
     hooks:
       - id: semgrep
-        args: [--config=p/default, --config=p/secrets, --error, --skip-unknown-extensions]
+        args:
+          [
+            --config=p/default,
+            --config=p/secrets,
+            --error,
+            --skip-unknown-extensions,
+          ]
 ```
 
 ```bash
@@ -59,9 +66,12 @@ gitleaks git --pre-commit --redact --staged --verbose || {
 
 ```json
 {
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["eslint --fix", "semgrep --config p/javascript --error --skip-unknown-extensions"]
-  }
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx}": [
+			"eslint --fix",
+			"semgrep --config p/javascript --error --skip-unknown-extensions"
+		]
+	}
 }
 ```
 
@@ -74,9 +84,9 @@ gitleaks outside lint-staged: it reads the git index, not a file list.
 
 ```yaml
 permissions:
-  contents: read          # mandatory on private repos
-  security-events: write  # the upload itself
-  actions: read           # omitting this gives "Resource not accessible by integration"
+  contents: read # mandatory on private repos
+  security-events: write # the upload itself
+  actions: read # omitting this gives "Resource not accessible by integration"
 ```
 
 Semgrep:
@@ -88,7 +98,7 @@ jobs:
     container: { image: semgrep/semgrep }
     steps:
       - uses: actions/checkout@v5
-        with: { fetch-depth: 0 }        # required for --baseline-commit
+        with: { fetch-depth: 0 } # required for --baseline-commit
       - run: semgrep scan --config=p/default --config=p/secrets --sarif --output=semgrep.sarif
       - uses: github/codeql-action/upload-sarif@v4
         if: always()
@@ -99,17 +109,17 @@ Trivy — **pin by SHA**, given the March 2026 compromise of this exact action
 (see `iac-cloud-config.md`):
 
 ```yaml
-      - uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          ignore-unfixed: true
-          format: sarif
-          output: trivy.sarif
-          severity: CRITICAL,HIGH
-          limit-severities-for-sarif: true   # without this, ALL severities reach code scanning
-      - uses: github/codeql-action/upload-sarif@v4
-        if: always()                          # else findings vanish when the scan fails the job
-        with: { sarif_file: trivy.sarif, category: trivy }
+- uses: aquasecurity/trivy-action@v0.36.0
+  with:
+    scan-type: fs
+    ignore-unfixed: true
+    format: sarif
+    output: trivy.sarif
+    severity: CRITICAL,HIGH
+    limit-severities-for-sarif: true # without this, ALL severities reach code scanning
+- uses: github/codeql-action/upload-sarif@v4
+  if: always() # else findings vanish when the scan fails the job
+  with: { sarif_file: trivy.sarif, category: trivy }
 ```
 
 osv-scanner ships reusable workflows. They moved — the copies in `google/osv-scanner`
@@ -129,11 +139,11 @@ gitleaks: `gitleaks/gitleaks-action@v3` requires a `GITLEAKS_LICENSE` for
 are unaffected. For a multi-repo org, run the MIT binary directly instead:
 
 ```yaml
-      - run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz \
-            | tar -xz -C /usr/local/bin gitleaks
-          gitleaks git . --redact --report-format sarif --report-path gitleaks.sarif \
-                   --baseline-path .gitleaks-baseline.json --exit-code 1
+- run: |
+    curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz \
+      | tar -xz -C /usr/local/bin gitleaks
+    gitleaks git . --redact --report-format sarif --report-path gitleaks.sarif \
+             --baseline-path .gitleaks-baseline.json --exit-code 1
 ```
 
 ## SARIF: do not merge
@@ -145,10 +155,10 @@ files are rejected outright.
 Upload once per tool, each with a distinct `category`:
 
 ```yaml
-      - uses: github/codeql-action/upload-sarif@v4
-        with: { sarif_file: semgrep.sarif, category: semgrep }
-      - uses: github/codeql-action/upload-sarif@v4
-        with: { sarif_file: trivy.sarif, category: trivy }
+- uses: github/codeql-action/upload-sarif@v4
+  with: { sarif_file: semgrep.sarif, category: semgrep }
+- uses: github/codeql-action/upload-sarif@v4
+  with: { sarif_file: trivy.sarif, category: trivy }
 ```
 
 Precedence for run identity is the explicit `category` input, then
@@ -196,9 +206,9 @@ On pull requests prefer `semgrep ci`, which auto-detects the merge base. Both fo
 A baseline is debt, not an exemption. Make it decay:
 
 ```yaml
-      - run: |
-          age=$(( ($(date +%s) - $(git log -1 --format=%ct .gitleaks-baseline.json)) / 86400 ))
-          [ "$age" -gt 90 ] && { echo "::error::baseline stale >90d"; exit 1; }; true
+- run: |
+    age=$(( ($(date +%s) - $(git log -1 --format=%ct .gitleaks-baseline.json)) / 86400 ))
+    [ "$age" -gt 90 ] && { echo "::error::baseline stale >90d"; exit 1; }; true
 ```
 
 Regenerate the baseline only in a dedicated pull request, so the diff is reviewable.
@@ -220,8 +230,8 @@ This sequence is what survives contact with a team:
 The middle-ground gate that blocks serious new problems without touching the backlog:
 
 ```yaml
-        with:
-          severity: CRITICAL,HIGH
-          exit-code: '1'
-          ignore-unfixed: true
+with:
+  severity: CRITICAL,HIGH
+  exit-code: "1"
+  ignore-unfixed: true
 ```

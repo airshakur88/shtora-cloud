@@ -30,19 +30,19 @@ JSON (mutation-testing-elements schema):
 
 ```json
 {
-  "files": {
-    "src/parser.c": {
-      "mutants": [
-        {
-          "id": "mull-1",
-          "mutatorName": "cxx_ge_to_lt",
-          "location": {"start": {"line": 88, "column": 12}},
-          "status": "Survived",
-          "replacement": "<"
-        }
-      ]
-    }
-  }
+	"files": {
+		"src/parser.c": {
+			"mutants": [
+				{
+					"id": "mull-1",
+					"mutatorName": "cxx_ge_to_lt",
+					"location": { "start": { "line": 88, "column": 12 } },
+					"status": "Survived",
+					"replacement": "<"
+				}
+			]
+		}
+	}
 }
 ```
 
@@ -61,17 +61,17 @@ JSON format:
 
 ```json
 {
-  "mutants": [
-    {
-      "id": 157,
-      "file": "src/buffer.c",
-      "line": 42,
-      "operator": "ROR",
-      "original": "size > capacity",
-      "mutation": "size >= capacity",
-      "status": "alive"
-    }
-  ]
+	"mutants": [
+		{
+			"id": 157,
+			"file": "src/buffer.c",
+			"line": 42,
+			"operator": "ROR",
+			"original": "size > capacity",
+			"mutation": "size >= capacity",
+			"status": "alive"
+		}
+	]
 }
 ```
 

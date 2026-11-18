@@ -4,11 +4,11 @@ These community Grafana dashboards visualize Go runtime performance out of the b
 
 ## Recommended Dashboards
 
-| Dashboard | ID | What it shows |
-| --- | --: | --- |
-| [Go Host & Runtime Metrics](https://grafana.com/grafana/dashboards/21221-go-host-runtime-metrics-dashboard/) | 21221 | Host metrics + Go runtime (goroutines, heap, GC, threads) in one view |
-| [Go Processes](https://grafana.com/grafana/dashboards/6671-go-processes/) | 6671 | Multi-process comparison — CPU, memory, goroutines, GC across all Go services |
-| [Go Metrics](https://grafana.com/grafana/dashboards/10826-go-metrics/) | 10826 | Focused Go runtime view — memory breakdown, GC pauses, allocations, goroutines |
+| Dashboard                                                                                                    |    ID | What it shows                                                                  |
+| ------------------------------------------------------------------------------------------------------------ | ----: | ------------------------------------------------------------------------------ |
+| [Go Host & Runtime Metrics](https://grafana.com/grafana/dashboards/21221-go-host-runtime-metrics-dashboard/) | 21221 | Host metrics + Go runtime (goroutines, heap, GC, threads) in one view          |
+| [Go Processes](https://grafana.com/grafana/dashboards/6671-go-processes/)                                    |  6671 | Multi-process comparison — CPU, memory, goroutines, GC across all Go services  |
+| [Go Metrics](https://grafana.com/grafana/dashboards/10826-go-metrics/)                                       | 10826 | Focused Go runtime view — memory breakdown, GC pauses, allocations, goroutines |
 
 ## How to Install
 

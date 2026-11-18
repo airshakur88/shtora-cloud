@@ -1,22 +1,24 @@
 ---
+
 name: golang-observability
 description: "Golang everyday observability — the always-on signals in production. Covers structured logging with slog, Prometheus metrics, OpenTelemetry distributed tracing, continuous profiling with pprof/Pyroscope, server-side RUM event tracking, alerting, and Grafana dashboards. Apply when instrumenting Go services for production monitoring, setting up metrics or alerting, adding OpenTelemetry tracing, correlating logs with traces, migrating legacy loggers (zap/logrus/zerolog) to slog, adding observability to new features, or implementing GDPR/CCPA-compliant tracking with Customer Data Platforms (CDP). Not for temporary deep-dive performance investigation (→ See `samber/cc-skills-golang@golang-benchmark` and `samber/cc-skills-golang@golang-performance` skills)."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "1.3.2"
-  openclaw:
-    emoji: "📡"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-    install: []
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch WebSearch AskUserQuestion
+author: samber
+version: "1.3.2"
+openclaw:
+emoji: "📡"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go
+install: []
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:*) Agent WebFetch WebSearch AskUserQuestion
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a Go observability engineer. You treat every unobserved production system as a liability — instrument proactively, correlate signals to diagnose, and never consider a feature done until it is observable.
@@ -76,13 +78,13 @@ Use third-party slog handler libraries only when the stdlib handler composition 
 
 ## The Five Signals
 
-| Signal | Question it answers | Tool | When to use |
-| --- | --- | --- | --- |
-| **Logs** | What happened? | `log/slog` | Discrete events, errors, audit trails |
-| **Metrics** | How much / how fast? | Prometheus client | Aggregated measurements, alerting, SLOs |
-| **Traces** | Where did time go? | OpenTelemetry | Request flow across services, latency breakdown |
-| **Profiles** | Why is it slow / using memory? | pprof, Pyroscope | CPU hotspots, memory leaks, lock contention |
-| **RUM** | How do users experience it? | PostHog, Segment | Product analytics, funnels, session replay |
+| Signal       | Question it answers            | Tool              | When to use                                     |
+| ------------ | ------------------------------ | ----------------- | ----------------------------------------------- |
+| **Logs**     | What happened?                 | `log/slog`        | Discrete events, errors, audit trails           |
+| **Metrics**  | How much / how fast?           | Prometheus client | Aggregated measurements, alerting, SLOs         |
+| **Traces**   | Where did time go?             | OpenTelemetry     | Request flow across services, latency breakdown |
+| **Profiles** | Why is it slow / using memory? | pprof, Pyroscope  | CPU hotspots, memory leaks, lock contention     |
+| **RUM**      | How do users experience it?    | PostHog, Segment  | Product analytics, funnels, session replay      |
 
 ## Detailed Guides
 

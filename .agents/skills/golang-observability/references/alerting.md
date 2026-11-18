@@ -18,12 +18,12 @@
 
 Alert on what matters to users. Google's SRE book defines four golden signals â€” every Go service SHOULD have alerts covering all four:
 
-| Signal | What it measures | Example metric | Alert trigger |
-| --- | --- | --- | --- |
-| **Latency** | Time to serve a request | `http_request_duration_seconds` (Histogram) | P99 > 2s for 5 minutes |
-| **Traffic** | Demand on the system | `http_requests_total` (Counter) | Zero requests for 10 minutes |
-| **Errors** | Rate of failed requests | `http_requests_total{status=~"5.."}` (Counter) | Error ratio > 1% for 5 minutes |
-| **Saturation** | How full the system is | `db_connections_active / db_connections_max` | Pool > 90% saturated for 5 minutes |
+| Signal         | What it measures        | Example metric                                 | Alert trigger                      |
+| -------------- | ----------------------- | ---------------------------------------------- | ---------------------------------- |
+| **Latency**    | Time to serve a request | `http_request_duration_seconds` (Histogram)    | P99 > 2s for 5 minutes             |
+| **Traffic**    | Demand on the system    | `http_requests_total` (Counter)                | Zero requests for 10 minutes       |
+| **Errors**     | Rate of failed requests | `http_requests_total{status=~"5.."}` (Counter) | Error ratio > 1% for 5 minutes     |
+| **Saturation** | How full the system is  | `db_connections_active / db_connections_max`   | Pool > 90% saturated for 5 minutes |
 
 ## Awesome Prometheus Alerts
 
@@ -31,14 +31,14 @@ Alert on what matters to users. Google's SRE book defines four golden signals â€
 
 ### Categories
 
-| Category | Rules | Covers |
-| --- | --: | --- |
-| **Basic Resource Monitoring** | ~107 | Host metrics, Docker containers, hardware |
-| **Databases and Brokers** | ~233 | PostgreSQL, MySQL, Redis, MongoDB, Kafka, RabbitMQ, etc. |
-| **Reverse Proxies and Load Balancers** | ~45 | Nginx, Apache, HAProxy, Traefik |
-| **Runtimes** | ~4 | PHP-FPM, JVM, Sidekiq |
-| **Orchestrators** | ~74 | Kubernetes, Nomad, Consul, ArgoCD |
-| **Network, Security, and Storage** | ~40 | Ceph, MinIO, SSL/TLS, DNS |
+| Category                               | Rules | Covers                                                   |
+| -------------------------------------- | ----: | -------------------------------------------------------- |
+| **Basic Resource Monitoring**          |  ~107 | Host metrics, Docker containers, hardware                |
+| **Databases and Brokers**              |  ~233 | PostgreSQL, MySQL, Redis, MongoDB, Kafka, RabbitMQ, etc. |
+| **Reverse Proxies and Load Balancers** |   ~45 | Nginx, Apache, HAProxy, Traefik                          |
+| **Runtimes**                           |    ~4 | PHP-FPM, JVM, Sidekiq                                    |
+| **Orchestrators**                      |   ~74 | Kubernetes, Nomad, Consul, ArgoCD                        |
+| **Network, Security, and Storage**     |   ~40 | Ceph, MinIO, SSL/TLS, DNS                                |
 
 ### How to Use It
 
@@ -147,10 +147,10 @@ groups:
 
 Use two severity levels to separate "wake someone up" from "look at it tomorrow":
 
-| Severity | Action | `for:` duration | Example |
-| --- | --- | --- | --- |
-| **critical** | Page on-call | 2-5 minutes | Service down, error rate > 5%, data loss risk |
-| **warning** | Create ticket | 10-30 minutes | P99 latency high, connection pool > 80%, goroutine leak |
+| Severity     | Action        | `for:` duration | Example                                                 |
+| ------------ | ------------- | --------------- | ------------------------------------------------------- |
+| **critical** | Page on-call  | 2-5 minutes     | Service down, error rate > 5%, data loss risk           |
+| **warning**  | Create ticket | 10-30 minutes   | P99 latency high, connection pool > 80%, goroutine leak |
 
 The `for:` duration controls how long a condition must be true before the alert fires. Short durations catch fast incidents but risk false positives from transient spikes. Long durations reduce noise but delay response.
 

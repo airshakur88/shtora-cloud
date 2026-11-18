@@ -9,6 +9,7 @@ Assess which vulnerable dependencies are actually exploitable in this codebase, 
 ## Phase 1: Understand the output
 
 The dependency script outputs JSON with:
+
 - Package name, current version, vulnerable version range
 - Known CVE IDs
 - Vulnerability type (e.g., RCE, XSS, SQLi, path traversal)
@@ -31,6 +32,7 @@ Not all vulnerable dependency versions are exploitable. Triage each finding:
 ```
 
 **Questions for each finding:**
+
 1. Is the package imported/required anywhere in the active codebase?
 2. Is the vulnerable function/API specifically called?
 3. Is the vulnerable call path reachable from user input?
@@ -40,6 +42,7 @@ If the answer to any is "no", downgrade to informational but still recommend upg
 ### Dev vs production dependencies
 
 Separate findings by dependency type:
+
 - `devDependencies` (package.json), `[dev]` packages (Python), test dependencies → lower urgency, but note if they have RCE (supply chain risk even in CI)
 - Production dependencies → full severity applies
 
@@ -57,6 +60,7 @@ Always note which direct package pulls in a vulnerable transitive dependency.
 Check `requirements.txt`, `Pipfile`, `Pipfile.lock`, `pyproject.toml`, `setup.py`, `setup.cfg`.
 
 High-value packages to examine closely when flagged:
+
 - `Django < 4.x.y` — many historical SQLi, XSS, CSRF bypass CVEs
 - `Flask < 2.x.y` — cookie tampering, redirect issues
 - `Pillow < 9.x.y` — image parsing RCE, DoS
@@ -73,6 +77,7 @@ High-value packages to examine closely when flagged:
 Check `package.json`, `package-lock.json`, `yarn.lock`.
 
 High-value packages:
+
 - `lodash < 4.17.21` — prototype pollution (CVE-2021-23337)
 - `express < 4.x` — various including open redirect, header injection
 - `jsonwebtoken` — algorithm confusion, blank secret acceptance
@@ -115,6 +120,7 @@ unless the build declaration proves they are direct. Record Maven scopes:
 than ordinary production runtime dependencies.
 
 High-value packages:
+
 - `log4j < 2.17.1` — Log4Shell RCE (CVE-2021-44228) — critical
 - `spring-framework < 5.3.18` — Spring4Shell RCE
 - `struts2 < X` — multiple historical RCE CVEs
@@ -128,6 +134,7 @@ High-value packages:
 Check `go.mod`, `go.sum`.
 
 High-value modules:
+
 - `golang.org/x/net` — HTTP/2 DoS, various
 - `golang.org/x/crypto` — SSH issues
 - Web framework versions (gin, echo, fiber)
@@ -137,6 +144,7 @@ High-value modules:
 Check `composer.json`, `composer.lock`.
 
 High-value packages:
+
 - `laravel/framework < X` — mass assignment, SQL injection
 - `symfony/http-foundation < X` — various
 - `guzzlehttp/guzzle < 7.x` — SSRF, header injection
@@ -147,6 +155,7 @@ High-value packages:
 Check `Gemfile`, `Gemfile.lock`.
 
 High-value gems:
+
 - `rails < 7.x.y` — many historical CVEs (mass assignment, SQLi, XSS)
 - `nokogiri < 1.x.y` — libxml2 XXE, libxslt issues
 - `devise < X` — timing attacks, enumeration
@@ -155,37 +164,38 @@ High-value gems:
 
 Adjust the base CVSS score from the CVE based on your exploitability analysis:
 
-| Factor | Adjustment |
-|--------|-----------|
-| Vulnerable function not called | Downgrade to informational |
-| User input cannot reach vulnerable code path | Downgrade by 2 severity levels |
-| Package is only a dev dependency | Note: dev/CI risk, not production |
-| Transitive dep, can be forced to safe version | Note complexity of fix |
-| Known exploit public (PoC/Metasploit) | Maintain or upgrade severity |
-| Used in authentication/authorization context | Maintain critical/high |
+| Factor                                        | Adjustment                        |
+| --------------------------------------------- | --------------------------------- |
+| Vulnerable function not called                | Downgrade to informational        |
+| User input cannot reach vulnerable code path  | Downgrade by 2 severity levels    |
+| Package is only a dev dependency              | Note: dev/CI risk, not production |
+| Transitive dep, can be forced to safe version | Note complexity of fix            |
+| Known exploit public (PoC/Metasploit)         | Maintain or upgrade severity      |
+| Used in authentication/authorization context  | Maintain critical/high            |
 
 ## Phase 5: Remediation guidance
 
 For each finding, provide:
+
 1. The minimum safe version to upgrade to
 2. Whether upgrading is likely to be a breaking change
 3. Any workaround if immediate upgrade is not possible
 
 ```json
 {
-  "package": "log4j-core",
-  "ecosystem": "java/maven",
-  "current_version": "2.14.1",
-  "vulnerable_range": "< 2.17.1",
-  "safe_version": "2.17.1",
-  "cve": "CVE-2021-44228",
-  "cvss": 10.0,
-  "vuln_type": "remote_code_execution",
-  "title": "Log4Shell — Remote Code Execution via JNDI injection",
-  "exploitable_in_codebase": true,
-  "exploitability_note": "App uses log4j to log HTTP request parameters including user-agent. JNDI lookup triggered by malicious user-agent header.",
-  "remediation": "Upgrade to log4j-core 2.17.1. Workaround: set log4j2.formatMsgNoLookups=true or remove JndiLookup class from classpath.",
-  "breaking_change": false,
-  "severity": "critical"
+	"package": "log4j-core",
+	"ecosystem": "java/maven",
+	"current_version": "2.14.1",
+	"vulnerable_range": "< 2.17.1",
+	"safe_version": "2.17.1",
+	"cve": "CVE-2021-44228",
+	"cvss": 10.0,
+	"vuln_type": "remote_code_execution",
+	"title": "Log4Shell — Remote Code Execution via JNDI injection",
+	"exploitable_in_codebase": true,
+	"exploitability_note": "App uses log4j to log HTTP request parameters including user-agent. JNDI lookup triggered by malicious user-agent header.",
+	"remediation": "Upgrade to log4j-core 2.17.1. Workaround: set log4j2.formatMsgNoLookups=true or remove JndiLookup class from classpath.",
+	"breaking_change": false,
+	"severity": "critical"
 }
 ```

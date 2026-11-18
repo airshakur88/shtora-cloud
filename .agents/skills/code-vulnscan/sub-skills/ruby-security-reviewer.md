@@ -8,12 +8,12 @@ Find exploitable Ruby web-application vulnerabilities that generic pattern match
 
 ## Framework and attack-surface map
 
-| Stack | Entry-point and security signals |
-|---|---|
-| Rails | `config/routes.rb`, controllers/concerns, `before_action`, policies, models/scopes, serializers, mailers, channels, Active Job, Action Cable, Active Storage, ERB/Haml/Slim |
-| Sinatra / Rack | route blocks, mounted apps, `before` filters, helpers, Rack middleware order, sessions/cookies, Rack::Protection, template helpers, custom authentication |
-| Hanami | `config/routes.rb`, app/slice actions, action parameter contracts, Rack middleware, providers/dependencies, ROM relations/repositories, views/templates, settings, command/queue consumers |
-| Data/jobs | Active Record, Sequel, raw adapters, Sidekiq, Resque, Delayed Job, Solid Queue, scheduled tasks, event consumers |
+| Stack          | Entry-point and security signals                                                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Rails          | `config/routes.rb`, controllers/concerns, `before_action`, policies, models/scopes, serializers, mailers, channels, Active Job, Action Cable, Active Storage, ERB/Haml/Slim                |
+| Sinatra / Rack | route blocks, mounted apps, `before` filters, helpers, Rack middleware order, sessions/cookies, Rack::Protection, template helpers, custom authentication                                  |
+| Hanami         | `config/routes.rb`, app/slice actions, action parameter contracts, Rack middleware, providers/dependencies, ROM relations/repositories, views/templates, settings, command/queue consumers |
+| Data/jobs      | Active Record, Sequel, raw adapters, Sidekiq, Resque, Delayed Job, Solid Queue, scheduled tasks, event consumers                                                                           |
 
 Also inspect `Gemfile`/lock, environment files, initializers, credentials handling, session/cookie configuration, proxy/host settings, storage adapters, route constraints, template settings, and production error/debug behavior.
 

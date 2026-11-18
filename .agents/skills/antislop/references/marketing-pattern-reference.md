@@ -7,59 +7,59 @@ Profile description: Opt-in promotional-copy overlay. Inherits general rules and
 
 ## Semantic types
 
-| Semantic type | Meaning | Deducts from the score |
-|---|---|---|
-| forbidden | absolute house policy; a matching finding deducts from the score | yes |
-| discouraged | contextual finding; needs context, a threshold, a profile, or a human decision before it deducts | yes |
-| preferred | positive writing behavior; absence never deducts from the score | no |
-| structural | paragraph, section, argument, narrative, or document guidance; absence never deducts | no |
-| integrity | output defect (leaked markup, placeholders, hidden Unicode); reported separately, never scored | no |
-| evaluation | fixture and gate metadata; never scored and never evidence of authorship | no |
+| Semantic type | Meaning                                                                                          | Deducts from the score |
+| ------------- | ------------------------------------------------------------------------------------------------ | ---------------------- |
+| forbidden     | absolute house policy; a matching finding deducts from the score                                 | yes                    |
+| discouraged   | contextual finding; needs context, a threshold, a profile, or a human decision before it deducts | yes                    |
+| preferred     | positive writing behavior; absence never deducts from the score                                  | no                     |
+| structural    | paragraph, section, argument, narrative, or document guidance; absence never deducts             | no                     |
+| integrity     | output defect (leaked markup, placeholders, hidden Unicode); reported separately, never scored   | no                     |
+| evaluation    | fixture and gate metadata; never scored and never evidence of authorship                         | no                     |
 
 ## Vocabulary — forbidden
 
-| Word | Severity | Review |
-|---|---|---|
-| unleash | medium | advisory |
-| agile / agility | high | deterministic |
-| ascertain | high | deterministic |
-| commence | high | deterministic |
-| comprehensive | high | deterministic |
-| cutting-edge | high | deterministic |
-| delve | high | deterministic |
-| discontinue | high | deterministic |
-| dispatch | high | deterministic |
-| dynamic | high | deterministic |
-| embark | high | deterministic |
-| empower | high | deterministic |
-| enhance | high | deterministic |
-| facilitate | high | deterministic |
-| foster | high | deterministic |
-| groundbreaking | high | deterministic |
-| holistic | high | deterministic |
-| implement | high | deterministic |
-| innovative | high | deterministic |
-| interplay | high | deterministic |
-| leverage | high | deterministic |
-| navigate | high | deterministic |
-| obtain | high | deterministic |
-| pivotal | high | deterministic |
-| revolutionize | high | deterministic |
-| robust | high | deterministic |
-| seamless | high | deterministic |
-| showcase | high | deterministic |
-| significant | high | deterministic |
-| streamline | high | deterministic |
-| subsequently | high | deterministic |
-| supercharge | high | deterministic |
-| synergy | high | deterministic |
-| tapestry | high | deterministic |
-| testament | high | deterministic |
-| transformative | high | deterministic |
-| unlock | high | deterministic |
-| unpack | high | deterministic |
-| utilize | high | deterministic |
-| vibrant | high | deterministic |
+| Word            | Severity | Review        |
+| --------------- | -------- | ------------- |
+| unleash         | medium   | advisory      |
+| agile / agility | high     | deterministic |
+| ascertain       | high     | deterministic |
+| commence        | high     | deterministic |
+| comprehensive   | high     | deterministic |
+| cutting-edge    | high     | deterministic |
+| delve           | high     | deterministic |
+| discontinue     | high     | deterministic |
+| dispatch        | high     | deterministic |
+| dynamic         | high     | deterministic |
+| embark          | high     | deterministic |
+| empower         | high     | deterministic |
+| enhance         | high     | deterministic |
+| facilitate      | high     | deterministic |
+| foster          | high     | deterministic |
+| groundbreaking  | high     | deterministic |
+| holistic        | high     | deterministic |
+| implement       | high     | deterministic |
+| innovative      | high     | deterministic |
+| interplay       | high     | deterministic |
+| leverage        | high     | deterministic |
+| navigate        | high     | deterministic |
+| obtain          | high     | deterministic |
+| pivotal         | high     | deterministic |
+| revolutionize   | high     | deterministic |
+| robust          | high     | deterministic |
+| seamless        | high     | deterministic |
+| showcase        | high     | deterministic |
+| significant     | high     | deterministic |
+| streamline      | high     | deterministic |
+| subsequently    | high     | deterministic |
+| supercharge     | high     | deterministic |
+| synergy         | high     | deterministic |
+| tapestry        | high     | deterministic |
+| testament       | high     | deterministic |
+| transformative  | high     | deterministic |
+| unlock          | high     | deterministic |
+| unpack          | high     | deterministic |
+| utilize         | high     | deterministic |
+| vibrant         | high     | deterministic |
 
 ## Phrases — forbidden
 
@@ -240,40 +240,38 @@ Profile description: Opt-in promotional-copy overlay. Inherits general rules and
 
 ## Mechanism checks — unsupported claims need author material
 
-| Rule | Severity | Review |
-|---|---|---|
-| Causal claim without a nearby mechanism, result, or limit | medium | advisory |
-| Impact claim without a nearby mechanism, result, or limit | medium | advisory |
-| Importance claim without a nearby mechanism, actor, result, or limit | medium | advisory |
-| Superiority claim without a nearby basis, comparison, or result | medium | advisory |
+| Rule                                                                 | Severity | Review   |
+| -------------------------------------------------------------------- | -------- | -------- |
+| Causal claim without a nearby mechanism, result, or limit            | medium   | advisory |
+| Impact claim without a nearby mechanism, result, or limit            | medium   | advisory |
+| Importance claim without a nearby mechanism, actor, result, or limit | medium   | advisory |
+| Superiority claim without a nearby basis, comparison, or result      | medium   | advisory |
 
 A claim that names its mechanism, actor, result, or limit beside it is an evidenced consequence and is not a finding. An unsupported claim asks the author with a '[TK: ...]' marker; it never invents the mechanism.
 
-
 ## Medium routing — structural expectations per medium
 
-| Medium | Optimize for | Preserve | Avoid |
-|---|---|---|---|
-| argument | Claim-evidence fit, a named mechanism, the strongest real counterargument | Attribution, uncertainty, evidence, the author's judgment | A comprehensive survey when one through-line will do |
-| explanation | Accuracy, a working mechanism, level-appropriate depth | Causal chains, caveats, named actors | False precision or confidence beyond the source |
-| evocation | Concrete sensory language, rhythm, an intended feeling | Earned two-part sentences, deliberate rhythm, imagery | Demanding a thesis or supporting data |
-| narrative | Sequence, perspective, causality between events | Voice, deliberate ambiguity, non-linear structure when earned | Adding disorder or open threads solely to evade a pattern |
-| guide | Correct completion, scanning, prerequisites, failure states | Headings, lists, numbered steps, warnings, exact terms | Restructuring for novelty or hiding conditions in prose |
-| reference | Retrieval, precision, consistency | Repeated schemas, definitions, tables, predictable headings | Anti-template edits that make entries inconsistent |
-| message | The request, decision, owner, and next action | Real politeness, salutations, useful bullets | Turning a short message into an essay or adding fake casualness |
+| Medium      | Optimize for                                                              | Preserve                                                      | Avoid                                                           |
+| ----------- | ------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| argument    | Claim-evidence fit, a named mechanism, the strongest real counterargument | Attribution, uncertainty, evidence, the author's judgment     | A comprehensive survey when one through-line will do            |
+| explanation | Accuracy, a working mechanism, level-appropriate depth                    | Causal chains, caveats, named actors                          | False precision or confidence beyond the source                 |
+| evocation   | Concrete sensory language, rhythm, an intended feeling                    | Earned two-part sentences, deliberate rhythm, imagery         | Demanding a thesis or supporting data                           |
+| narrative   | Sequence, perspective, causality between events                           | Voice, deliberate ambiguity, non-linear structure when earned | Adding disorder or open threads solely to evade a pattern       |
+| guide       | Correct completion, scanning, prerequisites, failure states               | Headings, lists, numbered steps, warnings, exact terms        | Restructuring for novelty or hiding conditions in prose         |
+| reference   | Retrieval, precision, consistency                                         | Repeated schemas, definitions, tables, predictable headings   | Anti-template edits that make entries inconsistent              |
+| message     | The request, decision, owner, and next action                             | Real politeness, salutations, useful bullets                  | Turning a short message into an essay or adding fake casualness |
 
 Medium routing changes structural expectations only. Absolute rules (banned vocabulary, formatting, the zero-em-dash rule) apply in every medium.
 
-
 ## Venue routing — structural expectations per venue
 
-| Venue | Optimize for | Preserve | Avoid |
-|---|---|---|---|
-| ticket | A title that names the outcome, exact reproduction steps, and testable acceptance conditions | repro and acceptance conditions, exact commands, versions, expected-versus-actual output | Novel-length background, descriptions that restate the title, round scope words, paragraphs of nothing where N/A beats prose |
-| developer-reply | The verified answer or action first, then the caveat and the evidence that points at code | answer-first, honest uncertainty, file:line and commit references | Praise and thanks openers by default, restating the question, hedged non-answers, boilerplate empathy |
-| postmortem | A timeline with absolute times, the failure mechanism at code level, and impact in numbers first | timeline, impact in numbers, contributing factors as a causal chain, honest uncertainty, owned action items | Agentless fog, generic lessons, hedged root causes, moralizing conclusions, round sourceless numbers |
-| technical-article | The concrete problem first, one committed opinion, numbers with their conditions attached | problem-first, one real dead end, the recommendation and the case that would change it | Topic-survey openings, listicles in a trench coat, fractal summaries, both-sides conclusions |
-| release-note | Breaking changes first with the exact migration step, one line per change, verb-first | breaking-changes, the artifact behind every claim, the repo's own formatting habit | Marketing inflation, benefit claims without a mechanism, symmetric prose regardless of importance |
+| Venue             | Optimize for                                                                                     | Preserve                                                                                                    | Avoid                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| ticket            | A title that names the outcome, exact reproduction steps, and testable acceptance conditions     | repro and acceptance conditions, exact commands, versions, expected-versus-actual output                    | Novel-length background, descriptions that restate the title, round scope words, paragraphs of nothing where N/A beats prose |
+| developer-reply   | The verified answer or action first, then the caveat and the evidence that points at code        | answer-first, honest uncertainty, file:line and commit references                                           | Praise and thanks openers by default, restating the question, hedged non-answers, boilerplate empathy                        |
+| postmortem        | A timeline with absolute times, the failure mechanism at code level, and impact in numbers first | timeline, impact in numbers, contributing factors as a causal chain, honest uncertainty, owned action items | Agentless fog, generic lessons, hedged root causes, moralizing conclusions, round sourceless numbers                         |
+| technical-article | The concrete problem first, one committed opinion, numbers with their conditions attached        | problem-first, one real dead end, the recommendation and the case that would change it                      | Topic-survey openings, listicles in a trench coat, fractal summaries, both-sides conclusions                                 |
+| release-note      | Breaking changes first with the exact migration step, one line per change, verb-first            | breaking-changes, the artifact behind every claim, the repo's own formatting habit                          | Marketing inflation, benefit claims without a mechanism, symmetric prose regardless of importance                            |
 
 Three operations carry different authority over an artifact. Review quotes evidence and never rewrites. Refactor lists the full finding set, then applies only the accepted minimal edits and reports the rejected and unresolved findings. Recreate extracts facts, claims, quotes, intent, and constraints from the source, then verifies a freshly drafted candidate keeps them. Fiction is an opt-in profile, never a venue, and its guidance cannot affect general or technical scoring.
 
@@ -281,36 +279,34 @@ A question-under-discussion review asks whether each paragraph advances one impl
 
 ### Venue features (deterministic conditions)
 
-| Feature | Deterministic condition |
-|---|---|
-| Timeline | A clock time, ISO date, day name, or 12-hour time appears in the text. |
-| Impact in numbers | A quantity tied to a unit of measure appears in the text. |
-| Contributing factors as a causal chain | A causal connective or cause-verb appears in the text. |
-| Honest uncertainty | An uncertainty marker appears in the text. |
-| Reproduction steps | A reproduction marker, a version, or a numbered step appears in the text. |
-| Testable acceptance conditions | An acceptance marker, a checkbox, a threshold, or a when-then condition appears in the text. |
-| Answer first | The first sentence opens with an action, verdict, or decision token. |
-| Breaking changes first | A breaking-change, migration, or removal marker appears in the text. |
-| Problem before the topic | The first paragraph contains a problem, incident, or failure marker. |
-| No unearned reflection tail | The final paragraph opens with a generic reflection marker after at least one earlier paragraph. |
+| Feature                                | Deterministic condition                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Timeline                               | A clock time, ISO date, day name, or 12-hour time appears in the text.                           |
+| Impact in numbers                      | A quantity tied to a unit of measure appears in the text.                                        |
+| Contributing factors as a causal chain | A causal connective or cause-verb appears in the text.                                           |
+| Honest uncertainty                     | An uncertainty marker appears in the text.                                                       |
+| Reproduction steps                     | A reproduction marker, a version, or a numbered step appears in the text.                        |
+| Testable acceptance conditions         | An acceptance marker, a checkbox, a threshold, or a when-then condition appears in the text.     |
+| Answer first                           | The first sentence opens with an action, verdict, or decision token.                             |
+| Breaking changes first                 | A breaking-change, migration, or removal marker appears in the text.                             |
+| Problem before the topic               | The first paragraph contains a problem, incident, or failure marker.                             |
+| No unearned reflection tail            | The final paragraph opens with a generic reflection marker after at least one earlier paragraph. |
 
 Absolute rules (banned vocabulary, formatting, the zero-em-dash rule) apply in every venue and profile.
 
-
 ## Review statuses — one explicit status per finding
 
-| Status | Meaning |
-|---|---|
-| keep | A pattern is present but earned, required by the medium, or preferable to the alternatives. State what earns it. |
-| revise | The source already contains enough material for an honest improvement. |
-| ask-author | The improvement needs a fact, mechanism, example, opinion, or experience the source does not supply. Ask for exactly that with a '[TK: ...]' marker or a direct question; never invent it. |
-| cut | The passage adds only repetition, ceremony, unsupported emphasis, or closure. |
-| no-finding | The prose already performs its job. No finding is reported. |
-| n/a | A structural feature does not apply to the venue or offers no occasion in the text. No judgment is forced. |
+| Status          | Meaning                                                                                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| keep            | A pattern is present but earned, required by the medium, or preferable to the alternatives. State what earns it.                                                                                         |
+| revise          | The source already contains enough material for an honest improvement.                                                                                                                                   |
+| ask-author      | The improvement needs a fact, mechanism, example, opinion, or experience the source does not supply. Ask for exactly that with a '[TK: ...]' marker or a direct question; never invent it.               |
+| cut             | The passage adds only repetition, ceremony, unsupported emphasis, or closure.                                                                                                                            |
+| no-finding      | The prose already performs its job. No finding is reported.                                                                                                                                              |
+| n/a             | A structural feature does not apply to the venue or offers no occasion in the text. No judgment is forced.                                                                                               |
 | over-correction | Applying the rule would flatten valid voice or structure, such as a formal register, quoted material, or an author's verified habit. Record it separately; never reinterpret it as an AI-leaning signal. |
 
 Review never edits. Missing author material becomes a targeted question or a '[TK: ...]' marker, never invented content. n/a records a structural feature that does not apply to the venue; over-correction records where applying the rule would flatten valid voice or structure.
-
 
 ## Positive guidance — preferred (never scored)
 
@@ -359,14 +355,14 @@ Fixture and gate metadata. A score or fixture result never proves who wrote the 
 
 Higher-priority requirements govern lower-priority cleanup:
 
-| Rank | Requirement |
-|---|---|
-| 1 | Safety, truth, accessibility, privacy, legal and platform requirements, and safeguards. |
-| 2 | Explicit user instructions, including task mode, authorized edit depth, protected content, and output constraints. |
-| 3 | Task and medium requirements, including the selected genre and medium routing. |
-| 4 | Protected source content and factual fidelity: preserve supplied meaning and source-owned material by default. |
-| 5 | Required format, output integrity, and checks needed to make the requested artifact usable. |
-| 6 | Style cleanup and optional diagnostics after higher-priority requirements are satisfied. |
+| Rank | Requirement                                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------ |
+| 1    | Safety, truth, accessibility, privacy, legal and platform requirements, and safeguards.                            |
+| 2    | Explicit user instructions, including task mode, authorized edit depth, protected content, and output constraints. |
+| 3    | Task and medium requirements, including the selected genre and medium routing.                                     |
+| 4    | Protected source content and factual fidelity: preserve supplied meaning and source-owned material by default.     |
+| 5    | Required format, output integrity, and checks needed to make the requested artifact usable.                        |
+| 6    | Style cleanup and optional diagnostics after higher-priority requirements are satisfied.                           |
 
 Preserve protected source content by default. An explicit user instruction may authorize a change; record the authorization and the resulting change.
 Preservation failures are correctness failures, not style or authorship findings.
@@ -375,20 +371,19 @@ Upstream review: https://github.com/Anbeeld/WRITING.md WRITING.md 1.4.2 at commi
 
 ## Edit operations (never scored)
 
-| Operation | Authority | Boundary |
-|---|---|---|
-| draft | Create prose only from supplied facts and allowed research. | A voice sample contributes style traits only: vocabulary, rhythm, punctuation, paragraph shape, and formality. It cannot donate claims, memories, preferences, or experiences to the target. |
-| revise | Make the least invasive change that satisfies the request. | Preserve every inventory item or report an authorized change. Never strengthen causality or certainty beyond the source. |
-| audit | Report findings without changing the artifact. | Produce no rewritten passage or file change unless the user separately requests it. |
-| transform | May change shape while preserving the source inventory. | Disclose structural changes and still pass the fidelity gate. |
+| Operation | Authority                                                   | Boundary                                                                                                                                                                                     |
+| --------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| draft     | Create prose only from supplied facts and allowed research. | A voice sample contributes style traits only: vocabulary, rhythm, punctuation, paragraph shape, and formality. It cannot donate claims, memories, preferences, or experiences to the target. |
+| revise    | Make the least invasive change that satisfies the request.  | Preserve every inventory item or report an authorized change. Never strengthen causality or certainty beyond the source.                                                                     |
+| audit     | Report findings without changing the artifact.              | Produce no rewritten passage or file change unless the user separately requests it.                                                                                                          |
+| transform | May change shape while preserving the source inventory.     | Disclose structural changes and still pass the fidelity gate.                                                                                                                                |
 
 Before Revise or Transform, inventory the source: claims, facts, quantities, dates, modality, causality, negation, conditions, attribution, quotes, citations, links, placeholders, markup, accessibility structure, required terminology, author-owned statements.
-
 
 ## Severity weights
 
 | Severity | Base weight |
-|---|---|
-| high | 8 |
-| medium | 4 |
-| low | 2 |
+| -------- | ----------- |
+| high     | 8           |
+| medium   | 4           |
+| low      | 2           |

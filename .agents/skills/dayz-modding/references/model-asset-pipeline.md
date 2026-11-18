@@ -29,13 +29,13 @@ config.cpp             hiddenSelections[] = {"camo_body"} (CfgVehicles entry)
 data\my_object.rvmat   texture stages  →  my_object_co.paa, _nohq.paa, _smdi.paa
 ```
 
-| Broken link | Symptom in game |
-|---|---|
-| `.p3d` selection name ≠ `model.cfg` `sections[]` | Texture swaps / hidden-selection changes do nothing |
-| `model.cfg` class name ≠ `.p3d` filename | Engine falls back to `Default`: no skeleton, no sections, attachment proxies do not render |
-| `config.cpp` `hiddenSelections[]` ≠ `sections[]` | `SetObjectTexture()` / `hiddenSelectionsTextures[]` has no effect |
-| `.rvmat` points at a missing `.paa` | Object renders white / pink, RPT logs a missing-file warning |
-| `model=` path wrong in `config.cpp` | Object spawns as an invisible entity that still collides |
+| Broken link                                      | Symptom in game                                                                            |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `.p3d` selection name ≠ `model.cfg` `sections[]` | Texture swaps / hidden-selection changes do nothing                                        |
+| `model.cfg` class name ≠ `.p3d` filename         | Engine falls back to `Default`: no skeleton, no sections, attachment proxies do not render |
+| `config.cpp` `hiddenSelections[]` ≠ `sections[]` | `SetObjectTexture()` / `hiddenSelectionsTextures[]` has no effect                          |
+| `.rvmat` points at a missing `.paa`              | Object renders white / pink, RPT logs a missing-file warning                               |
+| `model=` path wrong in `config.cpp`              | Object spawns as an invisible entity that still collides                                   |
 
 The `model.cfg` class name rule is the one that costs the most hours: the class is
 looked up **by the `.p3d` file name**, not by the config classname. A weapon whose
@@ -50,10 +50,10 @@ class sr2m_body_raised: sr2m_body {};
 
 ## 2. `.p3d` Formats: MLOD vs ODOL
 
-| Format | First bytes | Editable | Produced by | Consumed by |
-|---|---|---|---|---|
-| **MLOD** | `4D 4C 4F 44` = `MLOD`, then `P3DM` per LOD block | Yes | Object Builder, exporters | Object Builder, `binarize.exe` |
-| **ODOL** | `4F 44 4F 4C` = `ODOL`, then version `0x36` = 54 in DayZ | No | `binarize.exe` (during PBO build) | The game engine |
+| Format   | First bytes                                              | Editable | Produced by                       | Consumed by                    |
+| -------- | -------------------------------------------------------- | -------- | --------------------------------- | ------------------------------ |
+| **MLOD** | `4D 4C 4F 44` = `MLOD`, then `P3DM` per LOD block        | Yes      | Object Builder, exporters         | Object Builder, `binarize.exe` |
+| **ODOL** | `4F 44 4F 4C` = `ODOL`, then version `0x36` = 54 in DayZ | No       | `binarize.exe` (during PBO build) | The game engine                |
 
 (Both verified by reading the first 16 bytes of `dz\gear\camping\wooden_log.p3d`
 and of its MLOD-converted copy.)
@@ -70,7 +70,7 @@ means working on MLOD before the build step.
 
 ## 3. LOD Resolutions
 
-A `.p3d` holds N *levels of detail*, each identified by a float `resolution`. The
+A `.p3d` holds N _levels of detail_, each identified by a float `resolution`. The
 engine decides what a LOD is **purely from that number** — the name shown in
 Object Builder is derived from it.
 
@@ -80,16 +80,16 @@ Read from two debinarized vanilla models — `dz\structures\residential\houses\h
 (a building) and `dz\gear\camping\wooden_log.p3d` (an item), both converted back
 to MLOD:
 
-| LOD | Nominal | **Value actually stored** | Present in sampled models |
-|---|---|---|---|
-| Visual (LOD 0..N) | `1.0`, `2.0`, `3.0`, `4.0` | same | yes (4 visual LODs in both) |
-| Geometry | `1e13` | `9999999827968.0` | yes |
-| Memory | `1e15` | `999999986991104.0` | yes |
-| Roadway | `3e15` | `3000000028082176.0` | yes (house only) |
-| Paths | `4e15` | `3999999947964416.0` | yes (house only) |
-| HitPoints | `5e15` | `5000000136282112.0` | yes (house only) |
-| ViewGeometry | `6e15` | `6000000056164352.0` | yes |
-| FireGeometry | `7e15` | `6999999976046592.0` | yes |
+| LOD               | Nominal                    | **Value actually stored** | Present in sampled models   |
+| ----------------- | -------------------------- | ------------------------- | --------------------------- |
+| Visual (LOD 0..N) | `1.0`, `2.0`, `3.0`, `4.0` | same                      | yes (4 visual LODs in both) |
+| Geometry          | `1e13`                     | `9999999827968.0`         | yes                         |
+| Memory            | `1e15`                     | `999999986991104.0`       | yes                         |
+| Roadway           | `3e15`                     | `3000000028082176.0`      | yes (house only)            |
+| Paths             | `4e15`                     | `3999999947964416.0`      | yes (house only)            |
+| HitPoints         | `5e15`                     | `5000000136282112.0`      | yes (house only)            |
+| ViewGeometry      | `6e15`                     | `6000000056164352.0`      | yes                         |
+| FireGeometry      | `7e15`                     | `6999999976046592.0`      | yes                         |
 
 > **Trap for tooling.** `resolution` is stored as a 32-bit float. `lod.resolution
 > == 1e13` is **false** for a real Geometry LOD — the stored value is
@@ -102,17 +102,17 @@ ShadowVolume `10000` / `11000`, ViewCargo `8e15`, ViewCargoGeometry `9e15`
 
 ### What each LOD does — and the symptom when it is missing
 
-| LOD | Purpose | Missing / broken ⇒ |
-|---|---|---|
-| Visual | What you see | Invisible object that still blocks movement |
-| **Geometry** | Physical collision, object mass | Player and vehicles walk straight through it |
+| LOD              | Purpose                          | Missing / broken ⇒                                                                  |
+| ---------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
+| Visual           | What you see                     | Invisible object that still blocks movement                                         |
+| **Geometry**     | Physical collision, object mass  | Player and vehicles walk straight through it                                        |
 | **ViewGeometry** | Cursor raycast, action targeting | **Actions never appear** — the #1 "my script doesn't work" that is not a script bug |
-| **FireGeometry** | Bullet / projectile hits | Bullets pass through; object cannot be damaged by shooting |
-| Memory | Named points (no faces needed) | Doors do not open, attachments spawn at origin, no inventory icon framing |
-| LandContact | How the object rests on terrain | Object floats or sinks |
-| Roadway | Walkable surfaces on the object | Player cannot stand on stairs / floors |
-| Paths | AI navigation through the object | Infected cannot path indoors |
-| HitPoints | Per-part damage zones | `dmgZones` never register hits |
+| **FireGeometry** | Bullet / projectile hits         | Bullets pass through; object cannot be damaged by shooting                          |
+| Memory           | Named points (no faces needed)   | Doors do not open, attachments spawn at origin, no inventory icon framing           |
+| LandContact      | How the object rests on terrain  | Object floats or sinks                                                              |
+| Roadway          | Walkable surfaces on the object  | Player cannot stand on stairs / floors                                              |
+| Paths            | AI navigation through the object | Infected cannot path indoors                                                        |
+| HitPoints        | Per-part damage zones            | `dmgZones` never register hits                                                      |
 
 **Debugging order when an object "does not work":** Visual (do I see it?) →
 Geometry (do I collide?) → ViewGeometry (does the cursor find it?) → FireGeometry
@@ -135,6 +135,7 @@ Measured in `house_2b02`: Geometry = 127 components, ViewGeometry = 113,
 FireGeometry = 472. `wooden_log` (a single item) = 1 component per collision LOD.
 
 Rules:
+
 - Each component must be **closed** (watertight) and **convex**. A concave shape
   must be split into several components, not left as one.
 - Numbering is zero-padded to 2 digits and continues past 99 (`component100` is
@@ -168,22 +169,22 @@ engine. Measured in vanilla:
 
 ### On an item (`wooden_log`)
 
-| Selection | Meaning |
-|---|---|
-| `invview` | Camera framing for the inventory icon |
-| `boundingbox_min` / `boundingbox_max` | Placement / snapping volume |
-| `ce_center`, `ce_radius` | Central Economy placement volume for the item |
+| Selection                             | Meaning                                       |
+| ------------------------------------- | --------------------------------------------- |
+| `invview`                             | Camera framing for the inventory icon         |
+| `boundingbox_min` / `boundingbox_max` | Placement / snapping volume                   |
+| `ce_center`, `ce_radius`              | Central Economy placement volume for the item |
 
 ### On a building (`house_2b02`)
 
-| Selection | Points | Meaning |
-|---|---|---|
-| `doors1` … `doors6` | 1 each | The door part identifier |
-| `doors1_axis` … | **2 each** | Hinge axis — two points define the rotation line |
-| `doors1_action` … | 1 each | Where the "Open" action is offered |
-| `pointfloor` | 132 | Modeller-side floor loot hints |
-| `pointtable`, `pointwardrobes`, `pointstove` | 27 / 11 / 4 | Same, per furniture class |
-| `sound_rainobjectinner2metal1_1` … | 1 each | Rain impact sound emitters, name encodes surface type |
+| Selection                                    | Points      | Meaning                                               |
+| -------------------------------------------- | ----------- | ----------------------------------------------------- |
+| `doors1` … `doors6`                          | 1 each      | The door part identifier                              |
+| `doors1_axis` …                              | **2 each**  | Hinge axis — two points define the rotation line      |
+| `doors1_action` …                            | 1 each      | Where the "Open" action is offered                    |
+| `pointfloor`                                 | 132         | Modeller-side floor loot hints                        |
+| `pointtable`, `pointwardrobes`, `pointstove` | 27 / 11 / 4 | Same, per furniture class                             |
+| `sound_rainobjectinner2metal1_1` …           | 1 each      | Rain impact sound emitters, name encodes surface type |
 
 > The door triple `doorsN` + `doorsN_axis` (2 points) + `doorsN_action` is the
 > complete model-side contract for an animated door. The config side is
@@ -212,10 +213,11 @@ proxy:\dz\structures\furniture\chairs\ch_mod_c\ch_mod_c.004
 (measured in `house_2b02` Visual LOD 1.0)
 
 Rules:
+
 - The suffix `.001`, `.002`, … is the **proxy index**, one per placed instance.
 - The path has no `.p3d` extension and uses backslashes.
 - The proxied file must exist at build time or binarization fails.
-- Proxies define *where* attachments go on characters and vehicles — a wheel, a
+- Proxies define _where_ attachments go on characters and vehicles — a wheel, a
   weapon attachment, a clothing slot. The proxy triangle's orientation determines
   the attached item's pose.
 
@@ -323,16 +325,16 @@ class magazine_hide
 };
 ```
 
-| Field | Meaning |
-|---|---|
-| `type` | `"rotation"`, `"translation"`, `"hide"`, `"rotationX/Y/Z"`, `"translationX/Y/Z"` |
-| `source` | Name of the animation source (matches `AnimationSources` / `SetAnimationPhase`) |
-| `selection` | The `.p3d` named selection that moves |
-| `axis` | Memory-LOD selection holding **2 points** that define the rotation line |
-| `memory` | `1` = `axis` refers to the Memory LOD |
-| `sourceAddress` | `"clamp"` (stop at limits), `"loop"` (wrap), `"mirror"` |
-| `angle0` / `angle1` | Rotation at `minValue` / `maxValue`; `"rad -95"` accepted |
-| `hideValue` | For `type="hide"`: selection is hidden when source ≥ this |
+| Field               | Meaning                                                                          |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `type`              | `"rotation"`, `"translation"`, `"hide"`, `"rotationX/Y/Z"`, `"translationX/Y/Z"` |
+| `source`            | Name of the animation source (matches `AnimationSources` / `SetAnimationPhase`)  |
+| `selection`         | The `.p3d` named selection that moves                                            |
+| `axis`              | Memory-LOD selection holding **2 points** that define the rotation line          |
+| `memory`            | `1` = `axis` refers to the Memory LOD                                            |
+| `sourceAddress`     | `"clamp"` (stop at limits), `"loop"` (wrap), `"mirror"`                          |
+| `angle0` / `angle1` | Rotation at `minValue` / `maxValue`; `"rad -95"` accepted                        |
+| `hideValue`         | For `type="hide"`: selection is hidden when source ≥ this                        |
 
 The `config.cpp` side, verified in `P:\dz\vehicles\wheeled\config.cpp:351`:
 
@@ -377,19 +379,19 @@ rejected or silently rescaled.
 The converter and the shader pick behaviour from the suffix. Census over the
 unpacked vanilla tree (`P:\dz`, `.paa` files):
 
-| Suffix | Count | Meaning |
-|---|---|---|
-| `_lco` | 6152 | Color, "lossless"/uncompressed variant |
-| `_co` | 5998 | **Color / albedo** |
-| `_nohq` | 3767 | **Normal map**, high quality |
-| `_lca` | 3072 | Color+alpha, uncompressed |
-| `_smdi` | 2602 | **Specular map** (specular / mask / detail intensity) |
-| `_ca` | 1529 | Color with alpha (transparency) |
-| `_mc` | 1173 | Macro / multi-color mask |
-| `_as` | 1052 | Ambient shadow (baked AO) |
-| `_mask` | 922 | Layer mask (multi-material blending) |
-| `_ads` | 431 | Alpha-decal shadow |
-| `_dt` | 135 | Detail texture |
+| Suffix  | Count | Meaning                                               |
+| ------- | ----- | ----------------------------------------------------- |
+| `_lco`  | 6152  | Color, "lossless"/uncompressed variant                |
+| `_co`   | 5998  | **Color / albedo**                                    |
+| `_nohq` | 3767  | **Normal map**, high quality                          |
+| `_lca`  | 3072  | Color+alpha, uncompressed                             |
+| `_smdi` | 2602  | **Specular map** (specular / mask / detail intensity) |
+| `_ca`   | 1529  | Color with alpha (transparency)                       |
+| `_mc`   | 1173  | Macro / multi-color mask                              |
+| `_as`   | 1052  | Ambient shadow (baked AO)                             |
+| `_mask` | 922   | Layer mask (multi-material blending)                  |
+| `_ads`  | 431   | Alpha-decal shadow                                    |
+| `_dt`   | 135   | Detail texture                                        |
 
 Minimum viable set for a new object: `_co` + `_nohq` + `_smdi`.
 Transparency (glass, foliage, netting) requires `_ca`, not `_co`.
@@ -421,19 +423,19 @@ class Stage7 { texture="dz\data\data\env_land_co.paa";          ... };
 
 ### Stage order for the `Super` shader — memorise this
 
-| Stage | Map | Typical value |
-|---|---|---|
-| 1 | Normal (`_nohq`) | real texture |
-| 2 | Detail (`DT`) | procedural placeholder or `_dt.paa` |
-| 3 | Macro (`MC`) | procedural placeholder or `_mc.paa` |
-| 4 | Ambient shadow (`AS`) | procedural placeholder or `_as.paa` |
-| 5 | Specular (`SMDI`) | real texture or placeholder |
-| 6 | Fresnel | `#(ai,64,64,1)fresnel(a,b)` |
-| 7 | Environment map | `dz\data\data\env_land_co.paa` |
+| Stage | Map                   | Typical value                       |
+| ----- | --------------------- | ----------------------------------- |
+| 1     | Normal (`_nohq`)      | real texture                        |
+| 2     | Detail (`DT`)         | procedural placeholder or `_dt.paa` |
+| 3     | Macro (`MC`)          | procedural placeholder or `_mc.paa` |
+| 4     | Ambient shadow (`AS`) | procedural placeholder or `_as.paa` |
+| 5     | Specular (`SMDI`)     | real texture or placeholder         |
+| 6     | Fresnel               | `#(ai,64,64,1)fresnel(a,b)`         |
+| 7     | Environment map       | `dz\data\data\env_land_co.paa`      |
 
 The `#(argb,8,8,3)color(r,g,b,a,TYPE)` form is a **procedural placeholder**: an
 inline 8×8 constant texture. Use it for any stage you are not authoring — do not
-delete the stage, because stage *position* is what the shader reads.
+delete the stage, because stage _position_ is what the shader reads.
 
 The `_co` (color) texture is **not** in the `.rvmat` for hidden-selection objects:
 it comes from `hiddenSelectionsTextures[]` in `config.cpp`. For non-hidden-selection
@@ -473,18 +475,18 @@ silently.
 ## 10. Importing From Blender / Other DCC: the Winding Trap
 
 Blender is **Z-up**; DayZ is **Y-up**. Exporting through the axis conversion
-reverses the effective *winding order* (the order of a face's corners). The engine
+reverses the effective _winding order_ (the order of a face's corners). The engine
 decides which side of a face is "outside" from the winding — **not** from the
 declared normal. So an imported model can have perfect normals and still be wrong.
 
 ### Symptoms — they appear one at a time, per LOD
 
-| Symptom | LOD with reversed winding |
-|---|---|
-| Object looks hollow; texture only visible from inside | Visual |
-| Bullets pass through | FireGeometry |
-| Actions never appear / cursor does not detect it | ViewGeometry |
-| Player walks through the object | Geometry |
+| Symptom                                               | LOD with reversed winding |
+| ----------------------------------------------------- | ------------------------- |
+| Object looks hollow; texture only visible from inside | Visual                    |
+| Bullets pass through                                  | FireGeometry              |
+| Actions never appear / cursor does not detect it      | ViewGeometry              |
+| Player walks through the object                       | Geometry                  |
 
 Because each LOD is independent, "the texture is fine but bullets pass through"
 is a completely normal presentation of this single root cause.
@@ -520,16 +522,16 @@ with open(path, 'wb') as f:
 
 ## 11. `.p3d` Named Properties
 
-Set in Object Builder via *Edit → Named Properties*. They live in the model, not
+Set in Object Builder via _Edit → Named Properties_. They live in the model, not
 in any config.
 
-| Property | Typical value | Effect |
-|---|---|---|
-| `autocenter` | `0` | Do not recentre the model on load — required for held items so the grip point stays put |
-| `mass` | kg | Physics mass; belongs on the Geometry LOD |
-| `class` | `house`, `car`, … | Engine behaviour category |
-| `mapType` | `building`, `vehicle`, … | Icon shown on the in-game map |
-| `damage` | selection name | Marks a damage zone **(convention)** |
+| Property     | Typical value            | Effect                                                                                  |
+| ------------ | ------------------------ | --------------------------------------------------------------------------------------- |
+| `autocenter` | `0`                      | Do not recentre the model on load — required for held items so the grip point stays put |
+| `mass`       | kg                       | Physics mass; belongs on the Geometry LOD                                               |
+| `class`      | `house`, `car`, …        | Engine behaviour category                                                               |
+| `mapType`    | `building`, `vehicle`, … | Icon shown on the in-game map                                                           |
+| `damage`     | selection name           | Marks a damage zone **(convention)**                                                    |
 
 ---
 
@@ -555,16 +557,16 @@ in any config.
 
 ## Symptom → Cause Quick Table
 
-| Symptom | First thing to check |
-|---|---|
-| Object invisible but blocks movement | Visual LOD missing/empty, or `model=` path wrong |
-| Object visible, player walks through | Geometry LOD missing or non-convex components |
-| No action prompt on a correct script | **ViewGeometry LOD** |
-| Bullets pass through | **FireGeometry LOD** |
-| Object white / pink | `.rvmat` or `.paa` path broken (check RPT, not script.log) |
-| Texture only from inside | Reversed winding, Visual LOD |
-| `SetAnimationPhase` does nothing | Missing `class Animations` entry or missing `AnimationSources` |
-| Door swings through the wall | Missing/1-point `doorsN_axis` in Memory LOD |
-| Attachment spawns at object origin | Missing proxy or missing Memory point |
-| Retexture via `SetObjectTexture` ignored | Selection not listed in `sections[]` / `hiddenSelections[]` |
-| Object floats above terrain | LandContact LOD missing |
+| Symptom                                  | First thing to check                                           |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| Object invisible but blocks movement     | Visual LOD missing/empty, or `model=` path wrong               |
+| Object visible, player walks through     | Geometry LOD missing or non-convex components                  |
+| No action prompt on a correct script     | **ViewGeometry LOD**                                           |
+| Bullets pass through                     | **FireGeometry LOD**                                           |
+| Object white / pink                      | `.rvmat` or `.paa` path broken (check RPT, not script.log)     |
+| Texture only from inside                 | Reversed winding, Visual LOD                                   |
+| `SetAnimationPhase` does nothing         | Missing `class Animations` entry or missing `AnimationSources` |
+| Door swings through the wall             | Missing/1-point `doorsN_axis` in Memory LOD                    |
+| Attachment spawns at object origin       | Missing proxy or missing Memory point                          |
+| Retexture via `SetObjectTexture` ignored | Selection not listed in `sections[]` / `hiddenSelections[]`    |
+| Object floats above terrain              | LandContact LOD missing                                        |

@@ -1,13 +1,11 @@
+import type { ESTree } from "@oxlint/plugins";
 import { defineRule } from "@oxlint/plugins";
-
 import {
 	classifyUnsafeDictionary,
 	classifyUnsafeDictionaryValue,
 	createTypeEnvironment,
 	type TypeEnvironment,
 } from "../shared/dictionary-types.ts";
-
-import type { ESTree } from "@oxlint/plugins";
 
 const typeNodeKinds: ReadonlySet<string> = new Set([
 	"JSDocNonNullableType",
@@ -57,7 +55,10 @@ function typeReferenceName(type: ESTree.TSTypeReference): string | null {
 	return type.typeName.type === "Identifier" ? type.typeName.name : null;
 }
 
-function isInsideTypeAliasDeclaration(node: ESTree.Node, maxDepth = 64): boolean {
+function isInsideTypeAliasDeclaration(
+	node: ESTree.Node,
+	maxDepth = 64,
+): boolean {
 	let current: ESTree.Node | null = node.parent;
 	let depth = 0;
 	while (current !== null && current.type !== "Program" && depth < maxDepth) {
@@ -68,20 +69,37 @@ function isInsideTypeAliasDeclaration(node: ESTree.Node, maxDepth = 64): boolean
 	return false;
 }
 
-function isPlainAliasConsumerUse(node: ESTree.TSType, environment: TypeEnvironment, depth = 0, maxDepth = 32): boolean {
+function isPlainAliasConsumerUse(
+	node: ESTree.TSType,
+	environment: TypeEnvironment,
+	depth = 0,
+	maxDepth = 32,
+): boolean {
 	if (depth > maxDepth) return false;
-	if (node.type !== "TSTypeReference" || node.typeArguments?.params.length) return false;
+	if (node.type !== "TSTypeReference" || node.typeArguments?.params.length)
+		return false;
 	const name = typeReferenceName(node);
-	return name !== null && environment.aliases.has(name) && !isInsideTypeAliasDeclaration(node);
+	return (
+		name !== null &&
+		environment.aliases.has(name) &&
+		!isInsideTypeAliasDeclaration(node)
+	);
 }
 
-function shouldReportType(node: ESTree.TSType, environment: TypeEnvironment, maxDepth = 64): boolean {
+function shouldReportType(
+	node: ESTree.TSType,
+	environment: TypeEnvironment,
+	maxDepth = 64,
+): boolean {
 	if (isPlainAliasConsumerUse(node, environment)) return false;
 	if (classifyUnsafeDictionary(node, environment) === null) return false;
 	let current: ESTree.Node | null = node.parent;
 	let depth = 0;
 	while (current !== null && current.type !== "Program" && depth < maxDepth) {
-		if (isTypeNode(current) && classifyUnsafeDictionary(current, environment) !== null)
+		if (
+			isTypeNode(current) &&
+			classifyUnsafeDictionary(current, environment) !== null
+		)
 			return false;
 		current = current.parent;
 		depth++;

@@ -71,12 +71,12 @@ To use with Claude Desktop Router (CDR) mode, add to your Agent config:
 
 ```json
 {
-  "skills": {
-    "win-disk-cleaner": {
-      "source": "github:orzcls/win-disk-cleaner",
-      "auto_update": true
-    }
-  }
+	"skills": {
+		"win-disk-cleaner": {
+			"source": "github:orzcls/win-disk-cleaner",
+			"auto_update": true
+		}
+	}
 }
 ```
 
@@ -96,18 +96,18 @@ win-disk-cleaner/
 
 ## Cleanup modules
 
-| #    | Module                               | Typical Space | Safe?                            |
-| ---- | ------------------------------------ | ------------- | -------------------------------- |
-| 1    | Temp files                           | 1-3 GB        | Yes                              |
-| 2    | Recycle Bin                          | 0.5-2 GB      | Yes                              |
-| 3    | Windows Update cache                 | 1-3 GB        | Yes                              |
-| 4    | Browser caches                       | 0.5-2 GB      | Yes                              |
-| 5    | System logs & cache                  | 0.5-1 GB      | Yes                              |
-| 6    | App caches (QQ/WeChat/Teams/etc.)    | 0.2-1 GB      | Yes                              |
-| 7    | Developer caches (npm/pip/JetBrains) | 0.5-5 GB      | Yes (re-downloads)               |
-| 8    | Hibernation (hiberfil.sys)           | RAM size      | Use -SkipHibernation if needed   |
-| 9    | WinSxS (DISM cleanup)                | 1-5 GB        | Yes (official MS method)         |
-| 10   | Old restore points                   | 1-5 GB        | Use -SkipRestorePoints if needed |
+| #   | Module                               | Typical Space | Safe?                            |
+| --- | ------------------------------------ | ------------- | -------------------------------- |
+| 1   | Temp files                           | 1-3 GB        | Yes                              |
+| 2   | Recycle Bin                          | 0.5-2 GB      | Yes                              |
+| 3   | Windows Update cache                 | 1-3 GB        | Yes                              |
+| 4   | Browser caches                       | 0.5-2 GB      | Yes                              |
+| 5   | System logs & cache                  | 0.5-1 GB      | Yes                              |
+| 6   | App caches (QQ/WeChat/Teams/etc.)    | 0.2-1 GB      | Yes                              |
+| 7   | Developer caches (npm/pip/JetBrains) | 0.5-5 GB      | Yes (re-downloads)               |
+| 8   | Hibernation (hiberfil.sys)           | RAM size      | Use -SkipHibernation if needed   |
+| 9   | WinSxS (DISM cleanup)                | 1-5 GB        | Yes (official MS method)         |
+| 10  | Old restore points                   | 1-5 GB        | Use -SkipRestorePoints if needed |
 
 ## Recommended free tools
 

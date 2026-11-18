@@ -4,6 +4,7 @@ Context: WWDC23 session on building a mental model for SwiftUI performance and
 triaging hangs, hitches, and excessive update work.
 
 ## Contents
+
 - Core mental model
 - Dependencies and invalidation
 - Expensive body work

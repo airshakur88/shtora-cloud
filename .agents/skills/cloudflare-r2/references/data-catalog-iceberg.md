@@ -12,6 +12,7 @@ Manage structured data in R2 using Apache Iceberg table format with versioning, 
 R2 Data Catalog provides built-in Apache Iceberg support for managing structured data in object storage. Iceberg is an open table format that enables ACID transactions, schema evolution, and efficient query performance on large datasets.
 
 **Key Features**:
+
 - **Table versioning** - Track changes over time with snapshots
 - **Time-travel queries** - Query data as it existed at any point in time
 - **Schema evolution** - Add/remove columns without rewriting data
@@ -20,6 +21,7 @@ R2 Data Catalog provides built-in Apache Iceberg support for managing structured
 - **Metadata management** - Efficient file tracking and pruning
 
 **Use Cases**:
+
 - Data lakes and lakehouses
 - Analytics on large datasets
 - Compliance and audit trails (time-travel)
@@ -34,15 +36,15 @@ R2 Data Catalog provides built-in Apache Iceberg support for managing structured
 
 Iceberg is a high-performance table format for huge analytic datasets. It solves problems with traditional data lake formats:
 
-| Feature | Traditional Parquet | Apache Iceberg |
-|---------|---------------------|----------------|
-| **ACID transactions** | No | Yes |
-| **Time travel** | No | Yes (snapshot-based) |
-| **Schema evolution** | Rewrite data | Update metadata only |
-| **Partition evolution** | Rewrite data | Update metadata only |
-| **Hidden partitioning** | Manual partition management | Automatic |
-| **Snapshot isolation** | No | Yes |
-| **Table statistics** | None | Built-in (for query optimization) |
+| Feature                 | Traditional Parquet         | Apache Iceberg                    |
+| ----------------------- | --------------------------- | --------------------------------- |
+| **ACID transactions**   | No                          | Yes                               |
+| **Time travel**         | No                          | Yes (snapshot-based)              |
+| **Schema evolution**    | Rewrite data                | Update metadata only              |
+| **Partition evolution** | Rewrite data                | Update metadata only              |
+| **Hidden partitioning** | Manual partition management | Automatic                         |
+| **Snapshot isolation**  | No                          | Yes                               |
+| **Table statistics**    | None                        | Built-in (for query optimization) |
 
 ### Iceberg Table Structure
 
@@ -72,45 +74,45 @@ r2://my-bucket/warehouse/
 ### Option 1: Using R2 Data Catalog API
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  DATA_BUCKET: R2Bucket;
-  CATALOG: DataCatalog; // Iceberg catalog binding
+	DATA_BUCKET: R2Bucket;
+	CATALOG: DataCatalog; // Iceberg catalog binding
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Create Iceberg table
-app.post('/catalog/create-table', async (c) => {
-  const { namespace, tableName, schema } = await c.req.json();
+app.post("/catalog/create-table", async (c) => {
+	const { namespace, tableName, schema } = await c.req.json();
 
-  const table = await c.env.CATALOG.createTable({
-    namespace: namespace,     // e.g., "sales" or "logs"
-    name: tableName,          // e.g., "transactions"
-    schema: {
-      fields: [
-        { id: 1, name: 'transaction_id', type: 'long', required: true },
-        { id: 2, name: 'user_id', type: 'long', required: true },
-        { id: 3, name: 'amount', type: 'decimal(10,2)', required: true },
-        { id: 4, name: 'timestamp', type: 'timestamptz', required: true },
-        { id: 5, name: 'status', type: 'string', required: false },
-      ],
-    },
-    partitionSpec: {
-      fields: [
-        { sourceId: 4, transform: 'day', name: 'transaction_day' },  // Partition by day
-      ],
-    },
-    location: `r2://data-bucket/warehouse/${namespace}/${tableName}`,
-  });
+	const table = await c.env.CATALOG.createTable({
+		namespace: namespace, // e.g., "sales" or "logs"
+		name: tableName, // e.g., "transactions"
+		schema: {
+			fields: [
+				{ id: 1, name: "transaction_id", type: "long", required: true },
+				{ id: 2, name: "user_id", type: "long", required: true },
+				{ id: 3, name: "amount", type: "decimal(10,2)", required: true },
+				{ id: 4, name: "timestamp", type: "timestamptz", required: true },
+				{ id: 5, name: "status", type: "string", required: false },
+			],
+		},
+		partitionSpec: {
+			fields: [
+				{ sourceId: 4, transform: "day", name: "transaction_day" }, // Partition by day
+			],
+		},
+		location: `r2://data-bucket/warehouse/${namespace}/${tableName}`,
+	});
 
-  return c.json({
-    success: true,
-    table: table.name,
-    location: table.location,
-    snapshot: table.currentSnapshotId,
-  });
+	return c.json({
+		success: true,
+		table: table.name,
+		location: table.location,
+		snapshot: table.currentSnapshotId,
+	});
 });
 
 export default app;
@@ -427,15 +429,15 @@ print(result)
 
 ```typescript
 type Bindings = {
-  CATALOG: DataCatalog;
-  R2_SQL: R2SQLEngine;
+	CATALOG: DataCatalog;
+	R2_SQL: R2SQLEngine;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Query Iceberg table with R2 SQL
-app.get('/analytics/recent-transactions', async (c) => {
-  const sql = `
+app.get("/analytics/recent-transactions", async (c) => {
+	const sql = `
     SELECT
       transaction_id,
       user_id,
@@ -448,46 +450,46 @@ app.get('/analytics/recent-transactions', async (c) => {
     LIMIT 100
   `;
 
-  const result = await c.env.R2_SQL.execute(sql);
+	const result = await c.env.R2_SQL.execute(sql);
 
-  return c.json({
-    transactions: result.rows,
-    count: result.rowCount,
-  });
+	return c.json({
+		transactions: result.rows,
+		count: result.rowCount,
+	});
 });
 
 // Get table schema
-app.get('/catalog/tables/:namespace/:table/schema', async (c) => {
-  const namespace = c.req.param('namespace');
-  const tableName = c.req.param('table');
+app.get("/catalog/tables/:namespace/:table/schema", async (c) => {
+	const namespace = c.req.param("namespace");
+	const tableName = c.req.param("table");
 
-  const table = await c.env.CATALOG.loadTable(namespace, tableName);
+	const table = await c.env.CATALOG.loadTable(namespace, tableName);
 
-  return c.json({
-    name: table.name,
-    schema: table.schema,
-    partitionSpec: table.partitionSpec,
-    currentSnapshot: table.currentSnapshotId,
-    location: table.location,
-  });
+	return c.json({
+		name: table.name,
+		schema: table.schema,
+		partitionSpec: table.partitionSpec,
+		currentSnapshot: table.currentSnapshotId,
+		location: table.location,
+	});
 });
 
 // List table snapshots
-app.get('/catalog/tables/:namespace/:table/snapshots', async (c) => {
-  const namespace = c.req.param('namespace');
-  const tableName = c.req.param('table');
+app.get("/catalog/tables/:namespace/:table/snapshots", async (c) => {
+	const namespace = c.req.param("namespace");
+	const tableName = c.req.param("table");
 
-  const snapshots = await c.env.CATALOG.listSnapshots(namespace, tableName);
+	const snapshots = await c.env.CATALOG.listSnapshots(namespace, tableName);
 
-  return c.json({
-    snapshots: snapshots.map(s => ({
-      snapshotId: s.snapshotId,
-      parentId: s.parentId,
-      timestamp: s.timestampMillis,
-      operation: s.operation,
-      summary: s.summary,
-    })),
-  });
+	return c.json({
+		snapshots: snapshots.map((s) => ({
+			snapshotId: s.snapshotId,
+			parentId: s.parentId,
+			timestamp: s.timestampMillis,
+			operation: s.operation,
+			summary: s.summary,
+		})),
+	});
 });
 
 export default app;
@@ -604,6 +606,7 @@ assert iceberg_count == parquet_count, "Row count mismatch!"
 **Error**: "Table 'sales.transactions' does not exist"
 
 **Solutions**:
+
 - Check namespace and table name spelling
 - Verify catalog configuration (REST URI, warehouse location)
 - Ensure table was created successfully
@@ -613,6 +616,7 @@ assert iceberg_count == parquet_count, "Row count mismatch!"
 **Error**: "Cannot change column type from STRING to INT"
 
 **Solutions**:
+
 - Only safe type promotions allowed (int→long, float→double)
 - Use ALTER COLUMN for safe changes
 - Rewrite data for unsafe changes
@@ -622,6 +626,7 @@ assert iceberg_count == parquet_count, "Row count mismatch!"
 **Error**: "Snapshot not found: 12345678"
 
 **Solutions**:
+
 - Snapshot may have been expired
 - Check retention policy with `retain_last`
 - Increase snapshot retention period
@@ -631,6 +636,7 @@ assert iceberg_count == parquet_count, "Row count mismatch!"
 **Problem**: Slow queries on large tables
 
 **Solutions**:
+
 - Add appropriate partitioning
 - Compact small files with `rewrite_data_files`
 - Enable metadata caching

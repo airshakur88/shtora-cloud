@@ -4,18 +4,18 @@
 
 ```typescript
 const stream = client.messages.stream({
-  model: "claude-opus-5-5",
-  max_tokens: 64000,
-  messages: [{ role: "user", content: "Write a story" }],
+	model: "claude-opus-5-5",
+	max_tokens: 64000,
+	messages: [{ role: "user", content: "Write a story" }],
 });
 
 for await (const event of stream) {
-  if (
-    event.type === "content_block_delta" &&
-    event.delta.type === "text_delta"
-  ) {
-    process.stdout.write(event.delta.text);
-  }
+	if (
+		event.type === "content_block_delta" &&
+		event.delta.type === "text_delta"
+	) {
+		process.stdout.write(event.delta.text);
+	}
 }
 ```
 
@@ -27,35 +27,35 @@ for await (const event of stream) {
 
 ```typescript
 const stream = client.messages.stream({
-  model: "claude-opus-5-5",
-  max_tokens: 64000,
-  thinking: { type: "adaptive", display: "summarized" }, // display opt-in: default is omitted (empty thinking text) on Fable 5/5.1, Mythos 5/5.1, Claude Opus 5.5, Claude Opus 5, Opus 4.8/4.7, Claude Sonnet 5.5, and Claude Sonnet 5
-  messages: [{ role: "user", content: "Analyze this problem" }],
+	model: "claude-opus-5-5",
+	max_tokens: 64000,
+	thinking: { type: "adaptive", display: "summarized" }, // display opt-in: default is omitted (empty thinking text) on Fable 5/5.1, Mythos 5/5.1, Claude Opus 5.5, Claude Opus 5, Opus 4.8/4.7, Claude Sonnet 5.5, and Claude Sonnet 5
+	messages: [{ role: "user", content: "Analyze this problem" }],
 });
 
 for await (const event of stream) {
-  switch (event.type) {
-    case "content_block_start":
-      switch (event.content_block.type) {
-        case "thinking":
-          console.log("\n[Thinking...]");
-          break;
-        case "text":
-          console.log("\n[Response:]");
-          break;
-      }
-      break;
-    case "content_block_delta":
-      switch (event.delta.type) {
-        case "thinking_delta":
-          process.stdout.write(event.delta.thinking);
-          break;
-        case "text_delta":
-          process.stdout.write(event.delta.text);
-          break;
-      }
-      break;
-  }
+	switch (event.type) {
+		case "content_block_start":
+			switch (event.content_block.type) {
+				case "thinking":
+					console.log("\n[Thinking...]");
+					break;
+				case "text":
+					console.log("\n[Response:]");
+					break;
+			}
+			break;
+		case "content_block_delta":
+			switch (event.delta.type) {
+				case "thinking_delta":
+					process.stdout.write(event.delta.thinking);
+					break;
+				case "text_delta":
+					process.stdout.write(event.delta.text);
+					break;
+			}
+			break;
+	}
 }
 ```
 
@@ -73,25 +73,25 @@ import { z } from "zod";
 const client = new Anthropic();
 
 const getWeather = {
-  ...betaZodTool({
-    name: "get_weather",
-    description: "Get current weather for a location",
-    inputSchema: z.object({
-      location: z.string().describe("City and state, e.g., San Francisco, CA"),
-    }),
-    run: async ({ location }) => `72°F and sunny in ${location}`,
-  }),
-  eager_input_streaming: true, // stream tool input as it is generated
+	...betaZodTool({
+		name: "get_weather",
+		description: "Get current weather for a location",
+		inputSchema: z.object({
+			location: z.string().describe("City and state, e.g., San Francisco, CA"),
+		}),
+		run: async ({ location }) => `72°F and sunny in ${location}`,
+	}),
+	eager_input_streaming: true, // stream tool input as it is generated
 };
 
 let runner = client.beta.messages.toolRunner({
-  model: "claude-opus-5-5",
-  max_tokens: 64000,
-  tools: [getWeather],
-  messages: [
-    { role: "user", content: "What's the weather in Paris and London?" },
-  ],
-  stream: true,
+	model: "claude-opus-5-5",
+	max_tokens: 64000,
+	tools: [getWeather],
+	messages: [
+		{ role: "user", content: "What's the weather in Paris and London?" },
+	],
+	stream: true,
 });
 
 // With eager input streaming the SDK parses each tool input when its block
@@ -108,47 +108,53 @@ let runner = client.beta.messages.toolRunner({
 class TruncatedToolInput extends Error {}
 
 for (let attempt = 0; ; attempt++) {
-  try {
-    // Outer loop: each tool runner iteration
-    for await (const messageStream of runner) {
-      // Inner loop: stream events for this iteration
-      for await (const event of messageStream) {
-        switch (event.type) {
-          case "content_block_delta":
-            switch (event.delta.type) {
-              case "text_delta":
-                process.stdout.write(event.delta.text);
-                break;
-              case "input_json_delta":
-                // Tool input fragment - arrives immediately with eager streaming
-                process.stdout.write(event.delta.partial_json);
-                break;
-            }
-            break;
-        }
-      }
-      const message = await messageStream.finalMessage();
-      attempt = 0; // the turn completed; the cap is on consecutive failures
-      // A truncated tool input can still pass schema validation, so stop
-      // before the runner executes it; a refusal can cut a tool_use off
-      // mid-input, so never run that turn's tools. pause_turn is not
-      // auto-resumed by the runner: see tool-use.md -> Server tools.
-      const hasToolUse = message.content.some((b) => b.type === "tool_use");
-      if (message.stop_reason === "max_tokens" && hasToolUse) {
-        throw new TruncatedToolInput("tool input truncated; retry with a higher max_tokens");
-      }
-      if (message.stop_reason === "refusal") break;
-      // max_tokens on a plain text answer just ends the loop with the
-      // truncated text; the runner returns it as the final message.
-    }
-    break;
-  } catch (err) {
-    if (err instanceof Anthropic.APIError || err instanceof TruncatedToolInput || attempt >= 2) {
-      throw err;
-    }
-    console.error("tool input was not parseable JSON, re-issuing the turn");
-    runner = client.beta.messages.toolRunner({ ...runner.params });
-  }
+	try {
+		// Outer loop: each tool runner iteration
+		for await (const messageStream of runner) {
+			// Inner loop: stream events for this iteration
+			for await (const event of messageStream) {
+				switch (event.type) {
+					case "content_block_delta":
+						switch (event.delta.type) {
+							case "text_delta":
+								process.stdout.write(event.delta.text);
+								break;
+							case "input_json_delta":
+								// Tool input fragment - arrives immediately with eager streaming
+								process.stdout.write(event.delta.partial_json);
+								break;
+						}
+						break;
+				}
+			}
+			const message = await messageStream.finalMessage();
+			attempt = 0; // the turn completed; the cap is on consecutive failures
+			// A truncated tool input can still pass schema validation, so stop
+			// before the runner executes it; a refusal can cut a tool_use off
+			// mid-input, so never run that turn's tools. pause_turn is not
+			// auto-resumed by the runner: see tool-use.md -> Server tools.
+			const hasToolUse = message.content.some((b) => b.type === "tool_use");
+			if (message.stop_reason === "max_tokens" && hasToolUse) {
+				throw new TruncatedToolInput(
+					"tool input truncated; retry with a higher max_tokens",
+				);
+			}
+			if (message.stop_reason === "refusal") break;
+			// max_tokens on a plain text answer just ends the loop with the
+			// truncated text; the runner returns it as the final message.
+		}
+		break;
+	} catch (err) {
+		if (
+			err instanceof Anthropic.APIError ||
+			err instanceof TruncatedToolInput ||
+			attempt >= 2
+		) {
+			throw err;
+		}
+		console.error("tool input was not parseable JSON, re-issuing the turn");
+		runner = client.beta.messages.toolRunner({ ...runner.params });
+	}
 }
 ```
 
@@ -160,13 +166,13 @@ With `betaZodTool` the runner validates each tool input against the Zod schema b
 
 ```typescript
 const stream = client.messages.stream({
-  model: "claude-opus-5-5",
-  max_tokens: 64000,
-  messages: [{ role: "user", content: "Hello" }],
+	model: "claude-opus-5-5",
+	max_tokens: 64000,
+	messages: [{ role: "user", content: "Hello" }],
 });
 
 for await (const event of stream) {
-  // Process events...
+	// Process events...
 }
 
 const finalMessage = await stream.finalMessage();

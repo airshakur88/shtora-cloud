@@ -39,47 +39,47 @@ node --inspect app.js
 ### Memory Profiling
 
 ```javascript
-import v8 from 'v8';
-import fs from 'fs';
+import v8 from "v8";
+import fs from "fs";
 
 // Heap snapshot
 const snapshot = v8.writeHeapSnapshot();
-console.log('Snapshot written to:', snapshot);
+console.log("Snapshot written to:", snapshot);
 
 // Memory usage
 const usage = process.memoryUsage();
 console.log({
-  rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
-  heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
-  heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
-  external: `${Math.round(usage.external / 1024 / 1024)}MB`,
+	rss: `${Math.round(usage.rss / 1024 / 1024)}MB`,
+	heapTotal: `${Math.round(usage.heapTotal / 1024 / 1024)}MB`,
+	heapUsed: `${Math.round(usage.heapUsed / 1024 / 1024)}MB`,
+	external: `${Math.round(usage.external / 1024 / 1024)}MB`,
 });
 ```
 
 ### Custom Performance Marks
 
 ```javascript
-import { performance, PerformanceObserver } from 'perf_hooks';
+import { performance, PerformanceObserver } from "perf_hooks";
 
 // Mark start
-performance.mark('operation-start');
+performance.mark("operation-start");
 
 // ... do work ...
 await processOrder(orderId);
 
 // Mark end
-performance.mark('operation-end');
+performance.mark("operation-end");
 
 // Measure
-performance.measure('operation', 'operation-start', 'operation-end');
+performance.measure("operation", "operation-start", "operation-end");
 
 // Observer
 const obs = new PerformanceObserver((items) => {
-  items.getEntries().forEach((entry) => {
-    console.log(`${entry.name}: ${entry.duration}ms`);
-  });
+	items.getEntries().forEach((entry) => {
+		console.log(`${entry.name}: ${entry.duration}ms`);
+	});
 });
-obs.observe({ entryTypes: ['measure'] });
+obs.observe({ entryTypes: ["measure"] });
 ```
 
 ## Python Profiling
@@ -262,70 +262,70 @@ LIMIT 10;
 ### New Relic
 
 ```javascript
-import newrelic from 'newrelic';
+import newrelic from "newrelic";
 
 // Custom transaction
-newrelic.startBackgroundTransaction('process-orders', async () => {
-  const orders = await getOrders();
+newrelic.startBackgroundTransaction("process-orders", async () => {
+	const orders = await getOrders();
 
-  // Custom segment
-  await newrelic.startSegment('validate-orders', true, async () => {
-    return validateOrders(orders);
-  });
+	// Custom segment
+	await newrelic.startSegment("validate-orders", true, async () => {
+		return validateOrders(orders);
+	});
 });
 
 // Custom metrics
-newrelic.recordMetric('Custom/OrderValue', orderTotal);
+newrelic.recordMetric("Custom/OrderValue", orderTotal);
 ```
 
 ### DataDog APM
 
 ```javascript
-import tracer from 'dd-trace';
+import tracer from "dd-trace";
 tracer.init();
 
 // Custom span
-const span = tracer.startSpan('process.order', {
-  resource: orderId,
-  tags: {
-    'order.total': orderTotal,
-    'user.id': userId,
-  },
+const span = tracer.startSpan("process.order", {
+	resource: orderId,
+	tags: {
+		"order.total": orderTotal,
+		"user.id": userId,
+	},
 });
 
 try {
-  await processOrder(orderId);
-  span.setTag('status', 'success');
+	await processOrder(orderId);
+	span.setTag("status", "success");
 } catch (err) {
-  span.setTag('error', err);
+	span.setTag("error", err);
 } finally {
-  span.finish();
+	span.finish();
 }
 ```
 
 ## Quick Reference
 
-| Tool | Language | Type |
-|------|----------|------|
-| clinic.js | Node.js | CPU, Event loop |
-| Chrome DevTools | Node.js | CPU, Memory |
-| cProfile | Python | CPU |
-| py-spy | Python | CPU (sampling) |
-| pprof | Go | CPU, Memory, Goroutines |
-| VisualVM | Java | CPU, Memory, Threads |
-| async-profiler | Java | CPU, Allocation |
+| Tool            | Language | Type                    |
+| --------------- | -------- | ----------------------- |
+| clinic.js       | Node.js  | CPU, Event loop         |
+| Chrome DevTools | Node.js  | CPU, Memory             |
+| cProfile        | Python   | CPU                     |
+| py-spy          | Python   | CPU (sampling)          |
+| pprof           | Go       | CPU, Memory, Goroutines |
+| VisualVM        | Java     | CPU, Memory, Threads    |
+| async-profiler  | Java     | CPU, Allocation         |
 
-| Metric | What to Look For |
-|--------|------------------|
-| CPU time | Hot functions, tight loops |
-| Memory | Large allocations, leaks |
-| I/O wait | Blocking operations |
-| GC time | Excessive collections |
-| Thread count | Thread pool saturation |
+| Metric       | What to Look For           |
+| ------------ | -------------------------- |
+| CPU time     | Hot functions, tight loops |
+| Memory       | Large allocations, leaks   |
+| I/O wait     | Blocking operations        |
+| GC time      | Excessive collections      |
+| Thread count | Thread pool saturation     |
 
-| Problem | Symptom |
-|---------|---------|
-| CPU bound | High CPU usage, slow processing |
-| Memory leak | Growing memory, eventual crash |
-| I/O bound | Low CPU, high wait time |
-| Lock contention | Idle threads, poor scaling |
+| Problem         | Symptom                         |
+| --------------- | ------------------------------- |
+| CPU bound       | High CPU usage, slow processing |
+| Memory leak     | Growing memory, eventual crash  |
+| I/O bound       | Low CPU, high wait time         |
+| Lock contention | Idle threads, poor scaling      |

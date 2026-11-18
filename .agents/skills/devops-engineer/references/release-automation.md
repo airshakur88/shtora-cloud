@@ -6,30 +6,30 @@
 
 ```json
 {
-  "rules": [
-    {
-      "rulePriority": 1,
-      "description": "Keep last 10 prod images",
-      "selection": {
-        "tagStatus": "tagged",
-        "tagPrefixList": ["prod-"],
-        "countType": "imageCountMoreThan",
-        "countNumber": 10
-      },
-      "action": {"type": "expire"}
-    },
-    {
-      "rulePriority": 2,
-      "description": "Remove untagged after 7 days",
-      "selection": {
-        "tagStatus": "untagged",
-        "countType": "sinceImagePushed",
-        "countUnit": "days",
-        "countNumber": 7
-      },
-      "action": {"type": "expire"}
-    }
-  ]
+	"rules": [
+		{
+			"rulePriority": 1,
+			"description": "Keep last 10 prod images",
+			"selection": {
+				"tagStatus": "tagged",
+				"tagPrefixList": ["prod-"],
+				"countType": "imageCountMoreThan",
+				"countNumber": 10
+			},
+			"action": { "type": "expire" }
+		},
+		{
+			"rulePriority": 2,
+			"description": "Remove untagged after 7 days",
+			"selection": {
+				"tagStatus": "untagged",
+				"countType": "sinceImagePushed",
+				"countUnit": "days",
+				"countNumber": 7
+			},
+			"action": { "type": "expire" }
+		}
+	]
 }
 ```
 
@@ -294,19 +294,19 @@ echo "✓ Release $VERSION ready for production"
 
 ```json
 {
-  "extends": ["config:base"],
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
-    },
-    {
-      "matchDepTypes": ["devDependencies"],
-      "automerge": true
-    }
-  ],
-  "schedule": ["before 6am on Monday"],
-  "prConcurrentLimit": 5
+	"extends": ["config:base"],
+	"packageRules": [
+		{
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true
+		},
+		{
+			"matchDepTypes": ["devDependencies"],
+			"automerge": true
+		}
+	],
+	"schedule": ["before 6am on Monday"],
+	"prConcurrentLimit": 5
 }
 ```
 

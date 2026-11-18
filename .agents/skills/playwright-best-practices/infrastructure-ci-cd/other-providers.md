@@ -435,13 +435,13 @@ All platforms benefit from JUnit output for native test result display:
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  reporter: process.env.CI
-    ? [
-        ["dot"],
-        ["html", { open: "never" }],
-        ["junit", { outputFile: "results/junit.xml" }],
-      ]
-    : [["html", { open: "on-failure" }]],
+	reporter: process.env.CI
+		? [
+				["dot"],
+				["html", { open: "never" }],
+				["junit", { outputFile: "results/junit.xml" }],
+			]
+		: [["html", { open: "on-failure" }]],
 });
 ```
 

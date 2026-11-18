@@ -8,9 +8,10 @@
 
 ## Overview
 
-Sentry Logs are high-cardinality structured log entries that link directly to traces and errors. They let you answer *why* something broke, not just *what* broke.
+Sentry Logs are high-cardinality structured log entries that link directly to traces and errors. They let you answer _why_ something broke, not just _what_ broke.
 
 Key characteristics:
+
 - Sent as structured data — each attribute is individually searchable in Sentry UI
 - Automatically linked to the active trace (if tracing is enabled)
 - Buffered and batched — no per-log network overhead
@@ -24,18 +25,18 @@ Key characteristics:
 
 ```typescript
 export default Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    enableLogs: true,
-    tracesSampleRate: 1.0,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		enableLogs: true,
+		tracesSampleRate: 1.0,
 
-    beforeSendLog: (log) => {
-      // Optional: filter or transform logs
-      if (log.level === "debug") return null; // Drop debug logs
-      return log;
-    },
-  }),
-  handler,
+		beforeSendLog: (log) => {
+			// Optional: filter or transform logs
+			if (log.level === "debug") return null; // Drop debug logs
+			return log;
+		},
+	}),
+	handler,
 );
 ```
 
@@ -49,7 +50,11 @@ All six methods live at `Sentry.logger.*`:
 Sentry.logger.trace("Processing request for path %s", [request.url]);
 Sentry.logger.debug("Cache lookup result: %s", [cacheHit ? "hit" : "miss"]);
 Sentry.logger.info("User %s authenticated successfully", [userId]);
-Sentry.logger.warn("Rate limit approaching for key %s: %d/%d", [apiKey, current, limit]);
+Sentry.logger.warn("Rate limit approaching for key %s: %d/%d", [
+	apiKey,
+	current,
+	limit,
+]);
 Sentry.logger.error("Payment processing failed for order %s", [orderId]);
 Sentry.logger.fatal("Worker initialization failed: %s", [error.message]);
 ```
@@ -68,10 +73,10 @@ Sentry.logger.<level>(message: string, params?: unknown[], attributes?: Record<s
 
 ```typescript
 Sentry.logger.info("Request processed", [], {
-  "http.method": request.method,
-  "http.url": request.url,
-  "http.status_code": response.status,
-  "response.time_ms": elapsed,
+	"http.method": request.method,
+	"http.url": request.url,
+	"http.status_code": response.status,
+	"response.time_ms": elapsed,
 });
 ```
 
@@ -89,14 +94,14 @@ To also forward `console.*` calls to Sentry Logs, add the `consoleLoggingIntegra
 import * as Sentry from "@sentry/cloudflare";
 
 export default Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    enableLogs: true,
-    integrations: [
-      Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
-    ],
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		enableLogs: true,
+		integrations: [
+			Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
+		],
+	}),
+	handler,
 );
 ```
 
@@ -109,18 +114,15 @@ This captures `console.warn()` and `console.error()` calls as Sentry Logs in add
 When tracing is enabled, logs are automatically linked to the active trace. In the Sentry UI, you can navigate from a log entry to the trace timeline and vice versa.
 
 ```typescript
-await Sentry.startSpan(
-  { op: "function", name: "processOrder" },
-  async () => {
-    Sentry.logger.info("Starting order processing for %s", [orderId]);
+await Sentry.startSpan({ op: "function", name: "processOrder" }, async () => {
+	Sentry.logger.info("Starting order processing for %s", [orderId]);
 
-    await validateOrder(orderId);
-    Sentry.logger.debug("Order validated", [], { orderId });
+	await validateOrder(orderId);
+	Sentry.logger.debug("Order validated", [], { orderId });
 
-    await chargePayment(orderId);
-    Sentry.logger.info("Payment charged for order %s", [orderId]);
-  },
-);
+	await chargePayment(orderId);
+	Sentry.logger.info("Payment charged for order %s", [orderId]);
+});
 // All three log entries are linked to the "processOrder" span
 ```
 
@@ -128,10 +130,10 @@ await Sentry.startSpan(
 
 ## Configuration
 
-| Option | Type | Default | Notes |
-|--------|------|---------|-------|
-| `enableLogs` | `boolean` | `false` | Must be `true` to enable Sentry Logs |
-| `beforeSendLog` | `(log) => log \| null` | — | Filter or modify logs; return `null` to drop |
+| Option          | Type                   | Default | Notes                                        |
+| --------------- | ---------------------- | ------- | -------------------------------------------- |
+| `enableLogs`    | `boolean`              | `false` | Must be `true` to enable Sentry Logs         |
+| `beforeSendLog` | `(log) => log \| null` | —       | Filter or modify logs; return `null` to drop |
 
 ---
 
@@ -151,9 +153,9 @@ await Sentry.startSpan(
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Logs not appearing in Sentry | Verify `enableLogs: true` is set in init options |
-| Logs not linked to traces | Ensure tracing is enabled (`tracesSampleRate` or `tracesSampler` set) |
+| Issue                            | Solution                                                                                                  |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Logs not appearing in Sentry     | Verify `enableLogs: true` is set in init options                                                          |
+| Logs not linked to traces        | Ensure tracing is enabled (`tracesSampleRate` or `tracesSampler` set)                                     |
 | `console.log` not in Sentry Logs | `console.*` creates breadcrumbs, not Logs. Use `consoleLoggingIntegration` to also forward to Sentry Logs |
-| Log volume too high | Use `beforeSendLog` to filter by level or content; avoid logging in tight loops |
+| Log volume too high              | Use `beforeSendLog` to filter by level or content; avoid logging in tight loops                           |

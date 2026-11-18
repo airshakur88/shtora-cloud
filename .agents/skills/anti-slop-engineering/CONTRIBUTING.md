@@ -43,29 +43,33 @@ Our maintainers and community will triage the report, assign an official catalog
 If you have both the observed slop pattern AND the concrete engineering solution, you can submit a Pull Request to integrate it directly into the skill:
 
 #### 1. Allocate a Pattern ID
+
 Consult [`references/anti-pattern-catalog.md`](references/anti-pattern-catalog.md) under the relevant category and pick the next sequential ID:
 
-| Prefix | Domain |
-|---|---|
-| `REQ-xx` | Requirements & Scope Speculation |
+| Prefix   | Domain                                   |
+| -------- | ---------------------------------------- |
+| `REQ-xx` | Requirements & Scope Speculation         |
 | `ARC-xx` | Architecture, Abstractions & Scaffolding |
-| `DUP-xx` | Duplication & Code Organization |
-| `DAT-xx` | Data, State & Persistence |
-| `SEC-xx` | Security, Auth & Trust Boundaries |
-| `CON-xx` | Concurrency, Async & Distributed Jobs |
-| `API-xx` | APIs, RPCs & Public Contracts |
-| `TST-xx` | Testing, Test Oracles & Snapshots |
-| `UI-xx`  | Frontend, UI Clutter & Microcopy |
-| `OPS-xx` | Operations, Resiliency & Shutdowns |
-| `CI-xx`  | CI, Builds & Dependency Versioning |
-| `WRK-xx` | Workflow, Review & Git Hygiene |
-| `AUT-xx` | Agent Autonomy & Prompt Injection |
-| `SIM-xx` | Code Simplicity, Logorrhea & Verbosity |
+| `DUP-xx` | Duplication & Code Organization          |
+| `DAT-xx` | Data, State & Persistence                |
+| `SEC-xx` | Security, Auth & Trust Boundaries        |
+| `CON-xx` | Concurrency, Async & Distributed Jobs    |
+| `API-xx` | APIs, RPCs & Public Contracts            |
+| `TST-xx` | Testing, Test Oracles & Snapshots        |
+| `UI-xx`  | Frontend, UI Clutter & Microcopy         |
+| `OPS-xx` | Operations, Resiliency & Shutdowns       |
+| `CI-xx`  | CI, Builds & Dependency Versioning       |
+| `WRK-xx` | Workflow, Review & Git Hygiene           |
+| `AUT-xx` | Agent Autonomy & Prompt Injection        |
+| `SIM-xx` | Code Simplicity, Logorrhea & Verbosity   |
 
 #### 2. Add Catalog Entry
+
 Add your pattern to [`references/anti-pattern-catalog.md`](references/anti-pattern-catalog.md) following our standard 5-part schema:
+
 ```markdown
 ### `PREFIX-NN` | Title of the Anti-Pattern
+
 - **Diagnostic symptom / smell:** What observable code, diff, or file pattern indicates this slop?
 - **Root cause / why agents do it:** Why does the model default to this bad habit?
 - **Correct engineering remediation:** What is the minimal, correct engineering practice?
@@ -73,12 +77,15 @@ Add your pattern to [`references/anti-pattern-catalog.md`](references/anti-patte
 ```
 
 #### 3. Update Skill & Agent Directives
+
 - **[`SKILL.md`](SKILL.md):** If this requires a proactive agent directive, add a concise rule to **Operating Priorities** (lines 16–28) or under the appropriate Gate (**Gate 0 through Gate 6**).
 - **[`AGENTS.md`](AGENTS.md):** Add an explicit numbered directive for AI coding agents operating on repositories.
 - **[`references/engineering-judgment.md`](references/engineering-judgment.md):** Note any trade-offs or contextual caveats.
 
 #### 4. Add Diff Guard Heuristic (Optional but Encouraged)
+
 If the pattern can be detected in Git diffs via regex/heuristics without requiring an AST compiler:
+
 1. Add the pattern to `scripts/diff_guard.py` (e.g., as `BLOCKER_PATTERNS` or `CANDIDATE_PATTERNS`).
 2. Keep the script **pure Python 3 standard library** (no pip dependencies).
 3. Scope the pattern to relevant file extensions (e.g. `UI_PATH` for frontend files, `CODE_EXTENSIONS` for source files) and exclude documentation via `DOC_PATH`.
@@ -87,6 +94,7 @@ If the pattern can be detected in Git diffs via regex/heuristics without requiri
    - Negative exclusion (documentation or valid code is not falsely flagged).
 
 #### 5. Verification & PR Checklist
+
 Run the test suite locally before pushing:
 
 ```bash
@@ -118,13 +126,13 @@ Update the pattern count in `README.md` and add an entry under `[Unreleased]` or
 
 ## 🛠️ CLI Development Commands
 
-| Command | Action |
-|---|---|
-| `make test` | Runs the Python unit test suite (`tests/test_diff_guard.py`) |
-| `make guard` | Runs `scripts/diff_guard.py --base HEAD` on current changes |
-| `make check` | Runs compilation syntax checks, test suite, and self-guard |
-| `bun ./bin/cli.js test` | Runs test suite through the multi-agent CLI wrapper |
-| `bun ./bin/cli.js --help` | Validates CLI options and banner output |
+| Command                   | Action                                                       |
+| ------------------------- | ------------------------------------------------------------ |
+| `make test`               | Runs the Python unit test suite (`tests/test_diff_guard.py`) |
+| `make guard`              | Runs `scripts/diff_guard.py --base HEAD` on current changes  |
+| `make check`              | Runs compilation syntax checks, test suite, and self-guard   |
+| `bun ./bin/cli.js test`   | Runs test suite through the multi-agent CLI wrapper          |
+| `bun ./bin/cli.js --help` | Validates CLI options and banner output                      |
 
 ---
 

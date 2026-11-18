@@ -4,6 +4,7 @@ Context: Apple guidance on diagnosing SwiftUI performance with Instruments and
 applying design patterns to reduce long or frequent updates.
 
 ## Contents
+
 - Core concepts
 - Instruments workflow
 - Reading SwiftUI timeline lanes

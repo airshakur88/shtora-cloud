@@ -54,14 +54,14 @@ func GetUser(id string) (*User, error) {
 
 ### Anti-Patterns to Remove on Sight
 
-| Anti-pattern | Example | Fix |
-| --- | --- | --- |
-| Pure paraphrase | `// GetUser gets a user` on `func GetUser()` — starts with the name (required by godoc) but adds nothing | After the name, add _when_ to use it, constraints, and what can go wrong |
-| Signature restatement | `// Returns a string and an error` | Document _which_ error and _why_ — the signature already shows types |
-| Marketing vocabulary | `seamlessly`, `powerful`, `robust`, `enterprise-grade` | Remove — state facts instead |
-| Invented rationale | `// designed to improve scalability` | Only document what the code actually does |
-| Groundless future claims | `// supports future extensibility` | Remove or back it with an interface or configuration |
-| Hollow filler | `// It's worth noting that...`, `// As mentioned above` | Cut — restate the fact directly if it matters |
+| Anti-pattern             | Example                                                                                                  | Fix                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Pure paraphrase          | `// GetUser gets a user` on `func GetUser()` — starts with the name (required by godoc) but adds nothing | After the name, add _when_ to use it, constraints, and what can go wrong |
+| Signature restatement    | `// Returns a string and an error`                                                                       | Document _which_ error and _why_ — the signature already shows types     |
+| Marketing vocabulary     | `seamlessly`, `powerful`, `robust`, `enterprise-grade`                                                   | Remove — state facts instead                                             |
+| Invented rationale       | `// designed to improve scalability`                                                                     | Only document what the code actually does                                |
+| Groundless future claims | `// supports future extensibility`                                                                       | Remove or back it with an interface or configuration                     |
+| Hollow filler            | `// It's worth noting that...`, `// As mentioned above`                                                  | Cut — restate the fact directly if it matters                            |
 
 ### Format
 
@@ -106,15 +106,15 @@ func FuncName(paramName Type, anotherParam Type) (ResultType, error) {
 
 ### What to Document
 
-| Element | Document? |
-| --- | --- |
-| Exported functions/methods | Always |
-| Exported types and interfaces | Always |
-| Exported constants and variables | Always |
-| Complex internal functions | Yes — algorithms, non-obvious logic |
-| Simple internal helpers | Optional — only if the name isn't self-explanatory |
-| Test functions | No |
-| Getters/setters with no logic | Brief one-liner is enough |
+| Element                          | Document?                                          |
+| -------------------------------- | -------------------------------------------------- |
+| Exported functions/methods       | Always                                             |
+| Exported types and interfaces    | Always                                             |
+| Exported constants and variables | Always                                             |
+| Complex internal functions       | Yes — algorithms, non-obvious logic                |
+| Simple internal helpers          | Optional — only if the name isn't self-explanatory |
+| Test functions                   | No                                                 |
+| Getters/setters with no logic    | Brief one-liner is enough                          |
 
 `TODO` comments SHOULD include a tracking issue reference when one exists (e.g., `// TODO(#123): ...`). For informal notes, `// TODO(username): ...` or plain `// TODO: ...` is acceptable.
 
@@ -320,13 +320,13 @@ type Scheduler struct {
 
 ### When to Add File Descriptions
 
-| Scenario | Add description? |
-| --- | --- |
-| File implements an algorithm (sorting, scheduling, tree traversal) | Yes |
-| File contains a complex state machine or protocol | Yes |
-| File has 200+ lines of related logic | Yes |
-| File is a simple CRUD handler or data model | No |
-| File name already explains everything (`json_parser.go`) | Only if non-obvious |
+| Scenario                                                           | Add description?    |
+| ------------------------------------------------------------------ | ------------------- |
+| File implements an algorithm (sorting, scheduling, tree traversal) | Yes                 |
+| File contains a complex state machine or protocol                  | Yes                 |
+| File has 200+ lines of related logic                               | Yes                 |
+| File is a simple CRUD handler or data model                        | No                  |
+| File name already explains everything (`json_parser.go`)           | Only if non-obvious |
 
 ### Godoc Headings in Comments
 

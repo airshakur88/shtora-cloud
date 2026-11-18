@@ -4,15 +4,15 @@ Color temperature and palette style.
 
 ## Options
 
-| Option | Color Temperature | Palette Style | Best For |
-|--------|-------------------|---------------|----------|
-| `professional` | Cool-neutral | Navy, gold, structured grays | Business, investor, corporate |
-| `warm` | Warm | Earth tones, oranges, natural colors | Education, friendly, approachable |
-| `macaron` | Warm | Pastel blocks (blue, mint, lavender, peach) on cream | Educational diagrams, knowledge sharing |
-| `cool` | Cool | Blues, grays, cyan, teal | Technical, data, analytical |
-| `vibrant` | Varied | High saturation, bold colors | Marketing, creative, attention-grabbing |
-| `dark` | Dark | Deep backgrounds with bright accents | Entertainment, gaming, atmospheric |
-| `neutral` | Neutral | Minimal color, grayscale focus | Executive, minimal, sophisticated |
+| Option         | Color Temperature | Palette Style                                        | Best For                                |
+| -------------- | ----------------- | ---------------------------------------------------- | --------------------------------------- |
+| `professional` | Cool-neutral      | Navy, gold, structured grays                         | Business, investor, corporate           |
+| `warm`         | Warm              | Earth tones, oranges, natural colors                 | Education, friendly, approachable       |
+| `macaron`      | Warm              | Pastel blocks (blue, mint, lavender, peach) on cream | Educational diagrams, knowledge sharing |
+| `cool`         | Cool              | Blues, grays, cyan, teal                             | Technical, data, analytical             |
+| `vibrant`      | Varied            | High saturation, bold colors                         | Marketing, creative, attention-grabbing |
+| `dark`         | Dark              | Deep backgrounds with bright accents                 | Entertainment, gaming, atmospheric      |
+| `neutral`      | Neutral           | Minimal color, grayscale focus                       | Executive, minimal, sophisticated       |
 
 ## Palette Specifications
 
@@ -146,12 +146,12 @@ Accent 2: #A1A1AA (Light Gray)
 
 ## Combination Notes
 
-| Mood | Works Best With | Avoid With |
-|------|-----------------|------------|
-| professional | clean texture, geometric typography | organic texture, handwritten |
-| warm | organic texture, humanist typography | pixel texture, minimal density |
-| macaron | organic texture, handwritten typography | pixel texture, dark mood |
-| cool | grid texture, technical typography | paper texture, handwritten |
-| vibrant | pixel/organic texture, editorial typography | neutral mood overlaps |
-| dark | clean/pixel texture, technical typography | paper texture |
-| neutral | clean texture, geometric typography | organic texture, vibrant elements |
+| Mood         | Works Best With                             | Avoid With                        |
+| ------------ | ------------------------------------------- | --------------------------------- |
+| professional | clean texture, geometric typography         | organic texture, handwritten      |
+| warm         | organic texture, humanist typography        | pixel texture, minimal density    |
+| macaron      | organic texture, handwritten typography     | pixel texture, dark mood          |
+| cool         | grid texture, technical typography          | paper texture, handwritten        |
+| vibrant      | pixel/organic texture, editorial typography | neutral mood overlaps             |
+| dark         | clean/pixel texture, technical typography   | paper texture                     |
+| neutral      | clean texture, geometric typography         | organic texture, vibrant elements |

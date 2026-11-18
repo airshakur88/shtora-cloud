@@ -124,17 +124,17 @@ Typical usage:
 
 ## Section Reference
 
-| Section | When to use | Notes |
-|---------|------------|-------|
-| Summary line | Always | First line, one sentence, imperative mood ("Calculate", not "Calculates") |
-| Extended description | When the summary isn't enough | After a blank line. Explain behavior, constraints, side effects |
-| `Args:` | When the function takes parameters | One line per arg: `name: Description.` Indent continuation lines |
-| `Returns:` | When the function returns something | Describe what, not the type (the type hint already does that) |
-| `Yields:` | For generators | Same as Returns but for yielded values |
-| `Raises:` | When the function raises exceptions | `ExceptionType: When this happens.` |
-| `Example:` | When a usage example helps | Use `>>>` doctest format for simple cases |
-| `Note:` | For important caveats | Sparingly — if everything is a note, nothing is |
-| `Attributes:` | On classes | Document public attributes |
+| Section              | When to use                         | Notes                                                                     |
+| -------------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Summary line         | Always                              | First line, one sentence, imperative mood ("Calculate", not "Calculates") |
+| Extended description | When the summary isn't enough       | After a blank line. Explain behavior, constraints, side effects           |
+| `Args:`              | When the function takes parameters  | One line per arg: `name: Description.` Indent continuation lines          |
+| `Returns:`           | When the function returns something | Describe what, not the type (the type hint already does that)             |
+| `Yields:`            | For generators                      | Same as Returns but for yielded values                                    |
+| `Raises:`            | When the function raises exceptions | `ExceptionType: When this happens.`                                       |
+| `Example:`           | When a usage example helps          | Use `>>>` doctest format for simple cases                                 |
+| `Note:`              | For important caveats               | Sparingly — if everything is a note, nothing is                           |
+| `Attributes:`        | On classes                          | Document public attributes                                                |
 
 ## Style Rules
 
@@ -148,6 +148,7 @@ Typical usage:
 ## When Docstrings Are Required
 
 This skill's Ruff config requires docstrings on:
+
 - **Public modules** (D101) — unless ignored
 - **Public classes** (D101)
 - **Public methods** (D102, D103)
@@ -155,6 +156,7 @@ This skill's Ruff config requires docstrings on:
 - **Public packages** — unless ignored
 
 Docstrings are NOT required on:
+
 - Test files (configured via per-file-ignores)
 - Private methods/functions (`_name`)
 - `__init__.py` files

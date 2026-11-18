@@ -7,6 +7,7 @@ Dynamically reproduce each statically-confirmed TP on a running application, ref
 Run one at a time — the exception to parallel fan-out, since instances share application state and ports. For each TP finding `get_status.py` lists without a PoC:
 
 Inputs:
+
 - `language`
 - `finding`
 - `base-url` (optional) — omit for the first finding so it starts the application and returns the base URL; pass that URL to later findings to reuse the instance

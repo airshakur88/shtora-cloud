@@ -264,12 +264,12 @@ func TestMain(m *testing.M) {
 
 ## Common Pipeline Mistakes
 
-| Mistake | Fix |
-| --- | --- |
+| Mistake                                | Fix                                            |
+| -------------------------------------- | ---------------------------------------------- |
 | Missing `ctx.Done()` in pipeline stage | Always select on context to allow cancellation |
-| Not closing output channel | Producer must `defer close(out)` |
-| Unbounded goroutine spawning | Use `errgroup.SetLimit` or a semaphore |
-| Sending mutable data through channel | Send copies or immutable values |
-| Blocking send without select | Wrap channel sends in select with `ctx.Done()` |
+| Not closing output channel             | Producer must `defer close(out)`               |
+| Unbounded goroutine spawning           | Use `errgroup.SetLimit` or a semaphore         |
+| Sending mutable data through channel   | Send copies or immutable values                |
+| Blocking send without select           | Wrap channel sends in select with `ctx.Done()` |
 
 → See `samber/cc-skills-golang@golang-concurrency` skill for sync primitives and channel patterns.

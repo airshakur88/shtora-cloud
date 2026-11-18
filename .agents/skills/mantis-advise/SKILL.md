@@ -1,9 +1,10 @@
 ---
+
 name: mantis-advise
 description: >-
-  Proactive security advisor and guardrail assistant for secure code development.
-  Use to query threat models, historical vulnerability lineages, verified patch patterns, triaged false positives, and learned trajectory invariants before and during code edits to prevent repeat mistakes.
-  Don't use for automated multi-pass red-team exploitation or fuzzing.
+Proactive security advisor and guardrail assistant for secure code development.
+Use to query threat models, historical vulnerability lineages, verified patch patterns, triaged false positives, and learned trajectory invariants before and during code edits to prevent repeat mistakes.
+Don't use for automated multi-pass red-team exploitation or fuzzing.
 ---
 
 # Security Advisor (/mantis-advise)
@@ -23,6 +24,7 @@ code and refactors are implemented securely from the start.
   evaluates proposed changes against known threat boundaries, and provides
   verified secure implementation guidance.
 - **Execution Command:**
+
   ```bash
   python3 reference/scripts/advise.py --file <target_file> [--db knowledge.db]
   ```
@@ -55,7 +57,7 @@ Coding agents with standard bash access should run
    python3 reference/scripts/advise.py --file src/auth.py
    ```
 
-   *Prints*: Actionable security advisory markdown with active threat model,
+   _Prints_: Actionable security advisory markdown with active threat model,
    historical vulnerabilities, verified patch diffs, triaged false positives,
    and invariants.
 
@@ -124,7 +126,6 @@ When introducing new endpoints, parameters, data parsing, or subprocess
 execution:
 
 1. **Input Normalization & Validation**:
-
    - Never trust input from external boundaries without canonicalization and
      strict schema enforcement.
    - For file paths: resolve against jail boundaries using strict
@@ -133,7 +134,6 @@ execution:
      `subprocess.run(["cmd", arg])` without `shell=True`.
 
 2. **Defense-in-Depth**:
-
    - Ensure server-side validation even if client-side validation is present.
    - Ensure zero-privilege assumptions (e.g. no unnecessary IAM permissions,
      bounded execution timeouts).
@@ -154,14 +154,18 @@ The Advisor outputs clean, actionable recommendations:
 # Security Advisory: <target_file>
 
 ### 1. Threat Model & Trust Boundaries
+
 - **Entry Points**: <untrusted network / RPC / CLI>
 - **Sensitive Assets**: <credentials, filesystem, tenant data>
 
 ### 2. Known Pitfalls & Historical Lineages
+
 - **[CWE-XX] <Title>** (Lineage: `<uuid>`): <How it occurred and how it was resolved>
 - **Verified Safe Pattern**:
+
   ```python
   # Safe implementation idiom
+  ```
 ````
 
 ### 3. False Positive Context (Intentional Behavior)

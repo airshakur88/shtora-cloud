@@ -1,4 +1,5 @@
 ---
+
 title: Return Chainable Values on Success, Not Just "Done"
 impact: MEDIUM-HIGH
 impactDescription: prevents round-trip lookups for IDs/URLs of just-created resources
@@ -12,56 +13,59 @@ tags: output, ids, chaining, success
 **Incorrect (success output is a single word):**
 
 ```typescript
-import { Command } from 'commander';
+import { Command } from "commander";
 
 new Command()
-  .name('deploy')
-  .requiredOption('--env <env>')
-  .requiredOption('--tag <tag>')
-  .action(async ({ env, tag }) => {
-    const result = await api.deploy(env, tag);
-    console.log('Done.');
-    // Agent: "done with what? where is it? how do I verify?"
-  })
-  .parseAsync();
+	.name("deploy")
+	.requiredOption("--env <env>")
+	.requiredOption("--tag <tag>")
+	.action(async ({ env, tag }) => {
+		const result = await api.deploy(env, tag);
+		console.log("Done.");
+		// Agent: "done with what? where is it? how do I verify?"
+	})
+	.parseAsync();
 ```
 
 **Correct (success output includes every chainable value):**
 
 ```typescript
-import { Command } from 'commander';
+import { Command } from "commander";
 
 new Command()
-  .name('deploy')
-  .requiredOption('--env <env>')
-  .requiredOption('--tag <tag>')
-  .option('--json', 'output as JSON')
-  .action(async ({ env, tag, json }) => {
-    const start = Date.now();
-    const result = await api.deploy(env, tag);
-    const duration = Date.now() - start;
+	.name("deploy")
+	.requiredOption("--env <env>")
+	.requiredOption("--tag <tag>")
+	.option("--json", "output as JSON")
+	.action(async ({ env, tag, json }) => {
+		const start = Date.now();
+		const result = await api.deploy(env, tag);
+		const duration = Date.now() - start;
 
-    if (json) {
-      console.log(JSON.stringify({
-        deploy_id: result.id,
-        url: result.url,
-        env,
-        tag,
-        duration_ms: duration,
-      }));
-      return;
-    }
-    console.log(`deployed ${tag} to ${env}`);
-    console.log(`deploy_id: ${result.id}`);
-    console.log(`url:       ${result.url}`);
-    console.log(`duration:  ${(duration / 1000).toFixed(1)}s`);
-    console.log('');
-    console.log(`Next: mycli deploy verify --id ${result.id}`);
-  })
-  .parseAsync();
+		if (json) {
+			console.log(
+				JSON.stringify({
+					deploy_id: result.id,
+					url: result.url,
+					env,
+					tag,
+					duration_ms: duration,
+				}),
+			);
+			return;
+		}
+		console.log(`deployed ${tag} to ${env}`);
+		console.log(`deploy_id: ${result.id}`);
+		console.log(`url:       ${result.url}`);
+		console.log(`duration:  ${(duration / 1000).toFixed(1)}s`);
+		console.log("");
+		console.log(`Next: mycli deploy verify --id ${result.id}`);
+	})
+	.parseAsync();
 ```
 
 **Benefits:**
+
 - Agent extracts `deploy_id` from the first command and uses it in the second
 - JSON mode supports `$(mycli deploy --json | jq -r .deploy_id)` chaining
 - "Next:" hint teaches the most likely follow-up command

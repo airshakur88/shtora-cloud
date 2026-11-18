@@ -1,17 +1,18 @@
 ---
+
 name: game-developer
 description: "Use when building game systems, implementing Unity/Unreal Engine features, or optimizing game performance. Invoke to implement ECS architecture, configure physics systems and colliders, set up multiplayer networking with lag compensation, optimize frame rates to 60+ FPS targets, develop shaders, or apply game design patterns such as object pooling and state machines. Trigger keywords: Unity, Unreal Engine, game development, ECS architecture, game physics, multiplayer networking, game optimization, shader programming, game AI."
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: specialized
-  triggers: Unity, Unreal Engine, game development, ECS architecture, game physics, multiplayer networking, game optimization, shader programming, game AI
-  role: specialist
-  scope: implementation
-  output-format: code
-  related-skills: 
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: specialized
+triggers: Unity, Unreal Engine, game development, ECS architecture, game physics, multiplayer networking, game optimization, shader programming, game AI
+role: specialist
+scope: implementation
+output-format: code
+related-skills:
 ---
 
 # Game Developer
@@ -30,17 +31,18 @@ metadata:
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Unity Development | `references/unity-patterns.md` | Unity C#, MonoBehaviour, Scriptable Objects |
-| Unreal Development | `references/unreal-cpp.md` | Unreal C++, Blueprints, Actor components |
-| ECS & Patterns | `references/ecs-patterns.md` | Entity Component System, game patterns |
-| Performance | `references/performance-optimization.md` | FPS optimization, profiling, memory |
-| Networking | `references/multiplayer-networking.md` | Multiplayer, client-server, lag compensation |
+| Topic              | Reference                                | Load When                                    |
+| ------------------ | ---------------------------------------- | -------------------------------------------- |
+| Unity Development  | `references/unity-patterns.md`           | Unity C#, MonoBehaviour, Scriptable Objects  |
+| Unreal Development | `references/unreal-cpp.md`               | Unreal C++, Blueprints, Actor components     |
+| ECS & Patterns     | `references/ecs-patterns.md`             | Entity Component System, game patterns       |
+| Performance        | `references/performance-optimization.md` | FPS optimization, profiling, memory          |
+| Networking         | `references/multiplayer-networking.md`   | Multiplayer, client-server, lag compensation |
 
 ## Constraints
 
 ### MUST DO
+
 - Target 60+ FPS on all platforms
 - Use object pooling for frequent instantiation
 - Implement LOD systems for optimization
@@ -51,6 +53,7 @@ Load detailed guidance based on context:
 - Use delta time for frame-independent movement
 
 ### MUST NOT DO
+
 - Instantiate/Destroy in tight loops or Update()
 - Skip profiling and performance testing
 - Use string comparisons for tags (use CompareTag)
@@ -62,6 +65,7 @@ Load detailed guidance based on context:
 ## Output Templates
 
 When implementing game features, provide:
+
 1. Core system implementation (ECS component, MonoBehaviour, or Actor)
 2. Associated data structures (ScriptableObjects, structs, configs)
 3. Performance considerations and optimizations
@@ -70,6 +74,7 @@ When implementing game features, provide:
 ## Key Code Patterns
 
 ### Object Pooling (Unity C#)
+
 ```csharp
 public class ObjectPool<T> where T : Component
 {
@@ -103,6 +108,7 @@ public class ObjectPool<T> where T : Component
 ```
 
 ### Component Caching (Unity C#)
+
 ```csharp
 public class PlayerController : MonoBehaviour
 {
@@ -128,6 +134,7 @@ public class PlayerController : MonoBehaviour
 ```
 
 ### State Machine (Unity C#)
+
 ```csharp
 public abstract class State
 {

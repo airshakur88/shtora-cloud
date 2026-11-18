@@ -1,10 +1,11 @@
 ---
+
 name: git-workflow
 description: Implement Git branching strategies, PR workflows, and release management patterns. Configure GitFlow, trunk-based development, or GitHub Flow for team collaboration. Use when establishing version control workflows or improving development team collaboration.
 license: MIT
 metadata:
-  author: devops-skills
-  version: "1.0"
+author: devops-skills
+version: "1.0"
 ---
 
 # Git Workflow
@@ -14,6 +15,7 @@ Implement effective branching strategies and pull request workflows for team col
 ## When to Use This Skill
 
 Use this skill when:
+
 - Establishing team Git workflows
 - Implementing branching strategies
 - Configuring pull request processes
@@ -143,6 +145,7 @@ git flow hotfix finish security-fix
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation
@@ -152,6 +155,7 @@ Types:
 - `chore`: Maintenance
 
 Examples:
+
 ```bash
 git commit -m "feat(auth): add OAuth2 login support"
 git commit -m "fix(api): handle null response from payment service"
@@ -190,26 +194,31 @@ git config --global commit.template ~/.gitmessage
 ```markdown
 <!-- .github/pull_request_template.md -->
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change)
 - [ ] New feature (non-breaking change)
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review performed
 - [ ] Documentation updated
 - [ ] No new warnings introduced
 
 ## Related Issues
+
 Closes #
 
 ## Screenshots (if applicable)
@@ -318,16 +327,16 @@ fi
 ```javascript
 // commitlint.config.js
 module.exports = {
-  extends: ['@commitlint/config-conventional'],
-  rules: {
-    'type-enum': [
-      2,
-      'always',
-      ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'revert']
-    ],
-    'subject-max-length': [2, 'always', 72],
-    'body-max-line-length': [2, 'always', 100]
-  }
+	extends: ["@commitlint/config-conventional"],
+	rules: {
+		"type-enum": [
+			2,
+			"always",
+			["feat", "fix", "docs", "style", "refactor", "test", "chore", "revert"],
+		],
+		"subject-max-length": [2, "always", 72],
+		"body-max-line-length": [2, "always", 100],
+	},
 };
 ```
 
@@ -406,14 +415,17 @@ git rebase -i HEAD~3
 ## Common Issues
 
 ### Issue: Merge Conflicts
+
 **Problem**: Conflicts when merging branches
 **Solution**: Rebase frequently, communicate with team, use smaller PRs
 
 ### Issue: Diverged Branches
+
 **Problem**: Local branch far behind remote
 **Solution**: `git pull --rebase` or `git fetch && git rebase origin/main`
 
 ### Issue: Accidental Commit to Wrong Branch
+
 **Problem**: Committed to main instead of feature
 **Solution**: `git reset HEAD~1`, checkout correct branch, recommit
 

@@ -32,6 +32,7 @@ Then formulate a statement:
 > without [REQUIRED PROTECTION]."
 
 Examples:
+
 - "User input reaches `eval()` without sanitization"
 - "Attacker-controlled size reaches `malloc()` without an overflow check"
 - "Untrusted path reaches `open()` without canonicalization"
@@ -65,7 +66,7 @@ The same mistake in a different shape:
 
 ### 3. Data-type edge cases
 
-- Null/None/undefined comparisons, especially where *both* sides can be null
+- Null/None/undefined comparisons, especially where _both_ sides can be null
 - Empty string vs null
 - Zero vs null
 - Empty arrays and collections

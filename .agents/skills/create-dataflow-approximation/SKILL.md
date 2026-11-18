@@ -1,10 +1,11 @@
 ---
+
 name: create-dataflow-approximation
 description: Model a method's taint propagation as code-based dataflow approximation and refine it against a test project until the sample passes. Use for a dropped method that requires code-based approximation
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Create Dataflow Approximation
@@ -52,6 +53,7 @@ When the sample won't converge after ~3 fixes — whether the trace shows a fait
 ## Tracking
 
 `.opentaint/tracking/approximations/<batch>.yaml` — one batch's method classification, `<batch>` the plan's filename stem. Every method sits in exactly one verdict bucket, keyed with its `signature` (the JVM descriptor, always quoted so array types `[…` stay valid YAML) so overloads stay distinct:
+
 - `passthrough`, `dataflow` — modeled carriers; each entry `{ method, signature }`
 - `skipped` — terminal non-carriers; each `{ method, signature, reason }`
 - `engine_issues` — a separate bucket for carriers the engine provably can't propagate (built but still dropped); each `{ method, signature, reason }`. Terminal and treated just like `skipped` — the only difference is the reason. `merge-skipped` carries it into `skipped.yaml` as its own `engine_issues` group alongside the regular skipped `methods`.
@@ -62,14 +64,25 @@ When the sample won't converge after ~3 fixes — whether the trace shows a fait
 passthrough:
   - { method: "com.foo.Wrapper#getValue", signature: "()Ljava/lang/String;" }
 dataflow:
-  - { method: "com.foo.Reactor#flatMap", signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;" }
+  - {
+      method: "com.foo.Reactor#flatMap",
+      signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;",
+    }
 skipped:
-  - { method: "org.slf4j.Logger#info", signature: "(Ljava/lang/String;)V", reason: "void side-effect" }
+  - {
+      method: "org.slf4j.Logger#info",
+      signature: "(Ljava/lang/String;)V",
+      reason: "void side-effect",
+    }
 engine_issues: []
 dependencies: []
 build:
   test_project:
-    - { method: "com.foo.Reactor#flatMap", signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;", status: done }
+    - {
+        method: "com.foo.Reactor#flatMap",
+        signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;",
+        status: done,
+      }
   done: []
 ```
 

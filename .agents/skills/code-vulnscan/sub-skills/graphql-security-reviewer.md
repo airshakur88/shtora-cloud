@@ -1,4 +1,5 @@
 ---
+
 name: graphql-security-reviewer
 description: GraphQL-specific security review sub-skill
 ---
@@ -15,15 +16,15 @@ Find GraphQL-specific vulnerabilities: introspection exposure, missing query dep
 
 Look for these imports and framework identifiers:
 
-| Language | Indicators |
-|----------|-----------|
+| Language              | Indicators                                                                                                                 |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | JavaScript/TypeScript | `graphql`, `apollo-server`, `@apollo/server`, `express-graphql`, `graphql-yoga`, `pothos-graphql`, `nexus`, `type-graphql` |
-| Python | `graphene`, `strawberry`, `ariadne`, `graphql-core` |
-| Java/Kotlin | `graphql-java`, `com.graphql-java-kickstart`, `dgs-framework` (Netflix DGS) |
-| Go | `gqlgen`, `graphql-go`, `thunder` |
-| Ruby | `graphql-ruby` (`graphql` gem) |
-| PHP | `webonyx/graphql-php`, `lighthouse-php` |
-| .NET/C# | `Hot Chocolate`, `GraphQL.NET` (`GraphQL`), `strawberry-shake` |
+| Python                | `graphene`, `strawberry`, `ariadne`, `graphql-core`                                                                        |
+| Java/Kotlin           | `graphql-java`, `com.graphql-java-kickstart`, `dgs-framework` (Netflix DGS)                                                |
+| Go                    | `gqlgen`, `graphql-go`, `thunder`                                                                                          |
+| Ruby                  | `graphql-ruby` (`graphql` gem)                                                                                             |
+| PHP                   | `webonyx/graphql-php`, `lighthouse-php`                                                                                    |
+| .NET/C#               | `Hot Chocolate`, `GraphQL.NET` (`GraphQL`), `strawberry-shake`                                                             |
 
 ## Issue 1: Introspection enabled in production
 
@@ -34,26 +35,28 @@ Introspection allows any client to query the full schema — all types, fields, 
 ### Detection patterns
 
 **JavaScript/Node (Apollo Server):**
+
 ```javascript
 // Flag: introspection not explicitly disabled (default is enabled)
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  // introspection not set — defaults to true
+	typeDefs,
+	resolvers,
+	// introspection not set — defaults to true
 });
 
 // Also flag: explicitly enabled in non-dev environments
 const server = new ApolloServer({
-  introspection: true,   // hardcoded true — always enabled
+	introspection: true, // hardcoded true — always enabled
 });
 
 // Safe:
 const server = new ApolloServer({
-  introspection: process.env.NODE_ENV !== 'production',
+	introspection: process.env.NODE_ENV !== "production",
 });
 ```
 
 **Python/Graphene:**
+
 ```python
 # Flag: no introspection control
 app.add_url_rule('/graphql', view_func=GraphQLView.as_view(
@@ -69,6 +72,7 @@ app.add_url_rule('/graphql', view_func=GraphQLView.as_view(
 ```
 
 **Python/Strawberry:**
+
 ```python
 # Flag
 @strawberry.type
@@ -82,6 +86,7 @@ schema = strawberry.Schema(query=Query, extensions=[DisableIntrospection])
 ```
 
 **graphql-ruby:**
+
 ```ruby
 # Flag: no introspection control
 class MySchema < GraphQL::Schema
@@ -114,17 +119,20 @@ Without depth limits, an attacker can send arbitrarily nested queries that cause
 
 ```graphql
 {
-  user {
-    friends {
-      friends {
-        friends {
-          friends {
-            friends { id name }
-          }
-        }
-      }
-    }
-  }
+	user {
+		friends {
+			friends {
+				friends {
+					friends {
+						friends {
+							id
+							name
+						}
+					}
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -133,28 +141,30 @@ Without complexity limits, an attacker can request thousands of items at multipl
 ### Detection patterns
 
 **JavaScript/Apollo — look for missing depth-limit middleware:**
+
 ```javascript
 // Flag: no depth/complexity plugin
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  // no validationRules, no plugins for depth/complexity
+	typeDefs,
+	resolvers,
+	// no validationRules, no plugins for depth/complexity
 });
 
 // Safe: using graphql-depth-limit
-const depthLimit = require('graphql-depth-limit');
+const depthLimit = require("graphql-depth-limit");
 const server = new ApolloServer({
-  validationRules: [depthLimit(10)],
+	validationRules: [depthLimit(10)],
 });
 
 // Safe: using graphql-query-complexity
-const { createComplexityLimitRule } = require('graphql-query-complexity');
+const { createComplexityLimitRule } = require("graphql-query-complexity");
 const server = new ApolloServer({
-  validationRules: [createComplexityLimitRule(1000)],
+	validationRules: [createComplexityLimitRule(1000)],
 });
 ```
 
 **Python/Graphene:**
+
 ```python
 # Flag: no depth/complexity limiter in middleware list
 GRAPHENE = {
@@ -169,6 +179,7 @@ from graphql_query_cost import add_query_depth_limit_directive
 ```
 
 **graphql-java:**
+
 ```java
 // Flag: no MaxQueryDepthInstrumentation
 GraphQL graphQL = GraphQL.newGraphQL(schema)
@@ -197,10 +208,16 @@ GraphQL supports two batching patterns that can be abused for brute-force or rat
 
 ```graphql
 {
-  a1: login(username: "admin", password: "password1") { token }
-  a2: login(username: "admin", password: "password2") { token }
-  a3: login(username: "admin", password: "password3") { token }
-  # ... repeated 997 more times
+	a1: login(username: "admin", password: "password1") {
+		token
+	}
+	a2: login(username: "admin", password: "password2") {
+		token
+	}
+	a3: login(username: "admin", password: "password3") {
+		token
+	}
+	# ... repeated 997 more times
 }
 ```
 
@@ -211,22 +228,25 @@ GraphQL supports two batching patterns that can be abused for brute-force or rat
 ```javascript
 // Flag: batch endpoint enabled without per-operation rate limiting
 // express-graphql with batching
-app.use('/graphql', graphqlHTTP({
-    schema,
-    // no operation count limit
-}));
+app.use(
+	"/graphql",
+	graphqlHTTP({
+		schema,
+		// no operation count limit
+	}),
+);
 
 // Apollo — array batching enabled by default in older versions
 // Check for @apollo/server bodyParser accepting arrays
 
 // Flag: mutation resolvers with no per-operation rate limiting
 const resolvers = {
-  Mutation: {
-    login: async (_, { username, password }) => {
-      // no rate limit check per alias/operation
-      return authenticate(username, password);
-    }
-  }
+	Mutation: {
+		login: async (_, { username, password }) => {
+			// no rate limit check per alias/operation
+			return authenticate(username, password);
+		},
+	},
 };
 ```
 
@@ -253,45 +273,47 @@ Authentication middleware verifies identity. Authorization must happen at each r
 ### Detection patterns
 
 **JavaScript — check each resolver for auth context use:**
+
 ```javascript
 // Flag: resolver does not check permissions
 const resolvers = {
-  Query: {
-    adminDashboard: (_, __, context) => {
-      // context.user exists (authenticated) but role not checked
-      return Admin.findAll();
-    }
-  },
-  User: {
-    ssn: (parent, _, context) => {
-      // sensitive field returned with no ownership check
-      return parent.ssn;
-    }
-  }
+	Query: {
+		adminDashboard: (_, __, context) => {
+			// context.user exists (authenticated) but role not checked
+			return Admin.findAll();
+		},
+	},
+	User: {
+		ssn: (parent, _, context) => {
+			// sensitive field returned with no ownership check
+			return parent.ssn;
+		},
+	},
 };
 
 // Safe
 const resolvers = {
-  Query: {
-    adminDashboard: (_, __, context) => {
-      if (!context.user || context.user.role !== 'admin') {
-        throw new ForbiddenError('Admin only');
-      }
-      return Admin.findAll();
-    }
-  },
-  User: {
-    ssn: (parent, _, context) => {
-      if (context.user.id !== parent.id && !context.user.isAdmin) {
-        throw new ForbiddenError('Access denied');
-      }
-      return parent.ssn;
-    }
-  }
+	Query: {
+		adminDashboard: (_, __, context) => {
+			if (!context.user || context.user.role !== "admin") {
+				throw new ForbiddenError("Admin only");
+			}
+			return Admin.findAll();
+		},
+	},
+	User: {
+		ssn: (parent, _, context) => {
+			if (context.user.id !== parent.id && !context.user.isAdmin) {
+				throw new ForbiddenError("Access denied");
+			}
+			return parent.ssn;
+		},
+	},
 };
 ```
 
 **Python/Strawberry — check for permission classes:**
+
 ```python
 # Flag: sensitive field without IsAuthenticated or custom permission
 @strawberry.type
@@ -315,6 +337,7 @@ class User:
 ```
 
 **graphql-ruby — check for `authorized?` method:**
+
 ```ruby
 # Flag: field with no authorization
 field :admin_secret, String, null: false
@@ -346,21 +369,21 @@ Nested resolvers that individually query the database can be abused to leak data
 ```javascript
 // Flag: resolver makes individual DB query for each parent object
 const resolvers = {
-  User: {
-    posts: async (user) => {
-      return Post.findAll({ where: { userId: user.id } });
-      // Called once per User — N+1 if N users returned
-    }
-  }
+	User: {
+		posts: async (user) => {
+			return Post.findAll({ where: { userId: user.id } });
+			// Called once per User — N+1 if N users returned
+		},
+	},
 };
 
 // Safe: using DataLoader for batching
 const resolvers = {
-  User: {
-    posts: async (user, _, context) => {
-      return context.loaders.postsByUserId.load(user.id);
-    }
-  }
+	User: {
+		posts: async (user, _, context) => {
+			return context.loaders.postsByUserId.load(user.id);
+		},
+	},
 };
 ```
 
@@ -381,37 +404,39 @@ GraphQL subscriptions use WebSockets. Authentication is often applied to HTTP ro
 ### Detection patterns
 
 **Apollo Server with subscriptions:**
+
 ```javascript
 // Flag: subscription server with no auth on WebSocket connection
-const wsServer = new WebSocketServer({ server: httpServer, path: '/graphql' });
+const wsServer = new WebSocketServer({ server: httpServer, path: "/graphql" });
 const serverCleanup = useServer(
-  {
-    schema,
-    // no onConnect handler with auth check
-  },
-  wsServer
+	{
+		schema,
+		// no onConnect handler with auth check
+	},
+	wsServer,
 );
 
 // Safe
 useServer(
-  {
-    schema,
-    onConnect: async (ctx) => {
-      const token = ctx.connectionParams?.authorization;
-      if (!token || !verifyToken(token)) {
-        throw new Error('Unauthorized');
-      }
-    },
-    context: (ctx) => {
-      const user = getUserFromToken(ctx.connectionParams?.authorization);
-      return { user };
-    }
-  },
-  wsServer
+	{
+		schema,
+		onConnect: async (ctx) => {
+			const token = ctx.connectionParams?.authorization;
+			if (!token || !verifyToken(token)) {
+				throw new Error("Unauthorized");
+			}
+		},
+		context: (ctx) => {
+			const user = getUserFromToken(ctx.connectionParams?.authorization);
+			return { user };
+		},
+	},
+	wsServer,
 );
 ```
 
 **graphql-ruby ActionCable:**
+
 ```ruby
 # Flag: subscription channel with no authentication
 class GraphqlChannel < ApplicationCable::Channel
@@ -442,23 +467,23 @@ Schema stitching and federation allow a GraphQL gateway to fetch schemas from re
 
 ```javascript
 // Flag: remote schema URL from user input or environment without allowlist
-const { introspectSchema } = require('@graphql-tools/wrap');
-const remoteUrl = config.remoteSchemaUrl;  // if this comes from user input → SSRF
+const { introspectSchema } = require("@graphql-tools/wrap");
+const remoteUrl = config.remoteSchemaUrl; // if this comes from user input → SSRF
 const remoteSchema = await introspectSchema(
-  buildHTTPExecutor({ endpoint: remoteUrl })
+	buildHTTPExecutor({ endpoint: remoteUrl }),
 );
 
 // Flag: Apollo Federation with configurable service endpoints
 const gateway = new ApolloGateway({
-  serviceList: [
-    { name: 'users', url: process.env.USERS_SERVICE_URL },
-    // if USERS_SERVICE_URL can be influenced by an attacker → SSRF
-  ],
+	serviceList: [
+		{ name: "users", url: process.env.USERS_SERVICE_URL },
+		// if USERS_SERVICE_URL can be influenced by an attacker → SSRF
+	],
 });
 
 // Safe: hardcoded or strictly validated URLs
-const ALLOWED_SCHEMAS = new Set(['https://internal.example.com/graphql']);
-if (!ALLOWED_SCHEMAS.has(remoteUrl)) throw new Error('URL not allowed');
+const ALLOWED_SCHEMAS = new Set(["https://internal.example.com/graphql"]);
+if (!ALLOWED_SCHEMAS.has(remoteUrl)) throw new Error("URL not allowed");
 ```
 
 ### Detection check
@@ -505,30 +530,32 @@ type User {
 
 ## Summary: patterns to search for
 
-| Issue | Search terms |
-|-------|-------------|
-| Introspection | `introspection`, `IntrospectionQuery`, `graphiql`, `__schema`, `DisableIntrospection` |
-| Depth limit | `depthLimit`, `depth_limit`, `MaxQueryDepth`, `maxDepth` |
-| Complexity limit | `complexityLimit`, `complexity_limit`, `MaxQueryComplexity`, `QueryComplexity` |
-| Batching | `alias`, `batch`, `operationName`, array body parsing |
-| Field auth | `context.user`, `hasPermission`, `authorized?`, `permission_classes`, `IsAuthenticated` in resolvers |
-| DataLoader/N+1 | `DataLoader`, `dataloader`, `load(`, absence of batch loading in object resolvers |
-| Subscription auth | `onConnect`, `connectionParams`, WebSocket `upgrade`, `subscribed` handler |
-| SSRF/stitching | `introspectSchema`, `RemoteSchema`, `ApolloGateway`, `serviceList`, `buildHTTPExecutor` |
+| Issue             | Search terms                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Introspection     | `introspection`, `IntrospectionQuery`, `graphiql`, `__schema`, `DisableIntrospection`                |
+| Depth limit       | `depthLimit`, `depth_limit`, `MaxQueryDepth`, `maxDepth`                                             |
+| Complexity limit  | `complexityLimit`, `complexity_limit`, `MaxQueryComplexity`, `QueryComplexity`                       |
+| Batching          | `alias`, `batch`, `operationName`, array body parsing                                                |
+| Field auth        | `context.user`, `hasPermission`, `authorized?`, `permission_classes`, `IsAuthenticated` in resolvers |
+| DataLoader/N+1    | `DataLoader`, `dataloader`, `load(`, absence of batch loading in object resolvers                    |
+| Subscription auth | `onConnect`, `connectionParams`, WebSocket `upgrade`, `subscribed` handler                           |
+| SSRF/stitching    | `introspectSchema`, `RemoteSchema`, `ApolloGateway`, `serviceList`, `buildHTTPExecutor`              |
 
 ## Output format per finding
 
 ```json
 {
-  "file": "src/graphql/server.js",
-  "line": 12,
-  "vuln_type": "graphql_introspection_enabled",
-  "severity": "medium",
-  "cwe": "CWE-200",
-  "owasp": "A05:2021 - Security Misconfiguration",
-  "title": "GraphQL introspection enabled in production",
-  "description": "The Apollo Server is initialized without setting introspection: false. Introspection is enabled by default, exposing the full schema to unauthenticated callers.",
-  "remediation": "Set introspection: process.env.NODE_ENV !== 'production' in ApolloServer options. Also disable GraphiQL in production.",
-  "references": ["https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/"]
+	"file": "src/graphql/server.js",
+	"line": 12,
+	"vuln_type": "graphql_introspection_enabled",
+	"severity": "medium",
+	"cwe": "CWE-200",
+	"owasp": "A05:2021 - Security Misconfiguration",
+	"title": "GraphQL introspection enabled in production",
+	"description": "The Apollo Server is initialized without setting introspection: false. Introspection is enabled by default, exposing the full schema to unauthenticated callers.",
+	"remediation": "Set introspection: process.env.NODE_ENV !== 'production' in ApolloServer options. Also disable GraphiQL in production.",
+	"references": [
+		"https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/"
+	]
 }
 ```

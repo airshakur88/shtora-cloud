@@ -3,6 +3,7 @@
 Detailed reference for when and how to refactor safely. The discipline of refactoring is as important as knowing the individual transformations. This reference covers the refactoring cycle, timing, safety techniques, and strategies for large-scale refactoring in production systems.
 
 ## Table of Contents
+
 1. [The Refactoring Cycle](#the-refactoring-cycle)
 2. [When to Refactor](#when-to-refactor)
 3. [When NOT to Refactor](#when-not-to-refactor)
@@ -30,11 +31,11 @@ Every refactoring follows the same four-step loop:
 
 ### Why Small Steps Matter
 
-| Approach | Risk | Recovery Time |
-|----------|------|---------------|
-| One refactoring at a time | Minimal -- if tests fail, the cause is obvious | Seconds (revert one change) |
-| Several refactorings between tests | Medium -- must debug to find which one broke | Minutes |
-| Big-bang rewrite | Maximum -- structural and behavioral changes mixed | Hours to days (or never) |
+| Approach                           | Risk                                               | Recovery Time               |
+| ---------------------------------- | -------------------------------------------------- | --------------------------- |
+| One refactoring at a time          | Minimal -- if tests fail, the cause is obvious     | Seconds (revert one change) |
+| Several refactorings between tests | Medium -- must debug to find which one broke       | Minutes                     |
+| Big-bang rewrite                   | Maximum -- structural and behavioral changes mixed | Hours to days (or never)    |
 
 **Rule:** If a test fails after a refactoring step, **revert immediately**. Don't debug. The step was too big or wrong. Revert, think, try a smaller step.
 
@@ -42,10 +43,10 @@ Every refactoring follows the same four-step loop:
 
 Martin Fowler describes two distinct modes of work. You wear only one "hat" at a time:
 
-| Hat | What You Do | What You Don't Do |
-|-----|-------------|-------------------|
-| **Refactoring** | Change structure, keep behavior identical | Add features, fix bugs, change tests |
-| **Adding Function** | Add new behavior, write new tests | Change existing code structure |
+| Hat                 | What You Do                               | What You Don't Do                    |
+| ------------------- | ----------------------------------------- | ------------------------------------ |
+| **Refactoring**     | Change structure, keep behavior identical | Add features, fix bugs, change tests |
+| **Adding Function** | Add new behavior, write new tests         | Change existing code structure       |
 
 **Switching hats:** You may alternate frequently, but never wear both at once. A typical sequence:
 
@@ -80,6 +81,7 @@ Martin Fowler describes two distinct modes of work. You wear only one "hat" at a
 **Trigger:** You touch a file for any reason and notice a small improvement you can make. Do it.
 
 **Examples:**
+
 - Rename a misleading variable name
 - Extract a method from a long function
 - Remove dead code
@@ -92,6 +94,7 @@ Martin Fowler describes two distinct modes of work. You wear only one "hat" at a
 **Trigger:** The third time you see duplicated code or a repeated pattern.
 
 **The progression:**
+
 1. First time: Write it
 2. Second time: Wince at the duplication but tolerate it
 3. Third time: Refactor -- extract the common pattern
@@ -103,6 +106,7 @@ Martin Fowler describes two distinct modes of work. You wear only one "hat" at a
 **Trigger:** A large structural problem that can't be fixed in one session.
 
 **Examples:**
+
 - Replacing a library or framework
 - Splitting a monolith into modules
 - Changing a pervasive data representation
@@ -117,17 +121,18 @@ Not every piece of code deserves refactoring. Save your effort for code that jus
 
 ### Code You Should Leave Alone
 
-| Situation | Why |
-|-----------|-----|
-| The code works and nobody needs to modify it | If it's behind a clean interface, its internal messiness costs nothing |
-| It's easier to rewrite from scratch | If the code is small and the rewrite is straightforward, don't polish what you'll replace |
-| There are no tests and adding them is impractical | Refactoring without tests is too risky; consider characterization tests first |
-| The code will be deleted soon | Don't beautify code with a known end-of-life |
-| You're exploring or prototyping | Throwaway code benefits from speed, not structure |
+| Situation                                         | Why                                                                                       |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| The code works and nobody needs to modify it      | If it's behind a clean interface, its internal messiness costs nothing                    |
+| It's easier to rewrite from scratch               | If the code is small and the rewrite is straightforward, don't polish what you'll replace |
+| There are no tests and adding them is impractical | Refactoring without tests is too risky; consider characterization tests first             |
+| The code will be deleted soon                     | Don't beautify code with a known end-of-life                                              |
+| You're exploring or prototyping                   | Throwaway code benefits from speed, not structure                                         |
 
 ### The "Messy Middle" Trap
 
 Some teams swing between two extremes:
+
 - **Never refactor:** Technical debt accumulates until development grinds to a halt
 - **Always refactor:** Gold-plating code that doesn't need it, shipping features slowly
 
@@ -141,12 +146,12 @@ The right balance: **Refactor code that you're about to change, or code that's a
 
 Tests are not optional for refactoring. Without them, you cannot verify that behavior is preserved.
 
-| Test Type | Role in Refactoring |
-|-----------|-------------------|
-| Unit tests | Fast feedback on individual method behavior |
-| Integration tests | Verify behavior across collaborating objects |
+| Test Type              | Role in Refactoring                                           |
+| ---------------------- | ------------------------------------------------------------- |
+| Unit tests             | Fast feedback on individual method behavior                   |
+| Integration tests      | Verify behavior across collaborating objects                  |
 | Characterization tests | Capture existing behavior of legacy code (the starting point) |
-| Regression tests | Ensure the entire system still works after changes |
+| Regression tests       | Ensure the entire system still works after changes            |
 
 ### Characterization Tests
 
@@ -158,6 +163,7 @@ When you encounter code without tests that you need to refactor:
 4. Now you have a safety net -- refactor freely
 
 **Example:**
+
 ```python
 def test_weird_edge_case():
     # This behavior may be "wrong" but it's what exists.
@@ -196,12 +202,12 @@ def test_weird_edge_case():
 
 ### When Refactoring Genuinely Hurts Performance
 
-| Refactoring | Potential Cost | Mitigation |
-|-------------|---------------|------------|
-| Replace Temp with Query | Method called multiple times instead of cached once | Cache if profiling shows impact |
-| Extract Method | Additional method call overhead | Usually inlined by the compiler/JIT |
-| Replace Conditional with Polymorphism | Virtual dispatch instead of branch | Negligible in most cases; profile if in doubt |
-| Introduce Parameter Object | Object allocation for each call | Often optimized away; pool if necessary |
+| Refactoring                           | Potential Cost                                      | Mitigation                                    |
+| ------------------------------------- | --------------------------------------------------- | --------------------------------------------- |
+| Replace Temp with Query               | Method called multiple times instead of cached once | Cache if profiling shows impact               |
+| Extract Method                        | Additional method call overhead                     | Usually inlined by the compiler/JIT           |
+| Replace Conditional with Polymorphism | Virtual dispatch instead of branch                  | Negligible in most cases; profile if in doubt |
+| Introduce Parameter Object            | Object allocation for each call                     | Often optimized away; pool if necessary       |
 
 **Key insight:** Optimization and refactoring are separate concerns. Refactor first for clarity, then optimize the measured bottleneck.
 
@@ -232,6 +238,7 @@ Step 6: Remove OldComponent and the abstraction layer (clean up)
 ### Example
 
 **Step 1-2:** Introduce the abstraction
+
 ```python
 # Before: callers use OldPaymentGateway directly
 class OldPaymentGateway:
@@ -251,6 +258,7 @@ class OldPaymentGateway(PaymentGateway):
 **Step 4:** Build `NewPaymentGateway(PaymentGateway)`. Test thoroughly.
 
 **Step 5:** Switch the wiring:
+
 ```python
 # In configuration:
 # gateway = OldPaymentGateway()  # old
@@ -274,6 +282,7 @@ A technique for making breaking API changes safely by running old and new versio
 ### The Three Phases
 
 **1. Expand:** Add the new version alongside the old one.
+
 ```python
 class User:
     def get_full_name(self):     # new name
@@ -286,6 +295,7 @@ class User:
 **2. Migrate:** Update all callers to use the new version. This can happen incrementally across multiple deployments.
 
 **3. Contract:** Remove the old version once all callers have migrated.
+
 ```python
 class User:
     def get_full_name(self):     # only the new version remains
@@ -308,12 +318,12 @@ class User:
 
 Gradually replace a legacy system by building new functionality around it, routing more and more traffic to the new system until the old one can be decommissioned.
 
-| Phase | Action |
-|-------|--------|
-| 1. Intercept | Place a routing layer in front of the legacy system |
-| 2. Build new | Implement new components behind the router |
-| 3. Redirect | Route requests to new components as they're ready |
-| 4. Retire | Decommission old components once no traffic reaches them |
+| Phase        | Action                                                   |
+| ------------ | -------------------------------------------------------- |
+| 1. Intercept | Place a routing layer in front of the legacy system      |
+| 2. Build new | Implement new components behind the router               |
+| 3. Redirect  | Route requests to new components as they're ready        |
+| 4. Retire    | Decommission old components once no traffic reaches them |
 
 ### Mikado Method
 
@@ -338,6 +348,7 @@ else:
 ```
 
 This allows:
+
 - Incremental rollout (10% of traffic, then 50%, then 100%)
 - Instant rollback by toggling the flag
 - A/B comparison of old vs. new behavior

@@ -136,7 +136,7 @@ Set `wait` to 1–2ms — allows multiple concurrent resolvers to register keys 
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
 type Query {
-  adminStats: Stats! @hasRole(role: ADMIN)
+	adminStats: Stats! @hasRole(role: ADMIN)
 }
 ```
 
@@ -233,7 +233,7 @@ Schema:
 scalar Upload
 
 type Mutation {
-  uploadAvatar(file: Upload!): User!
+	uploadAvatar(file: Upload!): User!
 }
 ```
 
@@ -253,14 +253,14 @@ Schema:
 
 ```graphql
 extend schema
-  @link(
-    url: "https://specs.apollo.dev/federation/v2.3"
-    import: ["@key", "@shareable", "@external"]
-  )
+	@link(
+		url: "https://specs.apollo.dev/federation/v2.3"
+		import: ["@key", "@shareable", "@external"]
+	)
 
 type User @key(fields: "id") {
-  id: ID!
-  name: String!
+	id: ID!
+	name: String!
 }
 ```
 

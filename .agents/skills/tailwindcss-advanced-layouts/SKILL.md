@@ -1,9 +1,10 @@
 ---
+
 name: tailwindcss-advanced-layouts
 description: |
-  Tailwind CSS advanced layout techniques including CSS Grid and Flexbox patterns.
-  PROACTIVELY activate for: (1) building complex layouts with CSS Grid, (2) grid-template-areas via Tailwind v4 arbitrary values, (3) responsive grid (grid-cols-*, auto-fit, minmax), (4) Flexbox patterns (flex-1, flex-grow, gap), (5) sticky headers and footers, (6) holy grail layout, (7) masonry-style layouts, (8) container queries (@container) with Tailwind, (9) subgrid usage, (10) aspect-ratio utilities, (11) magazine-style multi-column layouts.
-  Provides: Grid template recipes, container-query patterns, holy-grail templates, masonry alternatives, and aspect-ratio examples.
+Tailwind CSS advanced layout techniques including CSS Grid and Flexbox patterns.
+PROACTIVELY activate for: (1) building complex layouts with CSS Grid, (2) grid-template-areas via Tailwind v4 arbitrary values, (3) responsive grid (grid-cols-*, auto-fit, minmax), (4) Flexbox patterns (flex-1, flex-grow, gap), (5) sticky headers and footers, (6) holy grail layout, (7) masonry-style layouts, (8) container queries (@container) with Tailwind, (9) subgrid usage, (10) aspect-ratio utilities, (11) magazine-style multi-column layouts.
+Provides: Grid template recipes, container-query patterns, holy-grail templates, masonry alternatives, and aspect-ratio examples.
 ---
 
 # Tailwind CSS Advanced Layout Techniques
@@ -40,17 +41,27 @@ description: |
 
 ```css
 @utility grid-areas-dashboard {
-  grid-template-areas:
-    "header header header"
-    "nav main aside"
-    "nav footer footer";
+	grid-template-areas:
+		"header header header"
+		"nav main aside"
+		"nav footer footer";
 }
 
-@utility area-header { grid-area: header; }
-@utility area-nav { grid-area: nav; }
-@utility area-main { grid-area: main; }
-@utility area-aside { grid-area: aside; }
-@utility area-footer { grid-area: footer; }
+@utility area-header {
+	grid-area: header;
+}
+@utility area-nav {
+	grid-area: nav;
+}
+@utility area-main {
+	grid-area: main;
+}
+@utility area-aside {
+	grid-area: aside;
+}
+@utility area-footer {
+	grid-area: footer;
+}
 ```
 
 ```html
@@ -89,11 +100,11 @@ description: |
 ```css
 /* Enable subgrid in v4 */
 @utility subgrid-cols {
-  grid-template-columns: subgrid;
+	grid-template-columns: subgrid;
 }
 
 @utility subgrid-rows {
-  grid-template-rows: subgrid;
+	grid-template-rows: subgrid;
 }
 ```
 
@@ -274,24 +285,40 @@ description: |
 
 ```css
 @theme {
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-modal-backdrop: 400;
-  --z-modal: 500;
-  --z-popover: 600;
-  --z-tooltip: 700;
-  --z-toast: 800;
+	--z-dropdown: 100;
+	--z-sticky: 200;
+	--z-fixed: 300;
+	--z-modal-backdrop: 400;
+	--z-modal: 500;
+	--z-popover: 600;
+	--z-tooltip: 700;
+	--z-toast: 800;
 }
 
-@utility z-dropdown { z-index: var(--z-dropdown); }
-@utility z-sticky { z-index: var(--z-sticky); }
-@utility z-fixed { z-index: var(--z-fixed); }
-@utility z-modal-backdrop { z-index: var(--z-modal-backdrop); }
-@utility z-modal { z-index: var(--z-modal); }
-@utility z-popover { z-index: var(--z-popover); }
-@utility z-tooltip { z-index: var(--z-tooltip); }
-@utility z-toast { z-index: var(--z-toast); }
+@utility z-dropdown {
+	z-index: var(--z-dropdown);
+}
+@utility z-sticky {
+	z-index: var(--z-sticky);
+}
+@utility z-fixed {
+	z-index: var(--z-fixed);
+}
+@utility z-modal-backdrop {
+	z-index: var(--z-modal-backdrop);
+}
+@utility z-modal {
+	z-index: var(--z-modal);
+}
+@utility z-popover {
+	z-index: var(--z-popover);
+}
+@utility z-tooltip {
+	z-index: var(--z-tooltip);
+}
+@utility z-toast {
+	z-index: var(--z-toast);
+}
 ```
 
 ## Overflow and Scrolling

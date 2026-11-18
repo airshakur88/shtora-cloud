@@ -1,4 +1,5 @@
 ---
+
 name: opencode-qa
 description: "QA opencode itself, per case: verify the CLI/terminal (opencode run, db, serve, export), prove a specific plugin hook/action/event fired via the SSE event stream, smoke-test the TUI under tmux, and investigate sessions in opencode's SQLite DB by id, title/name, or message text. Ships tested helper scripts (each with a --self-test) plus per-domain references. Use whenever someone wants to QA, smoke-test, verify, or debug opencode's CLI, HTTP server, plugin hooks/events, or TUI, or to find/inspect opencode sessions in the database. Triggers: opencode qa, qa opencode, test opencode, verify opencode hook, opencode session db, find opencode session by id/name/text, opencode tui test, opencode server health, opencode event stream."
 ---
@@ -51,19 +52,19 @@ sandbox, free port, server start/stop, and an EXIT-trap cleanup). It requires
 
 ## Router: pick your case
 
-| You want to... | Case | Script | Reference |
-|---|---|---|---|
-| Run opencode non-interactively / check a CLI command | A | `opencode run --format json` (inline) | `references/cli-commands.md` |
-| Find a session by its id | D | `scripts/db-session-by-id.sh <ses_id>` | `references/db-investigation.md` |
-| Find sessions by title/name | D | `scripts/db-session-by-name.sh "<text>"` | `references/db-investigation.md` |
-| Find sessions by message text | D | `scripts/db-session-by-text.sh --recent N "<text>"` | `references/db-investigation.md` |
-| Export a whole session as JSON | D | `scripts/export-roundtrip.sh <ses_id>` | `references/db-investigation.md` |
-| Check the HTTP server / an endpoint | B | `scripts/server-smoke.sh` | `references/server-api.md` |
-| Prove a hook / action / event fired | B | `scripts/sse-hook-probe.sh` | `references/events-hooks.md` |
-| Prove serve-topology wake runner-split (reproduced/fixed) | B | `scripts/serve-wake-split-probe.sh --expect reproduced\|fixed --evidence-dir DIR` (self-test: `--self-test`; fake LLM: `scripts/lib/fake-openai-server.mjs`) | `references/events-hooks.md` |
-| Smoke-test the TUI | C | `scripts/tui-smoke.sh` | `references/tui-tmux.md` |
-| Write/run a test in the opencode source | - | (bun test) | `references/testing-harness.md` |
-| Drive opencode from a Bun/TS script | - | (SDK) | `references/sdk.md` |
+| You want to...                                            | Case | Script                                                                                                                                                       | Reference                        |
+| --------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| Run opencode non-interactively / check a CLI command      | A    | `opencode run --format json` (inline)                                                                                                                        | `references/cli-commands.md`     |
+| Find a session by its id                                  | D    | `scripts/db-session-by-id.sh <ses_id>`                                                                                                                       | `references/db-investigation.md` |
+| Find sessions by title/name                               | D    | `scripts/db-session-by-name.sh "<text>"`                                                                                                                     | `references/db-investigation.md` |
+| Find sessions by message text                             | D    | `scripts/db-session-by-text.sh --recent N "<text>"`                                                                                                          | `references/db-investigation.md` |
+| Export a whole session as JSON                            | D    | `scripts/export-roundtrip.sh <ses_id>`                                                                                                                       | `references/db-investigation.md` |
+| Check the HTTP server / an endpoint                       | B    | `scripts/server-smoke.sh`                                                                                                                                    | `references/server-api.md`       |
+| Prove a hook / action / event fired                       | B    | `scripts/sse-hook-probe.sh`                                                                                                                                  | `references/events-hooks.md`     |
+| Prove serve-topology wake runner-split (reproduced/fixed) | B    | `scripts/serve-wake-split-probe.sh --expect reproduced\|fixed --evidence-dir DIR` (self-test: `--self-test`; fake LLM: `scripts/lib/fake-openai-server.mjs`) | `references/events-hooks.md`     |
+| Smoke-test the TUI                                        | C    | `scripts/tui-smoke.sh`                                                                                                                                       | `references/tui-tmux.md`         |
+| Write/run a test in the opencode source                   | -    | (bun test)                                                                                                                                                   | `references/testing-harness.md`  |
+| Drive opencode from a Bun/TS script                       | -    | (SDK)                                                                                                                                                        | `references/sdk.md`              |
 
 ## Case A: CLI / terminal works
 
@@ -177,16 +178,16 @@ Run any script with `--self-test` to verify it against the live machine, or
 `-h` for usage. DB-read scripts are read-only; serve/sse/tui scripts use an
 isolated sandbox and clean up on exit.
 
-| Script | Case | Self-test asserts |
-|---|---|---|
-| `scripts/lib/common.sh --self-check` | - | deps present, DB path resolves, SQL escaping, free port, sandbox auto-removed |
-| `scripts/db-session-by-id.sh` | D | id round-trips for a real session |
-| `scripts/db-session-by-name.sh` | D | a derived title needle returns >=1 row |
-| `scripts/db-session-by-text.sh` | D | scoped search hits; unbounded scan refused; bounded search <30s |
-| `scripts/export-roundtrip.sh` | D | export stdout is valid JSON and `.info.id` round-trips |
-| `scripts/server-smoke.sh` | B | `/global/health` healthy, `/doc` >=100 paths, no-auth -> 401 |
-| `scripts/sse-hook-probe.sh` | B | `/event` opens and delivers `server.connected` |
-| `scripts/tui-smoke.sh` | C | TUI renders under tmux, tears down, real DB untouched |
+| Script                               | Case | Self-test asserts                                                             |
+| ------------------------------------ | ---- | ----------------------------------------------------------------------------- |
+| `scripts/lib/common.sh --self-check` | -    | deps present, DB path resolves, SQL escaping, free port, sandbox auto-removed |
+| `scripts/db-session-by-id.sh`        | D    | id round-trips for a real session                                             |
+| `scripts/db-session-by-name.sh`      | D    | a derived title needle returns >=1 row                                        |
+| `scripts/db-session-by-text.sh`      | D    | scoped search hits; unbounded scan refused; bounded search <30s               |
+| `scripts/export-roundtrip.sh`        | D    | export stdout is valid JSON and `.info.id` round-trips                        |
+| `scripts/server-smoke.sh`            | B    | `/global/health` healthy, `/doc` >=100 paths, no-auth -> 401                  |
+| `scripts/sse-hook-probe.sh`          | B    | `/event` opens and delivers `server.connected`                                |
+| `scripts/tui-smoke.sh`               | C    | TUI renders under tmux, tears down, real DB untouched                         |
 
 ## Risks and caveats
 

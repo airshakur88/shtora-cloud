@@ -26,28 +26,29 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 
 ## Language Pattern Files (resources/patterns/)
 
-| File | Status | Notes |
-|------|--------|-------|
-| `python_patterns.json` | [x] Done | SQLi, CMDi, path traversal, XSS/SSTI, SSRF, deserialization, crypto, auth |
-| `javascript_patterns.json` | [x] Done | XSS, SQLi, CMDi, path traversal, SSRF, prototype pollution, crypto |
-| `java_patterns.json` | [x] Done | First-class JVM web sources/sinks, framework-aware injection, and high-signal candidate patterns |
-| `php_patterns.json` | [x] Done | PHP plus Laravel/WordPress web sources, SQLi, CMDi, path traversal, XSS, SSRF, redirects, mass assignment, deserialization |
-| `go_patterns.json` | [x] Done | SQLi, CMDi, path traversal, SSRF, crypto, XSS |
-| `generic_patterns.json` | [x] Done | Secrets, debug mode, TLS bypass, IaC |
-| `ruby_patterns.json` | [x] Done | Rails/Rack sources, SQLi, CMDi, XSS, path traversal, SSRF, redirects, mass assignment, deserialization, crypto |
-| `csharp_patterns.json` | [x] Done | ASP.NET sources, SQLi, CMDi, path traversal, XSS, XXE, deserialization, SSRF, redirects, auth/configuration, crypto |
-| `c_patterns.json` | [x] Done | Buffer overflow (gets/strcpy/sprintf/scanf %s), format string, integer overflow in alloc, use-after-free, null pointer, TOCTOU, dangerous functions — 7 categories, 35 patterns |
-| `rust_patterns.json` | [x] Done | Actix/Axum/Warp/Rocket web sources and SQL, command, URL, path, redirect, template, deserialization, header, numeric, and unsafe/FFI risks |
-| `kotlin_patterns.json` | [x] Done | SQLi (string templates), CMDi, path traversal, deserialization, crypto, Android-specific (WebView/MODE_WORLD/LogCat), SSRF — 7 categories, 33 patterns |
-| `swift_patterns.json` | [x] Done | SQLite exec, CMDi (Process/NSTask), path traversal, Keychain misuse, ATS bypass, CommonCrypto weak algos, WebView, deep link — 8 categories, 26 patterns |
-| `bash_patterns.json` | [x] Done | eval injection, unquoted expansion, PATH injection, curl-pipe-bash RCE, info disclosure (set -x), temp file TOCTOU, hardcoded secrets — 7 categories, 30 patterns |
-| `yaml_patterns.json` | [x] Done | K8s privileged/RBAC/network, GitHub Actions injection, GitLab CI, Docker Compose — 6 categories, 56 patterns |
+| File                       | Status   | Notes                                                                                                                                                                           |
+| -------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `python_patterns.json`     | [x] Done | SQLi, CMDi, path traversal, XSS/SSTI, SSRF, deserialization, crypto, auth                                                                                                       |
+| `javascript_patterns.json` | [x] Done | XSS, SQLi, CMDi, path traversal, SSRF, prototype pollution, crypto                                                                                                              |
+| `java_patterns.json`       | [x] Done | First-class JVM web sources/sinks, framework-aware injection, and high-signal candidate patterns                                                                                |
+| `php_patterns.json`        | [x] Done | PHP plus Laravel/WordPress web sources, SQLi, CMDi, path traversal, XSS, SSRF, redirects, mass assignment, deserialization                                                      |
+| `go_patterns.json`         | [x] Done | SQLi, CMDi, path traversal, SSRF, crypto, XSS                                                                                                                                   |
+| `generic_patterns.json`    | [x] Done | Secrets, debug mode, TLS bypass, IaC                                                                                                                                            |
+| `ruby_patterns.json`       | [x] Done | Rails/Rack sources, SQLi, CMDi, XSS, path traversal, SSRF, redirects, mass assignment, deserialization, crypto                                                                  |
+| `csharp_patterns.json`     | [x] Done | ASP.NET sources, SQLi, CMDi, path traversal, XSS, XXE, deserialization, SSRF, redirects, auth/configuration, crypto                                                             |
+| `c_patterns.json`          | [x] Done | Buffer overflow (gets/strcpy/sprintf/scanf %s), format string, integer overflow in alloc, use-after-free, null pointer, TOCTOU, dangerous functions — 7 categories, 35 patterns |
+| `rust_patterns.json`       | [x] Done | Actix/Axum/Warp/Rocket web sources and SQL, command, URL, path, redirect, template, deserialization, header, numeric, and unsafe/FFI risks                                      |
+| `kotlin_patterns.json`     | [x] Done | SQLi (string templates), CMDi, path traversal, deserialization, crypto, Android-specific (WebView/MODE_WORLD/LogCat), SSRF — 7 categories, 33 patterns                          |
+| `swift_patterns.json`      | [x] Done | SQLite exec, CMDi (Process/NSTask), path traversal, Keychain misuse, ATS bypass, CommonCrypto weak algos, WebView, deep link — 8 categories, 26 patterns                        |
+| `bash_patterns.json`       | [x] Done | eval injection, unquoted expansion, PATH injection, curl-pipe-bash RCE, info disclosure (set -x), temp file TOCTOU, hardcoded secrets — 7 categories, 30 patterns               |
+| `yaml_patterns.json`       | [x] Done | K8s privileged/RBAC/network, GitHub Actions injection, GitLab CI, Docker Compose — 6 categories, 56 patterns                                                                    |
 
 ---
 
 ## Script Completeness (scripts/)
 
 ### scan.py
+
 - [x] File enumeration + SQLite state management
 - [x] Pattern-match sweep across all language files
 - [x] `--status-only`, `--update-findings` commands
@@ -57,6 +58,7 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 - [ ] Severity-based filtering applied at sweep time (currently filtering happens at report stage)
 
 ### taint.py
+
 - [x] Python AST-based taint analysis (proper source/sink/variable tracking within functions)
 - [x] **JS/PHP variable-assignment taint** — `analyze_with_variable_tracking()` parses `const/let/var name = req.*` and `$var = $_REQUEST[*]` assignments, tracks tainted_vars dict, propagates taint through assignments
 - [x] **Go pattern-based source/sink** — `GO_SOURCES` (Gin, stdlib, Chi, Echo, Fiber) + `GO_SINKS` (fmt.Sprintf SQLi, exec.Command CMDi, http.Get SSRF, os.Open path traversal)
@@ -69,12 +71,14 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 - [ ] **Cross-file interprocedural taint** — follow tainted variable into functions defined in other files
 
 ### secrets.py
+
 - [x] Shannon entropy scoring
 - [x] **45+ named credential patterns** — AWS, GitHub, Stripe, Slack, OpenAI, Azure Storage/Client Secret, GCP service account, Twilio, Heroku, npm, Docker Hub, Vault, Databricks, Vercel, SendGrid, PagerDuty, SSH/EC private keys, JWT tokens
 - [x] False positive filtering (placeholder detection)
 - [x] **`--git-history` flag** — scans git log -p diff output for secrets in committed code, deduplicates by (commit, file, line, type), attaches commit metadata
 
 ### dependency.py
+
 - [x] Python (requirements.txt, Pipfile, pyproject.toml), JavaScript (package.json plus Yarn/pnpm locks), Java (pom.xml), Go (go.mod), Ruby (Gemfile.lock), PHP (composer.json)
 - [x] **`Cargo.toml`** — Rust dependency parsing + RustSec CVEs
 - [x] **`.csproj` / `packages.config`** — C#/.NET NuGet dependency parsing
@@ -85,6 +89,7 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 - [x] **CVE database expanded to 100+ entries** — Python, JavaScript, Java, Go, Ruby, PHP, Rust, .NET coverage
 
 ### report.py
+
 - [x] Markdown, JSON schema 2.0, SARIF v2.1.0 output
 - [x] Canonical finding contract: stable ID, name, severity, exploitability, CVSS score/vector, OWASP, CWE, description, impact, assets, locations, confidence/status, evidence/taint path, prerequisites, remediation, and references
 - [x] Backward-compatible rendering for legacy findings with explicit `Not assessed` fallbacks
@@ -96,54 +101,55 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 - [ ] **GitHub Issues creation** — optional `--create-issues` flag using `gh` CLI
 
 ### regex_analyzer.py
+
 - [x] **New script** — ReDoS detection: nested quantifier analysis, alternation common-prefix detection, complexity estimation (catastrophic/exponential/polynomial/linear), severity classification, remediation guidance
 
 ---
 
 ## Sub-Skills (sub-skills/)
 
-| File | Status |
-|------|--------|
-| `scan-strategy.md` | [x] Done |
-| `taint-analyzer.md` | [x] Done |
-| `input-validator.md` | [x] Done |
-| `business-logic-analyzer.md` | [x] Done |
-| `api-security-reviewer.md` | [x] Done |
-| `auth-reviewer.md` | [x] Done |
-| `crypto-reviewer.md` | [x] Done |
-| `secret-detector.md` | [x] Done |
-| `config-security-reviewer.md` | [x] Done |
-| `iac-security-reviewer.md` | [x] Done |
-| `memory-safety-analyzer.md` | [x] Done |
-| `error-handling-reviewer.md` | [x] Done |
-| `dependency-auditor.md` | [x] Done |
-| `vuln-classifier.md` | [x] Done |
-| `false-positive-filter.md` | [x] Done |
-| `report-generator.md` | [x] Done |
-| `regex-analyzer.md` | [x] Done — ReDoS detection, catastrophic backtracking, complexity estimation, remediation guidance |
-| `graphql-security-reviewer.md` | [x] Done — introspection, depth/complexity limits, batching abuse, field-level auth, N+1, subscription auth, SSRF via stitching, type confusion |
-| `mobile-security-reviewer.md` | [x] Done — Android: WebView, exported components, allowBackup, insecure TrustManager; iOS: Keychain, ATS, UIWebView, URL scheme hijacking, cert pinning |
-| `java-security-reviewer.md` | [x] Done — Java/JVM framework routing, trust boundaries, framework protections, and manual exploitability checks |
-| `react-security-reviewer.md` | [x] Done — React/Next.js/browser security |
-| `go-security-reviewer.md` | [x] Done — Go HTTP/gRPC/service security |
-| `php-security-reviewer.md` | [x] Done — Laravel, Symfony, WordPress, Drupal, Yii, CodeIgniter, and custom PHP |
-| `ruby-security-reviewer.md` | [x] Done — Rails, Sinatra/Rack, and Hanami |
-| `dotnet-security-reviewer.md` | [x] Done — ASP.NET Core, MVC, minimal APIs, Razor/Blazor, EF Core, and Dapper |
-| `rust-security-reviewer.md` | [x] Done — Actix-web, Axum, Warp, Rocket, SQLx, and Diesel |
-| `application-vuln-reviewer.md` | [x] Done — application authorization, workflow, upload, and abuse cases |
-| `architecture-security-reviewer.md` | [x] Done — trust boundaries, tenant isolation, workers, connectors, and service privileges |
-| `infrastructure-security-reviewer.md` | [x] Done — cloud, runtime, network, storage, IAM, and supply-chain posture |
+| File                                  | Status                                                                                                                                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scan-strategy.md`                    | [x] Done                                                                                                                                                |
+| `taint-analyzer.md`                   | [x] Done                                                                                                                                                |
+| `input-validator.md`                  | [x] Done                                                                                                                                                |
+| `business-logic-analyzer.md`          | [x] Done                                                                                                                                                |
+| `api-security-reviewer.md`            | [x] Done                                                                                                                                                |
+| `auth-reviewer.md`                    | [x] Done                                                                                                                                                |
+| `crypto-reviewer.md`                  | [x] Done                                                                                                                                                |
+| `secret-detector.md`                  | [x] Done                                                                                                                                                |
+| `config-security-reviewer.md`         | [x] Done                                                                                                                                                |
+| `iac-security-reviewer.md`            | [x] Done                                                                                                                                                |
+| `memory-safety-analyzer.md`           | [x] Done                                                                                                                                                |
+| `error-handling-reviewer.md`          | [x] Done                                                                                                                                                |
+| `dependency-auditor.md`               | [x] Done                                                                                                                                                |
+| `vuln-classifier.md`                  | [x] Done                                                                                                                                                |
+| `false-positive-filter.md`            | [x] Done                                                                                                                                                |
+| `report-generator.md`                 | [x] Done                                                                                                                                                |
+| `regex-analyzer.md`                   | [x] Done — ReDoS detection, catastrophic backtracking, complexity estimation, remediation guidance                                                      |
+| `graphql-security-reviewer.md`        | [x] Done — introspection, depth/complexity limits, batching abuse, field-level auth, N+1, subscription auth, SSRF via stitching, type confusion         |
+| `mobile-security-reviewer.md`         | [x] Done — Android: WebView, exported components, allowBackup, insecure TrustManager; iOS: Keychain, ATS, UIWebView, URL scheme hijacking, cert pinning |
+| `java-security-reviewer.md`           | [x] Done — Java/JVM framework routing, trust boundaries, framework protections, and manual exploitability checks                                        |
+| `react-security-reviewer.md`          | [x] Done — React/Next.js/browser security                                                                                                               |
+| `go-security-reviewer.md`             | [x] Done — Go HTTP/gRPC/service security                                                                                                                |
+| `php-security-reviewer.md`            | [x] Done — Laravel, Symfony, WordPress, Drupal, Yii, CodeIgniter, and custom PHP                                                                        |
+| `ruby-security-reviewer.md`           | [x] Done — Rails, Sinatra/Rack, and Hanami                                                                                                              |
+| `dotnet-security-reviewer.md`         | [x] Done — ASP.NET Core, MVC, minimal APIs, Razor/Blazor, EF Core, and Dapper                                                                           |
+| `rust-security-reviewer.md`           | [x] Done — Actix-web, Axum, Warp, Rocket, SQLx, and Diesel                                                                                              |
+| `application-vuln-reviewer.md`        | [x] Done — application authorization, workflow, upload, and abuse cases                                                                                 |
+| `architecture-security-reviewer.md`   | [x] Done — trust boundaries, tenant isolation, workers, connectors, and service privileges                                                              |
+| `infrastructure-security-reviewer.md` | [x] Done — cloud, runtime, network, storage, IAM, and supply-chain posture                                                                              |
 
 ---
 
 ## Resource Files (resources/)
 
-| File | Status |
-|------|--------|
-| `resources/references/owasp-top10.md` | [x] Done |
-| `resources/references/false-positive-guide.md` | [x] Done |
-| `resources/references/cwe-taxonomy.md` | [x] Done — 29 CWE entries with ID, name, CVSS range, OWASP category |
-| `resources/report-templates/sarif_schema.json` | [ ] Not started |
+| File                                           | Status                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| `resources/references/owasp-top10.md`          | [x] Done                                                            |
+| `resources/references/false-positive-guide.md` | [x] Done                                                            |
+| `resources/references/cwe-taxonomy.md`         | [x] Done — 29 CWE entries with ID, name, CVSS range, OWASP category |
+| `resources/report-templates/sarif_schema.json` | [ ] Not started                                                     |
 
 ---
 
@@ -173,6 +179,7 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 ## Priority Order
 
 ### P0 — DONE ✓
+
 1. ~~`ruby_patterns.json`~~ — done
 2. ~~`csharp_patterns.json`~~ — done
 3. ~~`c_patterns.json`~~ — done
@@ -186,6 +193,7 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 11. ~~`regex_analyzer.py`~~ — done
 
 ### P1 — DONE ✓
+
 12. ~~`regex-analyzer.md` sub-skill~~ — done
 13. ~~`resources/references/cwe-taxonomy.md`~~ — done
 14. ~~CVE database expansion (60 → 100+ CVEs)~~ — done
@@ -198,10 +206,12 @@ Status legend: `[ ]` pending · `[~]` in progress · `[x]` done
 21. ~~Update `README.md`~~ — done
 
 ### P2 — DONE ✓
+
 22. ~~`docs/architecture.md` — architecture diagram and workflow explanation~~ — done
 23. ~~`.github/workflows/ci.yml` — compile, pytest, tagged packaging, and release publishing~~ — done
 
 ### P3 — Nice to have
+
 24. ~~`install.ps1.sha256`~~ — done
 25. Aider / Zed install targets
 26. CSV export + GitHub Issues creation in `report.py`

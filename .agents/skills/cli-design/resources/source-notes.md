@@ -2,7 +2,7 @@
 
 ## Upstream source
 
-- Work: [*Command Line Interface Guidelines*](https://clig.dev/)
+- Work: [_Command Line Interface Guidelines_](https://clig.dev/)
 - Authors: Aanand Prasad, Ben Firshman, Carl Tashian, and Eva Parish
 - Source repository: [`cli-guidelines/cli-guidelines`](https://github.com/cli-guidelines/cli-guidelines)
 - License: [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/)

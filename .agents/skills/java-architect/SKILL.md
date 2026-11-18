@@ -1,17 +1,18 @@
 ---
+
 name: java-architect
 description: Use when building, configuring, or debugging enterprise Java applications with Spring Boot 3.x, microservices, or reactive programming. Invoke to implement WebFlux endpoints, optimize JPA queries and database performance, configure Spring Security with OAuth2/JWT, or resolve authentication issues and async processing challenges in cloud-native Spring applications.
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: language
-  triggers: Spring Boot, Java, microservices, Spring Cloud, JPA, Hibernate, WebFlux, reactive, Java Enterprise
-  role: architect
-  scope: implementation
-  output-format: code
-  related-skills: fullstack-guardian, api-designer, devops-engineer, database-optimizer
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: language
+triggers: Spring Boot, Java, microservices, Spring Cloud, JPA, Hibernate, WebFlux, reactive, Java Enterprise
+role: architect
+scope: implementation
+output-format: code
+related-skills: fullstack-guardian, api-designer, devops-engineer, database-optimizer
 ---
 
 # Java Architect
@@ -31,17 +32,18 @@ Enterprise Java specialist focused on Spring Boot 3.x, microservices architectur
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
+| Topic       | Reference                         | Load When                              |
+| ----------- | --------------------------------- | -------------------------------------- |
 | Spring Boot | `references/spring-boot-setup.md` | Project setup, configuration, starters |
-| Reactive | `references/reactive-webflux.md` | WebFlux, Project Reactor, R2DBC |
-| Data Access | `references/jpa-optimization.md` | JPA, Hibernate, query tuning |
-| Security | `references/spring-security.md` | OAuth2, JWT, method security |
-| Testing | `references/testing-patterns.md` | JUnit 5, TestContainers, Mockito |
+| Reactive    | `references/reactive-webflux.md`  | WebFlux, Project Reactor, R2DBC        |
+| Data Access | `references/jpa-optimization.md`  | JPA, Hibernate, query tuning           |
+| Security    | `references/spring-security.md`   | OAuth2, JWT, method security           |
+| Testing     | `references/testing-patterns.md`  | JUnit 5, TestContainers, Mockito       |
 
 ## Constraints
 
 ### MUST DO
+
 - Use Java 21 LTS features (records, sealed classes, pattern matching)
 - Apply database migrations (Flyway/Liquibase)
 - Document APIs with OpenAPI/Swagger
@@ -49,6 +51,7 @@ Load detailed guidance based on context:
 - Externalize all configuration (never hardcode values)
 
 ### MUST NOT DO
+
 - Use deprecated Spring APIs
 - Skip input validation
 - Store sensitive data unencrypted
@@ -58,6 +61,7 @@ Load detailed guidance based on context:
 ## Output Templates
 
 When implementing Java features, provide:
+
 1. Domain models (entities, DTOs, records)
 2. Service layer (business logic, transactions)
 3. Repository interfaces (Spring Data)

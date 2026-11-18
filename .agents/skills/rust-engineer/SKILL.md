@@ -1,17 +1,18 @@
 ---
+
 name: rust-engineer
 description: Writes, reviews, and debugs idiomatic Rust code with memory safety and zero-cost abstractions. Implements ownership patterns, manages lifetimes, designs trait hierarchies, builds async applications with tokio, and structures error handling with Result/Option. Use when building Rust applications, solving ownership or borrowing issues, designing trait-based APIs, implementing async/await concurrency, creating FFI bindings, or optimizing for performance and memory safety. Invoke for Rust, Cargo, ownership, borrowing, lifetimes, async Rust, tokio, zero-cost abstractions, memory safety, systems programming.
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: language
-  triggers: Rust, Cargo, ownership, borrowing, lifetimes, async Rust, tokio, zero-cost abstractions, memory safety, systems programming
-  role: specialist
-  scope: implementation
-  output-format: code
-  related-skills: test-master
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: language
+triggers: Rust, Cargo, ownership, borrowing, lifetimes, async Rust, tokio, zero-cost abstractions, memory safety, systems programming
+role: specialist
+scope: implementation
+output-format: code
+related-skills: test-master
 ---
 
 # Rust Engineer
@@ -30,13 +31,13 @@ Senior Rust engineer with deep expertise in Rust 2021 edition, systems programmi
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Ownership | `references/ownership.md` | Lifetimes, borrowing, smart pointers, Pin |
-| Traits | `references/traits.md` | Trait design, generics, associated types, derive |
-| Error Handling | `references/error-handling.md` | Result, Option, ?, custom errors, thiserror |
-| Async | `references/async.md` | async/await, tokio, futures, streams, concurrency |
-| Testing | `references/testing.md` | Unit/integration tests, proptest, benchmarks |
+| Topic          | Reference                      | Load When                                         |
+| -------------- | ------------------------------ | ------------------------------------------------- |
+| Ownership      | `references/ownership.md`      | Lifetimes, borrowing, smart pointers, Pin         |
+| Traits         | `references/traits.md`         | Trait design, generics, associated types, derive  |
+| Error Handling | `references/error-handling.md` | Result, Option, ?, custom errors, thiserror       |
+| Async          | `references/async.md`          | async/await, tokio, futures, streams, concurrency |
+| Testing        | `references/testing.md`        | Unit/integration tests, proptest, benchmarks      |
 
 ## Key Patterns with Examples
 
@@ -135,6 +136,7 @@ cargo bench                                # criterion benchmarks (if present)
 ## Constraints
 
 ### MUST DO
+
 - Use ownership and borrowing for memory safety
 - Minimize unsafe code (document all unsafe blocks with safety invariants)
 - Use type system for compile-time guarantees
@@ -145,6 +147,7 @@ cargo bench                                # criterion benchmarks (if present)
 - Write tests including doctests
 
 ### MUST NOT DO
+
 - Use `unwrap()` in production code (prefer `expect()` with messages)
 - Create memory leaks or dangling pointers
 - Use `unsafe` without documenting safety invariants
@@ -157,6 +160,7 @@ cargo bench                                # criterion benchmarks (if present)
 ## Output Templates
 
 When implementing Rust features, provide:
+
 1. Type definitions (structs, enums, traits)
 2. Implementation with proper ownership
 3. Error handling with custom error types

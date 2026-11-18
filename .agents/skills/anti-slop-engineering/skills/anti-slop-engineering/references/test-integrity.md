@@ -5,7 +5,7 @@ A test is a fallible executable claim about a contract, not infallible truth. Th
 ## Required workflow
 
 1. **Capture a baseline:** record target commit, current test outcome, relevant test names, affected assertions, fixtures, snapshots, feature flags, and public contract.
-2. **State the oracle:** document *independently* expected behavior before changing implementation. Requirements, API contracts, examples, prior tests, and domain invariants are evidence. Implementation output alone is not.
+2. **State the oracle:** document _independently_ expected behavior before changing implementation. Requirements, API contracts, examples, prior tests, and domain invariants are evidence. Implementation output alone is not.
 3. **Red first for bugs:** demonstrate a real failure with an initially failing test where practical. Do not create tests that merely duplicate the implementation's branch logic.
 4. **Green through production fixes:** first ask whether a failure indicates a regression. Investigate causal path; do not chase CI green by editing the oracle.
 5. **When tests must change:** disclose every modified old assertion, deleted fixture, snapshot, skip/xfail, or test configuration difference in the PR. State who or what authorized behavior change.
@@ -14,16 +14,16 @@ A test is a fallible executable claim about a contract, not infallible truth. Th
 
 ## Test change decision table
 
-| Scenario | Allowed? | Required evidence |
-|---|---|---|
-| Feature adds new behavior; existing behavior intact | Add new tests; usually leave old tests | New expected outcomes and regression checks |
-| Contract intentionally changes | Yes, update old tests | Approved change request, old-vs-new assertions, consumer impact |
-| Old test was objectively wrong | Yes, correct test | Independent specification, failing counterexample, clear rationale |
-| Refactor with unchanged behavior | Generally preserve assertions | Original test results and same behavior after refactor |
-| Snapshot changed due to UI/API output | Review, never blind update | Human-readable semantic diff and approval |
-| Flaky test caused by timing or shared state | Fix test determinism | Reproducer and proof behavior coverage remains |
-| Agent code breaks old expected behavior | No, do not rebaseline | Fix implementation or escalate change contract |
-| Test is skipped, removed or assertions weakened for green | Block by default | Exceptional, explicitly reviewed reason and compensating proof |
+| Scenario                                                  | Allowed?                               | Required evidence                                                  |
+| --------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| Feature adds new behavior; existing behavior intact       | Add new tests; usually leave old tests | New expected outcomes and regression checks                        |
+| Contract intentionally changes                            | Yes, update old tests                  | Approved change request, old-vs-new assertions, consumer impact    |
+| Old test was objectively wrong                            | Yes, correct test                      | Independent specification, failing counterexample, clear rationale |
+| Refactor with unchanged behavior                          | Generally preserve assertions          | Original test results and same behavior after refactor             |
+| Snapshot changed due to UI/API output                     | Review, never blind update             | Human-readable semantic diff and approval                          |
+| Flaky test caused by timing or shared state               | Fix test determinism                   | Reproducer and proof behavior coverage remains                     |
+| Agent code breaks old expected behavior                   | No, do not rebaseline                  | Fix implementation or escalate change contract                     |
+| Test is skipped, removed or assertions weakened for green | Block by default                       | Exceptional, explicitly reviewed reason and compensating proof     |
 
 ## Patterns that falsify confidence
 
@@ -45,4 +45,4 @@ A test is a fallible executable claim about a contract, not infallible truth. Th
 - **Stateful/property-based tests** for invariants such as accounting totals, authorization, idempotency, and serialization symmetry.
 - **E2E evidence** for user-facing journeys, not as a replacement for every deterministic unit test.
 
-The objective is independent test *signal*, not maximal test count. DAMP tests may repeat input setup for clarity; do not apply DRY dogmatically to tests.
+The objective is independent test _signal_, not maximal test count. DAMP tests may repeat input setup for clarity; do not apply DRY dogmatically to tests.

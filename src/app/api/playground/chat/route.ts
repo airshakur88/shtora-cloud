@@ -1,7 +1,10 @@
 import { routeError } from "@/lib/api-error";
 import { parseChatCompletionRequest } from "@/lib/chat-request";
 import { getDb, getEncryptionSecret } from "@/lib/env";
-import { resolvePlaygroundImages } from "@/lib/playground-images";
+import {
+	PlaygroundImageError,
+	resolvePlaygroundImages,
+} from "@/lib/playground-images";
 import { getSession } from "@/lib/playground-sessions";
 import type { RouteResult } from "@/lib/router";
 import { routeChatCompletion } from "@/lib/router";
@@ -93,9 +96,28 @@ export async function POST(request: Request): Promise<Response> {
 				? bodyObj.modelId.trim()
 				: session.modelId;
 
+		let resolvedMessages: typeof messages;
+		try {
+			resolvedMessages = await resolvePlaygroundImages(messages);
+		} catch (err) {
+			if (err instanceof PlaygroundImageError) {
+				return Response.json(
+					{
+						error: {
+							message:
+								"One or more images could not be loaded. They may have expired or been deleted.",
+							type: "validation_error",
+						},
+					},
+					{ status: 422 },
+				);
+			}
+			throw err;
+		}
+
 		const parsed = parseChatCompletionRequest({
 			model: modelId,
-			messages: await resolvePlaygroundImages(messages),
+			messages: resolvedMessages,
 			stream: true,
 		});
 		if (!parsed) {
@@ -143,34 +165,14 @@ export async function POST(request: Request): Promise<Response> {
 			});
 		}
 
-		const bodyStream = resp.body;
-		if (!bodyStream) {
+		if (!resp.body) {
 			return Response.json(
 				{ error: { message: "Empty response", type: "server_error" } },
 				{ status: 500 },
 			);
 		}
 
-		const reader = bodyStream.getReader();
-		const stream = new ReadableStream({
-			async pull(controller) {
-				try {
-					const { value, done } = await reader.read();
-					if (done) {
-						controller.close();
-						return;
-					}
-					controller.enqueue(value);
-				} catch (err) {
-					controller.error(err);
-				}
-			},
-			cancel() {
-				reader.cancel();
-			},
-		});
-
-		return new Response(stream, {
+		return new Response(resp.body, {
 			headers: {
 				"Content-Type": "text/event-stream; charset=utf-8",
 				"Cache-Control": "private, no-store",

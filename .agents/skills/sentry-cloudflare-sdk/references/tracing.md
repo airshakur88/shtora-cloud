@@ -24,11 +24,11 @@ Set `tracesSampleRate` or `tracesSampler` in your init options. Without one of t
 
 ```typescript
 export default Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    tracesSampleRate: 1.0, // 100% in dev, lower in production
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		tracesSampleRate: 1.0, // 100% in dev, lower in production
+	}),
+	handler,
 );
 ```
 
@@ -48,11 +48,11 @@ A number between `0.0` and `1.0`:
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1.0,
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1.0,
+	}),
+	handler,
 );
 ```
 
@@ -64,22 +64,24 @@ For fine-grained control:
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    tracesSampler: (samplingContext) => {
-      const url = samplingContext.attributes?.["url.full"] as string | undefined;
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		tracesSampler: (samplingContext) => {
+			const url = samplingContext.attributes?.["url.full"] as
+				| string
+				| undefined;
 
-      // Always trace health checks
-      if (url?.includes("/health")) return 0;
+			// Always trace health checks
+			if (url?.includes("/health")) return 0;
 
-      // Sample API routes at 20%
-      if (url?.includes("/api/")) return 0.2;
+			// Sample API routes at 20%
+			if (url?.includes("/api/")) return 0.2;
 
-      // Default: 10%
-      return 0.1;
-    },
-  }),
-  handler,
+			// Default: 10%
+			return 0.1;
+		},
+	}),
+	handler,
 );
 ```
 
@@ -91,14 +93,14 @@ Sentry.withSentry(
 
 Every incoming request wrapped by `withSentry` or `sentryPagesPlugin` creates an `http.server` span with:
 
-| Attribute | Source |
-|-----------|--------|
-| `http.request.method` | `request.method` |
-| `url.full` | `request.url` |
-| `http.response.status_code` | Response status |
-| `http.request.body.size` | `Content-Length` header |
-| `user_agent.original` | `User-Agent` header |
-| `network.protocol.name` | `request.cf.httpProtocol` |
+| Attribute                   | Source                    |
+| --------------------------- | ------------------------- |
+| `http.request.method`       | `request.method`          |
+| `url.full`                  | `request.url`             |
+| `http.response.status_code` | Response status           |
+| `http.request.body.size`    | `Content-Length` header   |
+| `user_agent.original`       | `User-Agent` header       |
+| `network.protocol.name`     | `request.cf.httpProtocol` |
 
 > **Note:** `OPTIONS` and `HEAD` requests do not create spans (to reduce noise) but errors are still captured.
 
@@ -123,23 +125,31 @@ D1 bindings on `env` are auto-instrumented by `withSentry` (v10.57.0+), so all q
 
 ```typescript
 // Prepared statement queries
-const result = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(1).run();
+const result = await env.DB.prepare("SELECT * FROM users WHERE id = ?")
+	.bind(1)
+	.run();
 
 // Batch operations (v10.61.0+)
 const results = await env.DB.batch([
-  env.DB.prepare("UPDATE users SET active = ? WHERE id = ?").bind(true, 1),
-  env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(1),
+	env.DB.prepare("UPDATE users SET active = ? WHERE id = ?").bind(true, 1),
+	env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(1),
 ]);
 
 // Direct SQL execution (v10.61.0+)
-await env.DB.exec("CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, message TEXT)");
+await env.DB.exec(
+	"CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, message TEXT)",
+);
 
 // Session-based queries (v10.61.0+)
 const session = env.DB.withSession("first-primary");
-await session.prepare("INSERT INTO logs (message) VALUES (?)").bind("test").run();
+await session
+	.prepare("INSERT INTO logs (message) VALUES (?)")
+	.bind("test")
+	.run();
 ```
 
 Span attributes include:
+
 - `db.operation.name` — query type: `first`, `run`, `all`, `raw`, `batch`, `exec`
 - `cloudflare.d1.duration` — query duration
 - `cloudflare.d1.rows_read` — number of rows read
@@ -156,16 +166,16 @@ Wrap a block of code in a span:
 
 ```typescript
 const result = await Sentry.startSpan(
-  {
-    op: "function",
-    name: "processPayment",
-    attributes: { "payment.provider": "stripe" },
-  },
-  async (span) => {
-    const payment = await chargeCustomer(amount);
-    span.setAttributes({ "payment.id": payment.id });
-    return payment;
-  },
+	{
+		op: "function",
+		name: "processPayment",
+		attributes: { "payment.provider": "stripe" },
+	},
+	async (span) => {
+		const payment = await chargeCustomer(amount);
+		span.setAttributes({ "payment.id": payment.id });
+		return payment;
+	},
 );
 ```
 
@@ -175,8 +185,8 @@ Create a span without making it the active span:
 
 ```typescript
 const span = Sentry.startInactiveSpan({
-  op: "cache.lookup",
-  name: "Check KV cache",
+	op: "cache.lookup",
+	name: "Check KV cache",
 });
 
 const cached = await env.KV.get(key);
@@ -189,18 +199,18 @@ Full control over span lifecycle:
 
 ```typescript
 await Sentry.startSpanManual(
-  { op: "task", name: "Background processing" },
-  async (span) => {
-    try {
-      await doWork();
-      span.setStatus({ code: 1 }); // OK
-    } catch (error) {
-      span.setStatus({ code: 2, message: "internal_error" }); // ERROR
-      throw error;
-    } finally {
-      span.end();
-    }
-  },
+	{ op: "task", name: "Background processing" },
+	async (span) => {
+		try {
+			await doWork();
+			span.setStatus({ code: 1 }); // OK
+		} catch (error) {
+			span.setStatus({ code: 2, message: "internal_error" }); // ERROR
+			throw error;
+		} finally {
+			span.end();
+		}
+	},
 );
 ```
 
@@ -218,15 +228,12 @@ The `fetchIntegration` automatically injects `sentry-trace` and `baggage` header
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    tracesSampleRate: 1.0,
-    tracePropagationTargets: [
-      "api.myservice.com",
-      /^https:\/\/.*\.myapp\.com/,
-    ],
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		tracesSampleRate: 1.0,
+		tracePropagationTargets: ["api.myservice.com", /^https:\/\/.*\.myapp\.com/],
+	}),
+	handler,
 );
 ```
 
@@ -238,11 +245,11 @@ Controls whether the `sentry-trace` header is attached to outgoing requests (def
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    propagateTraceparent: true, // explicit opt-in
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		propagateTraceparent: true, // explicit opt-in
+	}),
+	handler,
 );
 ```
 
@@ -254,9 +261,9 @@ const traceData = Sentry.getTraceData();
 
 // Inject into outbound request manually
 const response = await fetch("https://api.example.com", {
-  headers: {
-    ...traceData,
-  },
+	headers: {
+		...traceData,
+	},
 });
 ```
 
@@ -296,7 +303,7 @@ Workflows instrumented with `instrumentWorkflowWithSentry` create spans for each
 ```typescript
 // Each step.do() creates a span with op "function.step.do"
 await step.do("process-payment", async () => {
-  return await processPayment();
+	return await processPayment();
 });
 ```
 
@@ -320,11 +327,11 @@ See the Workflows section in `references/durable-objects.md` for full setup.
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| No traces appearing | Verify `tracesSampleRate` or `tracesSampler` is set in init options |
-| Missing outbound fetch spans | Ensure `fetchIntegration` is not removed from `defaultIntegrations` |
-| Trace headers not propagated | Check `tracePropagationTargets` includes the target URL |
-| D1 spans not appearing | D1 bindings are auto-instrumented by `withSentry` (v10.57.0+) — ensure your handler is wrapped and you query via the `env.DB` binding |
-| Very short span durations (0ms) | Expected for CPU-bound work — Cloudflare Workers timers only advance during I/O |
-| Streaming response spans too short | Update to latest SDK — streaming response tracking was added in v10.x |
+| Issue                              | Solution                                                                                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| No traces appearing                | Verify `tracesSampleRate` or `tracesSampler` is set in init options                                                                   |
+| Missing outbound fetch spans       | Ensure `fetchIntegration` is not removed from `defaultIntegrations`                                                                   |
+| Trace headers not propagated       | Check `tracePropagationTargets` includes the target URL                                                                               |
+| D1 spans not appearing             | D1 bindings are auto-instrumented by `withSentry` (v10.57.0+) — ensure your handler is wrapped and you query via the `env.DB` binding |
+| Very short span durations (0ms)    | Expected for CPU-bound work — Cloudflare Workers timers only advance during I/O                                                       |
+| Streaming response spans too short | Update to latest SDK — streaming response tracking was added in v10.x                                                                 |

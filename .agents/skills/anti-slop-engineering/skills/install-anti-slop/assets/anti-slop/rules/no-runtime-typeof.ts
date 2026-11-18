@@ -1,6 +1,5 @@
-import { defineRule } from "@oxlint/plugins";
-
 import type { ESTree } from "@oxlint/plugins";
+import { defineRule } from "@oxlint/plugins";
 
 type RuntimeFunction = ESTree.ArrowFunctionExpression | ESTree.Function;
 

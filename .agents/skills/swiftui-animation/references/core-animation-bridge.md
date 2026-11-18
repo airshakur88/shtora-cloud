@@ -18,14 +18,14 @@ Patterns for bridging Core Animation (QuartzCore) with SwiftUI. Use when SwiftUI
 
 SwiftUI's animation system covers most use cases. Drop to Core Animation only when:
 
-| Scenario | Why CA Is Needed |
-|----------|-----------------|
-| **CALayer-specific timing** | `CAMediaTimingFunction` keeps timing attached to direct layer animations |
-| **Layer-specific properties** (shadowPath, borderWidth, etc.) | SwiftUI does not expose all CALayer animatable properties |
-| **Additive animations** | CA supports additive blending of multiple concurrent animations on the same property |
-| **Frame-synchronized drawing** | `CADisplayLink` provides precise frame timing for custom rendering |
-| **Performance-critical particle/effects** | Direct layer manipulation avoids SwiftUI's diffing overhead |
-| **Animation along a path** | `CAKeyframeAnimation` supports `CGPath`-based animation paths |
+| Scenario                                                      | Why CA Is Needed                                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **CALayer-specific timing**                                   | `CAMediaTimingFunction` keeps timing attached to direct layer animations             |
+| **Layer-specific properties** (shadowPath, borderWidth, etc.) | SwiftUI does not expose all CALayer animatable properties                            |
+| **Additive animations**                                       | CA supports additive blending of multiple concurrent animations on the same property |
+| **Frame-synchronized drawing**                                | `CADisplayLink` provides precise frame timing for custom rendering                   |
+| **Performance-critical particle/effects**                     | Direct layer manipulation avoids SwiftUI's diffing overhead                          |
+| **Animation along a path**                                    | `CAKeyframeAnimation` supports `CGPath`-based animation paths                        |
 
 Do not drop to Core Animation just for a cubic Bezier timing curve: SwiftUI has
 `UnitCurve.bezier(startControlPoint:endControlPoint:)` and
@@ -187,11 +187,11 @@ The `perceptualDuration` and `bounce` initializer matches SwiftUI's `Spring(dura
 
 ### Matching SwiftUI Spring Presets
 
-| SwiftUI Preset | CA Equivalent |
-|---------------|---------------|
-| `.smooth` | `CASpringAnimation(perceptualDuration: 0.5, bounce: 0.0)` |
-| `.snappy` | `CASpringAnimation(perceptualDuration: 0.4, bounce: 0.15)` |
-| `.bouncy` | `CASpringAnimation(perceptualDuration: 0.5, bounce: 0.3)` |
+| SwiftUI Preset | CA Equivalent                                              |
+| -------------- | ---------------------------------------------------------- |
+| `.smooth`      | `CASpringAnimation(perceptualDuration: 0.5, bounce: 0.0)`  |
+| `.snappy`      | `CASpringAnimation(perceptualDuration: 0.4, bounce: 0.15)` |
+| `.bouncy`      | `CASpringAnimation(perceptualDuration: 0.5, bounce: 0.3)`  |
 
 > **Docs:** [CASpringAnimation](https://sosumi.ai/documentation/quartzcore/caspringanimation)
 
@@ -274,11 +274,11 @@ displayLink?.preferredFrameRateRange = CAFrameRateRange(
 )
 ```
 
-| Hint | Use Case |
-|-------|----------|
+| Hint             | Use Case                                              |
+| ---------------- | ----------------------------------------------------- |
 | `preferred: 120` | Short, high-impact motion when the app can sustain it |
-| `preferred: 60` | Standard interactive animations |
-| `preferred: 30` | Ambient/slow animations, power saving |
+| `preferred: 60`  | Standard interactive animations                       |
+| `preferred: 30`  | Ambient/slow animations, power saving                 |
 
 **Important:** Always call `invalidate()` when done. A running `CADisplayLink` prevents the CPU from idling and drains battery. Drive custom animation from `targetTimestamp`, and scale rendering detail or work per frame to the refresh rate the system actually selects.
 
@@ -557,12 +557,12 @@ struct AnimatedBadge: UIViewRepresentable {
 
 ### CA vs. SwiftUI Animation Performance
 
-| Aspect | SwiftUI Animation | Core Animation |
-|--------|------------------|----------------|
-| **Rendering** | View diffing + render tree | Direct layer manipulation |
-| **Thread** | Main thread for state, render server for compositing | Same -- render server composites |
-| **Overhead** | SwiftUI body re-evaluation per frame (for animatable) | No body re-evaluation |
-| **Best for** | Standard UI transitions | Particle effects, wave animations, complex paths |
+| Aspect        | SwiftUI Animation                                     | Core Animation                                   |
+| ------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| **Rendering** | View diffing + render tree                            | Direct layer manipulation                        |
+| **Thread**    | Main thread for state, render server for compositing  | Same -- render server composites                 |
+| **Overhead**  | SwiftUI body re-evaluation per frame (for animatable) | No body re-evaluation                            |
+| **Best for**  | Standard UI transitions                               | Particle effects, wave animations, complex paths |
 
 ### Guidelines
 

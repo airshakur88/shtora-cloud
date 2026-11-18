@@ -449,6 +449,7 @@ public class DeltaCompressor
 ## Network Performance Best Practices
 
 **Bandwidth optimization:**
+
 - Compress position/rotation data
 - Use delta compression
 - Implement relevancy system
@@ -456,18 +457,21 @@ public class DeltaCompressor
 - Batch multiple updates into single packet
 
 **Latency optimization:**
+
 - Client-side prediction for local player
 - Server reconciliation for corrections
 - Entity interpolation for other players
 - Lag compensation for hitscan weapons
 
 **Target metrics:**
+
 - Latency: < 100ms
 - Tick rate: 20-60 Hz (depends on game type)
 - Packet size: < 1200 bytes (avoid fragmentation)
 - Update rate: 10-20 Hz for distant objects, 60 Hz for nearby
 
 **Security considerations:**
+
 - Server-authoritative for all game logic
 - Validate all client inputs
 - Rate limiting to prevent flooding

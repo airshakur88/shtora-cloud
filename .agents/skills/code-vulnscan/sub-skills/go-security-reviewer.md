@@ -28,6 +28,7 @@ Treat these as user-controlled until proven otherwise:
 ## OAuth credential type confusion → SSRF / file exfiltration
 
 When a Go service accepts tenant-supplied OAuth credential JSON and passes it directly to a Google/cloud OAuth library (e.g., `google.CredentialsFromJSON`, `oauth2/google.CredentialsFromJSON`), the library supports multiple credential types including `external_account`. An `external_account` credential can:
+
 - Read a local file specified in `credential_source.file` and POST it to `token_url`
 - Send the file contents to an attacker-controlled HTTPS endpoint
 

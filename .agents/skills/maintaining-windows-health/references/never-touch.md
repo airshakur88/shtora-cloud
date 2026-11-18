@@ -21,16 +21,16 @@ Categories that **must not be deleted** even if the user asks, even elevated, ev
 
 Windows maintains several areas itself. Hand-deleting them corrupts the OS; the **supported command** does it safely. Memorize this mapping — most "free space" footguns are someone reaching for `Remove-Item` where a command was required:
 
-| Area | NEVER `Remove-Item` | Use instead |
-|---|---|---|
-| Component Store (`WinSxS`) | manual delete = unbootable / un-updatable | `Dism /Online /Cleanup-Image /StartComponentCleanup` |
-| Driver Store (`System32\DriverStore`) | breaks devices / driver rollback | `pnputil /delete-driver` (after export) |
-| Shadow copies / restore points (`System Volume Information`) | loses all rollback | `vssadmin` / System Protection |
-| Event Logs | loses forensics | `wevtutil epl` then `cl /bu:` |
-| Windows Update store (`SoftwareDistribution`) | breaks WU | stop `wuauserv`+`bits`, rename, restart |
-| MSI cache (`Installer`, `Package Cache`) | breaks uninstall/repair of every MSI app | leave it; uninstall apps via winget/Apps |
-| pagefile / hiberfil | crash on delete | `powercfg`, System settings |
-| Registry | instability up to reinstall | export + targeted edit only |
+| Area                                                         | NEVER `Remove-Item`                       | Use instead                                          |
+| ------------------------------------------------------------ | ----------------------------------------- | ---------------------------------------------------- |
+| Component Store (`WinSxS`)                                   | manual delete = unbootable / un-updatable | `Dism /Online /Cleanup-Image /StartComponentCleanup` |
+| Driver Store (`System32\DriverStore`)                        | breaks devices / driver rollback          | `pnputil /delete-driver` (after export)              |
+| Shadow copies / restore points (`System Volume Information`) | loses all rollback                        | `vssadmin` / System Protection                       |
+| Event Logs                                                   | loses forensics                           | `wevtutil epl` then `cl /bu:`                        |
+| Windows Update store (`SoftwareDistribution`)                | breaks WU                                 | stop `wuauserv`+`bits`, rename, restart              |
+| MSI cache (`Installer`, `Package Cache`)                     | breaks uninstall/repair of every MSI app  | leave it; uninstall apps via winget/Apps             |
+| pagefile / hiberfil                                          | crash on delete                           | `powercfg`, System settings                          |
+| Registry                                                     | instability up to reinstall               | export + targeted edit only                          |
 
 ---
 
@@ -83,17 +83,17 @@ Also: never delete the **BitLocker recovery key** if escrowed locally.
 
 Tiny but irreplaceable. Cleaner tools that scan `$HOME` for "old hidden files" flag these — never include them, even in a "clean old dotfiles" pass. The validator denies them even though they sit under the allowed HOME root (deny beats allow via longest-prefix).
 
-| Path | What it stores | Recovery if deleted |
-|---|---|---|
-| `%USERPROFILE%\.ssh` | private SSH keys | none — regenerate + redistribute pubkeys |
-| `%USERPROFILE%\.gnupg` | GPG secret keyring | none |
-| `%USERPROFILE%\.aws`, `.azure`, `.kube` | cloud access keys / kube contexts | re-issue / re-fetch |
-| `%USERPROFILE%\.docker\config.json` | registry auth tokens | `docker login` again |
-| `%USERPROFILE%\.netrc`, `.git-credentials` | plaintext credentials | from password manager |
-| `%APPDATA%\Microsoft\Protect` | **DPAPI master keys** | deletion = all DPAPI-encrypted blobs unrecoverable |
-| `%APPDATA%\Microsoft\Crypto`, `\SystemCertificates` | RSA/DSS keys, certs | none |
-| `%APPDATA%\Microsoft\Credentials`, `%LOCALAPPDATA%\Microsoft\Credentials` | Credential Manager vault | none |
-| `%APPDATA%\gh\hosts.yml` | GitHub CLI tokens | `gh auth login` |
+| Path                                                                      | What it stores                    | Recovery if deleted                                |
+| ------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------------- |
+| `%USERPROFILE%\.ssh`                                                      | private SSH keys                  | none — regenerate + redistribute pubkeys           |
+| `%USERPROFILE%\.gnupg`                                                    | GPG secret keyring                | none                                               |
+| `%USERPROFILE%\.aws`, `.azure`, `.kube`                                   | cloud access keys / kube contexts | re-issue / re-fetch                                |
+| `%USERPROFILE%\.docker\config.json`                                       | registry auth tokens              | `docker login` again                               |
+| `%USERPROFILE%\.netrc`, `.git-credentials`                                | plaintext credentials             | from password manager                              |
+| `%APPDATA%\Microsoft\Protect`                                             | **DPAPI master keys**             | deletion = all DPAPI-encrypted blobs unrecoverable |
+| `%APPDATA%\Microsoft\Crypto`, `\SystemCertificates`                       | RSA/DSS keys, certs               | none                                               |
+| `%APPDATA%\Microsoft\Credentials`, `%LOCALAPPDATA%\Microsoft\Credentials` | Credential Manager vault          | none                                               |
+| `%APPDATA%\gh\hosts.yml`                                                  | GitHub CLI tokens                 | `gh auth login`                                    |
 
 Heuristic: any dotfile/dotfolder under `%USERPROFILE%` outside an explicit cache (e.g. `.cache`, `.npm\_cacache`, `.gradle\caches`) should be assumed credential- or config-bearing.
 
@@ -108,19 +108,19 @@ Detect by **file attribute**, not by path list — this generically covers OneDr
 
 Windows has no bundle-ID namespace, so protection is **path-based** under `%APPDATA%` / `%LOCALAPPDATA%`. Only the cache-family subfolders (`Cache`, `Code Cache`, `GPUCache`, `Service Worker\CacheStorage`, `DawnCache`) are safe; everything else is state.
 
-| App | Path | What it actually is |
-|---|---|---|
-| Telegram | `%APPDATA%\Telegram Desktop\tdata\` | full chat history + session keys — delete = logout + lost history |
-| Slack | `%APPDATA%\Slack\storage\`, `IndexedDB\` | workspace prefs, draft messages |
-| Notion | `%APPDATA%\Notion\...\IndexedDB\` | offline page data |
-| Teams | `%APPDATA%\Microsoft\Teams\` (and the new Store app data) | account/auth + cached messages |
-| Browsers | `...\User Data\Default\` (Edge/Chrome/Brave) | history, cookies, **extension state incl. password managers / MetaMask seed** |
-| VS Code / Cursor | `%APPDATA%\Code\User\`, `globalStorage\` | settings, snippets, extension state |
-| JetBrains | `%APPDATA%\JetBrains\<IDE><ver>\` | settings, project list, keymaps, licenses |
-| WSL distros | `%LOCALAPPDATA%\Packages\<distro>\LocalState\ext4.vhdx` | the **entire Linux filesystem** — compact, never delete |
-| Docker Desktop | `%LOCALAPPDATA%\Docker\wsl\...\*.vhdx` | images + volumes — compact, never delete |
-| Password managers | `%LOCALAPPDATA%\1Password`, `%APPDATA%\Bitwarden` etc. | vault/session state |
-| Crypto wallets | `%APPDATA%\Exodus`, `Ledger Live`, browser-extension state | encrypted wallet / seed-derived data |
+| App               | Path                                                       | What it actually is                                                           |
+| ----------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Telegram          | `%APPDATA%\Telegram Desktop\tdata\`                        | full chat history + session keys — delete = logout + lost history             |
+| Slack             | `%APPDATA%\Slack\storage\`, `IndexedDB\`                   | workspace prefs, draft messages                                               |
+| Notion            | `%APPDATA%\Notion\...\IndexedDB\`                          | offline page data                                                             |
+| Teams             | `%APPDATA%\Microsoft\Teams\` (and the new Store app data)  | account/auth + cached messages                                                |
+| Browsers          | `...\User Data\Default\` (Edge/Chrome/Brave)               | history, cookies, **extension state incl. password managers / MetaMask seed** |
+| VS Code / Cursor  | `%APPDATA%\Code\User\`, `globalStorage\`                   | settings, snippets, extension state                                           |
+| JetBrains         | `%APPDATA%\JetBrains\<IDE><ver>\`                          | settings, project list, keymaps, licenses                                     |
+| WSL distros       | `%LOCALAPPDATA%\Packages\<distro>\LocalState\ext4.vhdx`    | the **entire Linux filesystem** — compact, never delete                       |
+| Docker Desktop    | `%LOCALAPPDATA%\Docker\wsl\...\*.vhdx`                     | images + volumes — compact, never delete                                      |
+| Password managers | `%LOCALAPPDATA%\1Password`, `%APPDATA%\Bitwarden` etc.     | vault/session state                                                           |
+| Crypto wallets    | `%APPDATA%\Exodus`, `Ledger Live`, browser-extension state | encrypted wallet / seed-derived data                                          |
 
 When unsure for an AppData folder: only `Cache`/`Code Cache`/`GPUCache`/`Service Worker` subdirs are safe. Everything else, ask.
 
@@ -132,7 +132,7 @@ Microsoft does not support registry cleaners; "registry bloat" is not a meaningf
 
 These are easy to forget because macOS has no equivalent:
 
-1. **Reparse points / junctions / symlinks.** `Remove-Item -Recurse` can follow a junction and delete the *target's* contents — the classic data-loss bug. Dev trees are full of junctions (npm/pnpm store, Docker, WSL). Always use `-LiteralPath`; never recurse through `FILE_ATTRIBUTE_REPARSE_POINT` (the audit script lists reparse points under scan roots).
+1. **Reparse points / junctions / symlinks.** `Remove-Item -Recurse` can follow a junction and delete the _target's_ contents — the classic data-loss bug. Dev trees are full of junctions (npm/pnpm store, Docker, WSL). Always use `-LiteralPath`; never recurse through `FILE_ATTRIBUTE_REPARSE_POINT` (the audit script lists reparse points under scan roots).
 2. **`Remove-Item` is permanent — no Recycle Bin.** Unlike dragging to the bin, `Remove-Item` deletes immediately. Users expect "delete = recoverable"; it isn't here. Prefer moving to a dated quarantine folder over `Remove-Item` when the user is unsure.
 3. **Controlled Folder Access (ransomware protection).** If on, deletes in Documents/Pictures/Desktop fail with Access Denied **from Defender, not from permissions**. Distinguish a CFA block from a real error so the tool isn't blamed (`Get-MpPreference | Select EnableControlledFolderAccess`).
 4. **System Restore / VSS.** `vssadmin delete shadows` frees space but destroys the user's rollback net (the analog of Time Machine local snapshots). Treat like the macOS `tmutil` rule: only via the supported tool, only after warning.

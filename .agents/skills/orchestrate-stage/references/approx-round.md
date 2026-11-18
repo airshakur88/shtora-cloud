@@ -17,6 +17,7 @@ uv run <skill-dir>/scripts/generate.py partition analyze
 Fan out analyze-external-methods, one per generated plan.
 
 Inputs each:
+
 - `language`
 - `plan`
 - `sinks` (optional) — pass when the task requests dangerous methods to also be classified into per-package sink units

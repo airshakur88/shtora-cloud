@@ -1,4 +1,5 @@
 ---
+
 title: MVCC and VACUUM
 description: MVCC internals, VACUUM/autovacuum tuning, and bloat prevention
 tags: postgres, mvcc, vacuum, autovacuum, xid, bloat, dead-tuples

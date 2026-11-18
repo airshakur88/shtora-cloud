@@ -1,9 +1,10 @@
 ---
+
 name: powershell-2025-changes
 description: |
-  Critical PowerShell changes, deprecations, and migrations for 2025.
-  PROACTIVELY activate for: (1) PowerShell 7.5 GA changes, (2) PowerShell 7.6 preview features, (3) Windows PowerShell 5.1 deprecation timeline, (4) PSReadLine 2.4+ updates, (5) Az PowerShell 14.x breaking changes, (6) Microsoft.Graph migration from AzureAD/MSOnline modules, (7) PSResourceGet replacing PowerShellGet 2.x, (8) DSC v3 and migration from DSC v1/v2, (9) ExecutionPolicy and constrained language mode updates, (10) .NET 9/.NET 10 integration impact.
-  Provides: deprecation timeline, breaking-change checklist, migration scripts (AzureAD to Microsoft.Graph), and PSResourceGet upgrade steps.
+Critical PowerShell changes, deprecations, and migrations for 2025.
+PROACTIVELY activate for: (1) PowerShell 7.5 GA changes, (2) PowerShell 7.6 preview features, (3) Windows PowerShell 5.1 deprecation timeline, (4) PSReadLine 2.4+ updates, (5) Az PowerShell 14.x breaking changes, (6) Microsoft.Graph migration from AzureAD/MSOnline modules, (7) PSResourceGet replacing PowerShellGet 2.x, (8) DSC v3 and migration from DSC v1/v2, (9) ExecutionPolicy and constrained language mode updates, (10) .NET 9/.NET 10 integration impact.
+Provides: deprecation timeline, breaking-change checklist, migration scripts (AzureAD to Microsoft.Graph), and PSResourceGet upgrade steps.
 ---
 
 # PowerShell 2025 Breaking Changes & Migrations
@@ -15,6 +16,7 @@ Critical changes, deprecations, and migration paths for PowerShell in 2025.
 ### What's Removed
 
 PowerShell 2.0 has been **completely removed** from:
+
 - **Windows 11 version 24H2** (August 2025)
 - **Windows Server 2025** (September 2025)
 
@@ -43,10 +45,10 @@ winget install Microsoft.PowerShell
 
 ### Retirement Timeline
 
-| Module | Stop Working | Retirement Complete |
-|--------|--------------|---------------------|
-| **MSOnline** | Late May 2025 | May 31, 2025 |
-| **AzureAD** | March 30, 2025 | After July 1, 2025 |
+| Module       | Stop Working   | Retirement Complete |
+| ------------ | -------------- | ------------------- |
+| **MSOnline** | Late May 2025  | May 31, 2025        |
+| **AzureAD**  | March 30, 2025 | After July 1, 2025  |
 
 **Critical:** These modules will stop functioning - not just deprecated, but **completely non-functional**.
 
@@ -86,12 +88,12 @@ Get-EntraUser
 
 ### Common Command Mappings
 
-| MSOnline/AzureAD | Microsoft.Graph | Notes |
-|------------------|----------------|-------|
-| `Get-MsolUser` / `Get-AzureADUser` | `Get-MgUser` | Requires User.Read.All scope |
-| `Get-MsolGroup` / `Get-AzureADGroup` | `Get-MgGroup` | Requires Group.Read.All scope |
-| `Get-MsolDevice` / `Get-AzureADDevice` | `Get-MgDevice` | Requires Device.Read.All scope |
-| `Connect-MsolService` / `Connect-AzureAD` | `Connect-MgGraph` | Scope-based permissions |
+| MSOnline/AzureAD                          | Microsoft.Graph   | Notes                          |
+| ----------------------------------------- | ----------------- | ------------------------------ |
+| `Get-MsolUser` / `Get-AzureADUser`        | `Get-MgUser`      | Requires User.Read.All scope   |
+| `Get-MsolGroup` / `Get-AzureADGroup`      | `Get-MgGroup`     | Requires Group.Read.All scope  |
+| `Get-MsolDevice` / `Get-AzureADDevice`    | `Get-MgDevice`    | Requires Device.Read.All scope |
+| `Connect-MsolService` / `Connect-AzureAD` | `Connect-MgGraph` | Scope-based permissions        |
 
 ---
 
@@ -144,6 +146,7 @@ Get-InstalledPSResource                         # Replaces Get-InstalledModule
 ```
 
 **Performance Comparison:**
+
 - **PowerShellGet**: 10-15 seconds to install module
 - **PSResourceGet**: 5-7 seconds to install module (2x faster)
 
@@ -263,6 +266,7 @@ $ExecutionContext.SessionState.LanguageMode
 PowerShell 7.6.0 Preview 5 available (built on .NET 9.0.101)
 
 **New Features:**
+
 - **PSRedirectToVariable**: Allow redirecting to a variable
 - **Module Rename**: ThreadJob → Microsoft.PowerShell.ThreadJob
 - **PSResourceGet 1.1.0**: Improved performance and Azure Artifacts support

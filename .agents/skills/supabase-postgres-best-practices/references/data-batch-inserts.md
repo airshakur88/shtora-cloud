@@ -1,4 +1,5 @@
 ---
+
 title: Batch INSERT Statements for Bulk Data
 impact: MEDIUM
 impactDescription: 10-50x faster bulk inserts

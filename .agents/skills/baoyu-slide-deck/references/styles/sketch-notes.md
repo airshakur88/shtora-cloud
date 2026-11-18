@@ -23,16 +23,16 @@ Clear handwritten round or hard-pen style mimicking everyday notes. Consistent s
 
 ## Color Palette
 
-| Role | Color | Hex | Usage |
-|------|-------|-----|-------|
-| Background | Warm Off-White | #FAF8F0 | Primary background |
-| Primary Text | Deep Charcoal | #2C3E50 | Headlines, body text |
-| Alt Text | Deep Brown | #4A4A4A | Secondary text elements |
-| Accent 1 | Soft Orange | #F4A261 | Highlights, emphasis |
-| Accent 2 | Mustard Yellow | #E9C46A | Secondary highlights |
-| Accent 3 | Sage Green | #87A96B | Nature, growth concepts |
-| Accent 4 | Light Blue | #7EC8E3 | Tech, AI elements |
-| Accent 5 | Red Brown | #A0522D | Land, infrastructure |
+| Role         | Color          | Hex     | Usage                   |
+| ------------ | -------------- | ------- | ----------------------- |
+| Background   | Warm Off-White | #FAF8F0 | Primary background      |
+| Primary Text | Deep Charcoal  | #2C3E50 | Headlines, body text    |
+| Alt Text     | Deep Brown     | #4A4A4A | Secondary text elements |
+| Accent 1     | Soft Orange    | #F4A261 | Highlights, emphasis    |
+| Accent 2     | Mustard Yellow | #E9C46A | Secondary highlights    |
+| Accent 3     | Sage Green     | #87A96B | Nature, growth concepts |
+| Accent 4     | Light Blue     | #7EC8E3 | Tech, AI elements       |
+| Accent 5     | Red Brown      | #A0522D | Land, infrastructure    |
 
 ## Visual Elements
 

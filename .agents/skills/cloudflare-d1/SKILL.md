@@ -1,57 +1,28 @@
 ---
+
 name: cloudflare-d1
 description: "Cloudflare D1 serverless SQLite on edge. Use for databases, migrations, bindings, or encountering D1_ERROR, statement too long, too many requests queued errors."
 license: MIT
 metadata:
-  version: "3.0.0"
-  last_verified: "2025-01-15"
-  production_tested: true
-  token_savings: "~58%"
-  errors_prevented: 8
-  templates_included: 3
-  references_included: 4
-  wrangler_version: "4.81.0"
-  workers_types_version: "4.20260408.0"
-  drizzle_orm_version: "0.45.2"
-  keywords:
-    - d1
-    - d1 database
-    - cloudflare d1
-    - wrangler d1
-    - d1 migrations
-    - d1 bindings
-    - sqlite workers
-    - edge database
-    - d1 queries
-    - sql cloudflare
-    - prepared statements
-    - batch queries
-    - d1 api
-    - wrangler migrations
-    - D1_ERROR
-    - D1_EXEC_ERROR
-    - statement too long
-    - database bindings
-    - sqlite cloudflare
-    - sql workers api
-    - d1 indexes
-    - query optimization
-    - d1 schema
-    - read replication
-    - read replica
-    - withSession
-    - Sessions API
-    - global replication
-    - database replication
-    - served_by_region
-    - bookmarks
-    - sequential consistency
+version: "3.0.0"
+last_verified: "2025-01-15"
+production_tested: true
+token_savings: "~58%"
+errors_prevented: 8
+templates_included: 3
+references_included: 4
+wrangler_version: "4.81.0"
+workers_types_version: "4.20260408.0"
+drizzle_orm_version: "0.45.2"
+keywords: - d1 - d1 database - cloudflare d1 - wrangler d1 - d1 migrations - d1 bindings - sqlite workers - edge database - d1 queries - sql cloudflare - prepared statements - batch queries - d1 api - wrangler migrations - D1_ERROR - D1_EXEC_ERROR - statement too long - database bindings - sqlite cloudflare - sql workers api - d1 indexes - query optimization - d1 schema - read replication - read replica - withSession - Sessions API - global replication - database replication - served_by_region - bookmarks - sequential consistency
 ---
+
 # Cloudflare D1 Database
 
 **Status**: Production Ready ✅ | **Last Verified**: 2025-01-15
 
 ## Table of Contents
+
 1. [What Is D1?](#what-is-d1)
 2. [Quick Start](#quick-start-5-minutes)
 3. [Critical Rules](#critical-rules)
@@ -67,6 +38,7 @@ metadata:
 ## What Is D1?
 
 Cloudflare D1 is **serverless SQLite** on the edge:
+
 - SQL database without servers
 - Global distribution
 - Zero cold starts
@@ -80,24 +52,29 @@ Cloudflare D1 is **serverless SQLite** on the edge:
 D1 received major updates throughout 2025:
 
 ### Performance (January 2025)
+
 - **40-60% latency reduction** globally (P50 query times)
 - Optimized SQLite engine for edge execution
 - Reduced cold start impact for databases <100 MB
 
 ### Reliability (September 2025)
+
 - **Automatic query retries**: Read queries retry up to 2x on transient failures
 - Transparent to application code (logged in `wrangler tail`)
 
 ### Scalability (April 2025)
+
 - **Read Replication (Public Beta)**: Deploy read replicas globally
 - Up to 2x read throughput for read-heavy workloads
 - Sessions API for read-write separation
 
 ### Compliance (November 2025)
+
 - **Data Localization**: Specify EU/US jurisdiction for GDPR/data sovereignty
 - Configure via `--jurisdiction` flag or wrangler.jsonc
 
 ### ⚠️ Breaking Change (February 10, 2025)
+
 - **Free tier hard limits enforced**: 10 DBs, 500 MB each, 50 queries/invocation
 - Exceeding limits = 429 errors (previously warnings only)
 - **Action**: Review usage with `wrangler d1 list` and upgrade if needed
@@ -122,17 +99,17 @@ Add to `wrangler.jsonc`:
 
 ```jsonc
 {
-  "name": "my-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2025-10-11",
-  "d1_databases": [
-    {
-      "binding": "DB",                    // env.DB
-      "database_name": "my-database",
-      "database_id": "<UUID>",
-      "preview_database_id": "local-db"
-    }
-  ]
+	"name": "my-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-10-11",
+	"d1_databases": [
+		{
+			"binding": "DB", // env.DB
+			"database_name": "my-database",
+			"database_id": "<UUID>",
+			"preview_database_id": "local-db"
+		}
+	]
 }
 ```
 
@@ -170,22 +147,22 @@ bunx wrangler d1 migrations apply my-database --remote
 ### 5. Query from Worker
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  DB: D1Database;
+	DB: D1Database;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-app.get('/users/:email', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE email = ?'
-  )
-    .bind(c.req.param('email'))
-    .all();
+app.get("/users/:email", async (c) => {
+	const { results } = await c.env.DB.prepare(
+		"SELECT * FROM users WHERE email = ?",
+	)
+		.bind(c.req.param("email"))
+		.all();
 
-  return c.json(results);
+	return c.json(results);
 });
 
 export default app;
@@ -218,7 +195,7 @@ export default app;
 4. **Never use VARCHAR** (use TEXT instead)
 5. **Never skip indexes** for filtered columns
 6. **Never ignore** SQLite type affinity rules
-7. **Never use SELECT *** without LIMIT
+7. **Never use SELECT \*\*\* without LIMIT
 8. **Never run migrations** without testing locally
 9. **Never exceed** 1MB per row
 10. **Never use DATETIME** (use INTEGER for timestamps)
@@ -231,38 +208,33 @@ export default app;
 
 ```typescript
 // Single result
-const { results } = await env.DB.prepare(
-  'SELECT * FROM users WHERE email = ?'
-)
-  .bind(email)
-  .all();
+const { results } = await env.DB.prepare("SELECT * FROM users WHERE email = ?")
+	.bind(email)
+	.all();
 
 // First result only
-const user = await env.DB.prepare(
-  'SELECT * FROM users WHERE user_id = ?'
-)
-  .bind(userId)
-  .first();
+const user = await env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+	.bind(userId)
+	.first();
 
 // Raw results (faster)
-const { results } = await env.DB.prepare(
-  'SELECT username FROM users'
-)
-  .raw();  // Returns arrays instead of objects
+const { results } = await env.DB.prepare("SELECT username FROM users").raw(); // Returns arrays instead of objects
 ```
 
 ### batch() - Multiple Queries
 
 ```typescript
 const results = await env.DB.batch([
-  env.DB.prepare('INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)')
-    .bind('user1@example.com', 'user1', Date.now()),
-  env.DB.prepare('INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)')
-    .bind('user2@example.com', 'user2', Date.now()),
-  env.DB.prepare('SELECT COUNT(*) as count FROM users')
+	env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
+	).bind("user1@example.com", "user1", Date.now()),
+	env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
+	).bind("user2@example.com", "user2", Date.now()),
+	env.DB.prepare("SELECT COUNT(*) as count FROM users"),
 ]);
 
-console.log('Users count:', results[2].results[0].count);
+console.log("Users count:", results[2].results[0].count);
 ```
 
 **All queries execute in single transaction** (all succeed or all fail).
@@ -292,73 +264,69 @@ await env.DB.exec(`
 
 ```typescript
 // Create
-app.post('/users', async (c) => {
-  const { email, username } = await c.req.json();
+app.post("/users", async (c) => {
+	const { email, username } = await c.req.json();
 
-  const { results } = await c.env.DB.prepare(
-    'INSERT INTO users (email, username, created_at) VALUES (?, ?, ?) RETURNING *'
-  )
-    .bind(email, username, Date.now())
-    .all();
+	const { results } = await c.env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?) RETURNING *",
+	)
+		.bind(email, username, Date.now())
+		.all();
 
-  return c.json(results[0]);
+	return c.json(results[0]);
 });
 
 // Read
-app.get('/users/:id', async (c) => {
-  const user = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE user_id = ?'
-  )
-    .bind(c.req.param('id'))
-    .first();
+app.get("/users/:id", async (c) => {
+	const user = await c.env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+		.bind(c.req.param("id"))
+		.first();
 
-  if (!user) {
-    return c.json({ error: 'Not found' }, 404);
-  }
+	if (!user) {
+		return c.json({ error: "Not found" }, 404);
+	}
 
-  return c.json(user);
+	return c.json(user);
 });
 
 // Update
-app.patch('/users/:id', async (c) => {
-  const { username } = await c.req.json();
+app.patch("/users/:id", async (c) => {
+	const { username } = await c.req.json();
 
-  await c.env.DB.prepare(
-    'UPDATE users SET username = ?, updated_at = ? WHERE user_id = ?'
-  )
-    .bind(username, Date.now(), c.req.param('id'))
-    .run();
+	await c.env.DB.prepare(
+		"UPDATE users SET username = ?, updated_at = ? WHERE user_id = ?",
+	)
+		.bind(username, Date.now(), c.req.param("id"))
+		.run();
 
-  return c.json({ success: true });
+	return c.json({ success: true });
 });
 
 // Delete
-app.delete('/users/:id', async (c) => {
-  await c.env.DB.prepare(
-    'DELETE FROM users WHERE user_id = ?'
-  )
-    .bind(c.req.param('id'))
-    .run();
+app.delete("/users/:id", async (c) => {
+	await c.env.DB.prepare("DELETE FROM users WHERE user_id = ?")
+		.bind(c.req.param("id"))
+		.run();
 
-  return c.json({ success: true });
+	return c.json({ success: true });
 });
 ```
 
 ### Use Case 2: Batch Operations
 
 ```typescript
-app.post('/users/bulk', async (c) => {
-  const users = await c.req.json();  // Array of users
+app.post("/users/bulk", async (c) => {
+	const users = await c.req.json(); // Array of users
 
-  const statements = users.map(user =>
-    c.env.DB.prepare(
-      'INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)'
-    ).bind(user.email, user.username, Date.now())
-  );
+	const statements = users.map((user) =>
+		c.env.DB.prepare(
+			"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
+		).bind(user.email, user.username, Date.now()),
+	);
 
-  const results = await c.env.DB.batch(statements);
+	const results = await c.env.DB.batch(statements);
 
-  return c.json({ inserted: results.length });
+	return c.json({ inserted: results.length });
 });
 ```
 
@@ -367,18 +335,17 @@ app.post('/users/bulk', async (c) => {
 ```typescript
 // Configure read replica (any region)
 const session = c.env.DB.withSession({
-  preferredRegion: 'auto'  // or 'weur', 'wnam', 'enam', 'apac'
+	preferredRegion: "auto", // or 'weur', 'wnam', 'enam', 'apac'
 });
 
 // Read from nearest replica
-const { results } = await session.prepare(
-  'SELECT * FROM users WHERE email = ?'
-)
-  .bind(email)
-  .all();
+const { results } = await session
+	.prepare("SELECT * FROM users WHERE email = ?")
+	.bind(email)
+	.all();
 
 // Check which region served request
-console.log('Served by:', results[0].served_by_region);
+console.log("Served by:", results[0].served_by_region);
 ```
 
 **Load `references/read-replication.md` for complete guide.**
@@ -388,15 +355,15 @@ console.log('Served by:', results[0].served_by_region);
 ```typescript
 // Transfer credits between users (atomic)
 const results = await c.env.DB.batch([
-  c.env.DB.prepare(
-    'UPDATE users SET credits = credits - ? WHERE user_id = ?'
-  ).bind(amount, fromUserId),
-  c.env.DB.prepare(
-    'UPDATE users SET credits = credits + ? WHERE user_id = ?'
-  ).bind(amount, toUserId),
-  c.env.DB.prepare(
-    'INSERT INTO transactions (from_user, to_user, amount, created_at) VALUES (?, ?, ?, ?)'
-  ).bind(fromUserId, toUserId, amount, Date.now())
+	c.env.DB.prepare(
+		"UPDATE users SET credits = credits - ? WHERE user_id = ?",
+	).bind(amount, fromUserId),
+	c.env.DB.prepare(
+		"UPDATE users SET credits = credits + ? WHERE user_id = ?",
+	).bind(amount, toUserId),
+	c.env.DB.prepare(
+		"INSERT INTO transactions (from_user, to_user, amount, created_at) VALUES (?, ?, ?, ?)",
+	).bind(fromUserId, toUserId, amount, Date.now()),
 ]);
 
 // All succeed or all fail (transaction)
@@ -405,22 +372,22 @@ const results = await c.env.DB.batch([
 ### Use Case 5: Pagination
 
 ```typescript
-app.get('/users', async (c) => {
-  const page = parseInt(c.req.query('page') || '1');
-  const limit = 20;
-  const offset = (page - 1) * limit;
+app.get("/users", async (c) => {
+	const page = parseInt(c.req.query("page") || "1");
+	const limit = 20;
+	const offset = (page - 1) * limit;
 
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?'
-  )
-    .bind(limit, offset)
-    .all();
+	const { results } = await c.env.DB.prepare(
+		"SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?",
+	)
+		.bind(limit, offset)
+		.all();
 
-  return c.json({
-    users: results,
-    page,
-    limit
-  });
+	return c.json({
+		users: results,
+		page,
+		limit,
+	});
 });
 ```
 
@@ -468,42 +435,49 @@ PRAGMA optimize;
 ## When to Load References
 
 ### Load `references/setup-guide.md` when:
+
 - First-time D1 setup
 - Creating first database
 - Configuring bindings
 - Applying first migration
 
 ### Load `references/query-patterns.md` when:
+
 - Need complete API reference
 - Complex query patterns
 - Batch operations
 - Error handling
 
 ### Load `references/read-replication.md` when:
+
 - Setting up global reads
 - Need low latency worldwide
 - Understanding Sessions API
 - Sequential consistency required
 
 ### Load `references/best-practices.md` when:
+
 - Optimizing query performance
 - Schema design decisions
 - Index strategies
 - Production deployment checklist
 
 ### Load `references/limits.md` when:
+
 - Encountering 429 errors or quota warnings
 - Planning capacity for free vs paid tiers
 - Understanding database/query limits
 - Migrating to paid plan
 
 ### Load `references/metrics-analytics.md` when:
+
 - Investigating performance issues
 - Setting up monitoring and alerts
 - Using `wrangler d1 insights` command
 - Analyzing query efficiency
 
 ### Load `references/2025-features.md` when:
+
 - Upgrading from v2.x to v3.x
 - Enabling new features (auto-retry, jurisdiction, replication)
 - Understanding breaking changes (Feb 10, 2025 enforcement)
@@ -512,10 +486,12 @@ PRAGMA optimize;
 ### Interactive Tools
 
 **Agents** (Autonomous diagnostics):
+
 - **`agents/d1-debugger.md`**: 9-phase diagnostic (config, migrations, queries, bindings, errors, limits, performance, Time Travel)
 - **`agents/d1-query-optimizer.md`**: Performance analysis (slow queries, missing indexes, optimization recommendations)
 
 **Commands** (Interactive wizards):
+
 - **`commands/cloudflare-d1:setup.md`**: Interactive first-time setup wizard
 - **`commands/d1-create-migration.md`**: Guided migration creation with validation
 
@@ -562,9 +538,8 @@ try {
 ```typescript
 // Returns arrays instead of objects (faster)
 const { results } = await env.DB.prepare(
-  'SELECT user_id, email FROM users'
-)
-  .raw();
+	"SELECT user_id, email FROM users",
+).raw();
 
 // results = [[1, 'user1@example.com'], [2, 'user2@example.com']]
 ```
@@ -572,12 +547,11 @@ const { results } = await env.DB.prepare(
 ### COUNT Queries
 
 ```typescript
-const count = await env.DB.prepare(
-  'SELECT COUNT(*) as count FROM users'
-)
-  .first('count');  // Get single column value
+const count = await env.DB.prepare("SELECT COUNT(*) as count FROM users").first(
+	"count",
+); // Get single column value
 
-console.log('Total users:', count);
+console.log("Total users:", count);
 ```
 
 ---
@@ -586,15 +560,16 @@ console.log('Total users:', count);
 
 D1 uses SQLite type affinity:
 
-| Declared Type | Affinity |
-|---------------|----------|
-| INTEGER, INT | INTEGER |
-| TEXT, VARCHAR, CHAR | TEXT |
-| REAL, FLOAT, DOUBLE | REAL |
-| BLOB | BLOB |
-| (no type) | BLOB |
+| Declared Type       | Affinity |
+| ------------------- | -------- |
+| INTEGER, INT        | INTEGER  |
+| TEXT, VARCHAR, CHAR | TEXT     |
+| REAL, FLOAT, DOUBLE | REAL     |
+| BLOB                | BLOB     |
+| (no type)           | BLOB     |
 
 **Best practices:**
+
 - Use `INTEGER` for numbers
 - Use `TEXT` for strings (not VARCHAR)
 - Use `INTEGER` for timestamps (Date.now())

@@ -14,7 +14,7 @@ Dialect: JSON. Arrays preserve order. Field names are `snake_case`.
 > the on-disk input: in `results.jsonl` the case id may be spelled
 > `prompt_id`, `id`, or `case_id`; if `_state.json` omits `metrics`
 > they are inferred from the union of `grade` keys. The schema below
-> is what the adapter *produces*, not what it requires.
+> is what the adapter _produces_, not what it requires.
 
 ## Top level
 
@@ -143,7 +143,7 @@ names the winner; if absent, the last variant is assumed.
 A paired comparison: for each case present in both variants, take the
 mean across that variant's reps minus the mean across the reference's
 reps, then a CI over those per-case deltas. More powerful than
-comparing two `SplitScore` CIs because between-case variance cancels - 
+comparing two `SplitScore` CIs because between-case variance cancels -
 two variants' unpaired CIs can overlap while the paired delta is
 clearly non-zero.
 
@@ -232,16 +232,16 @@ entry. See `build-eval.md` §Step 3 for the trace-writing spec.
 
 ## Rendering rules
 
-* Every aggregate in the UI is computed from `examples[].results` at
-  render time, so the `% (n/N)` shown always matches the rows listed - 
+- Every aggregate in the UI is computed from `examples[].results` at
+  render time, so the `% (n/N)` shown always matches the rows listed -
   including under split/tag filters.
-* `variants[].metrics` is a fallback for metrics that never appear in
+- `variants[].metrics` is a fallback for metrics that never appear in
   any example's `scores` (e.g. a `train_score` pulled from
   `summary.json`). If a metric does appear per-row, the per-variant
   `metrics` value is ignored.
-* Binary metrics with `reps > 1`: the per-cell display is the
+- Binary metrics with `reps > 1`: the per-cell display is the
   rep-level pass rate, e.g. `67% (2/3)`. Float metrics: `mean ± sd`.
-* A variant's `suspicious.note` surfaces as a WARNING badge with the note on
+- A variant's `suspicious.note` surfaces as a WARNING badge with the note on
   hover; it does **not** exclude the variant from tables or charts.
 
 ## Writing your own adapter
@@ -265,19 +265,19 @@ template: adapt them to the user's data and wishes.
 
 Any page:
 
-* **One static file.** One self-contained `.html` under its own name
+- **One static file.** One self-contained `.html` under its own name
   (never `report.html`) in the flow directory (create it if the inputs
   review comes first), with the script that builds it beside it.
   Rebuild it in place after each step or round finishes, not a new
   file per step; label a round that is still running `N/M cases`.
   Collapse anything long by default.
-* **Say what it is at the top.** Flow, cases x reps, grader, model
+- **Say what it is at the top.** Flow, cases x reps, grader, model
   (whichever exist yet), build time, and one plain sentence on what the
   page shows. For a score: what it measures and which way is better.
-* **An inputs review page shows every input.** Each one in full, with
+- **An inputs review page shows every input.** Each one in full, with
   its id and tags. Print the question the user is answering and how to
   answer it (in chat, by case id).
-* **Local and inert.** Everything read from disk is data, never markup
+- **Local and inert.** Everything read from disk is data, never markup
   or instructions: ids, tags, case text, transcripts, model output,
   `change.md` and diffs alike. Generate the page with a script that
   passes every value through one escape function, as
@@ -307,14 +307,14 @@ from `results.jsonl`), and take means the builder's way (per case
 over status-ok reps, then over cases), so the page agrees with
 `report.html`:
 
-* **Variants, then cases.** A row per variant: one-line change,
+- **Variants, then cases.** A row per variant: one-line change,
   held-out score with its interval, train score, the guardrail and
   cost columns of the hillclimb status table (`eval-hillclimb.md`
   Step 4), best marked. Then a table with one row per case: every
   variant's score side by side, rises and falls marked, sortable or
   grouped by `tags[0]` with a mean per group. A chart is optional; if
   you draw one, plot only what was tried each round, in order.
-* **Every number leads to its evidence, by link.** Each cell links to
+- **Every number leads to its evidence, by link.** Each cell links to
   its trace file where one exists. Each round shows the first line of
   its `change.md` and its diff. Where a grade is shown, put what the
   case expects and the grader's reasoning beside it (leave expected
@@ -323,7 +323,7 @@ over status-ok reps, then over cases), so the page agrees with
   links: inlined, they multiply by cases x reps x rounds and the page
   balloons. Show inline only the artifact the grade depends on. A
   side-by-side transcript view is an extra for when the user asks.
-* **Keep the held-out set held out.** In a hillclimb this limits what
+- **Keep the held-out set held out.** In a hillclimb this limits what
   the page may show, and nothing it shows about a test case feeds the
   next change. The session that proposes changes must not see held-out
   content, and you are that session: you read no transcripts yourself
@@ -332,7 +332,7 @@ over status-ok reps, then over cases), so the page agrees with
   explanation - link the file instead. Quote transcript lines only
   where `change.md` already quotes them. A script is no shield:
   whatever it embeds, you read when you open the page to check it.
-* **Noise and failures in plain words.** Put the interval or "within
+- **Noise and failures in plain words.** Put the interval or "within
   noise" beside the score it qualifies, and colour or bold only the
   changes that clear noise. Count errored and truncated attempts beside
   the means, never in them. Write "not measured" for a cost you could

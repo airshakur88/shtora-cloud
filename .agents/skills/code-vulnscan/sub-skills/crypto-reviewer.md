@@ -32,6 +32,7 @@ from argon2 import PasswordHasher; ph = PasswordHasher(); ph.hash(password)
 ### Weak symmetric encryption
 
 Flag:
+
 - DES, 3DES (TDEA), RC4, RC2, Blowfish with small keys → broken/deprecated
 - AES in ECB mode → deterministic, pattern-leaking → high
 - AES in CBC mode without MAC authentication → malleable ciphertext → medium
@@ -57,6 +58,7 @@ ct = aesgcm.encrypt(nonce, data, aad)
 ### Weak asymmetric encryption / key exchange
 
 Flag:
+
 - RSA keys < 2048 bits → high
 - RSA with PKCS#1 v1.5 padding for encryption → PKCS#1 oracle attacks → high
 - DSA with key sizes < 2048 bits
@@ -70,6 +72,7 @@ Safe: RSA-2048+ with OAEP padding, ECDSA/ECDH with P-256/P-384/X25519, Ed25519.
 ### TLS/SSL configuration
 
 Flag:
+
 - SSL 2.0, SSL 3.0, TLS 1.0, TLS 1.1 enabled
 - Weak cipher suites: RC4, DES, EXPORT, NULL, ANON ciphers
 - `verify=False` or `ssl_verify=False` in HTTP client calls → critical (disables cert validation)
@@ -94,6 +97,7 @@ TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 ### Key generation
 
 Flag:
+
 - Cryptographic keys derived from low-entropy sources (timestamps, sequential numbers, user IDs)
 - Hardcoded keys in source code — use `sub-skills/secret-detector.md` for systematic detection
 - Keys stored in plaintext files committed to the repository
@@ -131,6 +135,7 @@ Any use of a non-cryptographically-secure PRNG for a security-sensitive purpose 
 Security-sensitive purposes: token generation, session IDs, CSRF tokens, OTP codes, password reset tokens, nonces, salts, key generation, challenge-response.
 
 **Flag in Python:**
+
 ```python
 import random
 random.random()           # not CSPRNG
@@ -145,13 +150,14 @@ secrets.randbelow(1000000)
 ```
 
 **Flag in JavaScript:**
+
 ```javascript
-Math.random()             // not CSPRNG
-Math.floor(Math.random() * 1000000)  // predictable OTP
+Math.random(); // not CSPRNG
+Math.floor(Math.random() * 1000000); // predictable OTP
 
 // Safe (Node.js)
-const crypto = require('crypto');
-crypto.randomBytes(32).toString('hex');
+const crypto = require("crypto");
+crypto.randomBytes(32).toString("hex");
 crypto.randomInt(0, 1000000);
 
 // Safe (browser)
@@ -159,6 +165,7 @@ window.crypto.getRandomValues(new Uint8Array(32));
 ```
 
 **Flag in Java:**
+
 ```java
 new Random().nextInt()    // not CSPRNG
 // Safe:
@@ -168,6 +175,7 @@ sr.nextBytes(bytes);
 ```
 
 **Flag in PHP:**
+
 ```php
 rand()                    // not CSPRNG
 mt_rand()                 // not CSPRNG
@@ -181,6 +189,7 @@ random_int(0, 999999)
 ### HMAC and MAC
 
 - Using `==` to compare MACs → timing oracle → medium
+
   ```python
   # Flag
   if computed_mac == provided_mac:  # timing side channel
@@ -206,15 +215,15 @@ random_int(0, 999999)
 
 ```json
 {
-  "file": "app/utils/auth.py",
-  "line": 27,
-  "category": "weak_random",
-  "title": "Insecure PRNG used for password reset token generation",
-  "description": "random.choice() is used to generate a 6-character password reset token. This PRNG is not cryptographically secure and produces predictable output.",
-  "evidence": "token = ''.join(random.choice(string.ascii_letters) for _ in range(6))",
-  "impact": "An attacker can predict password reset tokens and take over accounts.",
-  "remediation": "Use secrets.token_urlsafe(32) to generate a 256-bit cryptographically secure token.",
-  "cwe": "CWE-338",
-  "severity": "high"
+	"file": "app/utils/auth.py",
+	"line": 27,
+	"category": "weak_random",
+	"title": "Insecure PRNG used for password reset token generation",
+	"description": "random.choice() is used to generate a 6-character password reset token. This PRNG is not cryptographically secure and produces predictable output.",
+	"evidence": "token = ''.join(random.choice(string.ascii_letters) for _ in range(6))",
+	"impact": "An attacker can predict password reset tokens and take over accounts.",
+	"remediation": "Use secrets.token_urlsafe(32) to generate a 256-bit cryptographically secure token.",
+	"cwe": "CWE-338",
+	"severity": "high"
 }
 ```

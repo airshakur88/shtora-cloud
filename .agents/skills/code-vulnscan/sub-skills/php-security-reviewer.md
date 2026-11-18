@@ -10,14 +10,14 @@ Find exploitable PHP web-application vulnerabilities that generic sink matching 
 
 Inventory the effective framework and deployment configuration before validating findings.
 
-| Stack | Entry-point and security signals |
-|---|---|
-| Laravel | `routes/*.php`, controllers, invokable actions, route groups, middleware, policies/gates, Form Requests, Eloquent models, jobs/listeners, Blade, Livewire, Sanctum/Passport |
-| Symfony | route attributes/YAML/XML, controllers, firewalls, `access_control`, voters, authenticators, forms, serializers, Doctrine, Messenger handlers, Twig |
-| WordPress | REST routes, AJAX hooks, admin actions, shortcodes, blocks, upload/import handlers, cron, WP-CLI, capabilities, nonces, multisite blog switching, `$wpdb` |
-| Drupal | `*.routing.yml`, controllers/forms, route access requirements and custom access checkers, entity access handlers, REST/JSON:API, event subscribers, plug-ins, render arrays/Twig, QueueWorker/cron/Drush, `services.yml` |
-| Yii | URL rules, controllers and standalone/inline actions, REST `ActiveController`, behaviors/filters, RBAC, models/forms/scenarios, Active Record/query builder, views, console controllers and queue jobs, application config |
-| Custom PHP | front controllers, rewrite rules, session/bootstrap code, superglobals, includes, template engines, database wrappers, stream wrappers, CLI/cron consumers |
+| Stack      | Entry-point and security signals                                                                                                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laravel    | `routes/*.php`, controllers, invokable actions, route groups, middleware, policies/gates, Form Requests, Eloquent models, jobs/listeners, Blade, Livewire, Sanctum/Passport                                                |
+| Symfony    | route attributes/YAML/XML, controllers, firewalls, `access_control`, voters, authenticators, forms, serializers, Doctrine, Messenger handlers, Twig                                                                        |
+| WordPress  | REST routes, AJAX hooks, admin actions, shortcodes, blocks, upload/import handlers, cron, WP-CLI, capabilities, nonces, multisite blog switching, `$wpdb`                                                                  |
+| Drupal     | `*.routing.yml`, controllers/forms, route access requirements and custom access checkers, entity access handlers, REST/JSON:API, event subscribers, plug-ins, render arrays/Twig, QueueWorker/cron/Drush, `services.yml`   |
+| Yii        | URL rules, controllers and standalone/inline actions, REST `ActiveController`, behaviors/filters, RBAC, models/forms/scenarios, Active Record/query builder, views, console controllers and queue jobs, application config |
+| Custom PHP | front controllers, rewrite rules, session/bootstrap code, superglobals, includes, template engines, database wrappers, stream wrappers, CLI/cron consumers                                                                 |
 
 Also inspect `composer.json`/lock, framework configuration, environment examples, web-server/FPM configuration, writable and public directories, storage adapters, queue configuration, templates, plug-ins/themes, and production debug/error settings.
 

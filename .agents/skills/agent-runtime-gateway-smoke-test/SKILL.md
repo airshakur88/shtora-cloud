@@ -1,8 +1,9 @@
 ---
+
 name: agent-runtime-gateway-smoke-test
 description: Verify a local agent API, temporary gateway tunnel, and remote sandbox callback with a tool-free task, then restore the original app connection.
 metadata:
-  origin: ECC
+origin: ECC
 ---
 
 # Agent Runtime Gateway Smoke Test
@@ -55,13 +56,13 @@ Run a separate test only after the tool-free task passes. Use an explicit test c
 
 ## Failure Handling
 
-| Observation | Next check |
-| --- | --- |
-| Web page loads but API requests fail | Compare the configured API target with the listening process and restore the original route. |
-| Gateway probe gets a connection error or `404` | Check tunnel lifetime, route path, and local API health before dispatching a task. |
-| Gateway probe gets `401` or `403`, but no local log entry | The response may come from the tunnel edge; verify the callback path. |
-| Task stays queued or running | Check whether another dispatcher claimed it and whether the sandbox reached the local gateway. |
-| Task finishes with the wrong answer | Capture the task status and redacted error; do not call the smoke test successful. |
+| Observation                                               | Next check                                                                                     |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Web page loads but API requests fail                      | Compare the configured API target with the listening process and restore the original route.   |
+| Gateway probe gets a connection error or `404`            | Check tunnel lifetime, route path, and local API health before dispatching a task.             |
+| Gateway probe gets `401` or `403`, but no local log entry | The response may come from the tunnel edge; verify the callback path.                          |
+| Task stays queued or running                              | Check whether another dispatcher claimed it and whether the sandbox reached the local gateway. |
+| Task finishes with the wrong answer                       | Capture the task status and redacted error; do not call the smoke test successful.             |
 
 ## Output Contract
 

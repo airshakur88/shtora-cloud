@@ -31,13 +31,13 @@ AI agents now browse, compare and buy on behalf of shoppers: AI search (ChatGPT 
 
 Work in this order. Category weight reflects how much each area matters for agent-readiness; within a category, **H** items matter most.
 
-| Category | Weight | Items (H = high, M = medium, L = low) |
-| --- | --- | --- |
-| **Access** | 25% | H: agent UAs not blocked · H: robots.txt allows AI search + user agents · H: no CAPTCHA on home/PDP/cart · M: no age/consent/geo gate hiding content |
-| **Product data** | 25% | H: name/price/availability in server HTML · H: complete Product JSON-LD matching visible price · M: variants as `ProductGroup` · M: return + shipping structured data · L: OpenGraph product tags |
-| **Operability** | 20% | H: add-to-cart is a named `<button>` in a `<form>` · H: variant selectors are real controls · H: accessible names/labels · H: GET search URL · M: policy pages linked sitewide · L: landmarks, one `h1`, `lang`, alt |
-| **Discovery** | 15% | H: sitemap in robots.txt with live product URLs · M: canonical + real 404s · M: fast TTFB, light HTML · L: Markdown alternative · L: `/llms.txt` |
-| **Agentic commerce** | 15% | H: UCP profile · H: live agent endpoint · M: cart/checkout permalinks · M: OAuth discovery · L (bonus): WebMCP, A2A card, ai-catalog, api-catalog, `rel="ucp"` |
+| Category             | Weight | Items (H = high, M = medium, L = low)                                                                                                                                                                                |
+| -------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Access**           | 25%    | H: agent UAs not blocked · H: robots.txt allows AI search + user agents · H: no CAPTCHA on home/PDP/cart · M: no age/consent/geo gate hiding content                                                                 |
+| **Product data**     | 25%    | H: name/price/availability in server HTML · H: complete Product JSON-LD matching visible price · M: variants as `ProductGroup` · M: return + shipping structured data · L: OpenGraph product tags                    |
+| **Operability**      | 20%    | H: add-to-cart is a named `<button>` in a `<form>` · H: variant selectors are real controls · H: accessible names/labels · H: GET search URL · M: policy pages linked sitewide · L: landmarks, one `h1`, `lang`, alt |
+| **Discovery**        | 15%    | H: sitemap in robots.txt with live product URLs · M: canonical + real 404s · M: fast TTFB, light HTML · L: Markdown alternative · L: `/llms.txt`                                                                     |
+| **Agentic commerce** | 15%    | H: UCP profile · H: live agent endpoint · M: cart/checkout permalinks · M: OAuth discovery · L (bonus): WebMCP, A2A card, ai-catalog, api-catalog, `rel="ucp"`                                                       |
 
 **Default scope:** Access, Product data, Operability and Discovery are standard storefront work. Implement them by default. **Agentic commerce requires backend/API work and is user-dependent - ask before implementing.**
 
@@ -62,18 +62,22 @@ Work in this order. Category weight reflects how much each area matters for agen
 
 ```ts
 // Next.js App Router: app/robots.ts
-import type { MetadataRoute } from "next"
+import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_BASE_URL
-  return {
-    rules: [
-      { userAgent: "*", allow: "/", disallow: ["/cart", "/checkout", "/account"] },
-      // Optional: opt out of AI training only
-      { userAgent: ["GPTBot", "ClaudeBot", "Google-Extended"], disallow: "/" },
-    ],
-    sitemap: `${base}/sitemap.xml`,
-  }
+	const base = process.env.NEXT_PUBLIC_BASE_URL;
+	return {
+		rules: [
+			{
+				userAgent: "*",
+				allow: "/",
+				disallow: ["/cart", "/checkout", "/account"],
+			},
+			// Optional: opt out of AI training only
+			{ userAgent: ["GPTBot", "ClaudeBot", "Google-Extended"], disallow: "/" },
+		],
+		sitemap: `${base}/sitemap.xml`,
+	};
 }
 ```
 
@@ -111,33 +115,33 @@ For products with options (size, color), use a `ProductGroup` instead of a singl
 
 ```json
 {
-  "@context": "https://schema.org",
-  "@type": "ProductGroup",
-  "name": "Classic Tee",
-  "description": "Heavyweight cotton t-shirt",
-  "image": "https://example.com/tee.jpg",
-  "brand": { "@type": "Brand", "name": "Acme" },
-  "productGroupID": "prod_123",
-  "variesBy": ["https://schema.org/size", "https://schema.org/color"],
-  "hasVariant": [
-    {
-      "@type": "Product",
-      "name": "Classic Tee - M / Navy",
-      "sku": "TEE-M-NAVY",
-      "size": "M",
-      "color": "Navy",
-      "image": "https://example.com/tee-navy.jpg",
-      "offers": {
-        "@type": "Offer",
-        "url": "https://example.com/products/classic-tee?variant=variant_456",
-        "sku": "TEE-M-NAVY",
-        "price": "29.00",
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock",
-        "itemCondition": "https://schema.org/NewCondition"
-      }
-    }
-  ]
+	"@context": "https://schema.org",
+	"@type": "ProductGroup",
+	"name": "Classic Tee",
+	"description": "Heavyweight cotton t-shirt",
+	"image": "https://example.com/tee.jpg",
+	"brand": { "@type": "Brand", "name": "Acme" },
+	"productGroupID": "prod_123",
+	"variesBy": ["https://schema.org/size", "https://schema.org/color"],
+	"hasVariant": [
+		{
+			"@type": "Product",
+			"name": "Classic Tee - M / Navy",
+			"sku": "TEE-M-NAVY",
+			"size": "M",
+			"color": "Navy",
+			"image": "https://example.com/tee-navy.jpg",
+			"offers": {
+				"@type": "Offer",
+				"url": "https://example.com/products/classic-tee?variant=variant_456",
+				"sku": "TEE-M-NAVY",
+				"price": "29.00",
+				"priceCurrency": "USD",
+				"availability": "https://schema.org/InStock",
+				"itemCondition": "https://schema.org/NewCondition"
+			}
+		}
+	]
 }
 ```
 
@@ -166,13 +170,13 @@ In the product page `<head>`: `og:title`, `og:description`, `og:image` (absolute
 ```tsx
 // Form posts to a real route; JS can intercept onSubmit for the cart popup
 <form method="post" action="/cart/add" onSubmit={handleAddToCart}>
-  <input type="hidden" name="variant_id" value={selectedVariant.id} />
-  <input type="hidden" name="quantity" value="1" />
-  {/* variant selectors go inside this form */}
-  <button type="submit" disabled={!inStock}>
-    {inStock ? "Add to cart" : "Sold out"}
-  </button>
-</form>
+	<input type="hidden" name="variant_id" value={selectedVariant.id} />
+	<input type="hidden" name="quantity" value="1" />
+	{/* variant selectors go inside this form */}
+	<button type="submit" disabled={!inStock}>
+		{inStock ? "Add to cart" : "Sold out"}
+	</button>
+</form>;
 ```
 
 - The `/cart/add` route (e.g. a Next.js route handler, SvelteKit form action, Remix action) adds the line item server-side and **303-redirects back** to the product or cart page.
@@ -201,14 +205,17 @@ Target: **≥95%** of buttons/links named and all form fields labelled.
 
 ```json
 {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "url": "https://example.com",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": { "@type": "EntryPoint", "urlTemplate": "https://example.com/search?q={search_term_string}" },
-    "query-input": "required name=search_term_string"
-  }
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	"url": "https://example.com",
+	"potentialAction": {
+		"@type": "SearchAction",
+		"target": {
+			"@type": "EntryPoint",
+			"urlTemplate": "https://example.com/search?q={search_term_string}"
+		},
+		"query-input": "required name=search_term_string"
+	}
 }
 ```
 
@@ -260,16 +267,19 @@ Serve `/llms.txt` (optionally mirrored at `/agents.md`) as `text/markdown` or `t
 > Sustainable basics. Ships to US, CA and EU. Prices in USD/EUR.
 
 ## Shop
+
 - [All products](https://example.com/store)
 - [T-shirts](https://example.com/categories/t-shirts)
 - Search: https://example.com/search?q={query}
 
 ## Policies
+
 - [Shipping](https://example.com/shipping)
 - [Returns](https://example.com/returns)
 - [Contact](https://example.com/contact)
 
 ## For agents
+
 - [Sitemap](https://example.com/sitemap.xml)
 ```
 

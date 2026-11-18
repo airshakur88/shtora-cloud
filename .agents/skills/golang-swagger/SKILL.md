@@ -1,27 +1,27 @@
 ---
+
 name: golang-swagger
 description: "Golang OpenAPI/Swagger documentation with swaggo/swag — annotation comments (@Summary, @Param, @Success, @Router, @Security), swag init code generation, framework integrations (gin, echo, fiber, chi, net/http), security definitions (Bearer/JWT, OAuth2, API key), and struct tags (swaggertype, enums, example, swaggerignore). Apply when adding or maintaining Swagger/OpenAPI docs in a Go project, or when the codebase imports github.com/swaggo/swag, github.com/swaggo/gin-swagger, github.com/swaggo/echo-swagger, github.com/swaggo/http-swagger, or github.com/swaggo/files."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness. Requires go and swag CLI.
 metadata:
-  author: samber
-  version: "1.1.2"
-  openclaw:
-    emoji: "📋"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-        - swag
-    install:
-      - kind: go
-        package: github.com/swaggo/swag/cmd/swag@latest
-        bins: [swag]
-    skill-library-version: "2.0.0-rc5"
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch mcp__context7__resolve-library-id mcp__context7__query-docs Bash(swag:*) AskUserQuestion Bash(godig:*) Bash(gopls:*) LSP mcp__gopls__*
+author: samber
+version: "1.1.2"
+openclaw:
+emoji: "📋"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go - swag
+install: - kind: go
+package: github.com/swaggo/swag/cmd/swag@latest
+bins: [swag]
+skill-library-version: "2.0.0-rc5"
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:*) Agent WebFetch mcp__context7__resolve-library-id mcp__context7__query-docs Bash(swag:*) AskUserQuestion Bash(godig:_) Bash(gopls:_) LSP mcp__gopls__*
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a Go API documentation engineer. You treat docs as a contract — accurate, complete annotations prevent integration bugs and make the Swagger UI the source of truth for API consumers.
@@ -200,25 +200,25 @@ type CreateUserRequest struct {
 }
 ```
 
-| Tag | Purpose |
-| --- | --- |
-| `example` | Example value shown in Swagger UI |
-| `enums` | Comma-separated allowed values |
-| `swaggertype` | Override detected type (e.g., `"primitive,integer"` for `time.Time`) |
-| `swaggerignore:"true"` | Exclude field from the generated schema |
-| `extensions` | Add OpenAPI extensions: `extensions:"x-nullable,x-deprecated=true"` |
+| Tag                    | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `example`              | Example value shown in Swagger UI                                    |
+| `enums`                | Comma-separated allowed values                                       |
+| `swaggertype`          | Override detected type (e.g., `"primitive,integer"` for `time.Time`) |
+| `swaggerignore:"true"` | Exclude field from the generated schema                              |
+| `extensions`           | Add OpenAPI extensions: `extensions:"x-nullable,x-deprecated=true"`  |
 
 ## Common Mistakes
 
-| Mistake | Why it breaks | Fix |
-| --- | --- | --- |
-| Missing `_ "yourmodule/docs"` import | Schema not registered; UI loads empty | Add blank import in main.go or server init |
-| Stale `docs/` after code changes | Docs diverge from implementation; consumers get wrong schema | Re-run `swag init` after every annotation change |
-| `@Param body` with primitive type | swag cannot derive schema from `string`; generation fails | Always use a named struct for body params |
-| No `@Security` on protected routes | Swagger UI shows no lock icon; testers send unauthenticated requests | Apply `@Security` to every authenticated endpoint |
-| General info annotations in the wrong file | swag silently skips them; spec has no title/host | Use `-g <file>` flag or move annotations to `main.go` |
-| Using `{object}` with a map type | swag cannot generate a schema for `map[string]any` without help | Use a named struct or annotate with `swaggertype` |
-| Multi-word `@Tags` without quotes | Tags split on spaces, producing malformed grouping | Quote tags with spaces: `@Tags "user accounts"` |
+| Mistake                                    | Why it breaks                                                        | Fix                                                   |
+| ------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------- |
+| Missing `_ "yourmodule/docs"` import       | Schema not registered; UI loads empty                                | Add blank import in main.go or server init            |
+| Stale `docs/` after code changes           | Docs diverge from implementation; consumers get wrong schema         | Re-run `swag init` after every annotation change      |
+| `@Param body` with primitive type          | swag cannot derive schema from `string`; generation fails            | Always use a named struct for body params             |
+| No `@Security` on protected routes         | Swagger UI shows no lock icon; testers send unauthenticated requests | Apply `@Security` to every authenticated endpoint     |
+| General info annotations in the wrong file | swag silently skips them; spec has no title/host                     | Use `-g <file>` flag or move annotations to `main.go` |
+| Using `{object}` with a map type           | swag cannot generate a schema for `map[string]any` without help      | Use a named struct or annotate with `swaggertype`     |
+| Multi-word `@Tags` without quotes          | Tags split on spaces, producing malformed grouping                   | Quote tags with spaces: `@Tags "user accounts"`       |
 
 ## Cross-References
 

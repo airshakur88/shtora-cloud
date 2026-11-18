@@ -171,6 +171,7 @@ docstring-code-line-length = "dynamic"
 ### Why these rules and not ALL?
 
 Using `select = ["ALL"]` is tempting but counterproductive:
+
 - New rules get enabled silently on every Ruff upgrade, breaking CI
 - Many rules contradict each other (D203 vs D211, D212 vs D213)
 - Some rules are domain-specific and add noise in the wrong context
@@ -179,27 +180,27 @@ Instead, we explicitly select rules that have proven value across many projects.
 
 ### Categories we deliberately excluded
 
-| Code | Name | Why excluded |
-|------|------|-------------|
-| `FBT` | flake8-boolean-trap | Too opinionated — booleans as function params are fine in many cases |
-| `EM` | flake8-errmsg | Forces intermediate variables for exception messages — low value, high noise |
-| `TRY` | tryceratops | Many rules too strict for practical code |
-| `FIX` | flake8-fixme | Flags TODO/FIXME — these are useful development markers |
-| `TD` | flake8-todos | Too prescriptive about TODO format |
-| `INP` | flake8-no-pep420 | Implicit namespace packages — valid in many project structures |
-| `COM` | flake8-commas | Trailing comma enforcement — formatter handles this |
-| `Q` | flake8-quotes | Quote enforcement — formatter handles this |
+| Code  | Name                | Why excluded                                                                 |
+| ----- | ------------------- | ---------------------------------------------------------------------------- |
+| `FBT` | flake8-boolean-trap | Too opinionated — booleans as function params are fine in many cases         |
+| `EM`  | flake8-errmsg       | Forces intermediate variables for exception messages — low value, high noise |
+| `TRY` | tryceratops         | Many rules too strict for practical code                                     |
+| `FIX` | flake8-fixme        | Flags TODO/FIXME — these are useful development markers                      |
+| `TD`  | flake8-todos        | Too prescriptive about TODO format                                           |
+| `INP` | flake8-no-pep420    | Implicit namespace packages — valid in many project structures               |
+| `COM` | flake8-commas       | Trailing comma enforcement — formatter handles this                          |
+| `Q`   | flake8-quotes       | Quote enforcement — formatter handles this                                   |
 
 ## Adapting to Python Version
 
 Change `target-version` to match your project's `requires-python`:
 
 | Project supports | target-version |
-|-----------------|----------------|
-| Python 3.10+ | `"py310"` |
-| Python 3.11+ | `"py311"` |
-| Python 3.12+ | `"py312"` |
-| Python 3.13+ | `"py313"` |
+| ---------------- | -------------- |
+| Python 3.10+     | `"py310"`      |
+| Python 3.11+     | `"py311"`      |
+| Python 3.12+     | `"py312"`      |
+| Python 3.13+     | `"py313"`      |
 
 This affects `UP` (pyupgrade) rules — Ruff will only suggest syntax available in your minimum supported version.
 
@@ -208,6 +209,7 @@ This affects `UP` (pyupgrade) rules — Ruff will only suggest syntax available 
 ### Django
 
 Add to `[tool.ruff.lint]`:
+
 ```toml
 extend-ignore = [
     "RUF012",  # Mutable class variables — Django model fields are class-level
@@ -215,6 +217,7 @@ extend-ignore = [
 ```
 
 Add to `[tool.ruff.lint.per-file-ignores]`:
+
 ```toml
 "**/management/commands/**/*.py" = ["T20"]  # Management commands can print
 ```
@@ -226,6 +229,7 @@ The default config already handles FastAPI's `Depends()` pattern via `extend-imm
 ### CLI applications (Click, Typer)
 
 Add to `[tool.ruff.lint.per-file-ignores]`:
+
 ```toml
 "**/cli.py" = ["T20", "B008"]  # print is OK, function calls in defaults (Click/Typer)
 "**/commands/**/*.py" = ["T20", "B008"]

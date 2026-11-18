@@ -1,4 +1,5 @@
 ---
+
 title: Accept `-` as Filename for stdin and stdout
 impact: HIGH
 impactDescription: prevents pipeline composition workarounds and temp files
@@ -49,6 +50,7 @@ def import_cmd(input_file):
 ```
 
 **Benefits:**
+
 - `click.File('r')` handles both paths and `-` automatically
 - Pipeline composition without temp files or cleanup
 - Consistent with `cat`, `jq`, `tar`, `curl`, and every other UNIX tool

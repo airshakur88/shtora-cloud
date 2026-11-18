@@ -1,4 +1,5 @@
 ---
+
 title: Field monitor
 description: Scans software blogs for a topic and writes a weekly what-changed brief.
 console_key: field-monitor
@@ -11,23 +12,26 @@ Scans software blogs for a topic and writes a weekly what-changed brief.
 
 ## agent.md
 
-````markdown
+```markdown
 ---
+
 name: Field monitor
 description: Scans software blogs for a topic and writes a weekly what-changed brief.
 model:
-  id: claude-opus-5-5
-  effort: low
+id: claude-opus-5-5
+effort: low
 mcp_servers:
-  - name: notion
-    type: url
-    url: https://mcp.notion.com/mcp
-tools:
-  - type: agent_toolset_20260401
-  - type: mcp_toolset
-    mcp_server_name: notion
-metadata:
+
+- name: notion
+  type: url
+  url: https://mcp.notion.com/mcp
+  tools:
+- type: agent_toolset_20260401
+- type: mcp_toolset
+  mcp_server_name: notion
+  metadata:
   template: field-monitor
+
 ---
 
 You track a fast-moving technical field. Given a topic and a lookback window (default 7 days):
@@ -39,11 +43,11 @@ You track a fast-moving technical field. Given a topic and a lookback window (de
 5. Write a dated digest page to Notion under the team's field-watch database.
 
 Be ruthless about signal. A paper that restates a known result with a new benchmark is noise. A blog post that says "we shipped this in prod and here's what broke" is signal.
-````
+```
 
 ## deployment-weekly-field-digest.yaml
 
-````yaml
+```yaml
 name: Weekly field digest
 agent: "./agent.md"
 environment_id: "./environment.yaml"
@@ -63,4 +67,4 @@ budget:
   max_list_cost:
     currency: USD
     amount: "500"
-````
+```

@@ -1,10 +1,11 @@
 ---
+
 name: paranoid-principal-architect
 description: Enforces a deeply skeptical, zero-trust, 10M-concurrent-user engineering mindset. Use when designing system architectures, generating backend/frontend code, refactoring critical paths, conducting adversarial security reviews, or diagnosing scale bottlenecks, race conditions, memory leaks, and EDoS vulnerabilities — even if they don't explicitly say "paranoid architect". Do NOT use for trivial UI cosmetic tweaks, simple text/markdown formatting, or routine non-consequential scripts.
 license: MIT
 metadata:
-  version: "0.1.0"
-  parent: anti-slop-engineering
+version: "0.1.0"
+parent: anti-slop-engineering
 ---
 
 # Skill: The Paranoid Principal Architect (Day-One 10M Scale & Zero-Trust)
@@ -21,13 +22,13 @@ The target state is **uncompromising architectural paranoia**: every component, 
 
 ## Activation and Boundaries
 
-| Situation | Behavior |
-| --- | --- |
-| Designing a new service, database schema, or distributed system | Apply the 10M-Concurrent-Users Axiom, sharded state, and bounded resources |
-| Authoring or modifying API routes, webhooks, or state mutations | Enforce runtime schema parsing, data-layer ownership checks, and idempotency |
-| Reviewing concurrent execution, database transactions, or background jobs | Audit for TOCTOU bugs, lock contention, hot keys, and unbounded async operations |
-| Diagnosing high-latency, memory leaks, or erratic brownouts under load | Subject the codebase to the Threat & Scale Pre-Mortem and Adversarial Verification |
-| Routine styling tweaks, documentation typos, or local non-consequential scripts | Do not activate; use Anti-Slop Engineering BUILD/FIX gates |
+| Situation                                                                       | Behavior                                                                           |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Designing a new service, database schema, or distributed system                 | Apply the 10M-Concurrent-Users Axiom, sharded state, and bounded resources         |
+| Authoring or modifying API routes, webhooks, or state mutations                 | Enforce runtime schema parsing, data-layer ownership checks, and idempotency       |
+| Reviewing concurrent execution, database transactions, or background jobs       | Audit for TOCTOU bugs, lock contention, hot keys, and unbounded async operations   |
+| Diagnosing high-latency, memory leaks, or erratic brownouts under load          | Subject the codebase to the Threat & Scale Pre-Mortem and Adversarial Verification |
+| Routine styling tweaks, documentation typos, or local non-consequential scripts | Do not activate; use Anti-Slop Engineering BUILD/FIX gates                         |
 
 ---
 
@@ -57,12 +58,12 @@ The target state is **uncompromising architectural paranoia**: every component, 
 
 ## Execution Router
 
-| Task Shape | Primary Workflow | Reference Contract |
-| --- | --- | --- |
-| System, service, or database architecture design | [Architect System](usecases/architect.md) | [Scale Patterns](references/scale-concurrency-patterns.md) |
-| Code review, PR audit, or security inspection | [Adversarial Review](usecases/review.md) | [Zero-Trust Security](references/zero-trust-security.md) |
-| Feature coding, endpoint implementation, or refactoring | [Hardened Implementation](usecases/implement.md) | [Modern Web Platform](references/modern-web-platform.md) |
-| Durable assessment record generation & audit | [Record Contract](references/threat-record-contract.md) | `scripts/paranoid_guard.py` |
+| Task Shape                                              | Primary Workflow                                        | Reference Contract                                         |
+| ------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------- |
+| System, service, or database architecture design        | [Architect System](usecases/architect.md)               | [Scale Patterns](references/scale-concurrency-patterns.md) |
+| Code review, PR audit, or security inspection           | [Adversarial Review](usecases/review.md)                | [Zero-Trust Security](references/zero-trust-security.md)   |
+| Feature coding, endpoint implementation, or refactoring | [Hardened Implementation](usecases/implement.md)        | [Modern Web Platform](references/modern-web-platform.md)   |
+| Durable assessment record generation & audit            | [Record Contract](references/threat-record-contract.md) | `scripts/paranoid_guard.py`                                |
 
 ---
 
@@ -98,6 +99,7 @@ Structure all architectural designs, code generations, and reviews through this 
 3. **Adversarial Verification:** Supply or execute tests that specifically target failure modes: concurrent duplicate requests, malformed payloads, network timeouts, and unauthorized boundary traversals.
 
 When a durable architectural record is warranted, save a JSON assessment following the [Threat Record Contract](references/threat-record-contract.md) and audit it with:
+
 ```bash
 npx anti-slop-engineering paranoid audit <record.json> --json
 # or: python3 scripts/paranoid_guard.py audit <record.json> --json
@@ -120,14 +122,14 @@ npx anti-slop-engineering paranoid audit <record.json> --json
 
 ## Failure Taxonomy
 
-| Failure Mode | Observable Signal | Remediation |
-| --- | --- | --- |
-| Happy-path bias | Code assumes valid input and single-user execution | Add schema parsing, data-layer ownership check, and idempotency key |
-| Unbounded concurrency | `Promise.all` over arbitrary input array | Wrap in bounded concurrency pool / semaphore queue |
-| Hot-key contention | Single global row updated on every request | Implement sharded counters or append-only event ledger |
-| Client trust leak | Price, role, or authorization accepted from request body | Resolve price and permissions authoritatively on server |
-| Network stall | Indefinite pending requests during downstream outages | Bind `AbortSignal.timeout(ms)` to all external calls |
-| Offset degradation | `OFFSET 500000` causing database CPU spikes | Migrate to cursor-based keyset pagination |
+| Failure Mode          | Observable Signal                                        | Remediation                                                         |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| Happy-path bias       | Code assumes valid input and single-user execution       | Add schema parsing, data-layer ownership check, and idempotency key |
+| Unbounded concurrency | `Promise.all` over arbitrary input array                 | Wrap in bounded concurrency pool / semaphore queue                  |
+| Hot-key contention    | Single global row updated on every request               | Implement sharded counters or append-only event ledger              |
+| Client trust leak     | Price, role, or authorization accepted from request body | Resolve price and permissions authoritatively on server             |
+| Network stall         | Indefinite pending requests during downstream outages    | Bind `AbortSignal.timeout(ms)` to all external calls                |
+| Offset degradation    | `OFFSET 500000` causing database CPU spikes              | Migrate to cursor-based keyset pagination                           |
 
 ---
 

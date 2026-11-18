@@ -736,27 +736,27 @@ class ActionMyRepair extends ActionContinuousBase
 
 ### Action Class Hierarchy
 
-| Class | Use Case | Has Progress Bar |
-|-------|----------|-----------------|
-| `ActionSingleUseBase` | Instant actions (eat apple, check pulse) | No |
-| `ActionContinuousBase` | Timed actions (bandage, repair, craft) | Yes |
-| `ActionInteractBase` | World object interactions (open door, flip switch) | No |
+| Class                  | Use Case                                           | Has Progress Bar |
+| ---------------------- | -------------------------------------------------- | ---------------- |
+| `ActionSingleUseBase`  | Instant actions (eat apple, check pulse)           | No               |
+| `ActionContinuousBase` | Timed actions (bandage, repair, craft)             | Yes              |
+| `ActionInteractBase`   | World object interactions (open door, flip switch) | No               |
 
 ### Common Condition Components
 
-| Item Condition (CCI*) | Checks |
-|----------------------|--------|
-| `CCINonRuined` | Item is not ruined |
-| `CCINone` | No item condition |
-| `CCINotPresent` | No item required |
+| Item Condition (CCI*) | Checks             |
+| --------------------- | ------------------ |
+| `CCINonRuined`        | Item is not ruined |
+| `CCINone`             | No item condition  |
+| `CCINotPresent`       | No item required   |
 
-| Target Condition (CCT*) | Checks |
-|------------------------|--------|
-| `CCTNone` | No target required |
-| `CCTObject(maxDist)` | Target is object within distance |
-| `CCTSelf` | Target is self |
-| `CCTMan(maxDist)` | Target is player within distance |
-| `CCTCursor(maxDist)` | Target under cursor within distance |
+| Target Condition (CCT*) | Checks                              |
+| ----------------------- | ----------------------------------- |
+| `CCTNone`               | No target required                  |
+| `CCTObject(maxDist)`    | Target is object within distance    |
+| `CCTSelf`               | Target is self                      |
+| `CCTMan(maxDist)`       | Target is player within distance    |
+| `CCTCursor(maxDist)`    | Target under cursor within distance |
 
 ### Register Actions on Item
 
@@ -799,6 +799,7 @@ When adding custom items to the Central Economy loot system:
 ```
 
 Key rules:
+
 - `scope=2` must be set in your item's `CfgVehicles` config for it to be spawnable
 - `nominal` = target count on the entire map (not per building)
 - `lifetime` in seconds (3888000 = 45 days)
@@ -811,12 +812,14 @@ Key rules:
 ## Vehicle System
 
 ### Class Hierarchy
+
 ```
 Transport > Car > CarScript (scripted vehicles)
 Transport > Boat > BoatScript
 ```
 
 ### Vehicle Fluids
+
 ```c
 // CarFluid enum: FUEL, OIL, BRAKE, COOLANT
 float fuel = car.GetFluidFraction(CarFluid.FUEL);    // 0.0-1.0
@@ -826,6 +829,7 @@ car.Leak(CarFluid.OIL, 5.0);                          // Remove 5L
 ```
 
 ### Engine Control
+
 ```c
 car.EngineStart();
 car.EngineStop();
@@ -835,6 +839,7 @@ float speed = car.GetSpeedometer();                    // km/h
 ```
 
 ### Crew Management
+
 ```c
 int seats = car.CrewSize();
 Man driver = car.CrewMember(0);                        // 0 = driver
@@ -845,6 +850,7 @@ Transport vehicle = player.GetDrivingVehicle();
 ```
 
 ### Spawn Ready Vehicle
+
 ```c
 CarScript car = CarScript.Cast(GetGame().CreateObject("OffroadHatchback", pos, false, false, true));
 if (car)
@@ -858,6 +864,7 @@ if (car)
 ```
 
 ### CarScript Callbacks
+
 ```c
 modded class CarScript
 {
@@ -945,6 +952,7 @@ NotificationSystem.AddNotificationExtended(5, "Local", "Client-only message", "s
 ## Input System
 
 ### Polling Input in OnUpdate
+
 ```c
 modded class MissionGameplay
 {
@@ -970,6 +978,7 @@ modded class MissionGameplay
 ```
 
 ### Input State Methods
+
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyAction");
 input.LocalPress();       // True for ONE frame when key first pressed
@@ -982,6 +991,7 @@ input.LocalValue();       // Float 0.0-1.0 (for analog inputs)
 ```
 
 ### Input Suppression
+
 ```c
 input.Supress();                             // Suppress current frame (note: single 's')
 input.ForceDisable(true);                    // Disable until re-enabled
@@ -994,6 +1004,7 @@ GetGame().GetMission().RemoveActiveInputExcludes({"menu"}, true); // Restore
 ## Crafting System
 
 ### Recipe-Based Crafting
+
 ```c
 class MyRecipe extends RecipeBase
 {
@@ -1035,6 +1046,7 @@ class MyRecipe extends RecipeBase
 ## Animation System
 
 ### Movement State
+
 ```c
 HumanMovementState state = new HumanMovementState();
 player.GetMovementState(state);
@@ -1047,6 +1059,7 @@ int movement = state.m_iMovement;
 ```
 
 ### Object Animations
+
 ```c
 // Animation phase (0.0-1.0) — used for doors, gates, hatches
 entity.SetAnimationPhase("doors_driver", 1.0);  // Open
@@ -1055,6 +1068,7 @@ float phase = entity.GetAnimationPhase("doors_driver");
 ```
 
 ### Emotes
+
 ```c
 // Trigger emote programmatically
 EmoteManager mgr = player.GetEmoteManager();
@@ -1133,11 +1147,13 @@ p.ScaleParticleParamFromOriginal(EmitorParam.SIZE, 1.5);
 ## Zombie AI System
 
 ### Class Hierarchy
+
 ```
 DayZCreature > DayZCreatureAI > DayZInfected > ZombieBase > ZombieMaleBase/ZombieFemaleBase
 ```
 
 ### Mind States
+
 ```c
 // Via input controller
 int mindState = zombie.GetInputController().GetMindState();
@@ -1145,6 +1161,7 @@ int mindState = zombie.GetInputController().GetMindState();
 ```
 
 ### Modding Zombie Behavior
+
 ```c
 modded class ZombieBase
 {
@@ -1173,6 +1190,7 @@ modded class ZombieBase
 ## Admin & Server
 
 ### Player Management
+
 ```c
 // Get all players
 ref array<Man> players = new array<Man>();
@@ -1196,6 +1214,7 @@ GetGame().AdminLog("Player " + name + " performed action X");
 ```
 
 ### Chat
+
 ```c
 // Send chat message (server-side)
 GetGame().ChatMP(player, "Admin message", "colorImportant");
@@ -1203,6 +1222,7 @@ GetGame().ChatMP(player, "Admin message", "colorImportant");
 ```
 
 ### Time Control
+
 ```c
 int year, month, day, hour, min;
 GetGame().GetWorld().GetDate(year, month, day, hour, min);
@@ -1215,6 +1235,7 @@ bool night = GetGame().GetWorld().IsNight();
 ## Construction System
 
 ### Base Building Classes
+
 ```c
 // BaseBuildingBase > Fence, Watchtower, ShelterSite
 // Construction parts managed via Construction class
@@ -1240,6 +1261,7 @@ building.RemoveProxyPhysics("wall_base_down");  // Disable collision
 ## Sound System
 
 ### Config-Based Sounds
+
 ```cpp
 // In config.cpp
 class CfgSoundShaders
@@ -1265,6 +1287,7 @@ class CfgSoundSets
 ```
 
 ### Script API
+
 ```c
 // Play at position (recommended for one-shots)
 EffectSound sound = SEffectManager.PlaySound("MyMod_AlertSoundSet", worldPos);
@@ -1285,18 +1308,19 @@ wave.Play();
 
 ## Central Economy Files Reference
 
-| File | Purpose |
-|------|---------|
-| `types.xml` | Item spawn definitions (nominal, lifetime, locations) |
-| `events.xml` | Dynamic event spawns (vehicles, helicrashes, airdrops) |
-| `globals.xml` | Economy parameters (animal/zombie counts, cleanup timers) |
-| `cfgspawnabletypes.xml` | Pre-attached items and cargo on spawned entities |
-| `cfgrandompresets.xml` | Reusable loot pool definitions |
-| `cfgeconomycore.xml` | Root class registration, CE folder config |
-| `cfglimitsdefinition.xml` | Valid category/usage/value flag definitions |
-| `cfgplayerspawnpoints.xml` | Player spawn locations |
+| File                       | Purpose                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| `types.xml`                | Item spawn definitions (nominal, lifetime, locations)     |
+| `events.xml`               | Dynamic event spawns (vehicles, helicrashes, airdrops)    |
+| `globals.xml`              | Economy parameters (animal/zombie counts, cleanup timers) |
+| `cfgspawnabletypes.xml`    | Pre-attached items and cargo on spawned entities          |
+| `cfgrandompresets.xml`     | Reusable loot pool definitions                            |
+| `cfgeconomycore.xml`       | Root class registration, CE folder config                 |
+| `cfglimitsdefinition.xml`  | Valid category/usage/value flag definitions               |
+| `cfgplayerspawnpoints.xml` | Player spawn locations                                    |
 
 ### globals.xml Key Parameters
+
 ```xml
 <var name="AnimalMaxCount" type="0" value="200"/>
 <var name="ZombieMaxCount" type="0" value="1000"/>
@@ -1423,14 +1447,14 @@ modded class ItemBase
 
 ### Persistence Rules
 
-| Rule | Detail |
-|------|--------|
+| Rule                                          | Detail                                               |
+| --------------------------------------------- | ---------------------------------------------------- |
 | `super.*` FIRST on save, check return on load | Breaking this corrupts the entire entity's save data |
-| Write your own version header | Never rely on game `version` param alone |
-| Read = exact mirror of write | Any mismatch = corrupted stream → entity deleted |
-| New fields at the END only | Never insert between existing fields |
-| Return `false` = entity deleted | Only return false if stream is genuinely broken |
-| Test fresh save AND upgrade from old save | Both paths must work before shipping |
+| Write your own version header                 | Never rely on game `version` param alone             |
+| Read = exact mirror of write                  | Any mismatch = corrupted stream → entity deleted     |
+| New fields at the END only                    | Never insert between existing fields                 |
+| Return `false` = entity deleted               | Only return false if stream is genuinely broken      |
+| Test fresh save AND upgrade from old save     | Both paths must work before shipping                 |
 
 ---
 
@@ -1449,14 +1473,14 @@ player.GetAgents().RemoveAgent(eAgents.SALMONELLA_BACTERIA);
 int level = player.GetAgents().GetAgentLevel(eAgents.SALMONELLA_BACTERIA);
 ```
 
-| Constant | Description |
-|----------|-------------|
+| Constant                      | Description               |
+| ----------------------------- | ------------------------- |
 | `eAgents.SALMONELLA_BACTERIA` | Salmonella food poisoning |
-| `eAgents.CHOLERA_BACTERIA` | Cholera (dirty water) |
-| `eAgents.BRAIN_DISEASE` | Kuru prion disease |
-| `eAgents.WOUND_AGENT` | Generic wound infection |
-| `eAgents.INFLUENZA_AGENT` | Common cold / flu |
-| `eAgents.CHEMICAL_POISON` | Chemical poisoning |
+| `eAgents.CHOLERA_BACTERIA`    | Cholera (dirty water)     |
+| `eAgents.BRAIN_DISEASE`       | Kuru prion disease        |
+| `eAgents.WOUND_AGENT`         | Generic wound infection   |
+| `eAgents.INFLUENZA_AGENT`     | Common cold / flu         |
+| `eAgents.CHEMICAL_POISON`     | Chemical poisoning        |
 
 ### eModifiers — Status Effects
 
@@ -1471,9 +1495,9 @@ player.GetSymptomsManager().RemoveModifier(eModifiers.MDF_POISONED);
 bool has = player.GetSymptomsManager().HasModifier(eModifiers.MDF_POISONED);
 ```
 
-| Constant | Description |
-|----------|-------------|
-| `eModifiers.MDF_POISONED` | Poisoned status |
+| Constant                       | Description             |
+| ------------------------------ | ----------------------- |
+| `eModifiers.MDF_POISONED`      | Poisoned status         |
 | `eModifiers.MDF_FOODPOISONING` | Food poisoning symptoms |
 
 ---
@@ -1521,20 +1545,20 @@ if (Class.CastTo(pm, GetPlugin(PluginMyMod)))
 
 ### Plugin Lifecycle
 
-| Method | When |
-|--------|------|
-| `OnInit()` | After scripts compile, before mission objects |
-| `OnDestroy()` | Server shutdown |
+| Method               | When                                               |
+| -------------------- | -------------------------------------------------- |
+| `OnInit()`           | After scripts compile, before mission objects      |
+| `OnDestroy()`        | Server shutdown                                    |
 | `OnUpdate(float dt)` | Each frame (opt-in via `EnableUpdate()` in OnInit) |
 
 ### Plugin vs CF Module
 
-| | Vanilla Plugin | CF Module |
-|---|---|---|
-| Dependency | None | Requires CF |
-| Event hooks | Manual (OnUpdate) | Rich event bus |
-| Persistence | Manual | CF ModStorage |
-| Use when | Simple shared services, zero deps | Feature-rich mods with CF |
+|             | Vanilla Plugin                    | CF Module                 |
+| ----------- | --------------------------------- | ------------------------- |
+| Dependency  | None                              | Requires CF               |
+| Event hooks | Manual (OnUpdate)                 | Rich event bus            |
+| Persistence | Manual                            | CF ModStorage             |
+| Use when    | Simple shared services, zero deps | Feature-rich mods with CF |
 
 ---
 
@@ -1603,12 +1627,12 @@ player.MessageAction("Inventory full.");     // Center-screen action text
 
 Custom mods must use high ID ranges to avoid collisions with vanilla:
 
-| Constant | Value | Direction | Description |
-|----------|-------|-----------|-------------|
-| `ERPCs.RPC_USER_ACTION_MESSAGE` | 13 | S→C | Display action result text |
-| `ERPCs.RPC_CHAT` | 144 | S→C | Chat message delivery |
-| `ERPCs.RPC_DAMAGE_VALUE_SYNC` | 150 | S→C | Damage zone sync |
-| `ERPCs.RPC_SCRIPT_REMOTE_CALLABLE` | 20000+ | both | Community convention start |
+| Constant                           | Value  | Direction | Description                |
+| ---------------------------------- | ------ | --------- | -------------------------- |
+| `ERPCs.RPC_USER_ACTION_MESSAGE`    | 13     | S→C       | Display action result text |
+| `ERPCs.RPC_CHAT`                   | 144    | S→C       | Chat message delivery      |
+| `ERPCs.RPC_DAMAGE_VALUE_SYNC`      | 150    | S→C       | Damage zone sync           |
+| `ERPCs.RPC_SCRIPT_REMOTE_CALLABLE` | 20000+ | both      | Community convention start |
 
 **Rule:** Custom RPC IDs should start at 20000+ and be documented in a dedicated enum to avoid collisions.
 

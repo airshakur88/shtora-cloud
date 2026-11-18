@@ -1,4 +1,5 @@
 ---
+
 title: Parse Flags in Any Position Relative to Subcommands
 impact: MEDIUM
 impactDescription: prevents confusing errors when agents append flags
@@ -65,6 +66,7 @@ def deploy(ctx, env):
 ```
 
 **Benefits:**
+
 - Agents append flags without worrying about position
 - `-v` for verbose works on any subcommand without being redeclared
 - Matches the behavior of nearly every modern CLI

@@ -9,29 +9,29 @@ Wrap animations in `@media (prefers-reduced-motion: no-preference)`, so users wh
 ```css
 /* Good: motion is opt-in */
 .card {
-  /* static styles */
+	/* static styles */
 }
 @media (prefers-reduced-motion: no-preference) {
-  .card {
-    transition: transform 200ms ease-out;
-  }
+	.card {
+		transition: transform 200ms ease-out;
+	}
 }
 ```
 
 ```tsx
 // Tailwind: motion-safe / motion-reduce variants
-<div className="motion-safe:transition-transform motion-safe:hover:-translate-y-1" />
+<div className="motion-safe:transition-transform motion-safe:hover:-translate-y-1" />;
 ```
 
 ### What to disable vs reduce
 
 Reduced motion targets vestibular triggers, not feedback.
 
-| Disable entirely | Replace | Keep |
-| --- | --- | --- |
-| Parallax scrolling | Slide/scale/zoom transitions → opacity crossfade | Loading spinners and progress |
-| Autoplaying video, GIFs, looping decoration | Smooth scrolling → instant jump | Instant state changes (hover color, focus ring) |
-| Spinning, large-scale movement across the screen | Auto-rotating carousels → start paused | Brief functional feedback (button press) |
+| Disable entirely                                 | Replace                                          | Keep                                            |
+| ------------------------------------------------ | ------------------------------------------------ | ----------------------------------------------- |
+| Parallax scrolling                               | Slide/scale/zoom transitions → opacity crossfade | Loading spinners and progress                   |
+| Autoplaying video, GIFs, looping decoration      | Smooth scrolling → instant jump                  | Instant state changes (hover color, focus ring) |
+| Spinning, large-scale movement across the screen | Auto-rotating carousels → start paused           | Brief functional feedback (button press)        |
 
 ## Autoplay and timed UI
 

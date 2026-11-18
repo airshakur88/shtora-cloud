@@ -1,12 +1,13 @@
 ---
+
 name: security-audit
 description: Use when the user asks for a security review, security audit, vulnerability scan, secret scan, dependency or CVE check, OWASP review, pentest review, compliance evidence, or asks "is this safe to ship". Runs real scanners (Semgrep, gitleaks, TruffleHog, Trivy, osv-scanner) over code, full git history, dependencies, IaC, and Supabase/Firebase row-level security, verifies each finding against source, and writes one severity-ranked report.
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit, Agent, WebSearch, WebFetch, TodoWrite
 license: MIT
 metadata:
-  version: "1.2.0"
-  author: Codemax IT Solutions Pvt. Ltd.
-  homepage: https://cdmx.in
+version: "1.2.0"
+author: Codemax IT Solutions Pvt. Ltd.
+homepage: https://cdmx.in
 ---
 
 # Security Audit
@@ -77,20 +78,20 @@ No flag runs the full static audit: phases 0-6 and 8-9, no DAST.
 
 ## Section index — read a reference only when its phase runs
 
-| When | Read |
-|---|---|
-| Phase 1 tool inventory — canary set, Docker fallback | `references/preflight.md` |
-| Phase 2 secrets, Phase 3 SAST | `references/sast-secrets.md` |
-| Phase 4 dependencies and supply chain | `references/sca-supply-chain.md` |
-| Phase 5 IaC, containers, CI workflows, headers | `references/iac-cloud-config.md` |
-| Phase 5 Supabase or Firebase detected | `references/baas-supabase-firebase.md` |
-| Phase 3/5 stack is Postgres, Redis, React, Next.js, Go or Node | `references/stack-checks.md` |
-| Phase 6a manual review of AI-code failure classes | `references/vibecoding-checklist.md` |
-| Phase 6b app calls an LLM API | `references/llm-app-security.md` |
-| Phase 7 DAST, or probing authorization/IDOR | `references/dast-and-authz.md` |
-| Phase 9 compliance appendix requested | `references/compliance-mapping.md` |
-| A live credential was found and needs rotating | `references/credential-rotation.md` |
-| User wants scanning wired into CI or pre-commit | `references/ci-integration.md` |
+| When                                                           | Read                                   |
+| -------------------------------------------------------------- | -------------------------------------- |
+| Phase 1 tool inventory — canary set, Docker fallback           | `references/preflight.md`              |
+| Phase 2 secrets, Phase 3 SAST                                  | `references/sast-secrets.md`           |
+| Phase 4 dependencies and supply chain                          | `references/sca-supply-chain.md`       |
+| Phase 5 IaC, containers, CI workflows, headers                 | `references/iac-cloud-config.md`       |
+| Phase 5 Supabase or Firebase detected                          | `references/baas-supabase-firebase.md` |
+| Phase 3/5 stack is Postgres, Redis, React, Next.js, Go or Node | `references/stack-checks.md`           |
+| Phase 6a manual review of AI-code failure classes              | `references/vibecoding-checklist.md`   |
+| Phase 6b app calls an LLM API                                  | `references/llm-app-security.md`       |
+| Phase 7 DAST, or probing authorization/IDOR                    | `references/dast-and-authz.md`         |
+| Phase 9 compliance appendix requested                          | `references/compliance-mapping.md`     |
+| A live credential was found and needs rotating                 | `references/credential-rotation.md`    |
+| User wants scanning wired into CI or pre-commit                | `references/ci-integration.md`         |
 
 Do not read a reference you do not need, and do not work from memory when a reference
 covers the step. Scanner flags fail silently rather than erroring when they are wrong.
@@ -112,6 +113,7 @@ Detect, using Glob rather than shelling out: `package.json`, `requirements.txt`,
 and `.github/workflows/`.
 
 Determine and record:
+
 - **Languages and package managers** present (drives which SAST/SCA tools run).
 - **Framework** (Next.js, Express, FastAPI, Django, Rails, Go net/http…).
 - **Deployables.** Does the repo ship more than one independently-deployed unit —
@@ -184,6 +186,7 @@ govulncheck is the one exception: it cannot be cheaply canaried, so report it as
 rather than silent).
 
 For each BROKEN or MISS tool:
+
 - **If docker is OK, prefer the tool's official image** — it sidesteps the packaging
   rot that breaks host installs. Ask before pulling, rerun the canary through the
   container, and use the one-liners in `references/preflight.md`.
@@ -211,6 +214,7 @@ This runs first because it is the highest-yield phase and its findings are alrea
 public. See `references/sast-secrets.md` for exact syntax.
 
 Order of operations:
+
 1. **Tracked content: working tree, then full history** — a secret deleted in the
    current tree is still live in history. `git rm` does not remove it. Scope this pass
    to committed content (`gitleaks git`, or `git ls-files` piped into a filesystem
@@ -225,6 +229,7 @@ Order of operations:
    is a false positive in a skill whose whole pitch is eliminating those.
 
 Triage every hit against the taxonomy in the reference. What matters:
+
 - Is it a **real credential** or a placeholder/test fixture? Judge from the scanner's
   match metadata and the key's format — never by opening the file (rule 2).
 - Is it **actually committed**? Before triaging blast radius, confirm the hit exists in
@@ -257,6 +262,7 @@ unlabelled.
 
 **Triage is the work here.** Scanner output is a candidate list. For each candidate,
 open the file and answer:
+
 - What does this code do with untrusted input? Trace the path. Ask that, rather than
   "is this vulnerable" — a leading question produces agreement, and affirmative bias
   in LLM review is documented. Describe behaviour first, judge second.
@@ -277,6 +283,7 @@ verified findings beats 200 unverified ones, and the user will trust it.
 See `references/sca-supply-chain.md`. Run the scanners matching the lockfiles found.
 
 Beyond CVE counts, check the things that actually bite AI-generated projects:
+
 - **Hallucinated packages** — a dependency that does not exist upstream, or was
   published days before it appeared here. Nearly 20% of AI-generated samples reference
   a non-existent package, and attackers pre-register the common ones.
@@ -374,7 +381,7 @@ Before writing anything, consolidate.
      prerequisite that is easy to obtain.
    - **Medium** — needs an unlikely precondition, or the impact is limited.
    - **Low** — hardening and defence in depth.
-   Downgrade anything you could not prove reachable, and say why.
+     Downgrade anything you could not prove reachable, and say why.
 4. **Independent re-verification is mandatory for Critical and High**, not a nicety for
    heavy audits. Spawn a subagent per finding to argue the opposite case, and give it
    the code without your conclusion attached so it is not anchored by your framing.
@@ -400,13 +407,17 @@ artifact directory from Phase 1. Structure:
 
 ```markdown
 # Security Audit — <project>
+
 <date> · commit <sha> · <scanners actually run>
 
 ## Verdict
+
 <2-3 sentences: is this safe to ship, and if not, what is the one thing to fix first>
 
 ## Findings
+
 ### [CRITICAL] <title>
+
 **Where:** path/to/file.ts:42
 **OWASP:** A01:2025 Broken Access Control
 **What:** <the flaw, in plain language>
@@ -415,14 +426,17 @@ artifact directory from Phase 1. Structure:
 **Verified by:** <scanner name, or manual review>
 
 ## Not findings
+
 <candidates investigated and dismissed, with the reason — this is what makes
 the rest of the report credible>
 
 ## Coverage
+
 <what ran, what did not, and what is therefore unknown — never imply a clean
 scan means no vulnerabilities>
 
 ## Limitations
+
 <the standing text from the skill's limitations section, always included>
 ```
 
@@ -453,6 +467,7 @@ evidence supporting controls, not a compliance certification.
 ## Phase 10 — Fix (`--fix`, only after a report exists)
 
 Fix in severity order, one finding per commit. For each:
+
 1. State the finding and the intended change before editing.
 2. Make the smallest change that closes the vulnerability at its root. If several
    routes share a missing check, fix the shared middleware, not each caller.

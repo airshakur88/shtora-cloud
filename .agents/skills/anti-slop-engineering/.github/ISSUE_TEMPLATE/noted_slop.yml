@@ -8,7 +8,7 @@ body:
       value: |
         ### 🔍 Noted Slop Community Intake
         Thank you for helping codify AI coding habits and edge cases! Use this template to report real-world AI coding slop, hallucination patterns, oracle tampering, UI clutter, or bad agent habits observed in practice.
-        
+
         *If you also have a solution (rules, catalog entry, or diff guard heuristic), feel free to open a Pull Request referencing this issue!*
 
   - type: input

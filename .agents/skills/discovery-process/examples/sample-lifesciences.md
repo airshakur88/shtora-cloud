@@ -19,7 +19,7 @@ value of framing the problem properly before you spend one.
 **Context:** When a study protocol is amended, every participating site must acknowledge it,
 retrain staff, and update procedures. Brightwater's data showed a median of 31 days from amendment
 release to full site adoption, with a long tail past 60 days. Sites running outdated procedures are
-a compliance exposure. The initial hypothesis: *sites aren't reading the notifications.*
+a compliance exposure. The initial hypothesis: _sites aren't reading the notifications._
 
 ---
 
@@ -36,7 +36,7 @@ a compliance exposure. The initial hypothesis: *sites aren't reading the notific
 **Phase 2 — Research Planning**
 
 - Target: study coordinators at 6 sites, spanning fast adopters (under 10 days) and slow ones
-  (over 45 days). Sampling the *variance* rather than the average
+  (over 45 days). Sampling the _variance_ rather than the average
 - Constraint: coordinators are not Brightwater employees. Interviews had to be scheduled through
   site leadership, capped at 30 minutes, and could not ask anything touching patient specifics
 - Added two CRA monitors, who see multiple sites and can compare

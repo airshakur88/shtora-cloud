@@ -1,4 +1,5 @@
 ---
+
 name: code-vulnscan
 description: Use this when the user wants to find security vulnerabilities in a codebase, perform a security audit, scan for CVEs, detect secrets, review React/Next.js, Go, Java/Kotlin JVM, PHP, Ruby, .NET, or Rust web services, audit architecture/application/infrastructure flaws, review auth/API/crypto/business logic, check IaC/cloud/runtime configs, or generate a vulnerability report. Performs taint-flow, control-flow, architecture, and exploitability analysis across Python, JS/TS, Java/Kotlin, Go, PHP, Ruby, C/C++, C#, Rust, and infrastructure.
 ---
@@ -40,6 +41,7 @@ Defaults: report every validated severity and auto-detect language from file ext
 ## The golden rule: evidence-based findings only
 
 A confirmed finding requires **all three**:
+
 1. A **source** — user-controlled data enters the system (or a dangerous condition exists).
 2. A **sink / consequence** — a dangerous operation can be triggered.
 3. A **path** — source reaches sink with no effective mitigation in between.
@@ -48,50 +50,51 @@ Pattern-match candidates are **never** confirmed findings. Every candidate passe
 
 ## Vulnerability categories covered
 
-| Category | Technique | CWE |
-|----------|-----------|-----|
-| SQL Injection | Taint + AST | CWE-89 |
-| Command Injection | Taint + AST | CWE-78 |
-| Path Traversal | Taint + canonicalization check | CWE-22 |
-| XSS (Reflected/Stored/DOM) | Taint + output context | CWE-79 |
-| SSRF | Taint + URL validation check | CWE-918 |
-| Insecure Deserialization | Taint + API check | CWE-502 |
-| Server-Side Template Injection | Taint + template API check | CWE-94 |
-| Open Redirect | Taint + redirect target check | CWE-601 |
-| XXE | Config + parser API check | CWE-611 |
-| Auth Bypass / Broken Access Control | Control flow + logic analysis | CWE-287, CWE-285 |
-| Broken Authentication | Session + token analysis | CWE-306, CWE-384 |
-| IDOR / BOLA | Authorization logic analysis | CWE-639 |
-| Mass Assignment | API + model analysis | CWE-915 |
-| Business Logic Flaws | Control flow + state analysis | CWE-840 |
-| Race Conditions / TOCTOU | Concurrency + file op analysis | CWE-362, CWE-367 |
-| Weak Cryptography | Algorithm + key analysis | CWE-327, CWE-326 |
-| Hardcoded Secrets | Entropy + pattern detection | CWE-798 |
-| Insecure Randomness | RNG API analysis | CWE-338 |
-| Dependency CVEs | Manifest + version analysis | CWE-1035 |
-| Information Disclosure | Error handling + logging analysis | CWE-209 |
-| Security Misconfiguration | Config + header analysis | CWE-16 |
-| IaC Misconfigurations | Dockerfile/K8s/Terraform analysis | CWE-732, CWE-284 |
-| Memory Safety (C/C++) | Buffer + pointer analysis | CWE-120, CWE-416 |
-| ReDoS | Regex complexity analysis | CWE-1333 |
-| GraphQL Security | Query depth + introspection check | CWE-284 |
-| React / Client-Side App Security | DOM sink + router + storage analysis | CWE-79, CWE-601, CWE-922 |
-| Go Service Security | Handler + binding + timeout + goroutine analysis | CWE-89, CWE-918, CWE-400 |
-| Java / JVM Service Security | Framework auth + binding + expression/ORM/parser analysis | CWE-89, CWE-94, CWE-502 |
-| PHP Web Application Security | Framework auth + binding + SQL/template/file review | CWE-89, CWE-79, CWE-915 |
-| Ruby Web Application Security | Callback/policy + strong-parameter + ORM/template review | CWE-89, CWE-79, CWE-915 |
-| .NET Web Application Security | ASP.NET auth/binding + EF/Dapper/parser analysis | CWE-89, CWE-502, CWE-639 |
-| Rust Web Service Security | Extractor + SQL/process/HTTP/file analysis | CWE-89, CWE-78, CWE-918 |
-| Architecture Flaws | Trust boundary + tenant isolation analysis | CWE-284, CWE-862 |
-| Application-Layer Vulns | Workflow + abuse-control analysis | CWE-639, CWE-840 |
-| Infrastructure Security | Cloud IAM + network/runtime/storage posture | CWE-284, CWE-732 |
-| Commit-diff scoped analysis | Changed-file taint + caller/callee tracing | CWE-all |
+| Category                            | Technique                                                 | CWE                      |
+| ----------------------------------- | --------------------------------------------------------- | ------------------------ |
+| SQL Injection                       | Taint + AST                                               | CWE-89                   |
+| Command Injection                   | Taint + AST                                               | CWE-78                   |
+| Path Traversal                      | Taint + canonicalization check                            | CWE-22                   |
+| XSS (Reflected/Stored/DOM)          | Taint + output context                                    | CWE-79                   |
+| SSRF                                | Taint + URL validation check                              | CWE-918                  |
+| Insecure Deserialization            | Taint + API check                                         | CWE-502                  |
+| Server-Side Template Injection      | Taint + template API check                                | CWE-94                   |
+| Open Redirect                       | Taint + redirect target check                             | CWE-601                  |
+| XXE                                 | Config + parser API check                                 | CWE-611                  |
+| Auth Bypass / Broken Access Control | Control flow + logic analysis                             | CWE-287, CWE-285         |
+| Broken Authentication               | Session + token analysis                                  | CWE-306, CWE-384         |
+| IDOR / BOLA                         | Authorization logic analysis                              | CWE-639                  |
+| Mass Assignment                     | API + model analysis                                      | CWE-915                  |
+| Business Logic Flaws                | Control flow + state analysis                             | CWE-840                  |
+| Race Conditions / TOCTOU            | Concurrency + file op analysis                            | CWE-362, CWE-367         |
+| Weak Cryptography                   | Algorithm + key analysis                                  | CWE-327, CWE-326         |
+| Hardcoded Secrets                   | Entropy + pattern detection                               | CWE-798                  |
+| Insecure Randomness                 | RNG API analysis                                          | CWE-338                  |
+| Dependency CVEs                     | Manifest + version analysis                               | CWE-1035                 |
+| Information Disclosure              | Error handling + logging analysis                         | CWE-209                  |
+| Security Misconfiguration           | Config + header analysis                                  | CWE-16                   |
+| IaC Misconfigurations               | Dockerfile/K8s/Terraform analysis                         | CWE-732, CWE-284         |
+| Memory Safety (C/C++)               | Buffer + pointer analysis                                 | CWE-120, CWE-416         |
+| ReDoS                               | Regex complexity analysis                                 | CWE-1333                 |
+| GraphQL Security                    | Query depth + introspection check                         | CWE-284                  |
+| React / Client-Side App Security    | DOM sink + router + storage analysis                      | CWE-79, CWE-601, CWE-922 |
+| Go Service Security                 | Handler + binding + timeout + goroutine analysis          | CWE-89, CWE-918, CWE-400 |
+| Java / JVM Service Security         | Framework auth + binding + expression/ORM/parser analysis | CWE-89, CWE-94, CWE-502  |
+| PHP Web Application Security        | Framework auth + binding + SQL/template/file review       | CWE-89, CWE-79, CWE-915  |
+| Ruby Web Application Security       | Callback/policy + strong-parameter + ORM/template review  | CWE-89, CWE-79, CWE-915  |
+| .NET Web Application Security       | ASP.NET auth/binding + EF/Dapper/parser analysis          | CWE-89, CWE-502, CWE-639 |
+| Rust Web Service Security           | Extractor + SQL/process/HTTP/file analysis                | CWE-89, CWE-78, CWE-918  |
+| Architecture Flaws                  | Trust boundary + tenant isolation analysis                | CWE-284, CWE-862         |
+| Application-Layer Vulns             | Workflow + abuse-control analysis                         | CWE-639, CWE-840         |
+| Infrastructure Security             | Cloud IAM + network/runtime/storage posture               | CWE-284, CWE-732         |
+| Commit-diff scoped analysis         | Changed-file taint + caller/callee tracing                | CWE-all                  |
 
 ## Full analysis workflow
 
 ### Phase 0: Strategy (always run first)
 
 Read `sub-skills/scan-strategy.md` to produce a concrete scan plan:
+
 - Detected languages, frameworks, entry points
 - Prioritized file list
 - Active vulnerability categories
@@ -148,6 +151,7 @@ Covers: SQL injection, command injection, path traversal, XSS, SSRF, SSTI, XXE, 
 ### Phase 2: Input validation analysis
 
 Read `sub-skills/input-validator.md`. For every entry point identified in Phase 0:
+
 - Verify validation is present and appropriate for the sink context
 - Check for allowlist vs blocklist approach
 - Test regex anchoring, type juggling bypasses, encoding bypasses
@@ -158,6 +162,7 @@ Read `sub-skills/input-validator.md`. For every entry point identified in Phase 
 ### Phase 3: Business logic and control flow analysis
 
 Read `sub-skills/business-logic-analyzer.md` and `sub-skills/application-vuln-reviewer.md`. Analyze:
+
 - Authentication and authorization decision points
 - Workflow state machines (can steps be skipped or reversed?)
 - Price/quantity/permission manipulation opportunities
@@ -170,6 +175,7 @@ Read `sub-skills/business-logic-analyzer.md` and `sub-skills/application-vuln-re
 ### Phase 4: API security analysis
 
 Read `sub-skills/api-security-reviewer.md`. For every REST, GraphQL, or RPC endpoint:
+
 - Check for IDOR/BOLA (missing object-level authorization)
 - Check for mass assignment in request body → model binding
 - Check for excessive data exposure in responses
@@ -183,6 +189,7 @@ If the system has multiple services, tenants, workers, plugins, or cloud resourc
 ### Phase 5: Authentication and authorization review
 
 Read `sub-skills/auth-reviewer.md`. Examine:
+
 - Authentication mechanisms and bypass paths
 - Session management, fixation, expiry
 - JWT/token construction and validation
@@ -196,11 +203,13 @@ Read `sub-skills/auth-reviewer.md`. Examine:
 Read `sub-skills/crypto-reviewer.md` and `sub-skills/secret-detector.md`.
 
 Run entropy-based secret scanning:
+
 ```bash
 python3 scripts/secrets.py --path <target>
 ```
 
 Analyze:
+
 - Algorithm selection (MD5/SHA1 for security, ECB mode, DES/RC4)
 - Key sizes and generation
 - Hardcoded credentials, API keys, tokens
@@ -214,6 +223,7 @@ Analyze:
 Read `sub-skills/config-security-reviewer.md`, `sub-skills/iac-security-reviewer.md`, and `sub-skills/infrastructure-security-reviewer.md`.
 
 Check:
+
 - Security headers (CSP, HSTS, X-Frame-Options, CORS)
 - Debug mode, verbose errors, stack traces in production
 - TLS/SSL configuration
@@ -252,6 +262,7 @@ When a Rust web stack is present, read `sub-skills/rust-security-reviewer.md` an
 ### Phase 9: Error handling and information disclosure
 
 Read `sub-skills/error-handling-reviewer.md`. Check:
+
 - Stack traces and exception details leaked to clients
 - Verbose SQL errors, file path disclosure
 - Enumeration through differential error messages
@@ -272,6 +283,7 @@ Read `sub-skills/dependency-auditor.md` to assess exploitability of flagged pack
 ### Phase 11: False positive elimination
 
 Read `sub-skills/false-positive-filter.md`. Apply three-pass protocol to **every** candidate:
+
 1. Pass 1 — Source reachability: is the input genuinely user-controlled?
 2. Pass 2 — Path completeness: does the taint path hold end-to-end?
 3. Pass 3 — Exploitability: can an attacker realistically trigger this?
@@ -283,12 +295,14 @@ Only `confirmed` and `likely` findings survive to the report.
 ### Phase 12: Classification and scoring
 
 Read `sub-skills/vuln-classifier.md`. For every surviving finding assign:
+
 - CWE identifier
 - OWASP Top 10 / OWASP API Top 10 category
 - CVSS v3.1 base score and vector string
 - Severity: `critical`, `high`, `medium`, `low`, `informational`
 
 Update the database:
+
 ```bash
 python3 scripts/scan.py --update-findings workspace/confirmed_findings.json
 ```

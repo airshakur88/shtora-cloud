@@ -1,16 +1,19 @@
 ---
+
 name: firecrawl-knowledge-ingest
 description: "Export documentation portals, help centers and API reference sites into local markdown or JSON with Firecrawl browser, including pages that render with JavaScript, hide content behind collapsible navigation or paginate. Use when the user wants a docs site, help center or support knowledge base saved as files, even without an explicit request to scrape."
 license: ISC
 metadata:
-  author: firecrawl
-  version: "0.1.0"
-  homepage: https://www.firecrawl.dev
-  source: https://github.com/firecrawl/firecrawl-workflows
+author: firecrawl
+version: "0.1.0"
+homepage: https://www.firecrawl.dev
+source: https://github.com/firecrawl/firecrawl-workflows
 inputs:
-  - name: FIRECRAWL_API_KEY
-    description: Firecrawl API key for hosted Firecrawl requests.
-    required: true
+
+- name: FIRECRAWL_API_KEY
+  description: Firecrawl API key for hosted Firecrawl requests.
+  required: true
+
 ---
 
 # Firecrawl Knowledge Ingest
@@ -41,21 +44,27 @@ Try Firecrawl map as a supplement for public URLs, but use browser navigation fo
 # Knowledge Ingest: [Portal]
 
 ## Summary
+
 [Pages extracted, sections covered, limitations]
 
 ## Output
+
 [JSON/markdown/merged file path or content]
 
 ## Sections
+
 [Section names and article counts]
 
 ## Failed Or Restricted Pages
+
 [Any access/loading issues]
 
 ## Sources
+
 [URLs extracted]
 
 ## Rerun Inputs
+
 workflow: firecrawl-knowledge-ingest
 url: [portal url]
 format: [json/markdown/merged]

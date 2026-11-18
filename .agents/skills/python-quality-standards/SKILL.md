@@ -1,4 +1,5 @@
 ---
+
 name: python-quality-standards
 description: Audit, create, and maintain quality standards for Python projects — covering linting, formatting, type checking, documentation, and unified tool configuration. Use this skill whenever the user mentions Python code quality, linting, formatting, type hints, docstrings, code review, PEP 8, Ruff, mypy, pre-commit, code style, pyproject.toml setup, or wants to bootstrap quality tooling in a Python project. Also trigger when reviewing Python code for style issues, setting up a new Python project's tooling, or when the user asks to "clean up" or "standardize" Python code.
 ---
@@ -17,14 +18,14 @@ When you review code, think like a thoughtful senior engineer on a PR review: fl
 
 These are the tools this skill recommends, based on current community consensus from projects like FastAPI, Pydantic, and the broader Python ecosystem:
 
-| Tool | Purpose | Why this one |
-|------|---------|-------------|
-| **Ruff** | Linting + formatting | Replaces flake8, isort, pyupgrade, Black. Extremely fast. One tool for lint and format |
-| **mypy** | Type checking | Most mature, best ecosystem support. strict mode for new projects |
-| **pytest** | Testing | De facto standard. Rich plugin ecosystem |
-| **coverage** | Test coverage | Works seamlessly with pytest via pytest-cov |
-| **pre-commit** | Git hooks | Automates checks before every commit |
-| **uv** | Package/env management | Modern, fast, resolves and locks dependencies. Preferred when available |
+| Tool           | Purpose                | Why this one                                                                           |
+| -------------- | ---------------------- | -------------------------------------------------------------------------------------- |
+| **Ruff**       | Linting + formatting   | Replaces flake8, isort, pyupgrade, Black. Extremely fast. One tool for lint and format |
+| **mypy**       | Type checking          | Most mature, best ecosystem support. strict mode for new projects                      |
+| **pytest**     | Testing                | De facto standard. Rich plugin ecosystem                                               |
+| **coverage**   | Test coverage          | Works seamlessly with pytest via pytest-cov                                            |
+| **pre-commit** | Git hooks              | Automates checks before every commit                                                   |
+| **uv**         | Package/env management | Modern, fast, resolves and locks dependencies. Preferred when available                |
 
 If the project uses **poetry**, **pip+venv**, **pdm**, or another tool manager, adapt. Don't force migration unless asked. The quality standards apply regardless of the package manager.
 
@@ -33,9 +34,11 @@ If the project uses **poetry**, **pip+venv**, **pdm**, or another tool manager, 
 The skill operates in different modes depending on what the user needs. Detect the right mode from context, or ask if unclear.
 
 ### Mode: `review`
+
 Audit existing Python code for quality issues.
 
 **What to check (in order):**
+
 1. **Format and style** — PEP 8 compliance, naming conventions (snake_case for functions/variables, PascalCase for classes), import ordering, line length, spacing, indentation consistency
 2. **Code clarity** — Functions too long (>50 lines is a yellow flag), excessive nesting (>3 levels), unclear names, "clever" code that sacrifices readability, magic numbers without context
 3. **Documentation** — Module-level context, docstrings on public functions/classes/methods, parameter and return descriptions, documentation aligned with actual code behavior
@@ -44,6 +47,7 @@ Audit existing Python code for quality issues.
 6. **Actionable recommendations** — For every finding: what to fix, why it matters, priority (critical/medium/low), and a concrete example of the fix
 
 **When running review, execute the tools when available:**
+
 ```bash
 # Run Ruff lint check
 uv run ruff check . --output-format=concise
@@ -61,6 +65,7 @@ uv run mypy .
 If Ruff or mypy aren't installed in the project, mention it and suggest bootstrapping first. Don't silently skip tooling.
 
 **Output format for review:**
+
 ```
 ## Quality Review: [file or scope]
 
@@ -81,9 +86,11 @@ If Ruff or mypy aren't installed in the project, mention it and suggest bootstra
 ```
 
 ### Mode: `bootstrap`
+
 Create quality tooling configuration for a project from scratch (or fill gaps in existing config).
 
 **Before writing anything, detect the project state:**
+
 1. What package manager is in use? (check for `uv.lock`, `poetry.lock`, `Pipfile`, `requirements.txt`, `pyproject.toml` metadata)
 2. What tools are already configured? (check `pyproject.toml`, `ruff.toml`, `.ruff.toml`, `mypy.ini`, `.mypy.ini`, `setup.cfg`, `.pre-commit-config.yaml`, `.editorconfig`)
 3. What Python version does the project target? (check `requires-python`, `python_requires`, `target-version` in existing configs)
@@ -95,16 +102,18 @@ Create quality tooling configuration for a project from scratch (or fill gaps in
 #### `pyproject.toml` — Ruff configuration
 
 Read `references/ruff-config.md` for the full default configuration to use. The key principles:
+
 - line-length = 88 (Black/Ruff community default — a practical balance between readability and expressiveness)
 - target-version adapted to the project's minimum Python version
 - Comprehensive rule set that catches real problems without drowning in noise
-- Sensible per-file ignores (tests don't need docstrings, __init__.py can have unused imports)
+- Sensible per-file ignores (tests don't need docstrings, **init**.py can have unused imports)
 - Ruff format configured with double quotes (Python community default)
 - Google-style docstrings (clean, readable, good Ruff and tooling support)
 
 #### `pyproject.toml` — mypy configuration
 
 Read `references/mypy-config.md` for the full default configuration. The key principles:
+
 - `strict = true` for new projects (catches problems early)
 - For existing projects: enable flags incrementally, strict by default and loosen per-module
 - `warn_unused_ignores = true` to catch stale ignores
@@ -149,6 +158,7 @@ exclude_also = [
 #### `.pre-commit-config.yaml`
 
 Read `references/pre-commit-config.md` for the full default configuration. The key principles:
+
 - Ruff for linting (with --fix) and formatting
 - Basic file hygiene hooks (trailing whitespace, end-of-file, YAML check, large files)
 - mypy with appropriate type stubs as additional dependencies
@@ -177,6 +187,7 @@ indent_size = 2
 **After creating configs, suggest standard commands:**
 
 For uv-based projects:
+
 ```bash
 uv run ruff check .           # Lint
 uv run ruff check --fix .     # Lint + auto-fix
@@ -191,9 +202,11 @@ pre-commit install            # Install git hooks
 For non-uv projects, adapt commands (drop `uv run` prefix, use `python -m` or direct tool calls).
 
 ### Mode: `sync`
+
 Align existing configs that may contradict each other.
 
 **Common contradictions to detect and fix:**
+
 - Different line-length in Ruff vs Black vs other tools
 - Different target Python versions across tools
 - Duplicate rules (e.g., isort configured separately when Ruff handles it)
@@ -205,14 +218,17 @@ Align existing configs that may contradict each other.
 **Resolution strategy:** Centralize in `pyproject.toml` whenever possible. Remove redundant config files. Keep one source of truth per setting.
 
 ### Mode: `enforce`
+
 Set up automation so the standards are enforced continuously.
 
 This means:
+
 1. **pre-commit hooks** — Run on every commit locally
 2. **CI commands** — Suggest GitHub Actions (or equivalent) workflow that runs the same checks
 3. **Standard commands** — A Makefile or scripts section so developers can run everything manually
 
 **Suggested CI workflow (GitHub Actions):**
+
 ```yaml
 name: Quality
 on: [push, pull_request]
@@ -248,6 +264,7 @@ Never inflate severity. A missing docstring on an internal helper is not critica
 ## What This Skill Does NOT Do
 
 To keep focus, this skill does not cover:
+
 - **Performance optimization** — Use a performance-focused review for that
 - **Architecture review** — Module design, dependency structure, design patterns
 - **Security audit** — Beyond what Ruff's S rules catch (bandit subset)
@@ -261,19 +278,23 @@ These are important but belong in separate, focused skills.
 When detecting a framework, adjust rules accordingly:
 
 **Django:**
+
 - Ignore `RUF012` (mutable class variables) on model classes — Django fields are class-level by design
 - Don't flag missing return type hints on view functions that return `HttpResponse` implicitly
 - Add `django-stubs` to mypy additional dependencies
 
 **FastAPI:**
+
 - Ignore `B008` (function call in default argument) — FastAPI's `Depends()` pattern requires it
 - Add `Annotated` pattern recommendations for dependency injection
 - Consider `fastapi` Ruff rules if available
 
 **Flask:**
+
 - Similar to FastAPI: decorator-based routes have specific patterns
 
 **pytest:**
+
 - Tests don't need docstrings (configure per-file ignore for `D` rules in test directories)
 - Test function names can be long and descriptive — don't flag them
 - Fixtures have specific import patterns (unused imports that are actually injected)
@@ -281,6 +302,7 @@ When detecting a framework, adjust rules accordingly:
 ## Reference Files
 
 For detailed default configurations, read these files:
+
 - `references/ruff-config.md` — Complete Ruff configuration with all rule explanations
 - `references/mypy-config.md` — Complete mypy configuration with gradual adoption guide
 - `references/pre-commit-config.md` — Complete pre-commit configuration

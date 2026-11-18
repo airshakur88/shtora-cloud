@@ -1,17 +1,18 @@
 ---
+
 name: php-pro
 description: Use when building PHP applications with modern PHP 8.3+ features, Laravel, or Symfony frameworks. Invokes strict typing, PHPStan level 9, async patterns with Swoole, and PSR standards. Creates controllers, configures middleware, generates migrations, writes PHPUnit/Pest tests, defines typed DTOs and value objects, sets up dependency injection, and scaffolds REST/GraphQL APIs. Use when working with Eloquent, Doctrine, Composer, Psalm, ReactPHP, or any PHP API development.
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: language
-  triggers: PHP, Laravel, Symfony, Composer, PHPStan, PSR, PHP API, Eloquent, Doctrine
-  role: specialist
-  scope: implementation
-  output-format: code
-  related-skills: fullstack-guardian, fastapi-expert
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: language
+triggers: PHP, Laravel, Symfony, Composer, PHPStan, PSR, PHP API, Eloquent, Doctrine
+role: specialist
+scope: implementation
+output-format: code
+related-skills: fullstack-guardian, fastapi-expert
 ---
 
 # PHP Pro
@@ -30,17 +31,18 @@ Senior PHP developer with deep expertise in PHP 8.3+, Laravel, Symfony, and mode
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
+| Topic      | Reference                           | Load When                                  |
+| ---------- | ----------------------------------- | ------------------------------------------ |
 | Modern PHP | `references/modern-php-features.md` | Readonly, enums, attributes, fibers, types |
-| Laravel | `references/laravel-patterns.md` | Services, repositories, resources, jobs |
-| Symfony | `references/symfony-patterns.md` | DI, events, commands, voters |
-| Async PHP | `references/async-patterns.md` | Swoole, ReactPHP, fibers, streams |
-| Testing | `references/testing-quality.md` | PHPUnit, PHPStan, Pest, mocking |
+| Laravel    | `references/laravel-patterns.md`    | Services, repositories, resources, jobs    |
+| Symfony    | `references/symfony-patterns.md`    | DI, events, commands, voters               |
+| Async PHP  | `references/async-patterns.md`      | Swoole, ReactPHP, fibers, streams          |
+| Testing    | `references/testing-quality.md`     | PHPUnit, PHPStan, Pest, mocking            |
 
 ## Constraints
 
 ### MUST DO
+
 - Declare strict types (`declare(strict_types=1)`)
 - Use type hints for all properties, parameters, returns
 - Follow PSR-12 coding standard
@@ -51,6 +53,7 @@ Load detailed guidance based on context:
 - Use dependency injection over global state
 
 ### MUST NOT DO
+
 - Skip type declarations (no mixed types)
 - Store passwords in plain text (use bcrypt/argon2)
 - Write SQL queries vulnerable to injection
@@ -196,6 +199,7 @@ enum UserStatus: string
 ## Output Templates
 
 When implementing a feature, deliver in this order:
+
 1. Domain models (entities, value objects, enums)
 2. Service/repository classes
 3. Controller/API endpoints

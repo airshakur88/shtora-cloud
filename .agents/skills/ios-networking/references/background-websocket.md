@@ -73,13 +73,13 @@ final class BackgroundDownloadManager: NSObject, Sendable {
 
 ### Key Configuration Options
 
-| Property | Effect |
-|---|---|
-| `isDiscretionary` | `true` = system schedules for optimal battery/network. Use for non-urgent sync. `false` = start immediately. |
-| `sessionSendsLaunchEvents` | Relaunches the app when transfers complete. Required for completion handling. |
-| `allowsConstrainedNetworkAccess` | `false` = honor Low Data Mode. Good for optional downloads. |
-| `allowsExpensiveNetworkAccess` | `false` = Wi-Fi only. Use for large transfers. |
-| `timeoutIntervalForResource` | Maximum time for the entire transfer. Default is 7 days. |
+| Property                         | Effect                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `isDiscretionary`                | `true` = system schedules for optimal battery/network. Use for non-urgent sync. `false` = start immediately. |
+| `sessionSendsLaunchEvents`       | Relaunches the app when transfers complete. Required for completion handling.                                |
+| `allowsConstrainedNetworkAccess` | `false` = honor Low Data Mode. Good for optional downloads.                                                  |
+| `allowsExpensiveNetworkAccess`   | `false` = Wi-Fi only. Use for large transfers.                                                               |
+| `timeoutIntervalForResource`     | Maximum time for the entire transfer. Default is 7 days.                                                     |
 
 ---
 
@@ -288,6 +288,7 @@ extension BackgroundDownloadManager {
 ```
 
 **Constraints of background uploads:**
+
 - Data must come from a file (`uploadTask(with:fromFile:)`).
 - `uploadTask(with:from: Data)` is not supported in background sessions.
 - Write multipart form data to a temporary file first, then upload.
@@ -720,36 +721,43 @@ struct TypedWebSocketTransport {
 ## Background Session Gotchas
 
 ### The session identifier must be unique per app
+
 If two sessions share the same identifier, events may be delivered to
 the wrong delegate. Use your bundle identifier as a prefix.
 
 ### Background sessions do not support async/await overloads
+
 The `data(for:)` and `download(for:)` async methods are not available
 on background sessions. Use `downloadTask(with:)` and the delegate.
 
 ### Only download and upload tasks are supported
+
 Data tasks (`dataTask`) are not supported in background sessions. Convert
 data requests to download tasks if needed for background execution.
 WebSocket tasks are not background transfer tasks; reconnect them when the app
 is active again.
 
 ### The app may be terminated and relaunched
+
 Store any state you need (task identifiers, file destinations) to disk.
 Do not rely on in-memory state surviving a background relaunch.
 User force-quit is different from system termination: iOS cancels outstanding
 background transfers and will not relaunch the app automatically.
 
 ### File must be moved or opened in didFinishDownloadingTo
+
 The temporary file at `location` is available until the delegate method
 returns. Move it to preserve it, or open it for reading before returning.
 
 ### Call the system completion handler exactly once
+
 Store the completion handler from
 `application(_:handleEventsForBackgroundURLSession:completionHandler:)`
 and invoke it in `urlSessionDidFinishEvents(forBackgroundURLSession:)`
 on the main thread.
 
 ### Test on a real device
+
 Background session behavior differs significantly between the Simulator
 and real devices. Always test background transfers on hardware.
 

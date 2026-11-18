@@ -1,4 +1,5 @@
 ---
+
 title: Replace Arrow-Key Menus with Flag-Selected Choices
 impact: CRITICAL
 impactDescription: prevents blocking on inputs agents cannot produce
@@ -12,53 +13,53 @@ Arrow-key selection widgets (inquirer's `list` type, `enquirer.Select`, `promptu
 **Incorrect (region selection is menu-only):**
 
 ```typescript
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
 async function selectRegion(): Promise<string> {
-  // Agent cannot send arrow-key input to this prompt
-  const { region } = await inquirer.prompt({
-    name: 'region',
-    type: 'list',
-    message: 'Pick a region:',
-    choices: ['us-east-1', 'eu-west-1', 'ap-southeast-2'],
-  });
-  return region;
+	// Agent cannot send arrow-key input to this prompt
+	const { region } = await inquirer.prompt({
+		name: "region",
+		type: "list",
+		message: "Pick a region:",
+		choices: ["us-east-1", "eu-west-1", "ap-southeast-2"],
+	});
+	return region;
 }
 ```
 
 **Correct (flag is authoritative; menu only behind explicit --interactive):**
 
 ```typescript
-import inquirer from 'inquirer';
+import inquirer from "inquirer";
 
-const VALID_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-2'];
+const VALID_REGIONS = ["us-east-1", "eu-west-1", "ap-southeast-2"];
 
 async function selectRegion(
-  flagValue: string | undefined,
-  interactive: boolean,
+	flagValue: string | undefined,
+	interactive: boolean,
 ): Promise<string> {
-  if (flagValue) {
-    if (!VALID_REGIONS.includes(flagValue)) {
-      throw new Error(
-        `Invalid region '${flagValue}'. Valid: ${VALID_REGIONS.join(', ')}`
-      );
-    }
-    return flagValue;
-  }
-  if (!interactive || !process.stdin.isTTY) {
-    throw new Error(
-      `--region is required.\n` +
-      `  Valid values: ${VALID_REGIONS.join(', ')}\n` +
-      `  mycli deploy --region us-east-1\n` +
-      `  mycli deploy --interactive   # pick from a menu at a TTY`
-    );
-  }
-  const { region } = await inquirer.prompt({
-    name: 'region',
-    type: 'list',
-    choices: VALID_REGIONS,
-  });
-  return region;
+	if (flagValue) {
+		if (!VALID_REGIONS.includes(flagValue)) {
+			throw new Error(
+				`Invalid region '${flagValue}'. Valid: ${VALID_REGIONS.join(", ")}`,
+			);
+		}
+		return flagValue;
+	}
+	if (!interactive || !process.stdin.isTTY) {
+		throw new Error(
+			`--region is required.\n` +
+				`  Valid values: ${VALID_REGIONS.join(", ")}\n` +
+				`  mycli deploy --region us-east-1\n` +
+				`  mycli deploy --interactive   # pick from a menu at a TTY`,
+		);
+	}
+	const { region } = await inquirer.prompt({
+		name: "region",
+		type: "list",
+		choices: VALID_REGIONS,
+	});
+	return region;
 }
 ```
 

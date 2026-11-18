@@ -45,6 +45,7 @@
 [optional body]
 
 [optional footer(s)]
+
 ```
 
 | Type       | Description      | Changelog Section  |
@@ -69,7 +70,8 @@ MAJOR.MINOR.PATCH
 MAJOR: Breaking changes (feat! or BREAKING CHANGE)
 MINOR: New features (feat)
 PATCH: Bug fixes (fix)
-```
+
+````
 
 ## Implementation
 
@@ -114,38 +116,38 @@ EOF
 # Setup husky
 npx husky init
 echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg
-```
+````
 
 ### Method 2: standard-version Configuration
 
 ```javascript
 // .versionrc.js
 module.exports = {
-  types: [
-    { type: "feat", section: "Features" },
-    { type: "fix", section: "Bug Fixes" },
-    { type: "perf", section: "Performance Improvements" },
-    { type: "revert", section: "Reverts" },
-    { type: "docs", section: "Documentation", hidden: true },
-    { type: "style", section: "Styles", hidden: true },
-    { type: "chore", section: "Miscellaneous", hidden: true },
-    { type: "refactor", section: "Code Refactoring", hidden: true },
-    { type: "test", section: "Tests", hidden: true },
-    { type: "build", section: "Build System", hidden: true },
-    { type: "ci", section: "CI/CD", hidden: true },
-  ],
-  commitUrlFormat: "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
-  compareUrlFormat:
-    "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
-  issueUrlFormat: "{{host}}/{{owner}}/{{repository}}/issues/{{id}}",
-  userUrlFormat: "{{host}}/{{user}}",
-  releaseCommitMessageFormat: "chore(release): {{currentTag}}",
-  scripts: {
-    prebump: 'echo "Running prebump"',
-    postbump: 'echo "Running postbump"',
-    prechangelog: 'echo "Running prechangelog"',
-    postchangelog: 'echo "Running postchangelog"',
-  },
+	types: [
+		{ type: "feat", section: "Features" },
+		{ type: "fix", section: "Bug Fixes" },
+		{ type: "perf", section: "Performance Improvements" },
+		{ type: "revert", section: "Reverts" },
+		{ type: "docs", section: "Documentation", hidden: true },
+		{ type: "style", section: "Styles", hidden: true },
+		{ type: "chore", section: "Miscellaneous", hidden: true },
+		{ type: "refactor", section: "Code Refactoring", hidden: true },
+		{ type: "test", section: "Tests", hidden: true },
+		{ type: "build", section: "Build System", hidden: true },
+		{ type: "ci", section: "CI/CD", hidden: true },
+	],
+	commitUrlFormat: "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
+	compareUrlFormat:
+		"{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
+	issueUrlFormat: "{{host}}/{{owner}}/{{repository}}/issues/{{id}}",
+	userUrlFormat: "{{host}}/{{user}}",
+	releaseCommitMessageFormat: "chore(release): {{currentTag}}",
+	scripts: {
+		prebump: 'echo "Running prebump"',
+		postbump: 'echo "Running postbump"',
+		prechangelog: 'echo "Running prechangelog"',
+		postchangelog: 'echo "Running postchangelog"',
+	},
 };
 ```
 
@@ -167,41 +169,41 @@ module.exports = {
 ```javascript
 // release.config.js
 module.exports = {
-  branches: [
-    "main",
-    { name: "beta", prerelease: true },
-    { name: "alpha", prerelease: true },
-  ],
-  plugins: [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    [
-      "@semantic-release/changelog",
-      {
-        changelogFile: "CHANGELOG.md",
-      },
-    ],
-    [
-      "@semantic-release/npm",
-      {
-        npmPublish: true,
-      },
-    ],
-    [
-      "@semantic-release/github",
-      {
-        assets: ["dist/**/*.js", "dist/**/*.css"],
-      },
-    ],
-    [
-      "@semantic-release/git",
-      {
-        assets: ["CHANGELOG.md", "package.json"],
-        message:
-          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
-      },
-    ],
-  ],
+	branches: [
+		"main",
+		{ name: "beta", prerelease: true },
+		{ name: "alpha", prerelease: true },
+	],
+	plugins: [
+		"@semantic-release/commit-analyzer",
+		"@semantic-release/release-notes-generator",
+		[
+			"@semantic-release/changelog",
+			{
+				changelogFile: "CHANGELOG.md",
+			},
+		],
+		[
+			"@semantic-release/npm",
+			{
+				npmPublish: true,
+			},
+		],
+		[
+			"@semantic-release/github",
+			{
+				assets: ["dist/**/*.js", "dist/**/*.css"],
+			},
+		],
+		[
+			"@semantic-release/git",
+			{
+				assets: ["CHANGELOG.md", "package.json"],
+				message:
+					"chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
+			},
+		],
+	],
 };
 ```
 
@@ -456,3 +458,4 @@ cz check --rev-range HEAD~5..HEAD
 
 ```markdown
 # Release v2.1.0 - January 15, 2024
+```

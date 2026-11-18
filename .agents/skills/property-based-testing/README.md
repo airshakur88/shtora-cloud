@@ -133,7 +133,7 @@ that query `INVALID` because its denominator is unknown, and exits 3 regardless 
 score. Every other query still runs and is still reported.
 
 **But an invocation outranks a failure.** A Skill call is positive and final: nothing
-later in the session can un-call it, so the detector runs *before* the exit-status
+later in the session can un-call it, so the detector runs _before_ the exit-status
 ladder and a `yes` stands however the process ended. Only the absence of a call depends
 on the session having reached a decision. Getting this backwards is what corrupted the
 figures below.
@@ -146,27 +146,27 @@ failures are reported in the final `result` record on **stdout** — in a clean 
 sweep, 0 of 90 stderr files had any content at all, so anything reading only stderr
 learns nothing. Artifacts accumulate (~4MB/sweep) and are never cleaned up.
 
-| exit | meaning |
-|---|---|
-| 0 | every query met its expectation and every session returned a verdict |
-| 1 | regression — fewer queries passed than `EXPECT_PASS` |
-| 2 | harness failure — no queries discovered, or a malformed eval file |
-| 3 | invalid — a session crashed, timed out, or returned nothing |
+| exit | meaning                                                              |
+| ---- | -------------------------------------------------------------------- |
+| 0    | every query met its expectation and every session returned a verdict |
+| 1    | regression — fewer queries passed than `EXPECT_PASS`                 |
+| 2    | harness failure — no queries discovered, or a malformed eval file    |
+| 3    | invalid — a session crashed, timed out, or returned nothing          |
 
 Measured on `opus`, 3 runs per query, 45/45 sessions returning a verdict and `run.sh`
 exiting 0 — the first sweep of this suite that is a measurement rather than an
 artefact. Per-query rates:
 
-| query | expect | rate |
-|---|---|---|
-| 01-roundtrip-codec | true | **0/3 FAIL** |
-| 02-normalizer-idempotence | true | 2/3 |
-| 03-hypothesis-existing | true | 3/3 |
-| 04-echidna-invariant | true | 3/3 |
-| 05-review-weak-tests | true | 3/3 |
-| 07-fuzz-serializer-noname | true | 3/3 |
-| 08-sort-comparator | true | 3/3 |
-| all 8 negatives | false | 0/3 each |
+| query                     | expect | rate         |
+| ------------------------- | ------ | ------------ |
+| 01-roundtrip-codec        | true   | **0/3 FAIL** |
+| 02-normalizer-idempotence | true   | 2/3          |
+| 03-hypothesis-existing    | true   | 3/3          |
+| 04-echidna-invariant      | true   | 3/3          |
+| 05-review-weak-tests      | true   | 3/3          |
+| 07-fuzz-serializer-noname | true   | 3/3          |
+| 08-sort-comparator        | true   | 3/3          |
+| all 8 negatives           | false  | 0/3 each     |
 
 Totals: **14/15 queries passed, recall 6/7, precision 8/8, raw trigger hits 17/21.**
 
@@ -174,7 +174,7 @@ Totals: **14/15 queries passed, recall 6/7, precision 8/8, raw trigger hits 17/2
 
 An earlier version of this file recorded 13/15, recall 5/7, 14/21, with 04 and 07 at
 1/3 each. Do not trust those. They were produced by a classifier that consulted the
-session's exit status *before* checking whether the skill had been invoked, so any
+session's exit status _before_ checking whether the skill had been invoked, so any
 session that called the skill and then hit the 14-turn cap was discarded as a crash.
 In one salvaged sample, **9 of 12 sessions were being thrown away and all 12 had
 invoked the skill** — including all three runs of 04, the query recorded at 1/3 and
@@ -218,13 +218,13 @@ becomes defensible and 0/3 becomes a real bug worth chasing. If it does not, tha
 finding about `interpreting-failures.md` rather than about the description.
 
 One caveat on that 0/3: it was measured by the same classifier that mis-scored 04, so it
-is not trustworthy either. It is *less* affected than 04 was — the inversion only
+is not trustworthy either. It is _less_ affected than 04 was — the inversion only
 discarded sessions that had invoked the skill, and a session invoking it would have
 scored `yes` under either ordering — but the figure was never re-measured, and the
 argument for removal rests on the binary-label problem rather than on the number.
 
 Both scripts pin `--model` (`MODEL`, default `opus`) and print it above the table.
-Trigger rate is a property of a description *and* a model, so a number recorded
+Trigger rate is a property of a description _and_ a model, so a number recorded
 without one cannot be compared to the next one. To judge a description change, score
 the old copy and the new one on the same model — `PLUGIN_DIR` exists for exactly
 that, and it takes a plugin directory rather than needing a dirty working tree.
@@ -258,7 +258,7 @@ justifies paying for more, which is what `sweep downward on your own evals` in t
 repo's AGENTS.md asks for.
 
 Worth knowing before you change it: `effort` overrides the session level in both
-directions, so this drags a deliberate `xhigh` session *down* while the skill is
+directions, so this drags a deliberate `xhigh` session _down_ while the skill is
 active. That is the real cost of setting it at all, and it argues for raising the
 value — not lowering it further — if the generation path ever starts regressing.
 

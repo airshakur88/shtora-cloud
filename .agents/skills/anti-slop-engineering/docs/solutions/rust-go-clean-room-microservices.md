@@ -1,7 +1,9 @@
 # Solution: Clean-Room Rust & Go Microservices for Anti-Slop Engineering
 
 ## Problem
+
 AI coding agents frequently suffer from four distinct failure modes:
+
 1. **Scope Creep & Boundary Violation:** Arbitrarily rewriting adjacent modules or config files when tasked with a targeted bugfix.
 2. **Hypothetical Hardening & Companion Hashes:** Authoring unread `.sha256` or `.md5` companion files, speculative compatibility factories, or swallowing errors.
 3. **Intent Violations:** Mutating repository state when read-only review, audit, or diagnostic intent was specified.
@@ -10,6 +12,7 @@ AI coding agents frequently suffer from four distinct failure modes:
 Existing solutions in the ecosystem like Ponytail, Stop-That-Shit, Ponytail-Lite, and Boring-Engineering provide valuable philosophical concepts (the lazy senior dev, the SHIT taxonomy, boring engineering decision ladders), but often exist as isolated plugins or prompt-only files.
 
 ## Architecture & Clean-Room Implementation
+
 We synthesized these core mechanisms using the clean-room `/rea` (Reverse Engineer Anything) methodology without copying code or inheriting plugin baggage:
 
 ```
@@ -45,6 +48,7 @@ We synthesized these core mechanisms using the clean-room `/rea` (Reverse Engine
 ```
 
 ### 1. Rust Microservice Engine (`services/anti-slop-rust`)
+
 - **Technology Stack:** Rust (2021 edition), `clap` (derive CLI), `serde` / `serde_json`, `regex`, `tokio`, and `axum`.
 - **SHIT Interceptor (`src/shit_interceptor.rs`):**
   - `STS-S01`: Enforces strict file boundaries and catches unrequested path mutations.
@@ -61,6 +65,7 @@ We synthesized these core mechanisms using the clean-room `/rea` (Reverse Engine
   - Exposes `/health`, `/v1/triage`, `/v1/shit-check`, and `/v1/ladder-audit`.
 
 ### 2. Go SRE Microservice Engine (`services/toil-guard-go`)
+
 - **Technology Stack:** Go 100% standard library (`net/http`, `context`, `sync`, `os/exec`, `regexp`, `encoding/json`).
 - **KISS Complexity Analyzer (`pkg/sre/complexity.go`):**
   - Flags nesting depth > 4 levels (`SRE-KISS-NESTING`).
@@ -78,6 +83,7 @@ We synthesized these core mechanisms using the clean-room `/rea` (Reverse Engine
   - Exposes `/healthz`, Prometheus `/metrics`, `/v1/audit`, and `/v1/sli-budget`.
 
 ### 3. Unified Orchestration (`bin/cli.js` & `Makefile`)
+
 - Polyglot execution with automatic fallbacks:
   - `bunx anti-slop-engineering rust triage`
   - `bunx anti-slop-engineering toil audit`
@@ -86,6 +92,7 @@ We synthesized these core mechanisms using the clean-room `/rea` (Reverse Engine
   - Falls back gracefully to standard library Python guards if native binaries have not been compiled.
 
 ## Verification
+
 - **Python Test Suite:** 30 unit tests passing (`python3 -m unittest discover -s tests -v`).
 - **Rust Test Suite:** 7 unit tests passing (`cargo test` in `services/anti-slop-rust`).
 - **Go Test Suite:** 7 unit tests passing (`go test -v ./...` in `services/toil-guard-go`).

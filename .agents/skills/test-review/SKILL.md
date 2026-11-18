@@ -1,4 +1,5 @@
 ---
+
 name: test-review
 description: "Review pytest tests against the high-value rubric — focused, deterministic, readable, fast, behavior-bound. Flags AI-generated anti-patterns (mocks-the-SUT, patch-at-definition, raw floats, non-deterministic inputs) with file:line references and rewrite suggestions. Use before merging AI-generated tests, during PR review, or to audit a suite for rot."
 ---
@@ -19,7 +20,7 @@ Scope: Python / pytest only.
    - `Pipfile.lock` → `pipenv run pytest`
    - `.venv/bin/pytest` or `venv/bin/pytest` present → use that absolute path
    - fallback: bare `pytest`
-   
+
    If the config root is not the repo root, prefix the command with `cd <config-root> && `. Record the full prefix for later steps. Do NOT run tests in this skill — the prefix is stored in case `--fix` needs to verify.
 
 3. **Glob test files.** If `$ARGS` is a path or glob, use that. Otherwise prefer `[tool.pytest.ini_options].testpaths` from `pyproject.toml` (or `testpaths` from `pytest.ini`). If unspecified, fall back to `**/test_*.py **/*_test.py` under the config root.

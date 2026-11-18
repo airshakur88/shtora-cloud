@@ -1,4 +1,5 @@
 ---
+
 name: vitest-cli
 description: Command line interface commands and options
 ---
@@ -139,12 +140,12 @@ vitest --list-tags=json        # JSON output
 
 ```json
 {
-  "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
-  }
+	"scripts": {
+		"test": "vitest",
+		"test:run": "vitest run",
+		"test:ui": "vitest --ui",
+		"coverage": "vitest run --coverage"
+	}
 }
 ```
 
@@ -166,6 +167,7 @@ vitest --merge-reports=reports --reporter=junit --reporter=default
 ## Watch Mode Keyboard Shortcuts
 
 In watch mode, press:
+
 - `a` - Run all tests
 - `f` - Run only failed tests
 - `u` - Update snapshots

@@ -1,23 +1,26 @@
 ---
+
 name: discovery-process
 argument-hint: "[problem hypothesis]"
 description: Run a full discovery cycle from problem hypothesis to validated solution. Use when a team needs a structured path through framing, interviews, synthesis, and experiments.
 intent: >-
-  Guide product managers through a complete discovery cycle—from initial problem hypothesis to validated solution—by orchestrating problem framing, customer interviews, synthesis, and experimentation skills into a structured process. Use this to systematically explore problem spaces, validate assumptions, and build confidence before committing to full development—avoiding "build it and they will come" syndrome and ensuring you're solving real customer problems.
+Guide product managers through a complete discovery cycle—from initial problem hypothesis to validated solution—by orchestrating problem framing, customer interviews, synthesis, and experimentation skills into a structured process. Use this to systematically explore problem spaces, validate assumptions, and build confidence before committing to full development—avoiding "build it and they will come" syndrome and ensuring you're solving real customer problems.
 type: workflow
 theme: discovery-research
 best_for:
-  - "Running a full discovery cycle from hypothesis to validated solution"
-  - "Investigating a retention or churn problem systematically"
-  - "Setting up continuous discovery as an ongoing practice"
-scenarios:
-  - "I have a hypothesis that B2B customers struggle with onboarding and want to validate it before building anything"
-  - "Our activation rate dropped 15% this quarter and I need to run discovery to find out why"
-estimated_time: "30-60 min"
+
+- "Running a full discovery cycle from hypothesis to validated solution"
+- "Investigating a retention or churn problem systematically"
+- "Setting up continuous discovery as an ongoing practice"
+  scenarios:
+- "I have a hypothesis that B2B customers struggle with onboarding and want to validate it before building anything"
+- "Our activation rate dropped 15% this quarter and I need to run discovery to find out why"
+  estimated_time: "30-60 min"
+
 ---
 
-
 ## Purpose
+
 Guide product managers through a complete discovery cycle—from initial problem hypothesis to validated solution—by orchestrating problem framing, customer interviews, synthesis, and experimentation skills into a structured process. Use this to systematically explore problem spaces, validate assumptions, and build confidence before committing to full development—avoiding "build it and they will come" syndrome and ensuring you're solving real customer problems.
 
 This is not a one-time research project—it's a continuous discovery practice that runs in parallel with delivery, typically 1-2 discovery cycles per quarter.
@@ -47,23 +50,27 @@ The discovery process (Teresa Torres, Marty Cagan) is a structured approach to e
 6. **Decide & Document** — Commit to build, pivot, or kill
 
 ### Why This Works
+
 - **De-risks product decisions:** Tests assumptions before expensive builds
 - **Customer-centric:** Grounds decisions in real customer problems, not internal opinions
 - **Iterative:** Builds confidence progressively through small experiments
 - **Fast learning:** Discovers "no-go" signals early, saves wasted effort
 
 ### Anti-Patterns (What This Is NOT)
+
 - **Not waterfall research:** Discovery runs continuously, not once before dev
 - **Not user testing:** Discovery validates problems; testing validates solutions
 - **Not a substitute for shipping:** Discovery informs delivery, doesn't replace it
 
 ### When to Use This
+
 - Exploring new product/feature areas
 - Investigating retention or churn problems
 - Validating strategic initiatives before roadmap commitment
 - Continuous discovery (weekly customer touchpoints)
 
 ### When NOT to Use This
+
 - For well-understood problems (move to execution)
 - When stakeholders have already committed to a solution (address alignment first)
 - For tactical bug fixes or technical debt (no discovery needed)
@@ -75,6 +82,7 @@ The discovery process (Teresa Torres, Marty Cagan) is a structured approach to e
 When running this workflow as a guided conversation, use [`workshop-facilitation`](../workshop-facilitation/SKILL.md) as the interaction protocol.
 
 It defines:
+
 - session heads-up + entry mode (Guided, Context dump, Best guess)
 - one-question turns with plain-language prompts
 - progress labels (for example, Context Qx/8 and Scoring Qx/5)
@@ -99,24 +107,28 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Run Problem Framing Canvas**
+
 - **Use:** `skills/problem-framing-canvas/SKILL.md` (interactive - MITRE)
 - **Participants:** PM, design, engineering lead
 - **Duration:** 120 minutes
 - **Output:** Problem statement + "How Might We" question
 
 **2. Create Formal Problem Statement**
+
 - **Use:** `skills/problem-statement/SKILL.md` (component)
 - **Participants:** PM
 - **Duration:** 30 minutes
 - **Output:** Structured problem statement with hypothesis
 
 **3. Define Proto-Personas (If Needed)**
+
 - **Use:** `skills/proto-persona/SKILL.md` (component)
 - **When:** If target customer segment is unclear
 - **Duration:** 60 minutes
 - **Output:** Hypothesis-driven personas
 
 **4. Map Jobs-to-be-Done (If Needed)**
+
 - **Use:** `skills/jobs-to-be-done/SKILL.md` (component)
 - **When:** If customer motivations are unclear
 - **Duration:** 60 minutes
@@ -133,6 +145,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 **If YES:** Proceed to Phase 2 (Research Planning)
 
 **If NO:** Gather existing data first:
+
 - Review support tickets, churn surveys, NPS feedback
 - Analyze product analytics (drop-off points, usage patterns)
 - Review competitor research, market trends
@@ -147,12 +160,14 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Prep Discovery Interviews**
+
 - **Use:** `skills/discovery-interview-prep/SKILL.md` (interactive)
 - **Participants:** PM, design
 - **Duration:** 90 minutes
 - **Output:** Interview plan with methodology, questions, biases to avoid
 
 **2. Recruit Participants**
+
 - **Target:** 5-10 customers per discovery cycle (Teresa Torres: continuous discovery = 1 interview/week)
 - **Segment:** Focus on personas from Phase 1
 - **Recruitment channels:**
@@ -163,6 +178,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 - **Duration:** 2-3 days (parallel with Phase 1)
 
 **3. Schedule Interviews**
+
 - **Format:** 45-60 min per interview (30-40 min conversation + buffer)
 - **Timeline:** Spread across 1-2 weeks
 - **Recording:** Get consent, record for synthesis
@@ -182,6 +198,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Conduct Discovery Interviews**
+
 - **Methodology:** From `skills/discovery-interview-prep/SKILL.md` (Problem validation, JTBD, switch interviews, etc.)
 - **Participants:** PM + optional observer (design, eng)
 - **Duration:** 5-10 interviews over 1-2 weeks
@@ -192,6 +209,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
   - Pain intensity: "How much time/money does this cost you?"
 
 **2. Take Structured Notes**
+
 - **Template:**
   - Participant: [Name, role, company size]
   - Context: [When/where they experience problem]
@@ -202,6 +220,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
   - Insights: [Patterns, surprises]
 
 **3. Review Support Tickets & Analytics (Parallel)**
+
 - **Support tickets:** Tag by theme (onboarding, feature confusion, bugs)
 - **Analytics:** Identify drop-off points, feature usage, cohort behavior
 - **Surveys:** Review NPS comments, exit surveys, feature requests
@@ -219,6 +238,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 **If YES (saturated after 5-7 interviews):** Proceed to Phase 4 (Synthesis)
 
 **If NO (still learning new things):** Schedule 3-5 more interviews
+
 - **Time impact:** +1 week
 
 ---
@@ -230,6 +250,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Affinity Mapping (Thematic Analysis)**
+
 - **Method:**
   - Write each insight/quote on sticky note
   - Group by theme (e.g., "onboarding confusion," "pricing objections," "mobile access")
@@ -239,12 +260,14 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 - **Output:** Themed clusters with frequency counts
 
 **2. Create Customer Journey Map (Optional)**
+
 - **Use:** `skills/customer-journey-mapping-workshop/SKILL.md` (interactive)
 - **When:** If pain points span multiple phases (discover, try, buy, use, support)
 - **Duration:** 90 minutes
 - **Output:** Journey map with opportunities ranked by impact
 
 **3. Prioritize Pain Points**
+
 - **Criteria:**
   - **Frequency:** How many customers mentioned this?
   - **Intensity:** How painful is it? (time wasted, money lost, emotional frustration)
@@ -253,6 +276,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 - **Output:** Ranked list of top 3-5 pain points to address
 
 **4. Update Problem Statement**
+
 - **Use:** `skills/problem-statement/SKILL.md` (component)
 - **Refine based on research:** Did initial hypothesis hold? Adjust if needed.
 - **Output:** Validated problem statement
@@ -273,6 +297,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Generate Opportunity Solution Tree**
+
 - **Use:** `skills/opportunity-solution-tree/SKILL.md` (interactive)
 - **Input:** Top 3 pain points from Phase 4
 - **Participants:** PM, design, engineering lead
@@ -280,11 +305,13 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 - **Output:** 3 opportunities, 3 solutions per opportunity, POC recommendation
 
 **Alternative: Use Lean UX Canvas**
+
 - **Use:** `skills/lean-ux-canvas/SKILL.md` (interactive)
 - **When:** Prefer hypothesis-driven approach over OST
 - **Output:** Hypotheses to test, minimal experiments
 
 **2. Design Experiments**
+
 - **For each solution:** Define "What's the least work to learn the next most important thing?"
 - **Experiment types:**
   - **Concierge test:** Manually deliver solution to 10 customers, observe
@@ -294,6 +321,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 - **Success criteria:** What metric/behavior validates hypothesis?
 
 **3. Run Experiments**
+
 - **Timeline:** 1-2 weeks per experiment
 - **Participants:** PM + design (for prototypes), eng (for A/B tests)
 - **Output:** Quantitative and qualitative validation data
@@ -309,6 +337,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 **If YES (validated):** Proceed to Phase 6 (Decide & Document)
 
 **If NO (invalidated):**
+
 - Pivot to next solution option
 - Re-run experiments with adjusted approach
 - **Time impact:** +1-2 weeks
@@ -322,6 +351,7 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
 ### Activities
 
 **1. Make Go/No-Go Decision**
+
 - **Criteria:**
   - Problem validated? (Phase 3-4)
   - Solution validated? (Phase 5)
@@ -333,18 +363,21 @@ This workflow orchestrates **6 phases** over **2-4 weeks**, using multiple compo
   - **KILL:** De-prioritize, not worth solving now
 
 **2. Define Epic Hypotheses (If GO)**
+
 - **Use:** `skills/epic-hypothesis/SKILL.md` (component)
 - **Participants:** PM
 - **Duration:** 60 minutes per epic
 - **Output:** Epic hypothesis statement with success criteria
 
 **3. Write PRD (If GO)**
+
 - **Use:** `skills/prd-development/SKILL.md` (workflow)
 - **Participants:** PM
 - **Duration:** 1-2 days
 - **Output:** Structured PRD with problem, solution, success metrics
 
 **4. Communicate Findings**
+
 - **Format:** 30-min readout covering:
   - Problem validation (Phase 3-4 insights)
   - Solution validation (Phase 5 experiments)
@@ -410,6 +443,7 @@ Week 4:
 ```
 
 **Total Time Investment:**
+
 - **Fast track:** 3 weeks (5 interviews, 1 experiment)
 - **Typical:** 4 weeks (7-10 interviews, 1-2 experiments)
 - **Thorough:** 6-8 weeks (10+ interviews, multiple experiment rounds)
@@ -431,6 +465,7 @@ Mini example excerpt:
 ## Common Pitfalls
 
 ### Pitfall 1: Skipping Customer Interviews
+
 **Symptom:** Rely only on analytics and support tickets, no qualitative research
 
 **Consequence:** Miss "why" behind behavior, build wrong solutions
@@ -440,6 +475,7 @@ Mini example excerpt:
 ---
 
 ### Pitfall 2: Asking Leading Questions
+
 **Symptom:** "Would you use [feature X] if we built it?"
 
 **Consequence:** Confirmation bias, customers say "yes" to be polite
@@ -449,6 +485,7 @@ Mini example excerpt:
 ---
 
 ### Pitfall 3: Not Reaching Saturation
+
 **Symptom:** Interview 2-3 customers, declare discovery complete
 
 **Consequence:** Small sample, not representative
@@ -458,6 +495,7 @@ Mini example excerpt:
 ---
 
 ### Pitfall 4: Analysis Paralysis
+
 **Symptom:** Spend 6 weeks synthesizing insights, never move to solutions
 
 **Consequence:** No delivery, team loses momentum
@@ -467,6 +505,7 @@ Mini example excerpt:
 ---
 
 ### Pitfall 5: Discovery as One-Time Activity
+
 **Symptom:** Run discovery once before building, then stop
 
 **Consequence:** Miss evolving customer needs, market changes
@@ -480,31 +519,38 @@ Mini example excerpt:
 ### Related Skills (Orchestrated by This Workflow)
 
 **Phase 1:**
+
 - `skills/problem-framing-canvas/SKILL.md` (interactive)
 - `skills/problem-statement/SKILL.md` (component)
 - `skills/proto-persona/SKILL.md` (component, optional)
 - `skills/jobs-to-be-done/SKILL.md` (component, optional)
 
 **Phase 2:**
+
 - `skills/discovery-interview-prep/SKILL.md` (interactive)
 
 **Phase 4:**
+
 - `skills/customer-journey-mapping-workshop/SKILL.md` (interactive, optional)
 
 **Phase 5:**
+
 - `skills/opportunity-solution-tree/SKILL.md` (interactive)
 - `skills/lean-ux-canvas/SKILL.md` (interactive, alternative)
 
 **Phase 6:**
+
 - `skills/epic-hypothesis/SKILL.md` (component)
 - `skills/prd-development/SKILL.md` (workflow)
 
 ### External Frameworks
-- Teresa Torres, *Continuous Discovery Habits* (2021) — Weekly customer touchpoints, OST framework
-- Rob Fitzpatrick, *The Mom Test* (2013) — How to ask good interview questions
-- Marty Cagan, *Inspired* (2017) — Product discovery principles
+
+- Teresa Torres, _Continuous Discovery Habits_ (2021) — Weekly customer touchpoints, OST framework
+- Rob Fitzpatrick, _The Mom Test_ (2013) — How to ask good interview questions
+- Marty Cagan, _Inspired_ (2017) — Product discovery principles
 
 ### Dean's Work
+
 - Productside Blueprint — Strategic discovery process
 - [If Dean has discovery resources, link here]
 

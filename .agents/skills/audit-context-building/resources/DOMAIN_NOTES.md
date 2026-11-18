@@ -6,12 +6,12 @@ between calls — and then, per function, what must be true, what it takes on fa
 
 What changes is the answers, and what counts as a call you cannot see inside. That is what this file maps.
 
-| | ways in | who's on the other side | data that sticks around | calls you can't see inside |
-| --- | --- | --- | --- | --- |
-| Smart contracts | `external` / `public` function | caller, owner, relayer, oracle, other protocols | storage slots | an address whose code isn't in the project |
-| C / C++ source | exported function, parser, syscall or IPC handler | remote peer, local user, other threads | globals, statics, long-lived heap | a linked library shipped without source |
-| Decompiled / firmware | task entry, interrupt handler, protocol handler | radio peer, LAN host, serial console | fixed addresses, NVRAM, DMA regions | a symbol the decompiler never resolved |
-| Web services (Go, Rust, Python) | route handler, RPC method, queue consumer | logged-in user, anonymous caller, internal service | database rows, cache entries, sessions | a third-party API |
+|                                 | ways in                                           | who's on the other side                            | data that sticks around                | calls you can't see inside                 |
+| ------------------------------- | ------------------------------------------------- | -------------------------------------------------- | -------------------------------------- | ------------------------------------------ |
+| Smart contracts                 | `external` / `public` function                    | caller, owner, relayer, oracle, other protocols    | storage slots                          | an address whose code isn't in the project |
+| C / C++ source                  | exported function, parser, syscall or IPC handler | remote peer, local user, other threads             | globals, statics, long-lived heap      | a linked library shipped without source    |
+| Decompiled / firmware           | task entry, interrupt handler, protocol handler   | radio peer, LAN host, serial console               | fixed addresses, NVRAM, DMA regions    | a symbol the decompiler never resolved     |
+| Web services (Go, Rust, Python) | route handler, RPC method, queue consumer         | logged-in user, anonymous caller, internal service | database rows, cache entries, sessions | a third-party API                          |
 
 ## Contracts
 

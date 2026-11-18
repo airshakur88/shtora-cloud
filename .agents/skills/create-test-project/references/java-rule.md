@@ -24,7 +24,7 @@ Each unit entry already records the method's `signature` (its JVM descriptor) �
 - positive sample — a minimal flow that must flag, with the real sink/source signature and no extra hops:
   - **sink** under test → `<Type> t = test.Taint.source(); pkg.theSink(t);` — declare the local as the sink argument's type; the generic `source()` infers it, no cast
   - **source** under test → `var v = pkg.theSource(); test.Taint.sink(v);` — `sink` takes `Object`, so any type fits
-  One positive per new sink (in `sinks/`) and per new source (in `sources/`)
+    One positive per new sink (in `sinks/`) and per new source (in `sources/`)
 - negative sample — the safe (sanitized or parameterized) variant of the same, which must not flag. Keep it realistic — prefer the library's real sanitizer or validation call when the source makes one visible — not stripped to constants
 
 The samples are plain methods; their verdicts live in a `rule-test.yaml` (below), not on the method.

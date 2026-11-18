@@ -113,13 +113,13 @@ Before micro-optimizing, check that the algorithm itself isn't the bottleneck. A
 
 **Common complexity traps in Go:**
 
-| Pattern | Complexity | Fix | Fixed complexity |
-| --- | --- | --- | --- |
-| `slices.Contains` in a loop | O(n·m) | Build `map[T]struct{}` first, then lookup | O(n+m) |
-| Nested loops for matching | O(n²) | Index with a map, sort+binary search, or `slices.BinarySearch` | O(n log n) or O(n) |
-| Repeated `append` without prealloc | O(n²) amortized copies | `make([]T, 0, n)` | O(n) |
-| String concatenation with `+=` | O(n²) total copies | `strings.Builder` | O(n) |
-| Linear scan for min/max/dedup | O(n) per query | Sort once, query many times | O(n log n) + O(log n) per query |
+| Pattern                            | Complexity             | Fix                                                            | Fixed complexity                |
+| ---------------------------------- | ---------------------- | -------------------------------------------------------------- | ------------------------------- |
+| `slices.Contains` in a loop        | O(n·m)                 | Build `map[T]struct{}` first, then lookup                      | O(n+m)                          |
+| Nested loops for matching          | O(n²)                  | Index with a map, sort+binary search, or `slices.BinarySearch` | O(n log n) or O(n)              |
+| Repeated `append` without prealloc | O(n²) amortized copies | `make([]T, 0, n)`                                              | O(n)                            |
+| String concatenation with `+=`     | O(n²) total copies     | `strings.Builder`                                              | O(n)                            |
+| Linear scan for min/max/dedup      | O(n) per query         | Sort once, query many times                                    | O(n log n) + O(log n) per query |
 
 **Think in Big-O first, then optimize constants.** A 10x constant-factor improvement matters; switching from O(n²) to O(n) matters more.
 

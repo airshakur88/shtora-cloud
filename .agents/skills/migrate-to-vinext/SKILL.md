@@ -1,4 +1,5 @@
 ---
+
 name: migrate-to-vinext
 description: Migrates Next.js projects to vinext (Vite-based Next.js reimplementation). Load when asked to migrate, convert, or switch from Next.js to vinext. Handles compatibility scanning, package replacement, Vite config generation, ESM conversion, and deployment setup (Cloudflare Workers natively, other platforms via Nitro).
 ---
@@ -179,8 +180,8 @@ To access Cloudflare bindings (D1, R2, KV, AI, Queues, Durable Objects, etc.), u
 import { env } from "cloudflare:workers";
 
 export default async function Page() {
-  const result = await env.DB.prepare("SELECT * FROM posts").all();
-  return <div>{JSON.stringify(result)}</div>;
+	const result = await env.DB.prepare("SELECT * FROM posts").all();
+	return <div>{JSON.stringify(result)}</div>;
 }
 ```
 
@@ -217,7 +218,7 @@ import vinext from "vinext";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
-  plugins: [vinext(), nitro()],
+	plugins: [vinext(), nitro()],
 });
 ```
 

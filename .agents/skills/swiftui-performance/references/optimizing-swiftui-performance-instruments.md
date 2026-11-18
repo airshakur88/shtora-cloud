@@ -4,6 +4,7 @@ Context: WWDC session introducing the SwiftUI Instrument in Instruments 26 and
 how to diagnose SwiftUI-specific bottlenecks.
 
 ## Contents
+
 - When to use the SwiftUI Instrument
 - Recommended capture setup
 - Reading the SwiftUI timeline

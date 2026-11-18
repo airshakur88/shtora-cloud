@@ -30,48 +30,48 @@ Note the ACTIVE storage in v1.15.13 is the LEGACY pair `message` + `part`; the V
 
 ### `session`
 
-| Column | Notes |
-|--------|-------|
-| id | PK, 'ses_' prefix |
-| project_id | FK |
-| parent_id | |
-| slug | |
-| directory | |
-| title | NOT NULL |
-| version | |
-| agent | |
-| model | JSON {providerID, modelID} |
-| cost | |
-| tokens_input | |
-| tokens_output | |
-| tokens_reasoning | |
-| tokens_cache_read | |
-| tokens_cache_write | |
-| metadata | JSON |
-| time_created | epoch MILLISECONDS |
-| time_updated | epoch MILLISECONDS |
-| time_archived | |
+| Column             | Notes                      |
+| ------------------ | -------------------------- |
+| id                 | PK, 'ses_' prefix          |
+| project_id         | FK                         |
+| parent_id          |                            |
+| slug               |                            |
+| directory          |                            |
+| title              | NOT NULL                   |
+| version            |                            |
+| agent              |                            |
+| model              | JSON {providerID, modelID} |
+| cost               |                            |
+| tokens_input       |                            |
+| tokens_output      |                            |
+| tokens_reasoning   |                            |
+| tokens_cache_read  |                            |
+| tokens_cache_write |                            |
+| metadata           | JSON                       |
+| time_created       | epoch MILLISECONDS         |
+| time_updated       | epoch MILLISECONDS         |
+| time_archived      |                            |
 
 Indexes: project_id, parent_id, workspace_id. NO index on title or time_created.
 
 ### `message` (legacy)
 
-| Column | Notes |
-|--------|-------|
-| id | 'msg_' prefix |
-| session_id | FK -> session, cascade |
-| time_created | |
-| time_updated | |
-| data | JSON: {role, time:{created}, summary:{title}, agent, model:{providerID,modelID}, variant} |
+| Column       | Notes                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| id           | 'msg_' prefix                                                                             |
+| session_id   | FK -> session, cascade                                                                    |
+| time_created |                                                                                           |
+| time_updated |                                                                                           |
+| data         | JSON: {role, time:{created}, summary:{title}, agent, model:{providerID,modelID}, variant} |
 
 ### `part` (legacy)
 
-| Column | Notes |
-|--------|-------|
-| id | 'prt_' prefix |
-| message_id | FK -> message, cascade |
+| Column     | Notes                                |
+| ---------- | ------------------------------------ |
+| id         | 'prt_' prefix                        |
+| message_id | FK -> message, cascade               |
 | session_id | denormalized; index part_session_idx |
-| data | JSON |
+| data       | JSON                                 |
 
 Part types seen: text, reasoning, tool, step-start, step-finish. A text part is `{"type":"text","text":"..."}`.
 

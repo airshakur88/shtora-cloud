@@ -103,13 +103,13 @@ if !user.HasPermission("admin:write") {
 
 Score each identified threat to prioritize remediation:
 
-| Factor | 1-3 (Low) | 4-6 (Medium) | 7-10 (High) |
-| --- | --- | --- | --- |
-| **D**amage | Minor info disclosure | Partial data breach | Full system compromise, data destruction |
-| **R**eproducibility | Timing-dependent, hard to reproduce | Reproducible with some effort | Always reproducible, automated tools exist |
-| **E**xploitability | Custom exploit, advanced skills needed | Basic tools available | No skills required, public exploit exists |
-| **A**ffected users | Individual user | Subset of users | All users |
-| **D**iscoverability | Requires insider knowledge | Found via scanning | Publicly documented, obvious |
+| Factor              | 1-3 (Low)                              | 4-6 (Medium)                  | 7-10 (High)                                |
+| ------------------- | -------------------------------------- | ----------------------------- | ------------------------------------------ |
+| **D**amage          | Minor info disclosure                  | Partial data breach           | Full system compromise, data destruction   |
+| **R**eproducibility | Timing-dependent, hard to reproduce    | Reproducible with some effort | Always reproducible, automated tools exist |
+| **E**xploitability  | Custom exploit, advanced skills needed | Basic tools available         | No skills required, public exploit exists  |
+| **A**ffected users  | Individual user                        | Subset of users               | All users                                  |
+| **D**iscoverability | Requires insider knowledge             | Found via scanning            | Publicly documented, obvious               |
 
 **Score** = (D + R + E + A + D) / 5. Risk levels: **8-10 Critical**, **6-7.9 High**, **4-5.9 Medium**, **1-3.9 Low**.
 
@@ -162,18 +162,18 @@ Every arrow crossing the trust boundary needs:
 
 ## OWASP Top 10 Mapping for Go
 
-| Rank | Vulnerability | STRIDE | Go Defense |
-| --- | --- | --- | --- |
-| A01 | Broken Access Control | E | Server-side authz middleware, RBAC, IDOR checks |
-| A02 | Cryptographic Failures | I | `crypto/aes` GCM, `crypto/rand`, TLS 1.2+ |
-| A03 | Injection | T, E | `database/sql` placeholders, `exec.Command` separate args, `html/template` |
-| A04 | Insecure Design | All | Threat modeling with STRIDE, defense-in-depth |
-| A05 | Security Misconfiguration | I, E | Server timeouts, TLS config, no `InsecureSkipVerify`, no exposed pprof |
-| A06 | Vulnerable Components | All | `govulncheck`, Dependabot/Renovate, `go.sum` verification |
-| A07 | Authentication Failures | S, E | Argon2id/bcrypt, JWT validation (algorithm pinning), MFA |
-| A08 | Software/Data Integrity | T | Module checksums (`go.sum`), signed releases, CI verification |
-| A09 | Logging Failures | R | Structured logging (`log/slog`), audit trails, no PII |
-| A10 | SSRF | I, T | URL allowlists, block internal IPs and metadata endpoints |
+| Rank | Vulnerability             | STRIDE | Go Defense                                                                 |
+| ---- | ------------------------- | ------ | -------------------------------------------------------------------------- |
+| A01  | Broken Access Control     | E      | Server-side authz middleware, RBAC, IDOR checks                            |
+| A02  | Cryptographic Failures    | I      | `crypto/aes` GCM, `crypto/rand`, TLS 1.2+                                  |
+| A03  | Injection                 | T, E   | `database/sql` placeholders, `exec.Command` separate args, `html/template` |
+| A04  | Insecure Design           | All    | Threat modeling with STRIDE, defense-in-depth                              |
+| A05  | Security Misconfiguration | I, E   | Server timeouts, TLS config, no `InsecureSkipVerify`, no exposed pprof     |
+| A06  | Vulnerable Components     | All    | `govulncheck`, Dependabot/Renovate, `go.sum` verification                  |
+| A07  | Authentication Failures   | S, E   | Argon2id/bcrypt, JWT validation (algorithm pinning), MFA                   |
+| A08  | Software/Data Integrity   | T      | Module checksums (`go.sum`), signed releases, CI verification              |
+| A09  | Logging Failures          | R      | Structured logging (`log/slog`), audit trails, no PII                      |
+| A10  | SSRF                      | I, T   | URL allowlists, block internal IPs and metadata endpoints                  |
 
 ---
 

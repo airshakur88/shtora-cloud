@@ -109,11 +109,11 @@ Use `crypto/aes` with GCM mode for authenticated encryption. See [Cryptography S
 
 ## Zero Trust Principles
 
-| Principle | Implementation |
-| --- | --- |
+| Principle         | Implementation                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------- |
 | Verify explicitly | Authenticate and authorize every request — no implicit trust from network location |
-| Least privilege | Grant minimum permissions; use short-lived tokens (15min access, 7d refresh) |
-| Assume breach | Segment services, encrypt all communication, log all access for anomaly detection |
+| Least privilege   | Grant minimum permissions; use short-lived tokens (15min access, 7d refresh)       |
+| Assume breach     | Segment services, encrypt all communication, log all access for anomaly detection  |
 
 ```go
 // Zero Trust middleware: verify identity + permissions on every request
@@ -147,13 +147,13 @@ func ZeroTrustMiddleware(next http.Handler) http.Handler {
 
 ## Authentication Pattern Selection
 
-| Use Case | Recommended Pattern | Go Implementation |
-| --- | --- | --- |
-| Web application | OAuth 2.0 + PKCE with OIDC | `golang.org/x/oauth2` |
-| API authentication | JWT with short expiry + refresh tokens | `github.com/golang-jwt/jwt/v5` |
-| Service-to-service | mTLS with certificate rotation | `crypto/tls` with `tls.LoadX509KeyPair` |
-| CLI/Automation | API keys with IP allowlisting | Custom middleware with `net.ParseIP` |
-| High security | FIDO2/WebAuthn hardware keys | `github.com/go-webauthn/webauthn` |
+| Use Case           | Recommended Pattern                    | Go Implementation                       |
+| ------------------ | -------------------------------------- | --------------------------------------- |
+| Web application    | OAuth 2.0 + PKCE with OIDC             | `golang.org/x/oauth2`                   |
+| API authentication | JWT with short expiry + refresh tokens | `github.com/golang-jwt/jwt/v5`          |
+| Service-to-service | mTLS with certificate rotation         | `crypto/tls` with `tls.LoadX509KeyPair` |
+| CLI/Automation     | API keys with IP allowlisting          | Custom middleware with `net.ParseIP`    |
+| High security      | FIDO2/WebAuthn hardware keys           | `github.com/go-webauthn/webauthn`       |
 
 ### JWT Validation — Complete Example
 
@@ -236,28 +236,28 @@ func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 }
 ```
 
-| Header | Purpose | Recommended Value |
-| --- | --- | --- |
-| Content-Security-Policy | Prevents XSS by restricting resource sources | `default-src 'self'; script-src 'self'` |
-| X-Frame-Options | Prevents clickjacking via framing | `DENY` |
-| X-Content-Type-Options | Prevents MIME-type sniffing | `nosniff` |
-| Strict-Transport-Security | Forces HTTPS, prevents protocol downgrade | `max-age=31536000; includeSubDomains` |
-| Referrer-Policy | Controls referrer header leakage | `strict-origin-when-cross-origin` |
-| Permissions-Policy | Restricts browser features (camera, mic, geolocation) | `geolocation=(), microphone=(), camera=()` |
+| Header                    | Purpose                                               | Recommended Value                          |
+| ------------------------- | ----------------------------------------------------- | ------------------------------------------ |
+| Content-Security-Policy   | Prevents XSS by restricting resource sources          | `default-src 'self'; script-src 'self'`    |
+| X-Frame-Options           | Prevents clickjacking via framing                     | `DENY`                                     |
+| X-Content-Type-Options    | Prevents MIME-type sniffing                           | `nosniff`                                  |
+| Strict-Transport-Security | Forces HTTPS, prevents protocol downgrade             | `max-age=31536000; includeSubDomains`      |
+| Referrer-Policy           | Controls referrer header leakage                      | `strict-origin-when-cross-origin`          |
+| Permissions-Policy        | Restricts browser features (camera, mic, geolocation) | `geolocation=(), microphone=(), camera=()` |
 
 ---
 
 ## Security Anti-Patterns
 
-| Anti-Pattern | Why It Fails | Go Fix |
-| --- | --- | --- |
-| Security through obscurity | Hidden admin URLs are discoverable via fuzzing, logs, or source code | Authentication + authorization on all endpoints |
-| Trusting client headers | `X-Forwarded-For`, `X-Is-Admin` — clients forge any header | Server-side identity verification; trust proxy headers only from known load balancers |
-| Client-side authorization | JavaScript checks are trivially bypassed by any HTTP client | Server-side `if !user.HasRole("admin")` on every protected handler |
-| Shared secrets across environments | Staging breach → production compromise | Per-environment secrets via secret manager |
-| Catching and ignoring crypto errors | `_, _ = encrypt(data)` silently proceeds with unencrypted data | Always check error returns — fail closed, never open |
-| Rolling your own crypto | Custom encryption hasn't been analyzed by cryptographers | Use `crypto/aes` GCM, `golang.org/x/crypto/argon2` |
-| Verbose error responses | Stack traces and DB errors reveal internals to attackers | Generic errors to clients (`http.Error(w, "Internal error", 500)`), detailed logs server-side |
+| Anti-Pattern                        | Why It Fails                                                         | Go Fix                                                                                        |
+| ----------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Security through obscurity          | Hidden admin URLs are discoverable via fuzzing, logs, or source code | Authentication + authorization on all endpoints                                               |
+| Trusting client headers             | `X-Forwarded-For`, `X-Is-Admin` — clients forge any header           | Server-side identity verification; trust proxy headers only from known load balancers         |
+| Client-side authorization           | JavaScript checks are trivially bypassed by any HTTP client          | Server-side `if !user.HasRole("admin")` on every protected handler                            |
+| Shared secrets across environments  | Staging breach → production compromise                               | Per-environment secrets via secret manager                                                    |
+| Catching and ignoring crypto errors | `_, _ = encrypt(data)` silently proceeds with unencrypted data       | Always check error returns — fail closed, never open                                          |
+| Rolling your own crypto             | Custom encryption hasn't been analyzed by cryptographers             | Use `crypto/aes` GCM, `golang.org/x/crypto/argon2`                                            |
+| Verbose error responses             | Stack traces and DB errors reveal internals to attackers             | Generic errors to clients (`http.Error(w, "Internal error", 500)`), detailed logs server-side |
 
 ```go
 // Anti-pattern: trusting client-provided identity

@@ -1,9 +1,10 @@
 ---
+
 name: mantis-patch
 description: >-
-  Generates minimal security fixes using transactional isolation (shadow directories or file backups), applies patches, and verifies them.
-  Use when security findings are successfully reproduced and need patches applied and verified.
-  Don't use for initial vulnerability research or reproduction payload generation.
+Generates minimal security fixes using transactional isolation (shadow directories or file backups), applies patches, and verifies them.
+Use when security findings are successfully reproduced and need patches applied and verified.
+Don't use for initial vulnerability research or reproduction payload generation.
 ---
 
 # Patcher (/mantis-patch)
@@ -143,7 +144,6 @@ Execute the patching and verification stage as follows:
    (Block A step 4) — do all mutation in a private shadow (step 2 below).
 
    0b. Determine PATCH_MODE (mechanical, using the resolved values):
-
    - `active_snapshot` absent AND no `--snapshot_root`/`--snapshot_id`/
      `--target_root` passed ⇒ **LEGACY mode** (today's behavior; the new
      ceilings in step 3 do NOT fire).
@@ -190,7 +190,6 @@ Execute the patching and verification stage as follows:
    and non-empty). If none exist, notify the user.
 
 2. **Generate and Apply Minimal Patches:** For each reproduced security flaw:
-
    - **Target Agnosticism (Binaries vs Source):** If the target is source code,
      proceed with generating and applying a code patch as described below. If
      the target is a compiled binary or firmware blob without source code
@@ -213,7 +212,6 @@ Execute the patching and verification stage as follows:
 
      Evaluate the exploit chain status using these propagation rules (evaluated
      in order):
-
      1. **Validity Check:** Read the validity `"status"` of each constituent
         finding. If any constituent's `"status"` is `"FALSE_POSITIVE"`, update
         the exploit chain finding's `"status"` to match it (e.g.
@@ -223,7 +221,6 @@ Execute the patching and verification stage as follows:
         following its `"duplicate_of"` property.
 
         **Duplicate Resolution Process:**
-
         1. **Locate the Finding File:** The finding file for the duplicate (or
            any parent in the duplicate chain) may have been moved. Search for
            `<uuid>.json` in the following locations in order:
@@ -272,7 +269,6 @@ Execute the patching and verification stage as follows:
         `{"VERIFIED_SECURE", "MITIGATION_PROPOSED", "VERIFICATION_INCOMPLETE"}`
         AND — except in LEGACY mode — each terminal constituent's
         `patch_base_snapshot` equals the current SNAPSHOT_ID):
-
         - If any constituent is `"MITIGATION_PROPOSED"`, set the chain's
           `"patch_status"` to `"MITIGATION_PROPOSED"`.
         - If no constituent is `"MITIGATION_PROPOSED"` and any constituent is
@@ -284,10 +280,10 @@ Execute the patching and verification stage as follows:
      Skip branch isolation, testing, and re-attack steps for the chain finding
      itself.
 
-   - *Optional Parallel Trajectory Search:* If your framework supports
+   - _Optional Parallel Trajectory Search:_ If your framework supports
      subagents, you may spawn multiple concurrent subagents to design diverse
      patch implementations. Test all generated patches that successfully secure
-     the code without breaking standard functionality, and select the *best*
+     the code without breaking standard functionality, and select the _best_
      patch (e.g., the most minimal, readable, and idiomatic fix) rather than
      just the first one that works.
 
@@ -304,7 +300,6 @@ Execute the patching and verification stage as follows:
 
      You must ensure transactional isolation using a method appropriate for the
      operating environment. **Isolation-method gate (mechanical):**
-
      - If snapshot_pinned is true (PINNED mode) → **Option A (Temporary
        Directory Shadowing) is MANDATORY. Option B and any method that writes
        under CODE_ROOT are FORBIDDEN** (Block A step 4: never write under a
@@ -328,17 +323,14 @@ Execute the patching and verification stage as follows:
        is in the PINNED read-only snapshot regime).
 
      Whichever method you choose, you must guarantee these invariants:
-
      1. **Zero Workspace Pollution**: No backup or intermediate build files left
         in the original source tree.
      2. **Concurrency Safety**: Isolation methods must not conflict with other
         concurrent agents.
      3. **Guaranteed Rollback**: Wrap all actions in error traps or
         `try...finally` blocks to restore the original state on failure.
-
      - **Option A: Temporary Directory Shadowing (Recommended / mandatory when
        pinned)**
-
        - **Warning/Resource constraint:** For source trees larger than a few
          hundred MB, or when many parallel patch workers share the host, and
          ONLY when NOT in PINNED mode, you may prefer **Option B** (which
@@ -382,7 +374,6 @@ Execute the patching and verification stage as follows:
        the caller to substitute it. Before executing any stored `run_command` or
        `reattack_run_command`, replace the literal `{TARGET_ROOT}` token with
        the tree being executed against:
-
        - For the Block-G **unpatched baseline** run: substitute the fresh
          unpatched CODE_ROOT copy (a fresh `mktemp -d` copy taken FROM
          CODE_ROOT).
@@ -403,7 +394,6 @@ Execute the patching and verification stage as follows:
      - Delete the temporary shadow directory completely when finished.
 
      - **Option B: File-Level Backups (Fallback)**
-
        - **Concurrency & Exclusivity Warning:** Because Option B modifies files
          directly in the original workspace, it is concurrency-unsafe when run
          in parallel with other workspace-modifying agents. Sequential execution
@@ -434,7 +424,6 @@ Execute the patching and verification stage as follows:
      the current snapshot instead of generating a fresh patch from scratch. This
      is an optimization for the common case where a prior fix still applies with
      minor line-number shifts.
-
      - **How:** If ALL reachability conditions (a)-(d) below hold, read
        [3-Way Patch Rebasing](references/patch_rebasing.md) with your
        file-reading tool for the 3-way merge mechanics (`base`/`ours`/`theirs`
@@ -486,7 +475,6 @@ Execute the patching and verification stage as follows:
      against the patched build. This ensures the re-attack is meaningful: if the
      bug no longer triggers on the current unpatched snapshot (e.g., upstream
      code fixed it), the re-attack result is inconclusive, not a pass.
-
      - **How:** Before running the attack on the patched shadow, run the
        reproducer against a FRESH UNPATCHED copy of the current snapshot (per
        Block G step 1). If the unpatched baseline does NOT trigger (evidence
@@ -503,12 +491,11 @@ Execute the patching and verification stage as follows:
        still requires the unpatched baseline to trigger. This only adds a
        re-baseline step to the re-attack path when the snapshot changed.
 
-3. **Post-Patch Verification Run:** *(Skip this step for binary-only targets
-   where no code patch was applied)*. To confirm the patch works, re-run the
+3. **Post-Patch Verification Run:** _(Skip this step for binary-only targets
+   where no code patch was applied)_. To confirm the patch works, re-run the
    reproducer script inside your isolated execution environment. Use the exact
    `"repro_file_path"` and `"run_command"` from the reproduction entry to verify
    the patch.
-
    - **Cwd Enforcement:** You must execute the reproducer script with the
      working directory (`Cwd`) set to the shadow directory (if using Option A).
      Ensure the command targets the copy in the shadow directory, not the
@@ -601,10 +588,8 @@ Execute the patching and verification stage as follows:
      reproduce" and NEVER emit `"VERIFIED_SECURE"` from a missing file. (This is
      also what Block F/Block G's "No such file"/`exit 127` → EVIDENCE ABSENT
      path enforces.)
-
    * **VERIFIED SECURE (all conditions REQUIRED):** Mark `patch_status` as
      `"VERIFIED_SECURE"` ONLY if ALL of the following hold:
-
      1. **Block G passes in full:** the UNPATCHED baseline triggered the bug
         WITH reached-sink evidence (Block F) on a fresh copy of CODE_ROOT; the
         patched build compiled (exit 0); the benign/integrity control held; and
@@ -631,7 +616,6 @@ Execute the patching and verification stage as follows:
 
      **Important:** When calling the `@mantis-reproduce` subagent for the
      re-attack:
-
      - If using **Option A (Shadowing)** (always, in PINNED mode), pass:
        - `--reattack`
        - `--target_root=<PATCHED_SHADOW_ROOT>` — the shadow copy that contains
@@ -683,10 +667,9 @@ Execute the patching and verification stage as follows:
      The patch was not tested against a live bug on the current snapshot;
      claiming it is secure would be a false authoritative verdict.
 
-4. **Extract Patch and Rollback Transaction:** *(Skip this step for binary-only
-   targets)*. Do not leave the codebase in an altered state. Once you have a
+4. **Extract Patch and Rollback Transaction:** _(Skip this step for binary-only
+   targets)_. Do not leave the codebase in an altered state. Once you have a
    final outcome (either `VERIFIED_SECURE` or you have exhausted your retries):
-
    - If successful, generate a unified diff representing your exact changes and
      save it to the `"patch_diff"` field:
      - If using **Option A (Shadowing)**, generate this diff by comparing the
@@ -726,7 +709,6 @@ Execute the patching and verification stage as follows:
    file named `workspace/learnings.jsonl` (using append mode). This allows the
    strategist (`/mantis-plan`) to read these historical records in subsequent
    passes and avoid proposing fixes for already patched files.
-
    - **Memory Entry Format:**
      `{"title": "[security_flaw_title]", "code_paths": ["[path1:line1]"], "status": "[VERIFIED_SECURE / MITIGATION_PROPOSED / VERIFICATION_INCOMPLETE / VERIFICATION_FAILED / ERROR]", "patch_base_snapshot": "[current SNAPSHOT_ID, or omit in LEGACY mode]", "snapshot": "[current SNAPSHOT_ID, or omit in MODE-OFF]"}`
 
@@ -743,7 +725,6 @@ Execute the patching and verification stage as follows:
    new parameters to append the required fields.
 
    You must append the following to the existing object:
-
    - A `"patch_status"` field (one of `"VERIFIED_SECURE"`,
      `"MITIGATION_PROPOSED"`, `"VERIFICATION_INCOMPLETE"`,
      `"VERIFICATION_FAILED"`, or `"ERROR"`).

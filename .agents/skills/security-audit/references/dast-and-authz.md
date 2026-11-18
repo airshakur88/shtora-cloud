@@ -72,26 +72,26 @@ For `zap-api-scan.py`, `-f` is `openapi|soap|graphql`. `-O` overrides the hostna
 
 ### Key flags
 
-| Flag | Meaning |
-|------|---------|
-| `-t` | Target URL |
-| `-J` | JSON report (machine parsing) |
-| `-r` | HTML report |
-| `-w` | Markdown report |
-| `-x` | XML report |
-| `-c` / `-u` | Rule config file (`IGNORE`/`INFO`/`FAIL`, or `OUTOFSCOPE <regex>`) |
-| `-g` | Generate a default config file |
-| `-m` | Spider duration in minutes (baseline default 1) |
-| `-T` | Startup wait |
-| `-a` | Include alpha passive rules |
-| `-l` | Minimum alert level to report |
-| `-I` | Do NOT fail the run on warnings (CI-friendly) |
-| `-j` | Use the AJAX spider |
-| `-n` | Context file (for authentication) |
-| `-U` | User (from the context file) to run authenticated; full/api scans only |
-| `-S` | Safe mode (api-scan only) |
-| `-z` | Raw ZAP options, used for header injection |
-| `--hook` | Python hook script |
+| Flag        | Meaning                                                                |
+| ----------- | ---------------------------------------------------------------------- |
+| `-t`        | Target URL                                                             |
+| `-J`        | JSON report (machine parsing)                                          |
+| `-r`        | HTML report                                                            |
+| `-w`        | Markdown report                                                        |
+| `-x`        | XML report                                                             |
+| `-c` / `-u` | Rule config file (`IGNORE`/`INFO`/`FAIL`, or `OUTOFSCOPE <regex>`)     |
+| `-g`        | Generate a default config file                                         |
+| `-m`        | Spider duration in minutes (baseline default 1)                        |
+| `-T`        | Startup wait                                                           |
+| `-a`        | Include alpha passive rules                                            |
+| `-l`        | Minimum alert level to report                                          |
+| `-I`        | Do NOT fail the run on warnings (CI-friendly)                          |
+| `-j`        | Use the AJAX spider                                                    |
+| `-n`        | Context file (for authentication)                                      |
+| `-U`        | User (from the context file) to run authenticated; full/api scans only |
+| `-S`        | Safe mode (api-scan only)                                              |
+| `-z`        | Raw ZAP options, used for header injection                             |
+| `--hook`    | Python hook script                                                     |
 
 ### Exit codes
 
@@ -152,15 +152,15 @@ nuclei -u http://localhost:3000 -dast -fa low -rl 50 -jsonl-export dast.jsonl
 
 ### Key flags
 
-| Group | Flags |
-|-------|-------|
-| Targets | `-u` single URL, `-l` list file, `-im` input mode (`list`, `burp`, `jsonl`, `yaml`, `openapi`, `swagger`) |
-| Selection | `-t` template, `-tags`, `-etags` exclude tags, `-severity`, `-id`, `-tc` template condition |
-| Output | `-o` text, `-j`/`-jsonl`, `-json-export`, `-jsonl-export`, `-se` SARIF, `-me` markdown |
-| Throttle | `-rl` rate limit (default 150/s), `-c` concurrency (25), `-bs` bulk size (25), `-timeout` (10), `-retries` |
-| Auth | `-H 'Header: value'`, `-sf secrets.yaml`, `-V` variables |
-| DAST | `-dast`, `-ft`, `-fm`, `-fa low\|medium\|high` |
-| Updates | `-ut` update templates, `-no-interactsh` disable public OAST |
+| Group     | Flags                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
+| Targets   | `-u` single URL, `-l` list file, `-im` input mode (`list`, `burp`, `jsonl`, `yaml`, `openapi`, `swagger`)  |
+| Selection | `-t` template, `-tags`, `-etags` exclude tags, `-severity`, `-id`, `-tc` template condition                |
+| Output    | `-o` text, `-j`/`-jsonl`, `-json-export`, `-jsonl-export`, `-se` SARIF, `-me` markdown                     |
+| Throttle  | `-rl` rate limit (default 150/s), `-c` concurrency (25), `-bs` bulk size (25), `-timeout` (10), `-retries` |
+| Auth      | `-H 'Header: value'`, `-sf secrets.yaml`, `-V` variables                                                   |
+| DAST      | `-dast`, `-ft`, `-fm`, `-fa low\|medium\|high`                                                             |
+| Updates   | `-ut` update templates, `-no-interactsh` disable public OAST                                               |
 
 ### Authentication
 
@@ -200,14 +200,14 @@ Individual templates can opt out with `skip-secret-file: true` (v3.3.1+).
 
 Passive commands read and analyze traffic without submitting mutating requests. Active commands send injection payloads and can submit forms, create/update/delete records, trigger emails and webhooks, and exhaust rate limits. Never run an active scan against a database that holds real or shared data.
 
-| Command | Class | Effect |
-|---------|-------|--------|
-| `zap-baseline.py` | Passive, SAFE | Spiders and runs passive rules; no attacks |
-| `zap-api-scan.py -S` | Passive, SAFE | Safe mode; no active injection |
-| `nuclei` with `-etags dos,fuzz,intrusive` | Detection, mostly safe | Sends real detection requests; no fuzzing/DoS |
-| `zap-api-scan.py` (no `-S`) | ACTIVE | Sends injection payloads |
-| `zap-full-scan.py` | ACTIVE, destructive | Real attacks; submits forms, can create/delete records, trigger emails, exhaust rate limits |
-| `nuclei -dast` | ACTIVE, destructive | Mutates every parameter with injection payloads |
+| Command                                   | Class                  | Effect                                                                                      |
+| ----------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------- |
+| `zap-baseline.py`                         | Passive, SAFE          | Spiders and runs passive rules; no attacks                                                  |
+| `zap-api-scan.py -S`                      | Passive, SAFE          | Safe mode; no active injection                                                              |
+| `nuclei` with `-etags dos,fuzz,intrusive` | Detection, mostly safe | Sends real detection requests; no fuzzing/DoS                                               |
+| `zap-api-scan.py` (no `-S`)               | ACTIVE                 | Sends injection payloads                                                                    |
+| `zap-full-scan.py`                        | ACTIVE, destructive    | Real attacks; submits forms, can create/delete records, trigger emails, exhaust rate limits |
+| `nuclei -dast`                            | ACTIVE, destructive    | Mutates every parameter with injection payloads                                             |
 
 Exclude logout URLs from every active scan. If the scanner follows a logout link it kills its own authenticated session and the rest of the scan runs unauthenticated. In ZAP, mark logout paths `OUTOFSCOPE <regex>` in the rule config. In nuclei, keep logout endpoints out of the target list.
 
@@ -307,13 +307,13 @@ Keep the count low (tens, not thousands) and sequential. The goal is to observe 
 
 Set expectations before launching a scan; several of these are not interactive-session operations.
 
-| Scan | Duration | Cadence |
-|------|----------|---------|
-| ZAP baseline | 1-5 min | Per PR / interactive |
-| nuclei targeted (detection pass) | 1-5 min | After a staging deploy |
-| ZAP api-scan `-S` | Minutes | Per PR / interactive |
-| nuclei full template set (11-12k) | 10-30 min | Scheduled |
-| ZAP full scan | Tens of minutes to hours | Nightly only |
-| nuclei `-dast` | Unbounded | Nightly only |
+| Scan                              | Duration                 | Cadence                |
+| --------------------------------- | ------------------------ | ---------------------- |
+| ZAP baseline                      | 1-5 min                  | Per PR / interactive   |
+| nuclei targeted (detection pass)  | 1-5 min                  | After a staging deploy |
+| ZAP api-scan `-S`                 | Minutes                  | Per PR / interactive   |
+| nuclei full template set (11-12k) | 10-30 min                | Scheduled              |
+| ZAP full scan                     | Tens of minutes to hours | Nightly only           |
+| nuclei `-dast`                    | Unbounded                | Nightly only           |
 
 Recommended pipeline shape: ZAP baseline per PR, nuclei targeted after each staging deploy, ZAP full active scan nightly.

@@ -1,26 +1,26 @@
 ---
+
 name: golang-security
 description: "Security best practices and vulnerability prevention for Golang — injection (SQL, command, XSS), cryptography, path traversal, SSRF and HTTP security headers, cookies, secrets management, memory safety, PII in logs, STRIDE/DREAD threat modeling, plus `gosec` SAST, race detection, and fuzz testing. Apply when writing, reviewing, or auditing Go code for security, or when touching crypto, file or network I/O, secrets, user input, or authentication. Not for non-exploitable defensive bugs such as nil panics or slice aliasing (→ See `samber/cc-skills-golang@golang-safety` skill), dependency vulnerability scanning with govulncheck (→ See `samber/cc-skills-golang@golang-dependency-management` skill), or wiring security scanners into CI pipelines (→ See `samber/cc-skills-golang@golang-continuous-integration` skill)."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "1.2.2"
-  openclaw:
-    emoji: "🔒"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-        - govulncheck
-    install:
-      - kind: go
-        package: golang.org/x/vuln/cmd/govulncheck@latest
-        bins: [govulncheck]
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch Bash(govulncheck:*) WebSearch AskUserQuestion EnterWorktree ExitWorktree
+author: samber
+version: "1.2.2"
+openclaw:
+emoji: "🔒"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go - govulncheck
+install: - kind: go
+package: golang.org/x/vuln/cmd/govulncheck@latest
+bins: [govulncheck]
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:_) Agent WebFetch Bash(govulncheck:_) WebSearch AskUserQuestion EnterWorktree ExitWorktree
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a senior Go security engineer. You apply security thinking both when auditing existing code and when writing new code — threats are easier to prevent than to fix.
@@ -55,12 +55,12 @@ Before writing or reviewing code, ask three questions:
 
 ## Severity Levels
 
-| Level | DREAD | Meaning |
-| --- | --- | --- |
-| Critical | 8-10 | RCE, full data breach, credential theft — fix immediately |
-| High | 6-7.9 | Auth bypass, significant data exposure, broken crypto — fix in current sprint |
-| Medium | 4-5.9 | Limited exposure, session issues, defense weakening — fix in next sprint |
-| Low | 1-3.9 | Minor info disclosure, best-practice deviations — fix opportunistically |
+| Level    | DREAD | Meaning                                                                       |
+| -------- | ----- | ----------------------------------------------------------------------------- |
+| Critical | 8-10  | RCE, full data breach, credential theft — fix immediately                     |
+| High     | 6-7.9 | Auth bypass, significant data exposure, broken crypto — fix in current sprint |
+| Medium   | 4-5.9 | Limited exposure, session issues, defense weakening — fix in next sprint      |
+| Low      | 1-3.9 | Minor info disclosure, best-practice deviations — fix opportunistically       |
 
 Levels align with [DREAD scoring](./references/threat-modeling.md).
 
@@ -85,18 +85,18 @@ For the full methodology with Go examples, DFD trust boundaries, DREAD scoring, 
 
 ## Quick Reference
 
-| Severity | Vulnerability | Defense | Standard Library Solution |
-| --- | --- | --- | --- |
-| Critical | SQL Injection | Parameterized queries separate data from code | `database/sql` with `?` placeholders |
-| Critical | Command Injection | Pass args separately, never via shell concatenation | `exec.Command` with separate args |
-| High | XSS | Auto-escaping renders user data as text, not HTML/JS | `html/template`, `text/template` |
-| High | Path Traversal | Scope untrusted file access to an allowed root | Go 1.24+: use `os.Root`. Pre-Go 1.24: use `filepath.IsLocal` + `filepath.Rel` + separator-aware checks; never rely on `filepath.Clean` + `strings.HasPrefix` alone. |
-| Medium | Timing Attacks | Constant-time comparison avoids byte-by-byte leaks | `crypto/subtle.ConstantTimeCompare` |
-| High | Crypto Issues | Use vetted algorithms; never roll your own | `crypto/aes`, `crypto/rand` |
-| Medium | HTTP Security | TLS + security headers prevent downgrade attacks | `net/http`, configure TLSConfig |
-| Low | Missing Headers | HSTS, CSP, X-Frame-Options prevent browser attacks | Security headers middleware |
-| Medium | Rate Limiting | Rate limits prevent brute-force and resource exhaustion | `golang.org/x/time/rate`, server timeouts |
-| High | Race Conditions | Protect shared state to prevent data corruption | `sync.Mutex`, channels, avoid shared state |
+| Severity | Vulnerability     | Defense                                                 | Standard Library Solution                                                                                                                                           |
+| -------- | ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Critical | SQL Injection     | Parameterized queries separate data from code           | `database/sql` with `?` placeholders                                                                                                                                |
+| Critical | Command Injection | Pass args separately, never via shell concatenation     | `exec.Command` with separate args                                                                                                                                   |
+| High     | XSS               | Auto-escaping renders user data as text, not HTML/JS    | `html/template`, `text/template`                                                                                                                                    |
+| High     | Path Traversal    | Scope untrusted file access to an allowed root          | Go 1.24+: use `os.Root`. Pre-Go 1.24: use `filepath.IsLocal` + `filepath.Rel` + separator-aware checks; never rely on `filepath.Clean` + `strings.HasPrefix` alone. |
+| Medium   | Timing Attacks    | Constant-time comparison avoids byte-by-byte leaks      | `crypto/subtle.ConstantTimeCompare`                                                                                                                                 |
+| High     | Crypto Issues     | Use vetted algorithms; never roll your own              | `crypto/aes`, `crypto/rand`                                                                                                                                         |
+| Medium   | HTTP Security     | TLS + security headers prevent downgrade attacks        | `net/http`, configure TLSConfig                                                                                                                                     |
+| Low      | Missing Headers   | HSTS, CSP, X-Frame-Options prevent browser attacks      | Security headers middleware                                                                                                                                         |
+| Medium   | Rate Limiting     | Rate limits prevent brute-force and resource exhaustion | `golang.org/x/time/rate`, server timeouts                                                                                                                           |
+| High     | Race Conditions   | Protect shared state to prevent data corruption         | `sync.Mutex`, channels, avoid shared state                                                                                                                          |
 
 ## Detailed Categories
 
@@ -150,30 +150,30 @@ go test -fuzz=Fuzz
 
 ## Common Mistakes
 
-| Severity | Mistake | Fix |
-| --- | --- | --- |
-| High | `math/rand` for tokens | Output is predictable — attacker can reproduce the sequence. Use `crypto/rand` |
-| Critical | SQL string concatenation | Attacker can modify query logic. Parameterized queries keep data and code separate |
-| Critical | `exec.Command("bash -c")` | Shell interprets metacharacters (`;`, `\|`, `` ` ``). Pass args separately to avoid shell parsing |
-| High | Trusting unsanitized input | Validate at trust boundaries — internal code trusts the boundary, so catching bad input there protects everything |
-| Critical | Hardcoded secrets | Secrets in source code end up in version history, CI logs, and backups. Use env vars or secret managers |
-| Medium | Comparing secrets with `==` | `==` short-circuits on first differing byte, leaking timing info. Use `crypto/subtle.ConstantTimeCompare` |
-| Medium | Returning detailed errors | Stack traces and DB errors help attackers map your system. Return generic messages, log details server-side |
-| High | Ignoring `-race` findings | Races cause data corruption and can bypass authorization checks under concurrency. Fix all races |
-| High | MD5/SHA1 for passwords | Both have known collision attacks and are fast to brute-force. Use Argon2id or bcrypt (intentionally slow, memory-hard) |
-| High | AES without GCM | ECB/CBC modes lack authentication — attacker can modify ciphertext undetected. GCM provides encrypt+authenticate |
-| Medium | Binding to 0.0.0.0 | Exposes service to all network interfaces. Bind to specific interface to limit attack surface |
+| Severity | Mistake                     | Fix                                                                                                                     |
+| -------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| High     | `math/rand` for tokens      | Output is predictable — attacker can reproduce the sequence. Use `crypto/rand`                                          |
+| Critical | SQL string concatenation    | Attacker can modify query logic. Parameterized queries keep data and code separate                                      |
+| Critical | `exec.Command("bash -c")`   | Shell interprets metacharacters (`;`, `\|`, `` ` ``). Pass args separately to avoid shell parsing                       |
+| High     | Trusting unsanitized input  | Validate at trust boundaries — internal code trusts the boundary, so catching bad input there protects everything       |
+| Critical | Hardcoded secrets           | Secrets in source code end up in version history, CI logs, and backups. Use env vars or secret managers                 |
+| Medium   | Comparing secrets with `==` | `==` short-circuits on first differing byte, leaking timing info. Use `crypto/subtle.ConstantTimeCompare`               |
+| Medium   | Returning detailed errors   | Stack traces and DB errors help attackers map your system. Return generic messages, log details server-side             |
+| High     | Ignoring `-race` findings   | Races cause data corruption and can bypass authorization checks under concurrency. Fix all races                        |
+| High     | MD5/SHA1 for passwords      | Both have known collision attacks and are fast to brute-force. Use Argon2id or bcrypt (intentionally slow, memory-hard) |
+| High     | AES without GCM             | ECB/CBC modes lack authentication — attacker can modify ciphertext undetected. GCM provides encrypt+authenticate        |
+| Medium   | Binding to 0.0.0.0          | Exposes service to all network interfaces. Bind to specific interface to limit attack surface                           |
 
 ## Security Anti-Patterns
 
-| Severity | Anti-Pattern | Why It Fails | Fix |
-| --- | --- | --- | --- |
-| High | Security through obscurity | Hidden URLs are discoverable via fuzzing, logs, or source | Authentication + authorization on all endpoints |
-| High | Trusting client headers | `X-Forwarded-For`, `X-Is-Admin` are trivially forged | Server-side identity verification |
-| High | Client-side authorization | JavaScript checks are bypassed by any HTTP client | Server-side permission checks on every handler |
-| High | Shared secrets across envs | Staging breach compromises production | Per-environment secrets via secret manager |
-| Critical | Ignoring crypto errors | `_, _ = encrypt(data)` silently proceeds unencrypted | Always check errors — fail closed, never open |
-| Critical | Rolling your own crypto | Custom encryption hasn't been analyzed by cryptographers | Use `crypto/aes` GCM, `golang.org/x/crypto/argon2` |
+| Severity | Anti-Pattern               | Why It Fails                                              | Fix                                                |
+| -------- | -------------------------- | --------------------------------------------------------- | -------------------------------------------------- |
+| High     | Security through obscurity | Hidden URLs are discoverable via fuzzing, logs, or source | Authentication + authorization on all endpoints    |
+| High     | Trusting client headers    | `X-Forwarded-For`, `X-Is-Admin` are trivially forged      | Server-side identity verification                  |
+| High     | Client-side authorization  | JavaScript checks are bypassed by any HTTP client         | Server-side permission checks on every handler     |
+| High     | Shared secrets across envs | Staging breach compromises production                     | Per-environment secrets via secret manager         |
+| Critical | Ignoring crypto errors     | `_, _ = encrypt(data)` silently proceeds unencrypted      | Always check errors — fail closed, never open      |
+| Critical | Rolling your own crypto    | Custom encryption hasn't been analyzed by cryptographers  | Use `crypto/aes` GCM, `golang.org/x/crypto/argon2` |
 
 See **[Security Architecture](./references/architecture.md)** for detailed anti-patterns with Go code examples.
 

@@ -16,14 +16,14 @@ AVFoundation uses media characteristics to identify accessibility tracks:
 
 Docs: [AVMediaCharacteristic](https://sosumi.ai/documentation/avfoundation/avmediacharacteristic)
 
-| Characteristic | Purpose |
-| -------------- | ------- |
-| `.transcribesSpokenDialogForAccessibility` | Captions/SDH — transcribes dialog for deaf or hard of hearing users |
-| `.describesMusicAndSoundForAccessibility` | Captions that include descriptions of music and sound effects |
-| `.describesVideoForAccessibility` | Audio descriptions — narrates visual content for blind or low-vision users |
-| `.easyToRead` | Simplified captions for cognitive accessibility |
-| `.containsOnlyForcedSubtitles` | Subtitles that display only when content differs from the device language |
-| `.languageTranslation` | Subtitles providing a language translation |
+| Characteristic                             | Purpose                                                                    |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| `.transcribesSpokenDialogForAccessibility` | Captions/SDH — transcribes dialog for deaf or hard of hearing users        |
+| `.describesMusicAndSoundForAccessibility`  | Captions that include descriptions of music and sound effects              |
+| `.describesVideoForAccessibility`          | Audio descriptions — narrates visual content for blind or low-vision users |
+| `.easyToRead`                              | Simplified captions for cognitive accessibility                            |
+| `.containsOnlyForcedSubtitles`             | Subtitles that display only when content differs from the device language  |
+| `.languageTranslation`                     | Subtitles providing a language translation                                 |
 
 ### Selecting Accessible Media
 

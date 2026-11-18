@@ -1,10 +1,11 @@
 ---
+
 name: decision-guard
 description: Use when an AI agent is deriving metrics or complex explanations while a direct answer may exist, choosing a software architecture or technology stack, or making consequential technical decisions with long-term operational costs and uncertain assumptions. Do not use for narrow, fully specified implementation or routine bug fixes.
 license: MIT
 metadata:
-  version: "0.1.0"
-  parent: anti-slop-engineering
+version: "0.1.0"
+parent: anti-slop-engineering
 ---
 
 # Decision Guard
@@ -19,13 +20,13 @@ The target is an interruption-capable decision process grounded in checked sourc
 
 ## Activation and boundaries
 
-| Situation | Behavior |
-| --- | --- |
-| Complex inference, simulation, or metric derivation | Run the direct-observation path before constructing a proxy |
-| Framework, infrastructure, database, vendor, or data-boundary selection | Compare independent architectural axes and future stress conditions |
-| Long-running project reveals evidence that undermines its original premise | Reopen the decision; do not defend sunk cost |
-| Existing, approved implementation and no new material evidence | Continue normal execution; avoid recurring decision theater |
-| Small bug, agreed specification, or reversible local refactor | Do not activate; use Anti-Slop Engineering BUILD/FIX gates |
+| Situation                                                                  | Behavior                                                            |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Complex inference, simulation, or metric derivation                        | Run the direct-observation path before constructing a proxy         |
+| Framework, infrastructure, database, vendor, or data-boundary selection    | Compare independent architectural axes and future stress conditions |
+| Long-running project reveals evidence that undermines its original premise | Reopen the decision; do not defend sunk cost                        |
+| Existing, approved implementation and no new material evidence             | Continue normal execution; avoid recurring decision theater         |
+| Small bug, agreed specification, or reversible local refactor              | Do not activate; use Anti-Slop Engineering BUILD/FIX gates          |
 
 Do not use this Skill to override a signed constraint, silently change an authorized roadmap, or block routine work with speculative hypotheticals. If a consequential recommendation conflicts with user authority, report the evidence and seek a decision rather than changing course unilaterally.
 
@@ -43,14 +44,14 @@ Do not use this Skill to override a signed constraint, silently change an author
 
 ## Decision router
 
-| Evidence state | Required action | Exit condition |
-| --- | --- | --- |
-| Direct answer found and semantics verified | Recommend direct use; identify redundant work | User accepts the revised plan or retains the old one explicitly |
-| Potential direct source not inspected | Inspect it using available read/search/query tools | Evidence found, disproved, or marked unavailable |
-| Source unavailable or conflicting | Record unknown, competing hypotheses, next probe | Pause consequential commitment; do not manufacture certainty |
-| Architecture options materially differ | Decompose axes and compare two serious choices | Trade-offs, constraints, reversal and future stress are visible |
-| Strong contract or regulation excludes a candidate | Eliminate that candidate, explain the authority | Remaining candidates satisfy hard constraints |
-| No meaningful choice or only routine reversible work | Hand back to parent BUILD/FIX | No unnecessary decision packet |
+| Evidence state                                       | Required action                                    | Exit condition                                                  |
+| ---------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
+| Direct answer found and semantics verified           | Recommend direct use; identify redundant work      | User accepts the revised plan or retains the old one explicitly |
+| Potential direct source not inspected                | Inspect it using available read/search/query tools | Evidence found, disproved, or marked unavailable                |
+| Source unavailable or conflicting                    | Record unknown, competing hypotheses, next probe   | Pause consequential commitment; do not manufacture certainty    |
+| Architecture options materially differ               | Decompose axes and compare two serious choices     | Trade-offs, constraints, reversal and future stress are visible |
+| Strong contract or regulation excludes a candidate   | Eliminate that candidate, explain the authority    | Remaining candidates satisfy hard constraints                   |
+| No meaningful choice or only routine reversible work | Hand back to parent BUILD/FIX                      | No unnecessary decision packet                                  |
 
 ## Execution Workflows
 
@@ -82,14 +83,14 @@ When the decision is consequential or likely to be revisited, save a JSON decisi
 
 ## Failure taxonomy
 
-| Failure | Observable signal | Recovery |
-| --- | --- | --- |
-| Premise capture | Plan accepted as the goal | Reframe objective, try direct observation |
-| Source omission | Derived claim without source inventory | Check source/tool/schema/documentation |
-| Context momentum | Sunk cost cited to preserve redundant work | Compare forward costs only |
-| Default bundle bias | Framework, host and DB decided as one brand bundle | Split selection axes and trace constraints |
-| Reverse bias | VPS/self-host or new framework assumed inherently superior | Compare ops owner, backups, support and reversibility |
-| Forecast theater | Exact future pricing/load presented without evidence | Replace with scenario ranges and measurement plan |
+| Failure                | Observable signal                                           | Recovery                                              |
+| ---------------------- | ----------------------------------------------------------- | ----------------------------------------------------- |
+| Premise capture        | Plan accepted as the goal                                   | Reframe objective, try direct observation             |
+| Source omission        | Derived claim without source inventory                      | Check source/tool/schema/documentation                |
+| Context momentum       | Sunk cost cited to preserve redundant work                  | Compare forward costs only                            |
+| Default bundle bias    | Framework, host and DB decided as one brand bundle          | Split selection axes and trace constraints            |
+| Reverse bias           | VPS/self-host or new framework assumed inherently superior  | Compare ops owner, backups, support and reversibility |
+| Forecast theater       | Exact future pricing/load presented without evidence        | Replace with scenario ranges and measurement plan     |
 | Ritualistic skepticism | Endless options and objections after evidence is sufficient | Decide, record invalidation triggers, resume delivery |
 
 ## Delegated Skills

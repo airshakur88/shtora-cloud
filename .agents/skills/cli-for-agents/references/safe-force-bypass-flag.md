@@ -1,4 +1,5 @@
 ---
+
 title: Provide --yes or --force to Skip Confirmation Prompts
 impact: HIGH
 impactDescription: prevents confirmation prompts from blocking scripted runs
@@ -48,6 +49,7 @@ def delete(service, yes):
 ```
 
 **Benefits:**
+
 - Human workflow unchanged: `mycli delete myapp` still prompts
 - Agent workflow works: `mycli delete myapp --yes` proceeds directly
 - Non-TTY + no `--yes` = explicit refusal (safer than silent delete)

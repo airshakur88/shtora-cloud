@@ -27,6 +27,7 @@ A completed campaign (`mewt run [paths]`) with results available (`mewt status`)
 1. Get the overview with `mewt status` and identify files with surviving mutations. Record the campaign scope and inconclusive results before using scores to prioritize.
 2. Cross-reference against sensitivity. Security-sensitive areas — auth, crypto, parsing, input validation — and core business logic deserve attention regardless of score; recently changed code with a low score deserves it most.
 3. Pull the survivors for those areas:
+
    ```bash
    mewt results --target 'src/auth/**'
    mewt results --target 'src/crypto/**' --severity high
@@ -86,6 +87,7 @@ Each finding gets a location, the evidence (mutation result plus what manual tes
 **Location:** `src/auth/verify.rs:78`
 
 **Evidence:**
+
 - Mutation testing: [ER #42] line 78 is completely untested
 - Manual testing: a token that expired an hour ago verifies successfully
 
@@ -96,6 +98,7 @@ The error path has no test coverage, so the inversion went unnoticed.
 **Impact:** Expired authentication tokens remain valid indefinitely. Severity: CRITICAL.
 
 **Reproduction:**
+
 ```rust
 #[test]
 fn test_expired_token() {

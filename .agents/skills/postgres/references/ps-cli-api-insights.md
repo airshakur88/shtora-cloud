@@ -1,4 +1,5 @@
 ---
+
 title: CLI Query Insights API
 description: CLI insights usage
 tags: postgres, planetscale, cli, insights, query-patterns, api

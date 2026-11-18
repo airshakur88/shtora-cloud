@@ -1,9 +1,10 @@
 ---
+
 name: fastapi-python
 description: Expert in FastAPI Python development with best practices for APIs and async operations
 metadata:
-  maintainer: Mindrally
-  source: https://github.com/Mindrally/skills
+maintainer: Mindrally
+source: https://github.com/Mindrally/skills
 ---
 
 # FastAPI Python

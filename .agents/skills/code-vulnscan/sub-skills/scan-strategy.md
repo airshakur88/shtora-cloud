@@ -14,19 +14,20 @@ Identify every language present in the codebase. Do not scan auto-generated code
 
 Map each language to its likely framework:
 
-| Language | Frameworks to detect |
-|----------|---------------------|
-| Python | Flask, Django, FastAPI, Pyramid, Tornado, aiohttp |
-| JavaScript/TypeScript | Express, Next.js, Nuxt, Koa, Hapi, NestJS, React, Vue, Angular |
-| Java / Kotlin JVM | Spring Boot/MVC/Security/Data, Jakarta EE, Servlet, JAX-RS (Jersey/RESTEasy), Struts, JSF, Hibernate/JPA, Micronaut, Quarkus, Dropwizard, Ktor; Android routes additionally to the mobile reviewer |
-| Go | net/http, Gin, Echo, Fiber, Chi, Gorilla |
-| PHP | Laravel, Symfony, CodeIgniter, WordPress, Drupal, Yii |
-| Ruby | Rails, Sinatra, Hanami |
-| C/C++ | No standard framework; focus on input parsing, memory ops |
-| C# | ASP.NET Core, .NET MVC, Blazor, Web API |
-| Rust | Actix-web, Axum, Warp, Rocket |
+| Language              | Frameworks to detect                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Python                | Flask, Django, FastAPI, Pyramid, Tornado, aiohttp                                                                                                                                                  |
+| JavaScript/TypeScript | Express, Next.js, Nuxt, Koa, Hapi, NestJS, React, Vue, Angular                                                                                                                                     |
+| Java / Kotlin JVM     | Spring Boot/MVC/Security/Data, Jakarta EE, Servlet, JAX-RS (Jersey/RESTEasy), Struts, JSF, Hibernate/JPA, Micronaut, Quarkus, Dropwizard, Ktor; Android routes additionally to the mobile reviewer |
+| Go                    | net/http, Gin, Echo, Fiber, Chi, Gorilla                                                                                                                                                           |
+| PHP                   | Laravel, Symfony, CodeIgniter, WordPress, Drupal, Yii                                                                                                                                              |
+| Ruby                  | Rails, Sinatra, Hanami                                                                                                                                                                             |
+| C/C++                 | No standard framework; focus on input parsing, memory ops                                                                                                                                          |
+| C#                    | ASP.NET Core, .NET MVC, Blazor, Web API                                                                                                                                                            |
+| Rust                  | Actix-web, Axum, Warp, Rocket                                                                                                                                                                      |
 
 Framework detection matters because each framework has its own:
+
 - Request data access patterns (how user input enters)
 - ORM and query patterns (how SQL is constructed)
 - Template engine and output patterns (how responses are rendered)
@@ -37,6 +38,7 @@ Framework detection matters because each framework has its own:
 Enumerate every entry point: all places where external, user-controlled data can enter the application.
 
 **Primary entry point types:**
+
 - HTTP request parameters, body, headers, cookies
 - CLI arguments and environment variables
 - File uploads and file content reads
@@ -66,6 +68,7 @@ List every identified entry point explicitly in your plan. Missing an entry poin
 Not all files carry equal risk. Rank files for deep analysis:
 
 **Highest priority:**
+
 - HTTP request handlers and controllers
 - React/Next.js server actions, route handlers, middleware, and client routing/auth components
 - Go handlers, middleware, request binding structs, and HTTP client wrappers
@@ -83,12 +86,14 @@ Not all files carry equal risk. Rank files for deep analysis:
 - Infrastructure that controls IAM, KMS, public network exposure, object storage, CI/CD deployment trust, runtime identity, and audit logging
 
 **High priority:**
+
 - Utility functions called by high-priority files
 - Middleware and filters
 - Configuration parsing
 - Input validation modules
 
 **Lower priority (but do not skip):**
+
 - Helper utilities not on a request path
 - Static configuration
 - Pure data models with no query construction
@@ -98,11 +103,13 @@ Not all files carry equal risk. Rank files for deep analysis:
 Based on the framework and entry points detected, decide which vulnerability categories are in scope. Do not do a generic scan that ignores context.
 
 For each category, confirm at minimum:
+
 - Is there an entry point that could reach this sink type?
 - Does the framework or ORM offer protections (e.g., Django ORM auto-escapes SQL)?
 - Are there any overrides or raw-mode patterns that disable those protections?
 
 Known framework protections to verify are not bypassed:
+
 - Django ORM: protects against SQLi unless `.raw()`, `extra()`, or `RawSQL()` is used
 - Spring Data JPA: protects unless `@Query(nativeQuery=true)` with concatenation is used
 - JDBC/JPA/Hibernate parameter binding protects values, but not concatenated JPQL/HQL/native SQL or user-selected identifiers and sort fragments
@@ -121,6 +128,7 @@ Known framework protections to verify are not bypassed:
 ### 5. Identify sanitization infrastructure
 
 Before scanning, catalog what sanitization utilities already exist:
+
 - Custom validators, sanitizers, escaping functions
 - Allowlist/blocklist modules
 - Framework-provided CSRF tokens, HTML escaping, parameterized queries
@@ -205,6 +213,7 @@ git -C <repo> diff <base>..<head> -- <changed_file>
 ```
 
 Collect:
+
 - List of changed files (added, modified, renamed — skip deleted)
 - For each file: the added/modified line ranges from the diff hunks (`@@ -a,b +c,d @@`)
 - Language of each changed file
@@ -212,6 +221,7 @@ Collect:
 #### Step 2: Scope analysis to changed regions + impact radius
 
 For each changed file:
+
 1. Read the **entire** changed file (not just the diff hunk) — you need full context to trace callers and callees.
 2. Identify functions/methods that contain the changed lines.
 3. Trace one level out: functions that **call** or are **called by** the changed functions — these are in scope even if their lines didn't change.
@@ -222,6 +232,7 @@ Do not scan files not in the changed set or the one-level caller/callee radius. 
 #### Step 3: Tag findings
 
 For each finding, add:
+
 - `introduced_in_diff: true` — the vulnerable code is in the diff itself (a line in the `+` side of the hunk is part of the finding)
 - `introduced_in_diff: false` — the finding is in a caller/callee of changed code; the vulnerability existed before the commit but the change is near it
 
@@ -244,13 +255,13 @@ Use the standard report format but add a `commit_scan` metadata block at the top
 
 ```json
 {
-  "scan_mode": "commit",
-  "commit": "<hash>",
-  "base": "<base-hash or 'HEAD~1'>",
-  "changed_files": 7,
-  "functions_analyzed": 23,
-  "findings_introduced_in_diff": 2,
-  "findings_in_callers_callees": 1
+	"scan_mode": "commit",
+	"commit": "<hash>",
+	"base": "<base-hash or 'HEAD~1'>",
+	"changed_files": 7,
+	"functions_analyzed": 23,
+	"findings_introduced_in_diff": 2,
+	"findings_in_callers_callees": 1
 }
 ```
 
@@ -263,6 +274,7 @@ python3 scripts/scan.py --status-only
 ```
 
 If an incomplete recent run exists:
+
 - Ask whether to resume or start fresh.
 - On resume: skip already-analyzed files, carry forward confirmed findings.
 - On fresh: use `--force` to reset state.

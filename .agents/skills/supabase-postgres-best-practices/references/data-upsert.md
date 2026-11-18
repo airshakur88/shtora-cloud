@@ -1,4 +1,5 @@
 ---
+
 title: Use UPSERT for Insert-or-Update Operations
 impact: MEDIUM
 impactDescription: Atomic operation, eliminates race conditions

@@ -1,4 +1,5 @@
 ---
+
 title: Index Optimization Queries
 description: Index audit queries
 tags: postgres, indexes, unused-indexes, duplicate-indexes, invalid-indexes, bloat, HOT, write-amplification, planner-tuning, optimization

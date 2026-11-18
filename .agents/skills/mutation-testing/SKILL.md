@@ -1,4 +1,5 @@
 ---
+
 name: mutation-testing
 description: "Configures mewt or muton campaigns, analyzes surviving mutants, and investigates bugs exposed by testing gaps. Use when setting up mutation testing, reviewing campaign results, identifying equivalent mutants, or finding bugs from surviving mutations."
 allowed-tools: Read Write Bash Grep
@@ -16,6 +17,7 @@ Routes to the right mutation testing workflow and loads the references that work
 ## When to Use
 
 Use this skill when the user:
+
 - Mentions "mewt", "muton", or "mutation testing"
 - Wants to configure, scope, or speed up a mutation testing campaign
 - Wants to analyze mutation results — surviving/uncaught mutants, equivalent mutants, kill rate
@@ -40,6 +42,7 @@ Pick the workflow, then load it together with the references listed for it. Work
 
 **Turning results into a formal analysis report**
 → [workflows/analyzing-results.md](workflows/analyzing-results.md), plus:
+
 - [references/equivalent-mutants.md](references/equivalent-mutants.md) — equivalence catalog and verification procedure
 - [references/severity-classification.md](references/severity-classification.md) — severity tier criteria
 - [references/report-template.md](references/report-template.md) — report structure
@@ -97,13 +100,13 @@ Language labels are canonical `family` or `family/dialect` values in mewt 4.x �
 
 ## Interpreting Mutation Types
 
-`mewt print mutations --language [lang]` lists every mutation slug, description, and severity for a language, and is authoritative — the operator set grows with each release. What that output does not tell you is what a survivor *means*, which is where prioritization comes from:
+`mewt print mutations --language [lang]` lists every mutation slug, description, and severity for a language, and is authoritative — the operator set grows with each release. What that output does not tell you is what a survivor _means_, which is where prioritization comes from:
 
-| Severity | Representative slugs | What an uncaught mutant tells you |
-|----------|---------------------|-----------------------------------|
-| High | `ER` (Error Replacement) | Tests tolerate the injected error. Investigate whether the path executes, whether error handling masks the change, and whether assertions check the outcome. |
-| Medium | `CR` (Comment Replacement) | Removing the statement does not fail the tests. Check whether its effects matter and whether assertions observe them. |
-| Medium | `IF`/`IT` (If False/True), `NR` (Negation Removal) | Tests do not distinguish the changed condition. Both constant replacements surviving can indicate an unexecuted condition or weak assertions on the branch outcomes. |
-| Low | Operator shuffles (`AOS`, `COS`, `LOS`, `BOS`, shift/assignment variants), `BL`, `AS`, `LC`, `WF` | Check boundary inputs, arithmetic assertions, and semantic equivalence. The mutation result alone does not establish whether the code executed. |
+| Severity | Representative slugs                                                                              | What an uncaught mutant tells you                                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| High     | `ER` (Error Replacement)                                                                          | Tests tolerate the injected error. Investigate whether the path executes, whether error handling masks the change, and whether assertions check the outcome.         |
+| Medium   | `CR` (Comment Replacement)                                                                        | Removing the statement does not fail the tests. Check whether its effects matter and whether assertions observe them.                                                |
+| Medium   | `IF`/`IT` (If False/True), `NR` (Negation Removal)                                                | Tests do not distinguish the changed condition. Both constant replacements surviving can indicate an unexecuted condition or weak assertions on the branch outcomes. |
+| Low      | Operator shuffles (`AOS`, `COS`, `LOS`, `BOS`, shift/assignment variants), `BL`, `AS`, `LC`, `WF` | Check boundary inputs, arithmetic assertions, and semantic equivalence. The mutation result alone does not establish whether the code executed.                      |
 
-Severity ranks the *mutation*, not the risk. A low-severity survivor in a fee calculation matters more than a high-severity survivor in a log line — weigh what the mutated code does. Filter with `--severity` to work through the results in priority order.
+Severity ranks the _mutation_, not the risk. A low-severity survivor in a fee calculation matters more than a high-severity survivor in a log line — weigh what the mutated code does. Filter with `--severity` to work through the results in priority order.

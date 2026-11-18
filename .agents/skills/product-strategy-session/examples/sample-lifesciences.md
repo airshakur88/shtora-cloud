@@ -27,12 +27,12 @@ it, the buyer is rarely the user, and the option you're comparing against isn't 
 - Proto-personas built for the two survivors: **"First-Study Farrah"** (ops lead at a small sponsor
   running her first multi-site trial) and **"Margin-Watch Marcus"** (CRO operations director whose
   economics are staffing ratios)
-- JTBD split sharply. Farrah: *"help me run a compliant study without hiring a systems team."*
-  Marcus: *"help me run more studies per coordinator."*
-- Draft positioning, small-sponsor segment: *For clinical-stage sponsors running their first
+- JTBD split sharply. Farrah: _"help me run a compliant study without hiring a systems team."_
+  Marcus: _"help me run more studies per coordinator."_
+- Draft positioning, small-sponsor segment: _For clinical-stage sponsors running their first
   multi-site studies, who need a compliant trial platform without an internal systems team,
   Trialpath is a trial operations platform that ships preconfigured to the workflows a study
-  actually runs on — unlike enterprise systems that assume a validation team you don't have.*
+  actually runs on — unlike enterprise systems that assume a validation team you don't have._
 
 **Phase 2 — Problem Framing**
 
@@ -41,8 +41,8 @@ it, the buyer is rarely the user, and the option you're comparing against isn't 
   Every hour on it is an hour off the therapy program
 - **Look outward:** small sponsors genuinely lack good options, and the incumbents price for
   enterprise. The pull is real
-- **Reframe:** the question isn't "is there demand." It's *"can we serve it without taxing the
-  program that is the actual company?"*
+- **Reframe:** the question isn't "is there demand." It's _"can we serve it without taxing the
+  program that is the actual company?"_
 - Named the strategic risk plainly: Brightwater is a biotech. A software line competes for the same
   scarce engineering, and its revenue arrives on a slower clock than the trials it would fund
 
@@ -51,7 +51,7 @@ it, the buyer is rarely the user, and the option you're comparing against isn't 
 - Six interviews: 4 small-sponsor ops leads, 2 CRO directors
 - Small sponsors confirmed the pain and revealed the blocker: **they need a validated system**, and
   validation documentation was the first question in every conversation. Brightwater had validated
-  Trialpath *for its own use* — not as a vendor-supplied system
+  Trialpath _for its own use_ — not as a vendor-supplied system
 - CROs wanted the opposite: deep configurability per client, which is a services business wearing a
   software costume
 - Killed the CRO segment. Marcus's job needs staffing leverage; that's consulting, not licensing
@@ -69,7 +69,7 @@ it, the buyer is rarely the user, and the option you're comparing against isn't 
   more than two engineer-quarters, stop. That is the cost that would begin taxing the therapy
   program
 - Explicit non-goals: no CRO segment, no incumbent displacement, no sales hires
-- Review at 18 months against one question — *did this fund itself without slowing a trial?*
+- Review at 18 months against one question — _did this fund itself without slowing a trial?_
 
 ---
 
@@ -83,7 +83,7 @@ it, the buyer is rarely the user, and the option you're comparing against isn't 
   in one session.
 - **Validation documentation was the whole gate.** Every small-sponsor interview opened with it, and
   it became the first roadmap item and the kill criterion. In a regulated market the compliance
-  artifact often *is* the product decision.
+  artifact often _is_ the product decision.
 - **A segment was killed for being services in disguise.** CRO configurability sounds like product
   demand and behaves like consulting revenue. Naming it early avoided years of building bespoke
   configuration for two accounts.

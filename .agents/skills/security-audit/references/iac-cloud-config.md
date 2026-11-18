@@ -1,6 +1,7 @@
 # IaC, Containers, CI Workflows, and Web Config
 
 ## Contents
+
 - [Read first: the scanners are themselves a supply chain](#read-first-the-scanners-are-themselves-a-supply-chain)
 - [Deprecated, do not adopt](#deprecated-do-not-adopt)
 - [IaC scanning](#iac-scanning)

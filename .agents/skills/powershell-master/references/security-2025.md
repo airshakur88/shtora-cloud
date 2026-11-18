@@ -5,6 +5,7 @@ Reference for JEA, WDAC, Constrained Language Mode, Script Block Logging, creden
 ## Modern Security Framework (JEA + WDAC + Logging)
 
 **2025 Security Requirements:**
+
 1. **JEA** - Just Enough Administration for role-based access
 2. **WDAC** - Windows Defender Application Control for script approval
 3. **Constrained Language Mode** - For non-admin users

@@ -1,11 +1,12 @@
 ---
+
 name: "ghost-scan-code"
 description: "Ghost Security - SAST code scanner. Finds security vulnerabilities in source code by planning and executing targeted scans for issues like SQL injection, XSS, BOLA, BFLA, SSRF, and other OWASP categories. Supports applications (backend, frontend, mobile) and libraries (prototype pollution, unsafe deserialization, ReDoS, path traversal, zip slip). Use when the user asks for a code security audit, SAST scan, vulnerability scan of source code, or wants to find security flaws in a codebase or library."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 argument-hint: "[depth=quick]"
 license: apache-2.0
 metadata:
-  version: 1.1.1
+version: 1.1.1
 ---
 
 # Find Issues
@@ -30,6 +31,7 @@ $ARGUMENTS
 ## Step 1: Setup
 
 Compute the repo-specific output directory:
+
 ```bash
 repo_name=$(basename "$(pwd)") && remote_url=$(git remote get-url origin 2>/dev/null || pwd) && short_hash=$(printf '%s' "$remote_url" | git hash-object --stdin | cut -c1-8) && repo_id="${repo_name}-${short_hash}" && short_sha=$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d) && ghost_repo_dir="$HOME/.ghost/repos/${repo_id}" && scan_dir="${ghost_repo_dir}/scans/${short_sha}/code" && cache_dir="${ghost_repo_dir}/cache" && mkdir -p "$scan_dir" && echo "scan_dir=$scan_dir cache_dir=$cache_dir"
 ```
@@ -67,7 +69,7 @@ If `$scan_dir/nominations.md` does not exist, generate it by reading `$scan_dir/
 
 - [ ] <base_path> (<type>) | <agent> | <vector>
 - [ ] <base_path> (<type>) | <agent> | <vector>
-...
+      ...
 ```
 
 If `$scan_dir/nominations.md` already exists, change every top level task `- [x]` to `- [ ]`. Keep all indented lines/subtasks beneath each item unchanged.
@@ -96,6 +98,7 @@ Read `$scan_dir/nominations.md`. For each candidate file under a checked `- [x]`
 ```
 
 Create the findings directory:
+
 ```bash
 mkdir -p $scan_dir/findings
 ```

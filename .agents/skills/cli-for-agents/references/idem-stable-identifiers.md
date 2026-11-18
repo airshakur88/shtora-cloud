@@ -1,4 +1,5 @@
 ---
+
 title: Accept User-Provided Names Instead of Auto-Generating IDs
 impact: MEDIUM
 impactDescription: prevents orphaned duplicates from timed-out retries
@@ -60,36 +61,42 @@ double-deploy. Accept a caller-supplied `--idempotency-key` (or `--deployment-id
 and make the same key always map to the same rollout.
 
 ```typescript
-import { Command } from 'commander';
-import { randomUUID } from 'crypto';
+import { Command } from "commander";
+import { randomUUID } from "crypto";
 
 new Command()
-  .name('deploy')
-  .requiredOption('--service <name>')
-  .requiredOption('--env <env>')
-  .requiredOption('--tag <tag>')
-  .option('--idempotency-key <key>', 'caller-supplied key for retry safety')
-  .action(async ({ service, env, tag, idempotencyKey }) => {
-    // If caller didn't pass a key, derive one deterministically from the
-    // input parameters. Retries with the same inputs hit the same deploy.
-    const key = idempotencyKey ?? `${service}:${env}:${tag}`;
+	.name("deploy")
+	.requiredOption("--service <name>")
+	.requiredOption("--env <env>")
+	.requiredOption("--tag <tag>")
+	.option("--idempotency-key <key>", "caller-supplied key for retry safety")
+	.action(async ({ service, env, tag, idempotencyKey }) => {
+		// If caller didn't pass a key, derive one deterministically from the
+		// input parameters. Retries with the same inputs hit the same deploy.
+		const key = idempotencyKey ?? `${service}:${env}:${tag}`;
 
-    // API honors Idempotency-Key on POST per RFC draft-ietf-httpapi-idempotency
-    const result = await api.deploy({ service, env, tag }, {
-      headers: { 'Idempotency-Key': key },
-    });
+		// API honors Idempotency-Key on POST per RFC draft-ietf-httpapi-idempotency
+		const result = await api.deploy(
+			{ service, env, tag },
+			{
+				headers: { "Idempotency-Key": key },
+			},
+		);
 
-    console.log(JSON.stringify({
-      deploy_id: result.id,       // same on retry
-      idempotency_key: key,       // echoed so the caller can audit
-      changed: result.changed,    // true first time, false on retry
-      url: result.url,
-    }));
-  })
-  .parseAsync();
+		console.log(
+			JSON.stringify({
+				deploy_id: result.id, // same on retry
+				idempotency_key: key, // echoed so the caller can audit
+				changed: result.changed, // true first time, false on retry
+				url: result.url,
+			}),
+		);
+	})
+	.parseAsync();
 ```
 
 **Benefits:**
+
 - Timed-out retries target the same resource or deploy, not a new one
 - No orphaned duplicates to clean up after flaky network conditions
 - Client-chosen names/keys are also easier for agents to reference in later commands

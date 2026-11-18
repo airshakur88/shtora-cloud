@@ -1,4 +1,5 @@
 ---
+
 title: Structure Top-Level Help as a Navigational Index
 impact: HIGH
 impactDescription: reduces top-level discovery context from ~200 lines to ~15
@@ -48,6 +49,7 @@ Run "mycli config --help" for configuration and environment variables.
 ```
 
 **Benefits:**
+
 - Agent consumes ~15 lines to navigate, not 200
 - Each subcommand is one line — easy to scan and pattern-match
 - Environment variables and config live in `mycli config --help`, loaded only when relevant

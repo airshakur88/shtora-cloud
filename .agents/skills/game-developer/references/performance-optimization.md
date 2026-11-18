@@ -404,12 +404,14 @@ public class AsyncLoader : MonoBehaviour
 **Target: 60 FPS (16.67ms per frame)**
 
 CPU Budget:
+
 - Game logic: 5-7ms
 - Rendering: 3-5ms
 - Physics: 2-3ms
 - Scripts: 2-3ms
 
 Optimization priorities:
+
 1. Profile first (Profiler, Frame Debugger)
 2. Reduce draw calls (batching, instancing)
 3. Optimize expensive Update loops

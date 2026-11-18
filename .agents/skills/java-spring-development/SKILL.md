@@ -1,9 +1,10 @@
 ---
+
 name: java-spring-development
 description: Java Spring Boot development guidelines with best practices for building robust, secure, and maintainable enterprise applications
 metadata:
-  maintainer: Mindrally
-  source: https://github.com/Mindrally/skills
+maintainer: Mindrally
+source: https://github.com/Mindrally/skills
 ---
 
 # Java Spring Development Best Practices
@@ -47,12 +48,14 @@ project/
 ## Data Access
 
 ### Spring Data JPA
+
 - Define proper entity relationships (@OneToMany, @ManyToOne, etc.)
 - Use lazy loading appropriately to avoid N+1 queries
 - Implement pagination for large result sets
 - Use query methods and @Query for custom queries
 
 ### Database Migrations
+
 - Use Flyway or Liquibase for schema migrations
 - Version migration scripts properly
 - Never modify existing migrations
@@ -61,6 +64,7 @@ project/
 ## Security
 
 ### Spring Security
+
 - Implement authentication and authorization properly
 - Use BCrypt for password encoding
 - Configure CORS appropriately
@@ -68,6 +72,7 @@ project/
 - Use HTTPS in production
 
 ### Secure Coding
+
 - Validate all user inputs
 - Sanitize data to prevent injection attacks
 - Avoid exposing sensitive information in responses
@@ -76,12 +81,14 @@ project/
 ## Testing
 
 ### Unit Testing
+
 - Use JUnit 5 for unit tests
 - Mock dependencies with Mockito
 - Test business logic thoroughly
 - Follow Given-When-Then pattern
 
 ### Integration Testing
+
 - Use @SpringBootTest for integration tests
 - Use MockMvc for web layer testing
 - Test database operations with test containers
@@ -90,12 +97,14 @@ project/
 ## Performance
 
 ### Caching
+
 - Use Spring Cache abstraction
 - Configure appropriate cache providers (Redis, Caffeine)
 - Set proper TTL for cached data
 - Implement cache eviction strategies
 
 ### Async Processing
+
 - Use @Async for non-blocking operations
 - Configure thread pools appropriately
 - Handle exceptions in async methods
@@ -104,12 +113,14 @@ project/
 ## Logging and Monitoring
 
 ### Logging
+
 - Use SLF4J with Logback
 - Log at appropriate levels
 - Include correlation IDs for tracing
 - Avoid logging sensitive data
 
 ### Monitoring
+
 - Use Spring Boot Actuator for health and metrics
 - Export metrics to monitoring systems
 - Set up proper health checks

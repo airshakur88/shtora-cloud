@@ -191,6 +191,7 @@ class EntityScanner
 ```
 
 **Stagger multiple timers** so they don't all fire on the same frame:
+
 ```c
 m_LootTimer    = 0;     // Fires first
 m_VehicleTimer = 1.6;   // Fires 1.6s later
@@ -268,16 +269,16 @@ modded class CarScript
 
 ### Things to NEVER Do
 
-| Anti-Pattern | Impact | Fix |
-|-------------|--------|-----|
-| `GetObjectsAtPosition3D` with 50km radius in OnUpdate | 50-200ms stall per call | Registration-based registry |
-| Destroy/recreate all widgets on list refresh | Frame spikes, visible stutter | Widget pooling |
-| Sort large arrays every frame | O(n log n) wasted per frame | Sort on data change only (dirty flag) |
-| String concatenation in tight per-frame loops | Garbage allocation every frame | Do on state change, not per frame |
-| Entity spawning in tight loop (100 spawns in one frame) | Massive frame spike | Batch across frames (5-10 per frame) |
-| `JsonSaveFile()` in OnUpdate | Disk I/O blocks main thread | Auto-save timer (300s) with dirty flag |
-| `FileExist()` in a loop for the same path | Redundant disk checks | Check once, cache result |
-| `GetGame()` in a tight loop | Repeated function call overhead | Cache: `CGame game = GetGame();` |
+| Anti-Pattern                                            | Impact                          | Fix                                    |
+| ------------------------------------------------------- | ------------------------------- | -------------------------------------- |
+| `GetObjectsAtPosition3D` with 50km radius in OnUpdate   | 50-200ms stall per call         | Registration-based registry            |
+| Destroy/recreate all widgets on list refresh            | Frame spikes, visible stutter   | Widget pooling                         |
+| Sort large arrays every frame                           | O(n log n) wasted per frame     | Sort on data change only (dirty flag)  |
+| String concatenation in tight per-frame loops           | Garbage allocation every frame  | Do on state change, not per frame      |
+| Entity spawning in tight loop (100 spawns in one frame) | Massive frame spike             | Batch across frames (5-10 per frame)   |
+| `JsonSaveFile()` in OnUpdate                            | Disk I/O blocks main thread     | Auto-save timer (300s) with dirty flag |
+| `FileExist()` in a loop for the same path               | Redundant disk checks           | Check once, cache result               |
+| `GetGame()` in a tight loop                             | Repeated function call overhead | Cache: `CGame game = GetGame();`       |
 
 ### Performance Checklist
 
@@ -312,6 +313,7 @@ void OnUpdate(float dt)
 ```
 
 ### Log Indicators
+
 - `SCRIPT (W): Exceeded X ms` — Script exceeded engine time budget
 - Long pauses in log timestamps — Something blocked the main thread
 - Target: single mod should stay under 2ms/frame
@@ -346,29 +348,29 @@ void OnUpdate(float dt)
 
 ### Common Error Messages & Fixes
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Null pointer access` | Accessing null variable | Add null check before use |
-| `Cannot convert type 'X' to 'Y'` | Direct cast | Use `Class.CastTo()` |
-| `Undefined variable 'X'` | Typo, wrong scope, or wrong layer | Check spelling, check layer hierarchy |
-| `Method 'X' not found` | Wrong class or needs cast | Cast to specific type first |
-| `Redeclaration of variable 'X'` | Same var name in sibling if/else | Declare before if/else chain |
-| `Stack overflow` | Infinite recursion | Add base case or depth check |
-| `Index out of range` | Bad array index | Check `Count()` or `IsValidIndex()` |
-| `Error: Serializer X mismatch` | Save/load order mismatch | Ensure same types in same order + version check |
-| Config parse error at startup | Missing `;` or `};` in config.cpp | Check every class body ends with `};` |
-| `Cannot register cfg class X` | Duplicate CfgPatches name | Rename with unique mod prefix |
-| `Addon requires addon X` | Missing `requiredAddons[]` | Add exact CfgPatches class name (case-sensitive) |
-| No script log entries at all | CfgMods path is wrong | Engine silently ignores wrong paths — verify folder structure |
+| Error                            | Cause                             | Fix                                                           |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------- |
+| `Null pointer access`            | Accessing null variable           | Add null check before use                                     |
+| `Cannot convert type 'X' to 'Y'` | Direct cast                       | Use `Class.CastTo()`                                          |
+| `Undefined variable 'X'`         | Typo, wrong scope, or wrong layer | Check spelling, check layer hierarchy                         |
+| `Method 'X' not found`           | Wrong class or needs cast         | Cast to specific type first                                   |
+| `Redeclaration of variable 'X'`  | Same var name in sibling if/else  | Declare before if/else chain                                  |
+| `Stack overflow`                 | Infinite recursion                | Add base case or depth check                                  |
+| `Index out of range`             | Bad array index                   | Check `Count()` or `IsValidIndex()`                           |
+| `Error: Serializer X mismatch`   | Save/load order mismatch          | Ensure same types in same order + version check               |
+| Config parse error at startup    | Missing `;` or `};` in config.cpp | Check every class body ends with `};`                         |
+| `Cannot register cfg class X`    | Duplicate CfgPatches name         | Rename with unique mod prefix                                 |
+| `Addon requires addon X`         | Missing `requiredAddons[]`        | Add exact CfgPatches class name (case-sensitive)              |
+| No script log entries at all     | CfgMods path is wrong             | Engine silently ignores wrong paths — verify folder structure |
 
 ### Log File Locations
 
-| Log | Location |
-|-----|----------|
-| Client script log | `%localappdata%\DayZ\` (most recent `.RPT` file) |
+| Log               | Location                                            |
+| ----------------- | --------------------------------------------------- |
+| Client script log | `%localappdata%\DayZ\` (most recent `.RPT` file)    |
 | Server script log | `<server_root>\profiles\` (most recent `.RPT` file) |
-| Server admin log | `<server_root>\profiles\` (`.ADM` file) |
-| Crash dumps | Same directories (`.mdmp` files) |
+| Server admin log  | `<server_root>\profiles\` (`.ADM` file)             |
+| Crash dumps       | Same directories (`.mdmp` files)                    |
 
 **Reading logs:** Search for `SCRIPT (E)` first. Fix the FIRST error (they cascade). Search for your mod name to filter relevant entries.
 
@@ -410,16 +412,16 @@ Print("IsServer: " + GetGame().IsServer().ToString());
 
 ### Launch Parameters
 
-| Parameter | Purpose |
-|-----------|---------|
-| `-filePatching` | Load unpacked files (requires DayZDiag) |
-| `-scriptDebug=true` | Enable script debug features |
-| `-doLogs` | Enable detailed logging |
-| `-adminLog` | Enable admin log |
-| `-freezeCheck` | Detect and log script freezes |
-| `-noPause` | Server doesn't pause when empty |
-| `-mod=@Mod1;@Mod2` | Load mods (semicolon-separated) |
-| `-serverMod=@Mod` | Server-only mods (not sent to clients) |
+| Parameter           | Purpose                                 |
+| ------------------- | --------------------------------------- |
+| `-filePatching`     | Load unpacked files (requires DayZDiag) |
+| `-scriptDebug=true` | Enable script debug features            |
+| `-doLogs`           | Enable detailed logging                 |
+| `-adminLog`         | Enable admin log                        |
+| `-freezeCheck`      | Detect and log script freezes           |
+| `-noPause`          | Server doesn't pause when empty         |
+| `-mod=@Mod1;@Mod2`  | Load mods (semicolon-separated)         |
+| `-serverMod=@Mod`   | Server-only mods (not sent to clients)  |
 
 ---
 
@@ -592,11 +594,11 @@ if (rpc_type == RPC_ACTION_RESPONSE)
 
 ### Three RPC Approaches Compared
 
-| Approach | Pros | Cons | Use When |
-|----------|------|------|----------|
-| **Engine ScriptRPC** | Direct, no dependencies, full control | Manual read/write, numeric IDs, verbose | Standalone mods, vanilla modding |
-| **CF RPCManager** | String-based routing, auto-serialization | Requires CF dependency | Mod already uses CF |
-| **SDZ_RPC (StarDZ)** | String-routed, single engine ID 83722, clean API | StarDZ Core dependency | StarDZ ecosystem mods |
+| Approach             | Pros                                             | Cons                                    | Use When                         |
+| -------------------- | ------------------------------------------------ | --------------------------------------- | -------------------------------- |
+| **Engine ScriptRPC** | Direct, no dependencies, full control            | Manual read/write, numeric IDs, verbose | Standalone mods, vanilla modding |
+| **CF RPCManager**    | String-based routing, auto-serialization         | Requires CF dependency                  | Mod already uses CF              |
+| **SDZ_RPC (StarDZ)** | String-routed, single engine ID 83722, clean API | StarDZ Core dependency                  | StarDZ ecosystem mods            |
 
 ### RPC Throttling
 
@@ -629,26 +631,30 @@ class RPCThrottle
 ## RPC: Additional Details
 
 ### Serialization Contract
+
 Read/Write order must EXACTLY match, type for type. Supported types:
 
-| Type | Size | Notes |
-|------|------|-------|
-| `int` | 4 bytes | 32-bit signed |
-| `float` | 4 bytes | IEEE 754 |
-| `bool` | 1 byte | |
+| Type     | Size     | Notes                 |
+| -------- | -------- | --------------------- |
+| `int`    | 4 bytes  | 32-bit signed         |
+| `float`  | 4 bytes  | IEEE 754              |
+| `bool`   | 1 byte   |                       |
 | `string` | Variable | Length-prefixed UTF-8 |
-| `vector` | 12 bytes | Three floats |
+| `vector` | 12 bytes | Three floats          |
 
 Arrays can be written/read directly. For complex objects, flatten to primitives.
 
 ### guaranteed Parameter
+
 - `true` (reliable): Config changes, permissions, teleports — dropped packet = desync
 - `false` (unreliable): Rapid position updates, visual effects — lower overhead, no retransmit
 
 ### RPC Payload Size Limit
+
 Practical limit ~64 KB per RPC. For large data (config sync, player lists), paginate across multiple RPCs.
 
 ### CF Named RPC Pattern
+
 ```c
 // Register
 GetRPCManager().AddRPC("MyMod", "RPC_SpawnItem", this, SingleplayerExecutionType.Server);
@@ -665,6 +671,7 @@ void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, 
 ```
 
 ### Stale RPC Handler Cleanup
+
 RPC handlers registered by modules destroyed on mission end will crash on next dispatch. Unregister individually or clear the entire registry in OnMissionFinish.
 
 ---
@@ -672,7 +679,9 @@ RPC handlers registered by modules destroyed on mission end will crash on next d
 ## Performance: Additional Patterns
 
 ### Expansion's Linked-List Entity Tracking
+
 O(1) insert/remove without array allocation — each entity stores `m_Next` and `m_Prev`:
+
 ```c
 class TrackedEntity extends EntityAI
 {
@@ -699,7 +708,9 @@ class TrackedEntity extends EntityAI
 ```
 
 ### String Operation Cache
+
 Pre-compute expensive string transforms once, not on every search:
+
 ```c
 class SearchableItem
 {
@@ -716,7 +727,9 @@ class SearchableItem
 ```
 
 ### Position Cache
+
 Cache `GetPosition()` and refresh periodically instead of every proximity check:
+
 ```c
 protected vector m_CachedPos;
 protected float m_PosTimer;
@@ -733,13 +746,16 @@ void OnUpdate(float dt)
 ```
 
 ### Frame-Count Throttling
+
 Alternative to timers for per-N-frame operations:
+
 ```c
 m_FrameCounter++;
 if (m_FrameCounter % 10 != 0) return;  // Every 10th frame
 ```
 
 ### Custom Sort
+
 Built-in `.Sort()` only works for basic types. For custom sort on complex objects, use insertion sort for small arrays (<100 elements). Never sort per frame — only on data change.
 
 ---
@@ -749,26 +765,29 @@ Built-in `.Sort()` only works for basic types. For custom sort on complex object
 `-filePatching` with `DayZDiag_x64.exe` loads loose files from the P: drive instead of PBOs — fastest iteration.
 
 ### What Works
-| File Type | Hot-Reload? |
-|-----------|------------|
-| `.c` scripts | Yes |
-| `.layout` files | Yes |
-| `.paa` textures | Yes |
-| `.ogg` audio | Yes |
+
+| File Type       | Hot-Reload? |
+| --------------- | ----------- |
+| `.c` scripts    | Yes         |
+| `.layout` files | Yes         |
+| `.paa` textures | Yes         |
+| `.ogg` audio    | Yes         |
 
 ### What Does NOT Work
-| File Type | Requires |
-|-----------|----------|
-| `config.cpp` changes | PBO rebuild |
-| New `.c` files (not existing) | PBO rebuild |
-| New model/texture references | PBO rebuild |
-| `model.cfg` changes | PBO rebuild + binarize |
+
+| File Type                     | Requires               |
+| ----------------------------- | ---------------------- |
+| `config.cpp` changes          | PBO rebuild            |
+| New `.c` files (not existing) | PBO rebuild            |
+| New model/texture references  | PBO rebuild            |
+| `model.cfg` changes           | PBO rebuild + binarize |
 
 ---
 
 ## Diagnostic Flowcharts
 
 ### "My Mod Doesn't Work At All"
+
 1. Check script log for `SCRIPT (E)` errors → Fix FIRST error (they cascade)
 2. Is mod in launcher/`-mod=` parameter? → Check `mod.cpp` exists and has no syntax errors
 3. Does log mention your CfgPatches? → Check `config.cpp` syntax, `requiredAddons[]`
@@ -777,6 +796,7 @@ Built-in `.Sort()` only works for basic types. For custom sort on complex object
 6. Still nothing? → Add `Print("MY_MOD: Init reached");` to confirm execution
 
 ### "Works Offline, Fails on Dedicated Server"
+
 1. Is mod installed on server? → Check `-mod=`, PBO in `@Mod/Addons/`
 2. Client-only code on server? → `GetGame().GetPlayer()` returns null on server. Add `IsServer()`/`IsClient()` guards
 3. RPCs working? → Add `Print()` on send/receive. Check IDs match, target exists both sides
@@ -784,6 +804,7 @@ Built-in `.Sort()` only works for basic types. For custom sort on complex object
 5. Identity null? → `player.GetIdentity()` is null in offline mode. Test on dedicated.
 
 ### "My UI Is Broken"
+
 1. `CreateWidgets()` returns null? → Layout path wrong or file missing (use forward slashes, no error logged)
 2. Widgets exist but invisible? → Check sizes (>0), `Show(true)`, alpha not 0, widget not behind parent
 3. Visible but not clickable? → Check `priority` (z-order), verify `scriptclass`, confirm handler set
@@ -793,18 +814,18 @@ Built-in `.Sort()` only works for basic types. For custom sort on complex object
 
 ## Launch Parameters Reference
 
-| Parameter | Purpose |
-|-----------|---------|
-| `-filePatching` | Load unpacked files (requires DayZDiag) |
-| `-scriptDebug=true` | Enable script debug features |
-| `-doLogs` | Enable detailed logging |
-| `-adminLog` | Enable admin log |
-| `-freezeCheck` | Detect and log script freezes |
-| `-noPause` | Server doesn't pause when empty |
-| `-noSound` | Disable sound (faster loading) |
-| `-profiles=<path>` | Set profile directory for logs |
-| `-mod=@Mod1;@Mod2` | Load mods (semicolon-separated) |
-| `-serverMod=@Mod` | Server-only mods (not sent to clients) |
+| Parameter           | Purpose                                 |
+| ------------------- | --------------------------------------- |
+| `-filePatching`     | Load unpacked files (requires DayZDiag) |
+| `-scriptDebug=true` | Enable script debug features            |
+| `-doLogs`           | Enable detailed logging                 |
+| `-adminLog`         | Enable admin log                        |
+| `-freezeCheck`      | Detect and log script freezes           |
+| `-noPause`          | Server doesn't pause when empty         |
+| `-noSound`          | Disable sound (faster loading)          |
+| `-profiles=<path>`  | Set profile directory for logs          |
+| `-mod=@Mod1;@Mod2`  | Load mods (semicolon-separated)         |
+| `-serverMod=@Mod`   | Server-only mods (not sent to clients)  |
 
 ---
 

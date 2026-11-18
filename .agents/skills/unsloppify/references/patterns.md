@@ -17,6 +17,7 @@ house rules a hit is not a prohibition, but necessity is the bar.
 ## Importance inflation
 
 ### Gravitas words
+
 Mode: importance-inflation (performative-register)
 Status: current
 Adjectives and verbs that assert weight instead of showing it. The delete
@@ -27,6 +28,7 @@ Acceptable: a real dependency you name in the same sentence ("the index is essen
 Source: ossa-ma, mastra, wikipedia
 
 ### Magic adverbs
+
 Mode: importance-inflation (performative-register)
 Status: current
 Adverbs that perform depth or quiet drama. The sentence reads as insight
@@ -36,6 +38,7 @@ Acceptable: literal manner ("the fan runs quietly")
 Source: ossa-ma
 
 ### Absolute overreach
+
 Mode: importance-inflation (false-precision)
 Status: current
 Uniqueness and certainty claims no one checked. If the claim were true it
@@ -51,6 +54,7 @@ Acceptable: a true, shown uniqueness claim (a proof that one method terminates),
 Source: mastra, unslop
 
 ### Urgency and stakes inflation
+
 Mode: importance-inflation
 Status: current
 Manufactured moment-of-history framing. The test: could this sentence have
@@ -60,6 +64,7 @@ Acceptable: stakes that are real, named, and quantified
 Source: mastra, ossa-ma
 
 ### Hedging throat-clearing
+
 Mode: importance-inflation (template-filling)
 Status: current
 A preamble that promises importance the following clause must then carry
@@ -68,6 +73,7 @@ Phrases: it's important to note that, it is worth noting that, it should be note
 Source: mastra, wikipedia, unslop
 
 ### Filler phrases and empty modifiers
+
 Mode: importance-inflation (template-filling)
 Status: current
 Bulk that adds syllables, not facts. Includes vague quantity words where a
@@ -79,6 +85,7 @@ Acceptable: "given" and "particular" in their precise senses. "in order to" show
 Source: mastra, unslop
 
 ### Participial significance padding
+
 Mode: importance-inflation (false-precision)
 Status: current
 A trailing comma plus "-ing" clause that awards significance the sentence
@@ -90,6 +97,7 @@ Acceptable: an "-ing" clause stating a real, checkable consequence
 Source: mastra, wikipedia, unslop, ossa-ma
 
 ### Legacy and testament puffery
+
 Mode: importance-inflation (performative-register)
 Status: current
 Monument language for ordinary facts. Encyclopedic-sounding filler that
@@ -100,6 +108,7 @@ Acceptable: significance that is documented and named
 Source: wikipedia, unslop, mastra
 
 ### False agency
+
 Mode: importance-inflation (false-precision)
 Status: current
 Data given a voice so the writer can skip the claim. If the numbers speak,
@@ -108,6 +117,7 @@ Phrases: the numbers speak for themselves, the results speak for themselves, the
 Source: unslop (adapted from hardikpandya/stop-slop)
 
 ### Unsubstantiated change appraisal
+
 Mode: importance-inflation
 Status: current
 An agent or PR describes its own work with a quality adjective that supplies
@@ -121,6 +131,7 @@ Source: original
 ## Manufactured drama
 
 ### Negation-then-reveal
+
 Mode: manufactured-drama
 Status: current
 The point stated by first denying its opposite. One reframe can be a real
@@ -132,6 +143,7 @@ Acceptable: one genuine correction of a specific stated misconception
 Source: ossa-ma, mastra, wikipedia, unslop, hn
 
 ### Negation tails and comma splices
+
 Mode: manufactured-drama
 Status: current
 Negation-then-reveal without the drama, common in code comments and docs. A
@@ -147,6 +159,7 @@ Acceptable: a contrast that preempts a misreading the reader would actually make
 Source: original
 
 ### Stacked negation and anaphora
+
 Mode: manufactured-drama (template-filling)
 Status: current
 Repeated openings or negations as a drumbeat. Three or more parallel clause
@@ -157,6 +170,7 @@ Acceptable: deliberate, sparing repetition ("coffee, no sugar" is a real spec)
 Source: mastra, ossa-ma, unslop
 
 ### Self-answered questions
+
 Mode: manufactured-drama
 Status: current
 The writer asks a question only to answer it in the next breath. The
@@ -166,6 +180,7 @@ Phrases: The result?, The catch?, The reason?, The kicker?, The problem?, The be
 Source: ossa-ma, mastra, unslop
 
 ### Mic-drop fragments
+
 Mode: manufactured-drama
 Status: current
 Short punchy declarations dropped for effect, alone or in clipped parallel
@@ -177,6 +192,7 @@ Acceptable: one short sentence occasionally. Clustering is the failure.
 Source: mastra, ossa-ma, unslop, hn
 
 ### False suspense and revelation phrases
+
 Mode: manufactured-drama
 Status: current
 A transition that promises a revelation the content does not deliver. The
@@ -185,6 +201,7 @@ Phrases: here's the thing, here's the kicker, here's the catch, here's the deal,
 Source: mastra, ossa-ma, unslop
 
 ### False exclusivity
+
 Mode: manufactured-drama
 Status: current
 Claims of forbidden or overlooked knowledge about things that are plainly
@@ -194,6 +211,7 @@ Acceptable: only when the thing is genuinely obscure and you can show that
 Source: mastra, ossa-ma
 
 ### Narrative pivots
+
 Mode: manufactured-drama
 Status: current
 Cinematic turning points pasted onto ordinary events.
@@ -201,6 +219,7 @@ Phrases: something shifted, something clicked, everything changed, that changed 
 Source: mastra
 
 ### Dramatic labels and colon reveals
+
 Mode: manufactured-drama (template-filling)
 Status: current
 A punchy label, a colon, then the actual sentence. The label adds drama, not
@@ -211,6 +230,7 @@ Acceptable: a real definition list or glossary where "Term: definition" is the f
 Source: mastra, unslop
 
 ### Hollow acknowledgment
+
 Mode: manufactured-drama (false-precision)
 Status: current
 Naming a problem to sound rigorous while declining to act on it in the same
@@ -220,6 +240,7 @@ Acceptable: genuinely deferring the resolution and saying where it goes
 Source: mastra
 
 ### Asserted simplicity
+
 Mode: manufactured-drama (false-precision)
 Status: current
 Claiming privileged access to the simple truth instead of demonstrating it.
@@ -229,6 +250,7 @@ Acceptable: when the simpler account follows immediately with evidence
 Source: ossa-ma
 
 ### Historical analogy stacking
+
 Mode: manufactured-drama (false-precision)
 Status: current
 Rapid-fire company or tech-era comparisons that borrow authority instead of
@@ -240,6 +262,7 @@ Source: ossa-ma
 ## Performative register
 
 ### Overused AI vocabulary
+
 Mode: performative-register
 Status: current
 The single-word fingerprint list. One of these words is coincidence, a
@@ -251,6 +274,7 @@ Acceptable: precise technical senses ("robust" in statistics, "granular" for rea
 Source: mastra, wikipedia, unslop, ossa-ma
 
 ### Formal word substitutes
+
 Mode: performative-register
 Status: current
 Latinate formality where a plain word exists. Use the plain word when it
@@ -260,6 +284,7 @@ Acceptable: implement, framework, optimize and similar words with precise techni
 Source: mastra, unslop
 
 ### Copula avoidance
+
 Mode: performative-register (importance-inflation)
 Status: current
 Dodging "is" and "has" with verbs that sound more considered. The sentence
@@ -272,6 +297,7 @@ Acceptable: the verb's literal sense ("the server serves requests", "the deposit
 Source: ossa-ma, mastra, wikipedia, unslop
 
 ### Cliche metaphors and idioms
+
 Mode: performative-register (importance-inflation)
 Status: current
 Stock metaphors that once carried an image and now carry none.
@@ -280,6 +306,7 @@ Acceptable: "smoking gun" only for literal decisive evidence, and the owner stil
 Source: mastra, ossa-ma, unslop
 
 ### Performative engineering slang
+
 Mode: performative-register
 Status: current
 Jargon used as flavor rather than as the precise term. The words have
@@ -292,6 +319,7 @@ Acceptable: the precise term where plain phrasing is ambiguous. A smoke test sui
 Source: ossa-ma, hn, mastra, unslop
 
 ### Anthropomorphic justification
+
 Mode: performative-register (importance-inflation)
 Status: current
 Code and components praised like employees instead of described by effect.
@@ -300,6 +328,7 @@ Acceptable: "do no harm" in medical prose
 Source: mastra
 
 ### Figurative verb overload
+
 Mode: performative-register
 Status: current
 Ordinary verbs in figurative senses that stack into a register: things land,
@@ -314,6 +343,7 @@ literal-or-figurative call.
 Source: mastra, hn
 
 ### Colloquial assessments
+
 Mode: performative-register (manufactured-drama)
 Status: current
 Chat-native judgment idioms pasted into written artifacts.
@@ -322,6 +352,7 @@ Acceptable: "the move" literally in chess or dance
 Source: mastra
 
 ### Promotional and travel-brochure tone
+
 Mode: performative-register (importance-inflation)
 Status: current
 Tourism-board and press-release language in neutral or technical registers.
@@ -330,6 +361,7 @@ Acceptable: marketing copy the user explicitly asked for, and "vibrant" as a per
 Source: mastra, wikipedia, unslop
 
 ### Growth metaphors
+
 Mode: performative-register (false-precision)
 Status: current
 The startup-as-organism register.
@@ -338,6 +370,7 @@ Acceptable: literal senses in medical, nature, or agriculture writing
 Source: mastra
 
 ### Strategy buzzwords
+
 Mode: performative-register (false-precision)
 Status: declining
 Business-strategy vocabulary standing in for a named advantage.
@@ -347,6 +380,7 @@ Acceptable: "network effects" and "first-mover advantage" as precise terms in ge
 Source: mastra
 
 ### Fake casual quotes
+
 Mode: performative-register
 Status: current
 Casual words in scare quotes to perform relatability. Nobody is being
@@ -356,6 +390,7 @@ Acceptable: real quotation of a real person
 Source: ossa-ma
 
 ### False vulnerability
+
 Mode: performative-register
 Status: current
 Polished, risk-free self-disclosure performing honesty. The admission costs
@@ -365,6 +400,7 @@ Acceptable: a real, specific, uncomfortable admission
 Source: ossa-ma
 
 ### Patronizing analogy
+
 Mode: performative-register
 Status: current
 An analogy the reader did not need, usually domestic or culinary.
@@ -373,6 +409,7 @@ Acceptable: an analogy genuinely clearer than the plain statement for the audien
 Source: ossa-ma
 
 ### Defensive hedges
+
 Mode: performative-register (manufactured-drama)
 Status: current
 Pre-defending a point against an objection nobody raised. The concession is
@@ -383,6 +420,7 @@ Acceptable: a real concession that changes the claim, and "on the surface" for a
 Source: mastra
 
 ### Elegant variation
+
 Mode: performative-register (template-filling)
 Status: current
 Rotating synonyms for one referent across nearby sentences to avoid
@@ -392,6 +430,7 @@ Acceptable: variety across genuinely different referents. Weight lightly, non-na
 Source: wikipedia, unslop
 
 ### Academic excess vocabulary
+
 Mode: performative-register (importance-inflation)
 Status: current
 Paper-filler phrases that perform scholarship. Soft tells, flag when
@@ -401,6 +440,7 @@ Acceptable: standard hedged claims that carry real uncertainty stay (see guards)
 Source: unslop
 
 ### Compressed noun compounds
+
 Mode: performative-register
 Status: current
 Several nouns or participles packed into an improvised compound that needs
@@ -417,6 +457,7 @@ Source: original
 ## False precision
 
 ### Vague attributions
+
 Mode: false-precision
 Status: current
 Authority with no locatable source, or one source dressed as many. Name the
@@ -427,6 +468,7 @@ Acceptable: attributed forms ("research by the Kaiser group indicates") and poss
 Source: ossa-ma, mastra, wikipedia, unslop
 
 ### Fallback diagnoses
+
 Mode: false-precision
 Status: current
 A technical diagnosis label asserted as a conclusion with no mechanism named.
@@ -439,6 +481,7 @@ Acceptable: with nearby evidence or a stated verification step. A provisional hy
 Source: ossa-ma, hn
 
 ### False ranges
+
 Mode: false-precision (template-filling)
 Status: current
 "From X to Y" where X and Y share no scale, so no middle exists and the
@@ -449,6 +492,7 @@ Acceptable: a real spectrum with a meaningful middle ("from 0 to 100 ms")
 Source: ossa-ma, unslop
 
 ### False balance
+
 Mode: false-precision (performative-register)
 Status: current
 Both-sides hedging that dodges a position while sounding judicious.
@@ -457,6 +501,7 @@ Acceptable: genuine, specific uncertainty that is content (legal, medical, secur
 Source: mastra
 
 ### Organic consequence
+
 Mode: false-precision (manufactured-drama)
 Status: current
 Design decisions narrated as physics. Things fall out, emerge, and flow
@@ -467,6 +512,7 @@ Acceptable: a real mathematical derivation, or a systems derivation that shows t
 Source: mastra
 
 ### Knowledge-gap speculation
+
 Mode: false-precision (process-leakage)
 Status: current
 Confident invention where information is missing, flagged by the disclaimer
@@ -477,6 +523,7 @@ Acceptable: an honest, sourced statement that a fact is unknown
 Source: wikipedia
 
 ### Invented concept labels
+
 Mode: false-precision
 Status: current
 A coined term presented as established vocabulary. Flag it only when it is
@@ -487,6 +534,7 @@ Acceptable: an actually defined, sourced term, or a coinage the writer introduce
 Source: ossa-ma
 
 ### Generic-over-specific substitution
+
 Mode: false-precision (importance-inflation)
 Status: current
 The umbrella test behind most inflation tells: a specific checkable fact
@@ -497,6 +545,7 @@ Example: "inventor of the first train-coupling device" flattened to "a revolutio
 Source: wikipedia
 
 ### Unsupported completion claims
+
 Mode: false-precision
 Status: current
 A statement of completion or safety stronger than the evidence supports.
@@ -509,6 +558,7 @@ Acceptable: a completion claim that names the command, the test scope, the obser
 Source: original
 
 ### Bare reassurance
+
 Mode: false-precision
 Status: current
 A closing line that tells the reader everything is fine without the condition
@@ -522,6 +572,7 @@ Source: original
 ## Template filling
 
 ### Opening cliches
+
 Mode: template-filling
 Status: declining
 Stock openers that could preface anything. The reader learns nothing until
@@ -531,6 +582,7 @@ Phrases: in today's fast-paced, in today's digital age, in today's rapidly evolv
 Source: mastra, unslop, ossa-ma
 
 ### Signposted conclusions and wrap-up headings
+
 Mode: template-filling
 Status: current
 Announcing the ending instead of ending. A short document rarely needs both
@@ -540,6 +592,7 @@ Acceptable: abstracts and executive summaries that a long document genuinely nee
 Source: mastra, ossa-ma, wikipedia, unslop
 
 ### Formal transitions
+
 Mode: template-filling (performative-register)
 Status: declining
 Essay-connector tissue. And, but, and so carry the same load without the
@@ -550,6 +603,7 @@ Acceptable: "therefore" and "thus" in a genuine logical derivation. subsequently
 Source: mastra, unslop
 
 ### Sequencing scaffolds
+
 Mode: template-filling
 Status: current
 Numbered-essay skeletons: firstly-secondly-thirdly, or a listicle wearing
@@ -559,6 +613,7 @@ Acceptable: first and second as plain ordinals in a real sequence, or an actual 
 Source: mastra, ossa-ma
 
 ### Content announcements
+
 Mode: template-filling
 Status: current
 Narrating what the text is about to do instead of doing it. Includes the
@@ -567,6 +622,7 @@ Phrases: below you'll find, here's a breakdown of, here's an overview of, here's
 Source: mastra
 
 ### Formula headings
+
 Mode: template-filling (performative-register)
 Status: current
 Heading templates from content marketing.
@@ -575,6 +631,7 @@ Acceptable: a heading that names the actual content. Audio-mastering contexts us
 Source: mastra
 
 ### Cataphoric forecasting
+
 Mode: template-filling (manufactured-drama)
 Status: current
 A sentence-initial count forecasting a list, with framework nouns as the
@@ -585,6 +642,7 @@ Acceptable: a literal count of physical things ("all three files"), and counts t
 Source: mastra
 
 ### Reflex triads
+
 Mode: template-filling (manufactured-drama)
 Status: current
 Everything comes in threes: three adjectives, three parallel verb phrases,
@@ -597,6 +655,7 @@ Acceptable: a real three-item list that is the actual full set, including a comp
 Source: mastra, wikipedia, ossa-ma
 
 ### Metacommentary and structure narration
+
 Mode: template-filling (process-leakage)
 Status: current
 The text talks about itself: what it will explain, what the key point is,
@@ -606,6 +665,7 @@ Acceptable: an admonition block (Note:) where the doc system uses that conventio
 Source: mastra, unslop, ossa-ma
 
 ### Restatement markers
+
 Mode: template-filling
 Status: current
 Saying it twice and labeling the second pass. Usually the first phrasing
@@ -615,6 +675,7 @@ Acceptable: a restatement that adds real precision
 Source: mastra, unslop
 
 ### Rhetorical test prompts
+
 Mode: template-filling (manufactured-drama)
 Status: current
 Coaching-register imperatives that quiz the reader.
@@ -623,6 +684,7 @@ Acceptable: a genuine named test with a stated procedure, and "acid-test ratio" 
 Source: mastra, unslop
 
 ### Challenges and outlook formula
+
 Mode: template-filling
 Status: declining
 The essay-closer template: concede vague challenges, pivot to a vaguely
@@ -633,6 +695,7 @@ Acceptable: a named challenge with sourced specifics and named next steps
 Source: mastra, wikipedia, unslop
 
 ### Compliment sandwich
+
 Mode: template-filling (performative-register)
 Status: current
 Softening technical feedback with a formula compliment before the actual
@@ -642,6 +705,7 @@ Acceptable: a specific positive observation that affects the revision and tells 
 Source: ossa-ma
 
 ### Restatement bloat
+
 Mode: template-filling
 Status: current
 One thesis restated at every level: intro promises, sections repeat,
@@ -652,6 +716,7 @@ Acceptable: one genuine summary in a long document
 Source: ossa-ma, wikipedia
 
 ### Bold-first bullets and boldface reflex
+
 Mode: template-filling
 Status: current
 Every list item opening with a bolded lead phrase, or every key noun bolded
@@ -663,6 +728,7 @@ Acceptable: a definition list where the term truly leads, reference docs, change
 Source: ossa-ma, wikipedia
 
 ### Decorative punctuation
+
 Mode: template-filling (performative-register)
 Status: current
 Em dashes as pause-asides and pivots, decorative connectors instead of
@@ -673,6 +739,7 @@ Acceptable: -> or → as deliberate shorthand that saves space where the connect
 Source: ossa-ma, wikipedia, hn
 
 ### Unfilled placeholders
+
 Mode: template-filling (process-leakage)
 Status: current
 Template slots surviving into finished output.
@@ -681,6 +748,7 @@ Acceptable: a real template file meant to be filled later
 Source: wikipedia
 
 ### Prose structure formula
+
 Mode: template-filling
 Status: current
 The five-paragraph-essay ghost: topic sentence, three supporting points,
@@ -691,6 +759,7 @@ Acceptable: none. Vary structure with content.
 Source: mastra (styleguide)
 
 ### Agent handoff over-structuring
+
 Mode: template-filling
 Status: current
 A tiny change wrapped in fixed status-report sections: an outcome line, a
@@ -702,6 +771,7 @@ Acceptable: substantial engineering work where each section carries real content
 Source: original
 
 ### Generic benefit tails
+
 Mode: template-filling
 Status: current
 A generic benefit sentence added after an implementation choice. Current
@@ -713,6 +783,7 @@ Acceptable: a tail that names a concrete prevented failure, a measured improveme
 Source: original
 
 ### Defensive exhaustiveness
+
 Mode: template-filling
 Status: current
 A direct answer buried under a matrix of unlikely exceptions, edge cases, and
@@ -726,6 +797,7 @@ Source: original
 ## Process leakage
 
 ### Chat register in artifacts
+
 Mode: process-leakage
 Status: current
 Assistant pleasantries and sycophancy inside a delivered artifact: a doc, a
@@ -737,6 +809,7 @@ Acceptable: none inside an artifact. Legitimate only in actual live conversation
 Source: mastra, wikipedia, unslop, hn
 
 ### Conversation residue in code and PRs
+
 Mode: process-leakage
 Status: current
 Traces of the working session litter the patch. Comments argue with an
@@ -750,6 +823,7 @@ Acceptable: genuine numbered procedures where order is the content. Changelog an
 Source: hn, ossa-ma
 
 ### Reasoning-chain artifacts
+
 Mode: process-leakage
 Status: current
 The model's scratch thinking left in the output.
@@ -757,6 +831,7 @@ Phrases: let me think step by step, breaking this down, to approach this systema
 Source: unslop
 
 ### Vague self-reference
+
 Mode: process-leakage
 Status: current
 Pointing backward without a target. In long documents the reference decays
@@ -766,6 +841,7 @@ Acceptable: a real cross-reference to a named section ("see the install section"
 Source: mastra
 
 ### Model self-reference residue
+
 Mode: process-leakage
 Status: declining
 The model naming itself or its limits inside an artifact. "As an AI language
@@ -776,6 +852,7 @@ Acceptable: none in an artifact
 Source: wikipedia, unslop
 
 ### Instruction compliance narration
+
 Mode: process-leakage
 Status: current
 The output narrates its own compliance with a formatting, brevity, tone, or

@@ -1,4 +1,5 @@
 ---
+
 title: Rule Title Here
 impact: CRITICAL|HIGH|MEDIUM-HIGH|MEDIUM|LOW-MEDIUM|LOW
 impactDescription: Quantified impact (e.g., "2-10× improvement", "prevents runtime crashes")
@@ -24,6 +25,7 @@ tags: section-prefix, technique, tool, related-concepts
 ```
 
 **When NOT to use this pattern:**
+
 - Exception 1
 - Exception 2
 

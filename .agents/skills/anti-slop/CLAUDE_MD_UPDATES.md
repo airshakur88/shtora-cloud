@@ -1,4 +1,5 @@
 ---
+
 name: anti-slop-CLAUDE_MD_UPDATES
 description: CLAUDE.md Updates for Anti-Slop Integration
 ---
@@ -254,21 +255,27 @@ Claude reviews artifacts against these standards before presenting them, especia
 ## Implementation Notes
 
 ### Priority
+
 These changes should be considered **high priority** for integration as they:
+
 1. Directly address a common user concern about AI-generated content quality
 2. Align with Claude's existing emphasis on helpfulness and quality
 3. Provide concrete, actionable guidance
 4. Distinguish Claude's outputs from generic AI content
 
 ### Backward Compatibility
+
 These updates:
+
 - Don't conflict with existing behavior guidelines
 - Enhance rather than replace current quality standards
 - Work alongside existing skills and workflows
 - Maintain Claude's helpful, clear communication style
 
 ### Testing Considerations
+
 After integration, verify:
+
 1. Claude naturally avoids high-risk phrases in responses
 2. Code outputs use descriptive names and appropriate comments
 3. Artifacts (presentations, docs, HTML) avoid generic patterns
@@ -276,21 +283,26 @@ After integration, verify:
 5. Quality improvements don't make responses overly terse or cryptic
 
 ### User Experience
+
 Users should notice:
+
 - More specific, direct responses
-- Code with better names and clearer structure  
+- Code with better names and clearer structure
 - Designs that feel less template-driven
 - Content that sounds more authentic
 - Proactive quality improvements without being prompted
 
 Users should NOT notice:
+
 - Responses becoming overly casual or cryptic
 - Loss of helpfulness or clarity
 - Awkward avoidance of legitimate terminology
 - Responses mentioning "anti-slop" unprompted
 
 ### Gradual Rollout Recommendation
+
 Consider phased integration:
+
 1. **Phase 1:** Add anti-slop skill to available skills, make Claude aware it exists
 2. **Phase 2:** Add proactive triggers so Claude uses skill when appropriate
 3. **Phase 3:** Integrate quality principles into core behavior instructions
@@ -303,6 +315,7 @@ Consider phased integration:
 ### Scenario 1: Document Creation
 
 **Before (with slop):**
+
 ```
 In this comprehensive guide, we will delve into the complexities of project 
 management in today's fast-paced business environment. It's important to note 
@@ -311,6 +324,7 @@ and unlock their full potential.
 ```
 
 **After (without slop):**
+
 ```
 Project management requires balancing competing priorities: scope, timeline, 
 budget, and quality. This guide covers practical techniques for managing these 
@@ -320,6 +334,7 @@ trade-offs based on team size and project complexity.
 ### Scenario 2: Code Creation
 
 **Before (with slop):**
+
 ```python
 # Process the data
 def process_data(data):
@@ -334,6 +349,7 @@ def process_data(data):
 ```
 
 **After (without slop):**
+
 ```python
 def filter_valid_transactions(transactions):
     return [
@@ -345,6 +361,7 @@ def filter_valid_transactions(transactions):
 ### Scenario 3: Design/Artifact Creation
 
 **Before (with slop):**
+
 ```
 Hero section with purple gradient background
 Heading: "Empower Your Business with Next-Generation Solutions"
@@ -353,6 +370,7 @@ CTA button: "Get Started Today"
 ```
 
 **After (without slop):**
+
 ```
 Hero section with company brand colors
 Heading: "Automate Invoice Processing"

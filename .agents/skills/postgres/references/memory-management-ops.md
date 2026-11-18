@@ -1,4 +1,5 @@
 ---
+
 title: Memory Architecture and OOM Prevention
 description: PostgreSQL shared/private memory layout, OS page cache interaction, and OOM avoidance strategies
 tags: postgres, memory, shared_buffers, work_mem, oom, architecture, operations

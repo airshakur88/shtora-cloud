@@ -31,13 +31,16 @@ Build a compact map before judging findings:
 When one organization can delegate access into another (MSSP, platform support, partner access), verify every step of the delegation chain:
 
 **Self-approval bypass:**
+
 - Can a delegating party (source-tenant admin) create grants that are immediately `active` without the target/customer tenant approving? Check whether `approved_by` is set to the source actor, and whether `require_customer_approval` is enforced as a hard constraint rather than a UI toggle.
 - Can the source party set grant profiles (e.g., `mssp.admin_limited`) that are broader than what the customer intended to allow?
 
 **Grant action limit ignored in read policies:**
+
 - Delegation grants often carry an `allowed_actions` field constraining what the delegated session can read or write. Verify every policy helper in the delegated path checks `allowed_actions`, not just grant presence and delegated role. A helper like `canReadDelegatedTarget` that verifies the grant exists but skips `allowed_actions` lets any active grant override action constraints — a user with `DelegatedReadOnly` can read any operational data even if the approved grant scoped access to `audit.read` only.
 
 **Delegated session MFA binding:**
+
 - High-privilege delegated sessions should require verified MFA step-up. See auth-reviewer §1.6 for the scaffold bypass pattern where `MFAAssertion` is accepted as non-empty without actual factor verification.
 
 ## Aggregate endpoint API scope bypass
@@ -54,6 +57,7 @@ router.Get("/campaigns/{id}/results",
 ```
 
 For every endpoint that joins, embeds, or aggregates data from more than one domain:
+
 1. List what data domains appear in the response body.
 2. List what scopes the current middleware enforces.
 3. Flag any mismatch where the response includes data that requires scopes not checked.
@@ -88,9 +92,11 @@ When a background service auto-creates system service accounts using fixed reser
 For relay protocols using monotonically increasing sequence numbers for replay protection:
 
 **Per-task vs per-agent sequence namespace:**
+
 - If the server enforces a global max sequence across all task dispatches for an agent, subsequent tasks starting from sequence 1 will be rejected as replays after the first task completes. Each task must use an independent sequence namespace, or the server must track sequence per-dispatch-ID rather than globally per-agent.
 
 **Sequence reset on process restart:**
+
 - If the agent/watchdog client initializes sequence as a local counter (starting at 1 per process start) while the server tracks the last-seen sequence persistently, all messages after a restart fail as replays until the local counter exceeds the stored maximum. This blocks delivery of kill-switch, quarantine, and redeploy-hold signals.
 
 ## Entitlement gap — sub-resource listing endpoint bypasses pack-level entitlement

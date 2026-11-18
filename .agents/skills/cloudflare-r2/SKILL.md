@@ -1,51 +1,25 @@
 ---
+
 name: cloudflare-r2
 description: "Cloudflare R2 S3-compatible object storage. Use for buckets, uploads, CORS, presigned URLs, or encountering R2_ERROR, CORS failures, multipart issues."
 license: MIT
 metadata:
-  version: "3.0.0"
-  last_verified: "2025-12-27"
-  production_tested: true
-  token_savings: "~65%"
-  errors_prevented: 12
-  templates_included: 5
-  references_included: 11
-  agents_included: 5
-  commands_included: 4
-  scripts_included: 3
-  wrangler_version: "4.81.0"
-  workers_types_version: "4.20260408.0"
-  aws4fetch_version: "1.0.20"
-  keywords:
-    - r2
-    - r2 storage
-    - cloudflare r2
-    - r2 bucket
-    - r2 upload
-    - r2 download
-    - r2 binding
-    - object storage
-    - s3 compatible
-    - r2 cors
-    - presigned urls
-    - multipart upload
-    - r2 api
-    - r2 workers
-    - file upload
-    - asset storage
-    - R2_ERROR
-    - R2Bucket
-    - r2 metadata
-    - custom metadata
-    - http metadata
-    - content-type
-    - cache-control
-    - aws4fetch
-    - s3 client
-    - bulk delete
-    - r2 list
-    - storage class
+version: "3.0.0"
+last_verified: "2025-12-27"
+production_tested: true
+token_savings: "~65%"
+errors_prevented: 12
+templates_included: 5
+references_included: 11
+agents_included: 5
+commands_included: 4
+scripts_included: 3
+wrangler_version: "4.81.0"
+workers_types_version: "4.20260408.0"
+aws4fetch_version: "1.0.20"
+keywords: - r2 - r2 storage - cloudflare r2 - r2 bucket - r2 upload - r2 download - r2 binding - object storage - s3 compatible - r2 cors - presigned urls - multipart upload - r2 api - r2 workers - file upload - asset storage - R2_ERROR - R2Bucket - r2 metadata - custom metadata - http metadata - content-type - cache-control - aws4fetch - s3 client - bulk delete - r2 list - storage class
 ---
+
 # Cloudflare R2 Object Storage
 
 **Status**: Production Ready ✅ | **Last Verified**: 2025-12-27 | **v3.0.0**
@@ -70,16 +44,16 @@ Add to `wrangler.jsonc`:
 
 ```jsonc
 {
-  "name": "my-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2025-10-11",
-  "r2_buckets": [
-    {
-      "binding": "MY_BUCKET",          // env.MY_BUCKET
-      "bucket_name": "my-bucket",      // Actual bucket
-      "preview_bucket_name": "my-bucket-preview"  // Optional: dev bucket
-    }
-  ]
+	"name": "my-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-10-11",
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET", // env.MY_BUCKET
+			"bucket_name": "my-bucket", // Actual bucket
+			"preview_bucket_name": "my-bucket-preview" // Optional: dev bucket
+		}
+	]
 }
 ```
 
@@ -88,46 +62,47 @@ Add to `wrangler.jsonc`:
 ### 3. Basic Upload/Download
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  MY_BUCKET: R2Bucket;
+	MY_BUCKET: R2Bucket;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Upload
-app.put('/upload/:filename', async (c) => {
-  const filename = c.req.param('filename');
-  const body = await c.req.arrayBuffer();
+app.put("/upload/:filename", async (c) => {
+	const filename = c.req.param("filename");
+	const body = await c.req.arrayBuffer();
 
-  const object = await c.env.MY_BUCKET.put(filename, body, {
-    httpMetadata: {
-      contentType: c.req.header('content-type') || 'application/octet-stream',
-    },
-  });
+	const object = await c.env.MY_BUCKET.put(filename, body, {
+		httpMetadata: {
+			contentType: c.req.header("content-type") || "application/octet-stream",
+		},
+	});
 
-  return c.json({
-    success: true,
-    key: object.key,
-    size: object.size,
-  });
+	return c.json({
+		success: true,
+		key: object.key,
+		size: object.size,
+	});
 });
 
 // Download
-app.get('/download/:filename', async (c) => {
-  const object = await c.env.MY_BUCKET.get(c.req.param('filename'));
+app.get("/download/:filename", async (c) => {
+	const object = await c.env.MY_BUCKET.get(c.req.param("filename"));
 
-  if (!object) {
-    return c.json({ error: 'Not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "Not found" }, 404);
+	}
 
-  return new Response(object.body, {
-    headers: {
-      'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
-      'ETag': object.httpEtag,
-    },
-  });
+	return new Response(object.body, {
+		headers: {
+			"Content-Type":
+				object.httpMetadata?.contentType || "application/octet-stream",
+			ETag: object.httpEtag,
+		},
+	});
 });
 
 export default app;
@@ -156,36 +131,42 @@ export default app;
 ## Core R2 Workers API - Quick Reference
 
 ### put() - Upload Objects
+
 ```typescript
 await env.MY_BUCKET.put(key, data, options?)
 ```
 Upload with metadata, prevent overwrites with `onlyIf`. **Load `references/workers-api.md`** for complete R2PutOptions.
 
 ### get() - Download Objects
+
 ```typescript
 const object = await env.MY_BUCKET.get(key, options?)
 ```
 Returns `R2ObjectBody | null`. Supports range requests, conditional operations. **Load `references/workers-api.md`** for read methods (text(), json(), arrayBuffer(), blob()).
 
 ### head() - Get Metadata Only
+
 ```typescript
-const object = await env.MY_BUCKET.head(key)
+const object = await env.MY_BUCKET.head(key);
 ```
 Check existence, get size, etag, metadata without downloading body. Useful for validation and caching.
 
 ### delete() - Delete Objects
+
 ```typescript
 await env.MY_BUCKET.delete(key | keys[])  // Single or bulk (max 1000)
 ```
 Bulk delete up to 1000 keys in single call. Always succeeds (idempotent).
 
 ### list() - List Objects
+
 ```typescript
 const listed = await env.MY_BUCKET.list(options?)
 ```
 Pagination with cursor, prefix filtering, delimiter for folders. **Load `references/workers-api.md`** for R2ListOptions.
 
 ### createMultipartUpload() - Large Files (>100MB)
+
 ```typescript
 const multipart = await env.MY_BUCKET.createMultipartUpload(key, options?)
 ```
@@ -230,18 +211,18 @@ For files >100MB. **Load `references/common-patterns.md`** for complete multipar
 ### Use Case 1: Image/Asset Storage
 
 ```typescript
-app.put('/api/upload/image', async (c) => {
-  const file = await c.req.parseBody();
-  const image = file['image'] as File;
+app.put("/api/upload/image", async (c) => {
+	const file = await c.req.parseBody();
+	const image = file["image"] as File;
 
-  await c.env.MY_BUCKET.put(`images/${image.name}`, image.stream(), {
-    httpMetadata: {
-      contentType: image.type,
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-  });
+	await c.env.MY_BUCKET.put(`images/${image.name}`, image.stream(), {
+		httpMetadata: {
+			contentType: image.type,
+			cacheControl: "public, max-age=31536000, immutable",
+		},
+	});
 
-  return c.json({ success: true });
+	return c.json({ success: true });
 });
 ```
 
@@ -252,6 +233,7 @@ Generate secure upload URLs for client-side uploads. See `templates/r2-presigned
 ### Additional Patterns in References
 
 **Load `references/common-patterns.md` for**:
+
 - Multipart upload (files >100MB) - Complete workflow with part management
 - Bulk operations - Batch delete, cleanup patterns with pagination
 - Custom metadata tracking - User files, versions, approval workflows
@@ -371,14 +353,14 @@ try {
 
 ## Known Issues Prevented
 
-| Issue | Description | Solution |
-|-------|-------------|----------|
-| **CORS errors** | Browser can't upload/download | Configure CORS in bucket settings |
-| **Files download as binary** | Missing content-type | Always set `httpMetadata.contentType` |
-| **Presigned URL security** | URLs never expire | Always set `X-Amz-Expires` (1-24 hours) |
-| **Multipart limits** | Parts >100MB or >10,000 parts | Keep parts 5MB-100MB, max 10,000 |
-| **Bulk delete limits** | >1000 keys fails | Chunk deletes into batches of 1000 |
-| **Metadata overflow** | >2KB custom metadata | Keep total under 2KB |
+| Issue                        | Description                   | Solution                                |
+| ---------------------------- | ----------------------------- | --------------------------------------- |
+| **CORS errors**              | Browser can't upload/download | Configure CORS in bucket settings       |
+| **Files download as binary** | Missing content-type          | Always set `httpMetadata.contentType`   |
+| **Presigned URL security**   | URLs never expire             | Always set `X-Amz-Expires` (1-24 hours) |
+| **Multipart limits**         | Parts >100MB or >10,000 parts | Keep parts 5MB-100MB, max 10,000        |
+| **Bulk delete limits**       | >1000 keys fails              | Chunk deletes into batches of 1000      |
+| **Metadata overflow**        | >2KB custom metadata          | Keep total under 2KB                    |
 
 ---
 

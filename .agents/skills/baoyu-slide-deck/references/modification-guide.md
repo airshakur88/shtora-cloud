@@ -47,6 +47,7 @@ NN-slide-[slug].md (in prompts/)
 ```
 
 Examples:
+
 - `01-slide-cover.png`
 - `02-slide-problem-statement.png`
 - `03-slide-key-findings.png`
@@ -54,21 +55,21 @@ Examples:
 
 ## Slug Rules
 
-| Rule | Description |
-|------|-------------|
-| Format | Kebab-case (lowercase, hyphens) |
-| Source | Derived from slide title/content |
-| Uniqueness | Must be unique within the deck |
-| Updates | Change slug when content changes significantly |
+| Rule       | Description                                    |
+| ---------- | ---------------------------------------------- |
+| Format     | Kebab-case (lowercase, hyphens)                |
+| Source     | Derived from slide title/content               |
+| Uniqueness | Must be unique within the deck                 |
+| Updates    | Change slug when content changes significantly |
 
 ## Renumbering Rules
 
-| Scenario | Action |
-|----------|--------|
-| Add slide | Increment NN for all subsequent slides |
-| Delete slide | Decrement NN for all subsequent slides |
-| Reorder slides | Update NN to match new positions |
-| Edit slide | NN unchanged, update slug if needed |
+| Scenario       | Action                                 |
+| -------------- | -------------------------------------- |
+| Add slide      | Increment NN for all subsequent slides |
+| Delete slide   | Decrement NN for all subsequent slides |
+| Reorder slides | Update NN to match new positions       |
+| Edit slide     | NN unchanged, update slug if needed    |
 
 **Important**: Slugs remain unchanged during renumbering. Only the NN prefix changes.
 

@@ -13,6 +13,7 @@ ASI07 Insecure Inter-Agent Comms, ASI08 Cascading Failures, ASI09 Human-Agent Tr
 Exploitation, ASI10 Rogue Agents.
 
 ## Contents
+
 - [Static detection](#static-detection)
 - [LLM01: untrusted input in the system prompt](#llm01-untrusted-input-in-the-system-prompt)
 - [LLM05: unsanitized model output](#llm05-unsanitized-model-output)
@@ -48,7 +49,7 @@ rg -n --pcre2 'role:\s*["'\'']system["'\''][\s\S]{0,200}\$\{' -g '*.{js,ts,jsx,t
 rg -n --pcre2 'system:\s*`[^`]*\$\{' -g '*.{js,ts,jsx,tsx}'
 ```
 
-The triage rule: any variable in the *system* slot that is not a compile-time constant
+The triage rule: any variable in the _system_ slot that is not a compile-time constant
 is a finding. Retrieved documents, tool results, web pages and file contents all count
 as untrusted, because indirect injection is the same vulnerability with a longer path.
 
@@ -163,7 +164,7 @@ re-read as instructions — that is the poisoning path.
 
 ## MCP server security
 
-Risks: tool poisoning, where malicious instructions hide in a tool *description* that
+Risks: tool poisoning, where malicious instructions hide in a tool _description_ that
 the model reads as context; rug pulls, where a server changes its tool definitions after
 approval; tool shadowing, where one server's description overrides a trusted tool's
 behaviour; credential theft from environment variables; and typosquatting. The first

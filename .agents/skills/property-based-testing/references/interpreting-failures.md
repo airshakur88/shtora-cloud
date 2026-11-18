@@ -15,13 +15,13 @@ reputation for noise.
 Shrunk input in hand, check what the code actually promises. In descending order of
 authority:
 
-| Source | What it settles |
-|---|---|
-| External spec (RFC, format definition) | The real contract, when one exists |
-| Type annotations | Return type, nullability, domain |
-| Docstrings | Explicit guarantees and preconditions |
-| Existing tests | The contract maintainers believe they have |
-| Function name | Weak, but `sort` really does imply ordering |
+| Source                                 | What it settles                             |
+| -------------------------------------- | ------------------------------------------- |
+| External spec (RFC, format definition) | The real contract, when one exists          |
+| Type annotations                       | Return type, nullability, domain            |
+| Docstrings                             | Explicit guarantees and preconditions       |
+| Existing tests                         | The contract maintainers believe they have  |
+| Function name                          | Weak, but `sort` really does imply ordering |
 
 The name is the weakest signal and the one most likely to mislead you — plenty of
 functions called `normalize` do something narrower than the word suggests.
@@ -47,14 +47,14 @@ strategy bug — the fix is `st.text(alphabet=...)`, not a bug report.
 
 ## Classification
 
-| Symptom | Cause | Action |
-|---|---|---|
-| Violates a documented guarantee | Code bug | Report with the shrunk input and a quote from the doc |
-| Input violates a documented precondition | Over-broad strategy | Constrain the strategy |
-| Property contradicts the docstring or type | Wrong property | Fix the property |
-| Edge case the spec never addresses | Ambiguous spec | Ask the maintainer; a discussion, not a bug report |
-| Disappears under realistic constraints | Test artifact | Fix the strategy |
-| Behaviour differs from a sibling function | Possible inconsistency | Worth raising, flag the uncertainty |
+| Symptom                                    | Cause                  | Action                                                |
+| ------------------------------------------ | ---------------------- | ----------------------------------------------------- |
+| Violates a documented guarantee            | Code bug               | Report with the shrunk input and a quote from the doc |
+| Input violates a documented precondition   | Over-broad strategy    | Constrain the strategy                                |
+| Property contradicts the docstring or type | Wrong property         | Fix the property                                      |
+| Edge case the spec never addresses         | Ambiguous spec         | Ask the maintainer; a discussion, not a bug report    |
+| Disappears under realistic constraints     | Test artifact          | Fix the strategy                                      |
+| Behaviour differs from a sibling function  | Possible inconsistency | Worth raising, flag the uncertainty                   |
 
 Precondition violations and explicitly-undefined behaviour are not bugs. Passing `-1`
 to a function documented as taking positive integers tells you nothing.

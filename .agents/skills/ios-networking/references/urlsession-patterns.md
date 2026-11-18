@@ -857,6 +857,7 @@ the Subject Public Key Info structure, not just the raw key bytes returned by
 `SecKeyCopyExternalRepresentation`.
 
 **Important considerations:**
+
 - Pin at least two keys (primary + backup) to avoid lockout during rotation.
 - Have a remote kill switch (feature flag) to disable pinning in emergencies.
 - Test certificate rotation in staging before deploying to production.

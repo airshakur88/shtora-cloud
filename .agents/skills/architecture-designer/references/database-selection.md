@@ -2,14 +2,14 @@
 
 ## Database Types
 
-| Type | Examples | Best For |
-|------|----------|----------|
-| **Relational** | PostgreSQL, MySQL | Transactions, complex queries, relationships |
-| **Document** | MongoDB, Firestore | Flexible schemas, rapid iteration |
-| **Key-Value** | Redis, DynamoDB | Caching, sessions, high throughput |
-| **Time-Series** | TimescaleDB, InfluxDB | Metrics, IoT, analytics |
-| **Graph** | Neo4j, Neptune | Relationships, social networks |
-| **Search** | Elasticsearch, Meilisearch | Full-text search, logs |
+| Type            | Examples                   | Best For                                     |
+| --------------- | -------------------------- | -------------------------------------------- |
+| **Relational**  | PostgreSQL, MySQL          | Transactions, complex queries, relationships |
+| **Document**    | MongoDB, Firestore         | Flexible schemas, rapid iteration            |
+| **Key-Value**   | Redis, DynamoDB            | Caching, sessions, high throughput           |
+| **Time-Series** | TimescaleDB, InfluxDB      | Metrics, IoT, analytics                      |
+| **Graph**       | Neo4j, Neptune             | Relationships, social networks               |
+| **Search**      | Elasticsearch, Meilisearch | Full-text search, logs                       |
 
 ## Relational (PostgreSQL, MySQL)
 
@@ -26,12 +26,12 @@ When to Avoid:
 - Simple key-value access patterns
 ```
 
-| Feature | PostgreSQL | MySQL |
-|---------|------------|-------|
-| JSON support | Excellent (JSONB) | Good (JSON) |
-| Full-text search | Built-in | Basic |
-| Extensions | Rich ecosystem | Limited |
-| Replication | Streaming, logical | Statement, row-based |
+| Feature          | PostgreSQL         | MySQL                |
+| ---------------- | ------------------ | -------------------- |
+| JSON support     | Excellent (JSONB)  | Good (JSON)          |
+| Full-text search | Built-in           | Basic                |
+| Extensions       | Rich ecosystem     | Limited              |
+| Replication      | Streaming, logical | Statement, row-based |
 
 ## Document (MongoDB, Firestore)
 
@@ -80,23 +80,23 @@ When to Avoid:
 
 ## Decision Matrix
 
-| Requirement | Recommended |
-|-------------|-------------|
-| ACID transactions | PostgreSQL, MySQL |
-| Flexible schema | MongoDB, Firestore |
-| High-speed caching | Redis |
-| Time-series data | TimescaleDB, InfluxDB |
-| Social relationships | Neo4j |
-| Full-text search | Elasticsearch |
-| Serverless scale | DynamoDB, Firestore |
+| Requirement          | Recommended           |
+| -------------------- | --------------------- |
+| ACID transactions    | PostgreSQL, MySQL     |
+| Flexible schema      | MongoDB, Firestore    |
+| High-speed caching   | Redis                 |
+| Time-series data     | TimescaleDB, InfluxDB |
+| Social relationships | Neo4j                 |
+| Full-text search     | Elasticsearch         |
+| Serverless scale     | DynamoDB, Firestore   |
 
 ## Quick Reference
 
-| Question | If Yes → |
-|----------|----------|
-| Need ACID transactions? | Relational (PostgreSQL) |
-| Schema changes frequently? | Document (MongoDB) |
-| Sub-millisecond reads? | Key-Value (Redis) |
-| Time-based queries? | Time-Series |
-| Traversing relationships? | Graph (Neo4j) |
-| Full-text search primary? | Elasticsearch |
+| Question                   | If Yes →                |
+| -------------------------- | ----------------------- |
+| Need ACID transactions?    | Relational (PostgreSQL) |
+| Schema changes frequently? | Document (MongoDB)      |
+| Sub-millisecond reads?     | Key-Value (Redis)       |
+| Time-based queries?        | Time-Series             |
+| Traversing relationships?  | Graph (Neo4j)           |
+| Full-text search primary?  | Elasticsearch           |

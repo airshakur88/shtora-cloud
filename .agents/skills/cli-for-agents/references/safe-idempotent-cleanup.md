@@ -1,4 +1,5 @@
 ---
+
 title: Exit Successfully When Delete Targets Are Already Gone
 impact: MEDIUM-HIGH
 impactDescription: prevents retry-loop errors on already-clean state
@@ -49,6 +50,7 @@ def delete(service_id):
 ```
 
 **Benefits:**
+
 - Safe to retry blindly — second run is a no-op
 - Distinguishes "already gone" (stderr note) from "deleted just now" (stdout)
 - Matches the semantics of `rm -f`, `kubectl delete --ignore-not-found`, `terraform destroy`

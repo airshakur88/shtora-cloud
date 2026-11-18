@@ -44,17 +44,17 @@ The skill's `assets/` directory holds the reference copies (`win-health-check.ps
 
 ## Why these specific choices
 
-| Choice | Reason |
-|---|---|
+| Choice                                                                                                                  | Reason                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Task runs in the INTERACTIVE user session** (principal = logged-on user, `LogonType Interactive`, `RunLevel Limited`) | This is load-bearing. A task running as **SYSTEM** (or "run whether user is logged on or not") executes fine but its toasts **silently never render** — toasts are drawn by `explorer.exe` in the user's desktop session (Session 1+), not Session 0. This is the exact Windows analog of the macOS "osascript → Script Editor" failure. `Highest` run level is unnecessary for toasts and can hand the task a non-interactive token, so use `Limited`. |
-| **BurntToast for toasts** | BurntToast registers its own AppUserModelID, so the toast is attributed cleanly (not to "PowerShell") and click/activation works. Install once: `Install-Module BurntToast -Scope CurrentUser`. |
-| **Native WinRT as fallback** | Zero-dependency `ToastNotificationManager`, but **requires AUMID registration** or it doesn't render / is attributed to "PowerShell" — the same pathology as the macOS osascript fallback. Documented but secondary. |
-| **ntfy.sh as the headless escape hatch** | More important than on macOS: when there is **no interactive session** (locked machine, server SKU, SYSTEM task), toasts are impossible and ntfy is the only channel. `Invoke-RestMethod` works from any session. |
-| **`-Once` + `-RepetitionInterval 5min`** | The only reliable way to get indefinite sub-hourly repetition via the ScheduledTasks cmdlets. |
-| **`-StartWhenAvailable`** | Catch up once on wake after a missed trigger — the analog of the macOS plist's `StartCalendarInterval` coalescing (the macOS lesson was that `StartInterval` pauses during sleep). |
-| **`-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries`** | Default tasks are AC-only; without these a laptop on battery never checks — a silent-death mode the macOS LaunchAgent doesn't have. |
-| **Minidump file poll as primary crash signal; narrow `Get-WinEvent` only as confirmation** | A broad `Get-WinEvent` over a wide window is slow and throws "no events found" as a terminating error — the analog of the macOS `log show` being too slow. Polling `C:\Windows\Minidump` is cheap. |
-| **Commit % as primary memory signal** | `Available MBytes` counts reclaimable standby/cache; commit-limit exhaustion is the real OOM. |
+| **BurntToast for toasts**                                                                                               | BurntToast registers its own AppUserModelID, so the toast is attributed cleanly (not to "PowerShell") and click/activation works. Install once: `Install-Module BurntToast -Scope CurrentUser`.                                                                                                                                                                                                                                                         |
+| **Native WinRT as fallback**                                                                                            | Zero-dependency `ToastNotificationManager`, but **requires AUMID registration** or it doesn't render / is attributed to "PowerShell" — the same pathology as the macOS osascript fallback. Documented but secondary.                                                                                                                                                                                                                                    |
+| **ntfy.sh as the headless escape hatch**                                                                                | More important than on macOS: when there is **no interactive session** (locked machine, server SKU, SYSTEM task), toasts are impossible and ntfy is the only channel. `Invoke-RestMethod` works from any session.                                                                                                                                                                                                                                       |
+| **`-Once` + `-RepetitionInterval 5min`**                                                                                | The only reliable way to get indefinite sub-hourly repetition via the ScheduledTasks cmdlets.                                                                                                                                                                                                                                                                                                                                                           |
+| **`-StartWhenAvailable`**                                                                                               | Catch up once on wake after a missed trigger — the analog of the macOS plist's `StartCalendarInterval` coalescing (the macOS lesson was that `StartInterval` pauses during sleep).                                                                                                                                                                                                                                                                      |
+| **`-AllowStartIfOnBatteries -DontStopIfGoingOnBatteries`**                                                              | Default tasks are AC-only; without these a laptop on battery never checks — a silent-death mode the macOS LaunchAgent doesn't have.                                                                                                                                                                                                                                                                                                                     |
+| **Minidump file poll as primary crash signal; narrow `Get-WinEvent` only as confirmation**                              | A broad `Get-WinEvent` over a wide window is slow and throws "no events found" as a terminating error — the analog of the macOS `log show` being too slow. Polling `C:\Windows\Minidump` is cheap.                                                                                                                                                                                                                                                      |
+| **Commit % as primary memory signal**                                                                                   | `Available MBytes` counts reclaimable standby/cache; commit-limit exhaustion is the real OOM.                                                                                                                                                                                                                                                                                                                                                           |
 
 **Modern Standby (S0ix):** on many Windows 11 laptops, wake timers are unreliable and `powercfg /a` won't show S3 — this is normal, not a fault. The task pauses during sleep and `-StartWhenAvailable` runs it once on wake. Accepted, same trade-off as macOS.
 
@@ -91,17 +91,17 @@ Get-ScheduledTaskInfo -TaskName WinHealthCheck | Select-Object LastRunTime, Last
 
 Edit `%LOCALAPPDATA%\win-health\win-health-check.config.ps1`:
 
-| Variable | Default | When to change |
-|---|---|---|
-| `$DiskCriticalPct` | 10 | lower if you routinely run >90% full and accept it; raise for earlier warning |
-| `$CommitCriticalPct` | 90 | the primary memory trigger; lower to 85 for earlier warning |
-| `$MemFreeCriticalPct` | 5 | confirmation gate; match your normal heavy-use floor + margin |
-| `$CooldownMinutes` | 30 | lower for more reminders; raise to silence repeats |
-| `$HysteresisReadings` | 3 | 1 = instant; 5–6 = very stable only |
-| `$CalibrationDays` | 7 | 0 to skip on a known-good restore |
-| `$Notifier` | auto | `burnttoast` / `winrt` / `none` to force |
-| `$NtfyUrl` | empty | `https://ntfy.sh/<long-unguessable-topic>` for phone/desktop push |
-| `$DumpDir` | `%SystemRoot%\Minidump` | override only for testing |
+| Variable              | Default                 | When to change                                                                |
+| --------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| `$DiskCriticalPct`    | 10                      | lower if you routinely run >90% full and accept it; raise for earlier warning |
+| `$CommitCriticalPct`  | 90                      | the primary memory trigger; lower to 85 for earlier warning                   |
+| `$MemFreeCriticalPct` | 5                       | confirmation gate; match your normal heavy-use floor + margin                 |
+| `$CooldownMinutes`    | 30                      | lower for more reminders; raise to silence repeats                            |
+| `$HysteresisReadings` | 3                       | 1 = instant; 5–6 = very stable only                                           |
+| `$CalibrationDays`    | 7                       | 0 to skip on a known-good restore                                             |
+| `$Notifier`           | auto                    | `burnttoast` / `winrt` / `none` to force                                      |
+| `$NtfyUrl`            | empty                   | `https://ntfy.sh/<long-unguessable-topic>` for phone/desktop push             |
+| `$DumpDir`            | `%SystemRoot%\Minidump` | override only for testing                                                     |
 
 ## Daily operations
 
@@ -123,21 +123,26 @@ Remove-Item (Join-Path $env:LOCALAPPDATA 'win-health\silent')
 ## Troubleshooting
 
 ### Task runs but no toast appears
+
 1. **Most common:** the task is running as SYSTEM / "whether user is logged on or not". Re-run `Install-WinHealthCheck.ps1` so the principal is the interactive user (`LogonType Interactive`). Verify: `(Get-ScheduledTask WinHealthCheck).Principal`.
 2. Confirm BurntToast: `Get-Module -ListAvailable BurntToast`. If absent, `Install-Module BurntToast -Scope CurrentUser`.
 3. Check Settings → System → Notifications is on and Focus Assist / Do Not Disturb isn't suppressing it.
 4. As a session-independent fallback, set `$NtfyUrl` and subscribe in the ntfy app.
 
 ### Toast attributed to "PowerShell"
+
 The native WinRT fallback fired without an AUMID. Install BurntToast (it registers an AUMID) and set `$Notifier = 'burnttoast'`.
 
 ### Task never runs on a laptop
+
 It was AC-only or paused during sleep. Re-run the installer (sets `-AllowStartIfOnBatteries`); accept that S0ix may delay the post-wake run (`-StartWhenAvailable` catches up once).
 
 ### Constant alerts during heavy work
+
 Past calibration and your normal workload exceeds thresholds. Suppress (`silent` file), raise thresholds, or increase `$HysteresisReadings`.
 
 ### "I want phone push too"
+
 Set `$NtfyUrl = 'https://ntfy.sh/<your-private-uuid-topic>'` (≥ 32 random chars — public topics are world-readable), subscribe in the ntfy mobile app, and test:
 
 ```powershell

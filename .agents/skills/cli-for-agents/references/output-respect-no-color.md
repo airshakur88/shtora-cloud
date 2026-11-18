@@ -1,4 +1,5 @@
 ---
+
 title: Disable ANSI Color When NO_COLOR or Non-TTY
 impact: MEDIUM
 impactDescription: prevents escape sequences from breaking regex matches
@@ -73,6 +74,7 @@ func main() {
 ```
 
 **Benefits:**
+
 - Non-empty-value `NO_COLOR` check matches the spec at no-color.org
 - Agents regex-match `Error:` without stripping escape sequences first
 - Works automatically in CI, `| grep`, `| tee log.txt`, and redirected runs

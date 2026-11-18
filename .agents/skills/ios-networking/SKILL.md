@@ -1,4 +1,5 @@
 ---
+
 name: ios-networking
 description: "Build, review, or improve networking code in iOS/macOS apps using URLSession with async/await, structured concurrency, and modern Swift patterns. Use when working with REST APIs, downloading files, uploading data, WebSocket connections, pagination, retry logic, request middleware, caching, background transfers, or network reachability monitoring. Also use when handling HTTP requests, API clients, network error handling, or data fetching in Swift apps."
 ---
@@ -275,15 +276,15 @@ enum NetworkError: Error, Sendable {
 
 ### Key URLError Cases
 
-| URLError Code | Meaning | Action |
-|---|---|---|
-| `.notConnectedToInternet` | Device offline | Show offline UI, queue for retry |
-| `.networkConnectionLost` | Connection dropped mid-request | Retry with backoff |
-| `.timedOut` | Server did not respond in time | Retry once, then show error |
-| `.cancelled` | Task was cancelled | No action needed; do not show error |
-| `.cannotFindHost` | DNS failure | Check URL, show error |
-| `.secureConnectionFailed` | TLS handshake failed | Check cert pinning, ATS config |
-| `.userAuthenticationRequired` | Authentication required to access a resource | Trigger auth flow |
+| URLError Code                 | Meaning                                      | Action                              |
+| ----------------------------- | -------------------------------------------- | ----------------------------------- |
+| `.notConnectedToInternet`     | Device offline                               | Show offline UI, queue for retry    |
+| `.networkConnectionLost`      | Connection dropped mid-request               | Retry with backoff                  |
+| `.timedOut`                   | Server did not respond in time               | Retry once, then show error         |
+| `.cancelled`                  | Task was cancelled                           | No action needed; do not show error |
+| `.cannotFindHost`             | DNS failure                                  | Check URL, show error               |
+| `.secureConnectionFailed`     | TLS handshake failed                         | Check cert pinning, ATS config      |
+| `.userAuthenticationRequired` | Authentication required to access a resource | Trigger auth flow                   |
 
 ### Decoding Server Error Bodies
 

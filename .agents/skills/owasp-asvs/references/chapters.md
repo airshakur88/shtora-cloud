@@ -12,7 +12,7 @@ Source: [github.com/OWASP/ASVS/tree/master/5.0/en](https://github.com/OWASP/ASVS
 ## V1 Encoding and Sanitization
 
 Safe processing of untrusted data so it can't be reinterpreted as code
-by whatever parses it downstream. Input *validation* (matching business
+by whatever parses it downstream. Input _validation_ (matching business
 expectations) lives in V2, not here.
 
 - 1.1 Encoding and Sanitization Architecture — ordering: canonical
@@ -136,7 +136,7 @@ authentication already mitigates the risk.
 ## V11 Cryptography
 
 General-purpose cryptographic hygiene; requirements that use crypto to
-solve a *different* problem (secrets management → V13, transport
+solve a _different_ problem (secrets management → V13, transport
 security → V12) live in those chapters instead. See also Appendix C
 (Cryptography Standards) for the specific "approved" algorithms/modes.
 
@@ -170,7 +170,7 @@ Secure-by-default configuration across dev, build, and deployment.
 
 What sensitive data needs protecting, how, and specific pitfalls —
 particularly on client devices, where usage patterns are least
-controllable. Bulk-extraction *detection* is V16's job; *limits* on it
+controllable. Bulk-extraction _detection_ is V16's job; _limits_ on it
 are V2's job — this chapter only covers what/how to protect.
 
 - 14.1 Data Protection Documentation

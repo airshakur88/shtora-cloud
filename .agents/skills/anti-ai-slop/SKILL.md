@@ -1,4 +1,5 @@
 ---
+
 name: anti-ai-slop
 description: Detect and eliminate "AI slop" aesthetics in websites, web apps, landing pages, dashboards, components, and any frontend UI Claude generates or reviews. Use this skill BEFORE writing any HTML, CSS, React, Tailwind, or frontend code, AND when the user asks to review, audit, redesign, "de-slop," critique, fix, or improve a website/app/UI/landing page/component for being generic, AI-generated, soulless, templated, or "looking AI-made." Trigger on phrases like "make this not look AI", "remove the AI feel", "looks like ChatGPT made it", "v0 vibes", "looks like every SaaS site", "Tailwind default look", "feels generic", "review my landing page", "build a landing page", "design a hero section", "make a dashboard", "build a SaaS site", or any frontend build/critique request. This skill is mandatory for all frontend output to prevent distributional convergence on the purple-gradient/glassmorphism/rounded-card mean.
 ---
@@ -31,6 +32,7 @@ If a fix doesn't address one of these four, it's cosmetic.
 Before generating any UI code, run this checklist mentally and consciously violate the defaults:
 
 ### Visual defaults to refuse
+
 - [ ] Purple-to-blue / indigo-to-violet gradient anywhere
 - [ ] Glassmorphism (frosted card on gradient blob)
 - [ ] `rounded-2xl` on every element
@@ -44,6 +46,7 @@ Before generating any UI code, run this checklist mentally and consciously viola
 - [ ] Same fade-up animation on every element on scroll
 
 ### Copy defaults to refuse
+
 - [ ] "Transform your workflow with AI-powered..."
 - [ ] "Seamlessly", "Unlock", "Revolutionize", "Empower", "Elevate", "Effortlessly", "Delve", "Unleash"
 - [ ] Parallel-structure feature triplets ("Build faster. Ship smarter. Scale further.")
@@ -53,6 +56,7 @@ Before generating any UI code, run this checklist mentally and consciously viola
 - [ ] Walls of perfectly grammatical, soulless paragraphs
 
 ### Structural defaults to refuse
+
 - [ ] Standard SaaS skeleton: nav → hero → 3-feature grid → testimonials → pricing → CTA → footer
 - [ ] Fake testimonials with stock avatars and similar phrasing
 - [ ] "Trusted by" logo strip with placeholder logos
@@ -61,6 +65,7 @@ Before generating any UI code, run this checklist mentally and consciously viola
 - [ ] Floating chatbot bubble in the bottom right
 
 ### State/interaction defaults to refuse
+
 - [ ] Only the happy path renders — no empty states, error states, loading skeletons
 - [ ] Generic spinner instead of skeleton screen or contextual feedback
 - [ ] Buttons labeled "Submit" / "Click here" / "Learn more"
@@ -68,10 +73,12 @@ Before generating any UI code, run this checklist mentally and consciously viola
 - [ ] Dashboards with fake "real-time" data and no empty/zero state
 
 ### Motion & Interaction Slop
+
 - [ ] Generic `transition-all duration-300` on every hover state
 - [ ] Meaningless staggered fade-ups on scroll
 
 ### Asset, Data & Code Slop
+
 - [ ] Using "Lorem Ipsum" or generic placeholder text
 - [ ] Generic Unsplash photos (e.g., people pointing at laptops)
 - [ ] Perfectly symmetrical 8-point grid layouts everywhere (`p-4`, `gap-8`)
@@ -85,24 +92,24 @@ If 3+ of these slip into a draft, it's slop. Restart with deliberate violations.
 
 For each slop default, there's a non-slop move. Pick one or more per project and commit hard.
 
-| Slop default | Deliberate violation |
-|---|---|
-| Purple/blue gradient | Single flat color with one accent (e.g., off-white + ink black + one ugly-on-purpose color: mustard, oxblood, neon green) |
-| Rounded-2xl everywhere | Sharp corners (0px radius) OR mixed radii with intent (pill buttons + square cards) |
-| Inter / Geist | Editorial serif (Tiempos, GT Sectra), monospace body (JetBrains Mono, IBM Plex Mono), or weird display face for headings only |
-| Centered hero with two buttons | Asymmetric layout, off-grid placement, headline that runs off the edge, single CTA, or no hero at all |
-| 3D blobs / abstract shapes | Real screenshots of the product, hand-drawn marks, photographs, charts of real numbers, raw text |
-| Lucide icons | Custom inline SVGs, dingbats, no icons at all, or text labels only |
-| Drop-shadow hover | Border thickening, color inversion, marginal offset (translate by 2-4px), background swap |
-| Fade-up scroll animation | No scroll animation, OR a single weird intentional one (e.g., text reveal, marquee, a pinned scroll moment) |
-| Vague benefit copy | Concrete numbers, named customers, specific use cases, dated claims ("Used by 1,247 teams since March") |
-| Three-feature grid | Long-form prose, a single big screenshot with annotations, a comparison table, or a manifesto |
-| Free/Pro/Enterprise | Honest single price, usage-based with calculator, "pay what you want," or a manifesto-style pricing page |
-| Soulless ChatGPT prose | First-person voice, contractions, opinions, jokes, dated references, the founder's name |
-| Motion/transition slop | Instantaneous cuts (0ms), spring physics, or cinematic slow reveals; no `transition-all` |
-| Asset/placeholder slop | Highly specific mock data (e.g., "Sarah Jenkins - Logistics"), CSS patterns, or ASCII art |
-| Symmetrical grid slop | Break the 8-pt grid: massive typographic scale contrast, asymmetrical padding |
-| Generic code architecture | Semantic HTML, hyper-specific component names (`OverdueInvoiceWarning` instead of `AlertBox`) |
+| Slop default                   | Deliberate violation                                                                                                          |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Purple/blue gradient           | Single flat color with one accent (e.g., off-white + ink black + one ugly-on-purpose color: mustard, oxblood, neon green)     |
+| Rounded-2xl everywhere         | Sharp corners (0px radius) OR mixed radii with intent (pill buttons + square cards)                                           |
+| Inter / Geist                  | Editorial serif (Tiempos, GT Sectra), monospace body (JetBrains Mono, IBM Plex Mono), or weird display face for headings only |
+| Centered hero with two buttons | Asymmetric layout, off-grid placement, headline that runs off the edge, single CTA, or no hero at all                         |
+| 3D blobs / abstract shapes     | Real screenshots of the product, hand-drawn marks, photographs, charts of real numbers, raw text                              |
+| Lucide icons                   | Custom inline SVGs, dingbats, no icons at all, or text labels only                                                            |
+| Drop-shadow hover              | Border thickening, color inversion, marginal offset (translate by 2-4px), background swap                                     |
+| Fade-up scroll animation       | No scroll animation, OR a single weird intentional one (e.g., text reveal, marquee, a pinned scroll moment)                   |
+| Vague benefit copy             | Concrete numbers, named customers, specific use cases, dated claims ("Used by 1,247 teams since March")                       |
+| Three-feature grid             | Long-form prose, a single big screenshot with annotations, a comparison table, or a manifesto                                 |
+| Free/Pro/Enterprise            | Honest single price, usage-based with calculator, "pay what you want," or a manifesto-style pricing page                      |
+| Soulless ChatGPT prose         | First-person voice, contractions, opinions, jokes, dated references, the founder's name                                       |
+| Motion/transition slop         | Instantaneous cuts (0ms), spring physics, or cinematic slow reveals; no `transition-all`                                      |
+| Asset/placeholder slop         | Highly specific mock data (e.g., "Sarah Jenkins - Logistics"), CSS patterns, or ASCII art                                     |
+| Symmetrical grid slop          | Break the 8-pt grid: massive typographic scale contrast, asymmetrical padding                                                 |
+| Generic code architecture      | Semantic HTML, hyper-specific component names (`OverdueInvoiceWarning` instead of `AlertBox`)                                 |
 
 ---
 
@@ -127,6 +134,7 @@ Whichever you pick: **commit at every level** (color, type, spacing, motion, cop
 Visual slop is easy to spot. Copy slop is what gives it away even when the design is clean.
 
 **Banned phrases** (instant slop tell):
+
 - "Seamlessly," "effortlessly," "seamless integration"
 - "Unlock the power of," "unleash your potential"
 - "Revolutionize," "transform," "elevate," "empower"
@@ -138,6 +146,7 @@ Visual slop is easy to spot. Copy slop is what gives it away even when the desig
 - Parallel triplets: "Faster. Smarter. Better."
 
 **Replace with**:
+
 - Specific numbers: "Cuts onboarding from 6 weeks to 3 days for the 47 ops teams using it"
 - Named subjects: who uses it, who built it, what they did before
 - Concrete verbs: "imports," "exports," "splits," "merges," "queues" — not "leverages," "facilitates," "enables"

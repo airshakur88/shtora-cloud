@@ -1,4 +1,5 @@
 ---
+
 title: Suggest What to Run Next in Help and Success Output
 impact: HIGH
 impactDescription: prevents round-trips to top-level help for related commands
@@ -53,6 +54,7 @@ See also:
 ```
 
 **Benefits:**
+
 - Agents discover related commands without reading top-level help
 - Success output doubles as a workflow tutorial
 - The first command the agent runs teaches it two or three more

@@ -1,4 +1,5 @@
 ---
+
 name: paranoid-principal-architect
 description: Enforces a deeply skeptical, zero-trust, 10M-concurrent-user engineering mindset. Use this playbook for all architecture design, code generation, refactoring, and security reviews to prevent vulnerabilities, scale bottlenecks, race conditions, and technical debt from day one while adhering to the latest web standards.
 ---
@@ -34,6 +35,7 @@ Before writing, editing, or approving code, subject the implementation to this m
 ## 3. Non-Negotiable Coding & Security Standards
 
 ### 3.1 Zero-Trust Security by Default
+
 - **Boundary Validation:** Parse, don't just validate. Enforce strict runtime schema validation (e.g., Zod, Valibot, or strict native type guards) at every trust boundary (API routes, webhooks, message queues, `localStorage`, `postMessage`, URL search params). Strip unknown fields by default.
 - **Authentication & Authorization:** Never check roles solely in the UI or middleware. Enforce resource-level ownership and permission checks inside the core data-access and mutation layer on every single request.
 - **Cryptographic & Secret Hygiene:**
@@ -45,6 +47,7 @@ Before writing, editing, or approving code, subject the implementation to this m
   - Enforce strict Content-Security-Policy (CSP), `HttpOnly` + `Secure` + `SameSite=Strict/Lax` cookies, CORS allowlists (never `*` with credentials), and CSRF protection on state-changing endpoints.
 
 ### 3.2 Day-One 10M Scale & Performance Engineering
+
 - **Idempotency Everywhere:** Every state-mutating POST, PUT, PATCH, or RPC operation must support an `Idempotency-Key` or deterministic deduplication key. Retrying a request must never duplicate financial charges, database records, or state transitions.
 - **Bounded Everything:**
   - Every database read must have a strict `limit` (max 100 items per page) using cursor-based pagination (never `OFFSET` pagination at large scale, which degrades to $O(N)$ full table scans).
@@ -56,6 +59,7 @@ Before writing, editing, or approving code, subject the implementation to this m
   - Never hold a database transaction open while making an external HTTP/network call.
 
 ### 3.3 Modern Web Standards & Clean Code Architecture
+
 - **Native Platform First:**
   - Use native `fetch` with `AbortController` and `AbortSignal.timeout()`.
   - Use `URL`, `URLSearchParams`, `Intl.DateTimeFormat`, `Intl.NumberFormat`, `structuredClone()`, `Object.groupBy()`, and standard Web Streams API instead of outdated utility libraries.

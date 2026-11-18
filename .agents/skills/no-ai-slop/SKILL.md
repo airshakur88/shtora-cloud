@@ -1,8 +1,9 @@
 ---
+
 name: no-ai-slop
 description: Use when the user wants a draft edited to read clearer, more direct, more opinionated, or less AI-sounding, wants AI-slop patterns flagged without a rewrite, or asks whether writing reads as AI.
 metadata:
-  upstream: petergyang/no-ai-slop
+upstream: petergyang/no-ai-slop
 ---
 
 # No AI slop

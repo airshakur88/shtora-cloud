@@ -1,4 +1,5 @@
 ---
+
 title: Check for a TTY Before Prompting
 impact: CRITICAL
 impactDescription: prevents indefinite hangs under agents and CI

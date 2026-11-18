@@ -1,4 +1,5 @@
 ---
+
 name: setup-pre-commit
 description: Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing.
 ---
@@ -50,7 +51,7 @@ npm run test
 
 ```json
 {
-  "*": "prettier --ignore-unknown --write"
+	"*": "prettier --ignore-unknown --write"
 }
 ```
 
@@ -60,13 +61,13 @@ Only create if no Prettier config exists. Use these defaults:
 
 ```json
 {
-  "useTabs": false,
-  "tabWidth": 2,
-  "printWidth": 80,
-  "singleQuote": false,
-  "trailingComma": "es5",
-  "semi": true,
-  "arrowParens": "always"
+	"useTabs": false,
+	"tabWidth": 2,
+	"printWidth": 80,
+	"singleQuote": false,
+	"trailingComma": "es5",
+	"semi": true,
+	"arrowParens": "always"
 }
 ```
 

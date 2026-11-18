@@ -1,6 +1,6 @@
 # Native tools & the safety floor
 
-macOS has Mole (`mo`) as a community-vetted safety floor. **Windows has no mature equivalent** — so the safety floor here is two things working together: (1) **native Microsoft-supported tooling** for everything the OS maintains itself, and (2) **the apply-script validator** (`assets/apply-cleanup-selection.py`) for bare deletes. On Windows the validator is the *only* line behind project-artifact purge, not a second line behind a vetted tool. Treat it accordingly.
+macOS has Mole (`mo`) as a community-vetted safety floor. **Windows has no mature equivalent** — so the safety floor here is two things working together: (1) **native Microsoft-supported tooling** for everything the OS maintains itself, and (2) **the apply-script validator** (`assets/apply-cleanup-selection.py`) for bare deletes. On Windows the validator is the _only_ line behind project-artifact purge, not a second line behind a vetted tool. Treat it accordingly.
 
 ## Table of contents
 
@@ -14,18 +14,18 @@ macOS has Mole (`mo`) as a community-vetted safety floor. **Windows has no matur
 
 ## Native tooling = first choice
 
-| Tool | For | Notes |
-|---|---|---|
-| **Storage Sense** | ongoing temp/Recycle Bin/cloud dehydration | per-user; configurable via Settings, or Intune/CSP/GPO in a fleet |
-| **Cleanup recommendations** | one-shot GUI audit | Settings → System → Storage; temp, large/unused, cloud-synced, unused apps |
-| **cleanmgr** | scripted/legacy cleanup | `/sageset:N` defines a profile, `/sagerun:N` runs it on all drives |
-| **DISM** | Component Store (WinSxS) | `/AnalyzeComponentStore` then `/StartComponentCleanup`; `/ResetBase` is discuss-first |
-| **pnputil** | Driver Store | `/enum-drivers`, `/export-driver` (back up), `/delete-driver` |
-| **vssadmin** | shadow copies / restore | `list`/`delete`/`resize shadowstorage` |
-| **wevtutil** | Event Logs | `epl`/`al` (export) before `cl` (clear) |
-| **powercfg** | hiberfil / power state | `/h off`, `/h /type reduced`, `/a` |
-| **Clear-RecycleBin** | Recycle Bin | cmdlet, safe by construction |
-| **winget** | install/update/uninstall apps | `winget uninstall` is the clean app-removal path |
+| Tool                        | For                                        | Notes                                                                                 |
+| --------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **Storage Sense**           | ongoing temp/Recycle Bin/cloud dehydration | per-user; configurable via Settings, or Intune/CSP/GPO in a fleet                     |
+| **Cleanup recommendations** | one-shot GUI audit                         | Settings → System → Storage; temp, large/unused, cloud-synced, unused apps            |
+| **cleanmgr**                | scripted/legacy cleanup                    | `/sageset:N` defines a profile, `/sagerun:N` runs it on all drives                    |
+| **DISM**                    | Component Store (WinSxS)                   | `/AnalyzeComponentStore` then `/StartComponentCleanup`; `/ResetBase` is discuss-first |
+| **pnputil**                 | Driver Store                               | `/enum-drivers`, `/export-driver` (back up), `/delete-driver`                         |
+| **vssadmin**                | shadow copies / restore                    | `list`/`delete`/`resize shadowstorage`                                                |
+| **wevtutil**                | Event Logs                                 | `epl`/`al` (export) before `cl` (clear)                                               |
+| **powercfg**                | hiberfil / power state                     | `/h off`, `/h /type reduced`, `/a`                                                    |
+| **Clear-RecycleBin**        | Recycle Bin                                | cmdlet, safe by construction                                                          |
+| **winget**                  | install/update/uninstall apps              | `winget uninstall` is the clean app-removal path                                      |
 
 These are the **wrapper** commands the validator trusts. The destructive subset (`vssadmin delete`, `Dism …/ResetBase`, `wevtutil cl`, `pnputil /delete-driver`, `powercfg /h off`) still requires an explicit protected-override even though the tool self-polices — because the effect is irreversible.
 
@@ -33,19 +33,19 @@ These are the **wrapper** commands the validator trusts. The destructive subset 
 
 Find dev projects by marker files; remove regenerable build/dependency dirs only. All targets must be **`LastWriteTime` ≥ 7 days old**.
 
-| Marker | Tooling | Targets |
-|---|---|---|
-| `package.json`, `pnpm-lock.yaml`, `yarn.lock` | npm/pnpm/yarn | `node_modules`, `.next`, `.nuxt`, `.output`, `dist`, `build`, `.turbo`, `.parcel-cache` |
-| `*.csproj`, `*.fsproj`, `*.vbproj`, `*.sln` | .NET | `bin`, `obj` (only with a sibling project file) |
-| `Cargo.toml` | Rust | `target` |
-| `pom.xml` | Maven | `target` |
-| `build.gradle(.kts)` | Gradle | `build`, `.gradle` |
-| `pyproject.toml`, `requirements.txt` | Python | `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.tox` |
-| `composer.json` | PHP Composer | `vendor` (Go/Rails `vendor` is protected — hand-curated) |
-| `pubspec.yaml` | Flutter/Dart | `.dart_tool`, `build` |
-| `go.mod` | Go | `go clean -cache`/`-modcache` (don't delete `vendor`) |
-| `angular.json` / `svelte.config.*` / `astro.config.*` | frameworks | `.angular` / `.svelte-kit` / `.astro` |
-| any project | universal | `coverage`, `.cache` |
+| Marker                                                | Tooling       | Targets                                                                                 |
+| ----------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------- |
+| `package.json`, `pnpm-lock.yaml`, `yarn.lock`         | npm/pnpm/yarn | `node_modules`, `.next`, `.nuxt`, `.output`, `dist`, `build`, `.turbo`, `.parcel-cache` |
+| `*.csproj`, `*.fsproj`, `*.vbproj`, `*.sln`           | .NET          | `bin`, `obj` (only with a sibling project file)                                         |
+| `Cargo.toml`                                          | Rust          | `target`                                                                                |
+| `pom.xml`                                             | Maven         | `target`                                                                                |
+| `build.gradle(.kts)`                                  | Gradle        | `build`, `.gradle`                                                                      |
+| `pyproject.toml`, `requirements.txt`                  | Python        | `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.tox`   |
+| `composer.json`                                       | PHP Composer  | `vendor` (Go/Rails `vendor` is protected — hand-curated)                                |
+| `pubspec.yaml`                                        | Flutter/Dart  | `.dart_tool`, `build`                                                                   |
+| `go.mod`                                              | Go            | `go clean -cache`/`-modcache` (don't delete `vendor`)                                   |
+| `angular.json` / `svelte.config.*` / `astro.config.*` | frameworks    | `.angular` / `.svelte-kit` / `.astro`                                                   |
+| any project                                           | universal     | `coverage`, `.cache`                                                                    |
 
 Default scan roots (under HOME): `%USERPROFILE%\source`, `\repos`, `\dev`, `\Projects`, `\GitHub`, `\Code`, `\work`. External drives must be passed explicitly (`--scan-root D:\projects`) — the validator denies bare deletes outside HOME/TEMP/scan-roots by default.
 
@@ -71,7 +71,7 @@ Always include the age filter in any `Get-ChildItem | Where-Object LastWriteTime
 
 `assets/apply-cleanup-selection.py` is the safety core. It is a Windows **rewrite**, not a translation of the macOS validator, because NTFS/PowerShell give five separate ways to spell a protected path that a naive `startswith` misses. For every bare-delete command it:
 
-1. Rejects chaining/redirection metacharacters outright: `;  |  &  \`  $(  @(  ::  >  <` and newlines (PowerShell's injection surface is far wider than bash).
+1. Rejects chaining/redirection metacharacters outright: `;  |  &  \` $( @( :: > <` and newlines (PowerShell's injection surface is far wider than bash).
 2. Expands `%VAR%`/`$VAR`, then per path token rejects: UNC/device paths (`\\?\`, `\\.\`, `\\server`), 8.3 short names (`PROGRA~1`), non-filesystem providers (`HKLM:`, `Env:`, `Cert:`), and Alternate Data Streams (`file.txt:hidden`).
 3. Canonicalizes like Win32 `GetFullPath` (unify separators, collapse `..`, strip trailing dots/spaces), then requires a drive-absolute path and refuses a bare drive root.
 4. Classifies the path against an allow-list (HOME, TEMP, `%SystemRoot%\Temp`, scan roots) and a deny-list (the `never-touch.md` hard-protected prefixes) using **longest-prefix-wins**, so carve-outs resolve correctly (`C:\Windows` denied but `C:\Windows\Temp` allowed; `C:\Users\me` allowed but `C:\Users\me\.ssh` denied).
@@ -122,15 +122,15 @@ This is the minimal harness; the full apply-script validator is stricter (8.3/AD
 
 ## Third-party tools — optional, with caveats
 
-Use these as an *overlay* for user/app caches, never as a replacement for native tooling. Several have a real CLI:
+Use these as an _overlay_ for user/app caches, never as a replacement for native tooling. Several have a real CLI:
 
-| Tool | CLI | Use | Caveat |
-|---|---|---|---|
-| **BleachBit** | `bleachbit_console.exe --preview --preset` then `--clean` | transparent cache/temp/browser cleaning | always `--preview` first; permanent |
-| **BCUninstaller** | console interface | bulk app removal with leftovers | review the leftover list |
-| **WizTree** | `wiztree64.exe C: /export=...` | fast disk audit (read MFT) | audit only, not a cleaner |
-| **Autorunsc** | `autorunsc -accepteula -a * -c` | startup inventory | disabling entries is the change, not deletion |
-| **winget** | `winget uninstall` | clean app removal | preferred over manual folder delete |
+| Tool              | CLI                                                       | Use                                     | Caveat                                        |
+| ----------------- | --------------------------------------------------------- | --------------------------------------- | --------------------------------------------- |
+| **BleachBit**     | `bleachbit_console.exe --preview --preset` then `--clean` | transparent cache/temp/browser cleaning | always `--preview` first; permanent           |
+| **BCUninstaller** | console interface                                         | bulk app removal with leftovers         | review the leftover list                      |
+| **WizTree**       | `wiztree64.exe C: /export=...`                            | fast disk audit (read MFT)              | audit only, not a cleaner                     |
+| **Autorunsc**     | `autorunsc -accepteula -a * -c`                           | startup inventory                       | disabling entries is the change, not deletion |
+| **winget**        | `winget uninstall`                                        | clean app removal                       | preferred over manual folder delete           |
 
 **Avoid as a primary choice on a work machine:**
 

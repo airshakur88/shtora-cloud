@@ -3,6 +3,7 @@
 Detailed reference for refactorings that redistribute responsibilities between classes. The fundamental question of object-oriented design is: where should this behavior live? These refactorings provide the mechanical steps to move things to the right place.
 
 ## Table of Contents
+
 1. [Move Method](#move-method)
 2. [Move Field](#move-field)
 3. [Extract Class](#extract-class)
@@ -37,55 +38,59 @@ The most common reason for moving a method is Feature Envy -- when a method spen
 ### Example
 
 **Before:**
+
 ```javascript
 class Account {
-  overdraftCharge() {
-    if (this.type.isPremium()) {
-      let result = 10;
-      if (this.daysOverdrawn > 7) {
-        result += (this.daysOverdrawn - 7) * 0.85;
-      }
-      return result;
-    } else {
-      return this.daysOverdrawn * 1.75;
-    }
-  }
+	overdraftCharge() {
+		if (this.type.isPremium()) {
+			let result = 10;
+			if (this.daysOverdrawn > 7) {
+				result += (this.daysOverdrawn - 7) * 0.85;
+			}
+			return result;
+		} else {
+			return this.daysOverdrawn * 1.75;
+		}
+	}
 }
 ```
 
 The method depends heavily on `this.type` (an `AccountType` object). Move it there.
 
 **After:**
+
 ```javascript
 class AccountType {
-  overdraftCharge(daysOverdrawn) {
-    if (this.isPremium()) {
-      let result = 10;
-      if (daysOverdrawn > 7) {
-        result += (daysOverdrawn - 7) * 0.85;
-      }
-      return result;
-    } else {
-      return daysOverdrawn * 1.75;
-    }
-  }
+	overdraftCharge(daysOverdrawn) {
+		if (this.isPremium()) {
+			let result = 10;
+			if (daysOverdrawn > 7) {
+				result += (daysOverdrawn - 7) * 0.85;
+			}
+			return result;
+		} else {
+			return daysOverdrawn * 1.75;
+		}
+	}
 }
 
 class Account {
-  overdraftCharge() {
-    return this.type.overdraftCharge(this.daysOverdrawn);
-  }
+	overdraftCharge() {
+		return this.type.overdraftCharge(this.daysOverdrawn);
+	}
 }
 ```
 
 ### Decision Criteria
 
 Move a method when:
+
 - It uses more fields/methods of another class than its own
 - The target class is likely to change in ways that affect this method
 - Related methods already live in the target class
 
 Don't move when:
+
 - The method uses features from multiple classes equally (keep it in the most stable location)
 - Polymorphism on the source class is needed
 
@@ -112,6 +117,7 @@ A field used more by another class signals that the data model is out of alignme
 ### Example
 
 **Before:**
+
 ```python
 class Customer:
     def __init__(self):
@@ -148,53 +154,55 @@ A class with too many responsibilities grows too large and becomes hard to under
 ### Example
 
 **Before:**
+
 ```javascript
 class Person {
-  constructor() {
-    this.name = '';
-    this.officeAreaCode = '';
-    this.officeNumber = '';
-  }
+	constructor() {
+		this.name = "";
+		this.officeAreaCode = "";
+		this.officeNumber = "";
+	}
 
-  get telephoneNumber() {
-    return `(${this.officeAreaCode}) ${this.officeNumber}`;
-  }
+	get telephoneNumber() {
+		return `(${this.officeAreaCode}) ${this.officeNumber}`;
+	}
 }
 ```
 
 **After:**
+
 ```javascript
 class TelephoneNumber {
-  constructor() {
-    this.areaCode = '';
-    this.number = '';
-  }
+	constructor() {
+		this.areaCode = "";
+		this.number = "";
+	}
 
-  toString() {
-    return `(${this.areaCode}) ${this.number}`;
-  }
+	toString() {
+		return `(${this.areaCode}) ${this.number}`;
+	}
 }
 
 class Person {
-  constructor() {
-    this.name = '';
-    this.telephoneNumber = new TelephoneNumber();
-  }
+	constructor() {
+		this.name = "";
+		this.telephoneNumber = new TelephoneNumber();
+	}
 
-  get telephone() {
-    return this.telephoneNumber.toString();
-  }
+	get telephone() {
+		return this.telephoneNumber.toString();
+	}
 }
 ```
 
 ### Signals That Suggest Extraction
 
-| Signal | What to Extract |
-|--------|----------------|
-| Field name prefix groups (e.g., `shippingStreet`, `shippingCity`) | `ShippingAddress` class |
-| Methods that only use a subset of fields | The subset + its methods = new class |
-| Subsets change at different rates | The faster-changing subset deserves its own class |
-| Subsets have different collaborators | Each collaborator relationship = potential class boundary |
+| Signal                                                            | What to Extract                                           |
+| ----------------------------------------------------------------- | --------------------------------------------------------- |
+| Field name prefix groups (e.g., `shippingStreet`, `shippingCity`) | `ShippingAddress` class                                   |
+| Methods that only use a subset of fields                          | The subset + its methods = new class                      |
+| Subsets change at different rates                                 | The faster-changing subset deserves its own class         |
+| Subsets have different collaborators                              | Each collaborator relationship = potential class boundary |
 
 ---
 
@@ -240,12 +248,14 @@ When a client calls `person.getDepartment().getManager()`, the client knows abou
 ### Example
 
 **Before:**
+
 ```python
 # Client code:
 manager = person.department.manager
 ```
 
 **After:**
+
 ```python
 class Person:
     @property
@@ -260,12 +270,12 @@ manager = person.manager
 
 Hiding every delegate leads to the Middle Man smell -- a class that does nothing but forward calls. The right balance:
 
-| Situation | Action |
-|-----------|--------|
-| Delegate's interface is unstable | Hide it (protect callers from change) |
-| Client uses many delegate methods | Consider Hide Delegate for each |
-| Server is becoming pure forwarding | Remove Middle Man |
-| Chain is deep (a.b.c.d) | Definitely hide |
+| Situation                          | Action                                |
+| ---------------------------------- | ------------------------------------- |
+| Delegate's interface is unstable   | Hide it (protect callers from change) |
+| Client uses many delegate methods  | Consider Hide Delegate for each       |
+| Server is becoming pure forwarding | Remove Middle Man                     |
+| Chain is deep (a.b.c.d)            | Definitely hide                       |
 
 ---
 
@@ -287,20 +297,32 @@ As a system evolves, more and more delegating methods accumulate until the "serv
 ### Example
 
 **Before:**
+
 ```javascript
 class Person {
-  get manager() { return this.department.manager; }
-  get budget() { return this.department.budget; }
-  get headcount() { return this.department.headcount; }
-  get location() { return this.department.location; }
-  // ... 10 more forwarding methods
+	get manager() {
+		return this.department.manager;
+	}
+	get budget() {
+		return this.department.budget;
+	}
+	get headcount() {
+		return this.department.headcount;
+	}
+	get location() {
+		return this.department.location;
+	}
+	// ... 10 more forwarding methods
 }
 ```
 
 **After:**
+
 ```javascript
 class Person {
-  get department() { return this._department; }
+	get department() {
+		return this._department;
+	}
 }
 
 // Client:
@@ -337,34 +359,36 @@ When you need several foreign methods on a server class you can't modify, create
 
 ### Subclass vs. Wrapper
 
-| Approach | When to Use |
-|----------|-------------|
-| Subclass | When you can subclass the server; simplest approach |
+| Approach            | When to Use                                                         |
+| ------------------- | ------------------------------------------------------------------- |
+| Subclass            | When you can subclass the server; simplest approach                 |
 | Wrapper (Decorator) | When you can't subclass (final class); forward all original methods |
 
 ### Example (Wrapper)
 
 ```javascript
 class EnhancedDate {
-  constructor(date) {
-    this._original = date;
-  }
+	constructor(date) {
+		this._original = date;
+	}
 
-  // Forward original methods
-  getYear() { return this._original.getYear(); }
-  getMonth() { return this._original.getMonth(); }
+	// Forward original methods
+	getYear() {
+		return this._original.getYear();
+	}
+	getMonth() {
+		return this._original.getMonth();
+	}
 
-  // New methods
-  nextDay() {
-    return new EnhancedDate(
-      new Date(this._original.getTime() + 86400000)
-    );
-  }
+	// New methods
+	nextDay() {
+		return new EnhancedDate(new Date(this._original.getTime() + 86400000));
+	}
 
-  isWeekend() {
-    const day = this._original.getDay();
-    return day === 0 || day === 6;
-  }
+	isWeekend() {
+		const day = this._original.getDay();
+		return day === 0 || day === 6;
+	}
 }
 ```
 
@@ -374,15 +398,15 @@ class EnhancedDate {
 
 Use these questions to decide whether and where to move code:
 
-| Question | If Yes | Action |
-|----------|--------|--------|
-| Does this method use more of another class's features? | Feature Envy | Move Method to that class |
-| Is this field used more by another class? | Misplaced data | Move Field to that class |
-| Does this class have two groups of fields that don't interact? | Multiple responsibilities | Extract Class |
-| Is this class just a thin wrapper with no logic? | Unnecessary indirection | Inline Class |
-| Is the client navigating through an object chain? | Tight coupling | Hide Delegate |
-| Is this class just forwarding calls? | Middle Man smell | Remove Middle Man |
-| Need to add a method to a class you can't modify? | Missing feature | Introduce Foreign Method or Local Extension |
+| Question                                                       | If Yes                    | Action                                      |
+| -------------------------------------------------------------- | ------------------------- | ------------------------------------------- |
+| Does this method use more of another class's features?         | Feature Envy              | Move Method to that class                   |
+| Is this field used more by another class?                      | Misplaced data            | Move Field to that class                    |
+| Does this class have two groups of fields that don't interact? | Multiple responsibilities | Extract Class                               |
+| Is this class just a thin wrapper with no logic?               | Unnecessary indirection   | Inline Class                                |
+| Is the client navigating through an object chain?              | Tight coupling            | Hide Delegate                               |
+| Is this class just forwarding calls?                           | Middle Man smell          | Remove Middle Man                           |
+| Need to add a method to a class you can't modify?              | Missing feature           | Introduce Foreign Method or Local Extension |
 
 ### The Responsibility Placement Heuristic
 

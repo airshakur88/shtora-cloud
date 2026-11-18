@@ -83,6 +83,7 @@ Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Window
 ```
 
 Interpret:
+
 - **Kernel-Power 41** with `BugcheckCode = 0` → power loss / hard reset (no BSOD). Nonzero `BugcheckCode` (decimal stop code) → a bluescreen occurred.
 - **WER-SystemErrorReporting 1001** → the BSOD record with the stop code and dump path.
 - **WHEA-Logger 1** (fatal) / **18** (corrected) → hardware errors. A single corrected error after S0ix resume is usually benign; sustained sequences are not.

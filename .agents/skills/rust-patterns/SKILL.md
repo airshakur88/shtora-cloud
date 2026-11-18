@@ -1,8 +1,9 @@
 ---
+
 name: rust-patterns
 description: Idiomatic Rust patterns, ownership, error handling, traits, concurrency, and best practices for building safe, performant applications. Use when writing or reviewing Rust code and ownership, error handling, traits, or concurrency is in question.
 metadata:
-  origin: ECC
+origin: ECC
 ---
 
 # Rust Development Patterns
@@ -458,18 +459,18 @@ cargo bench              # Run benchmarks
 
 ## Quick Reference: Rust Idioms
 
-| Idiom | Description |
-|-------|-------------|
-| Borrow, don't clone | Pass `&T` instead of cloning unless ownership is needed |
-| Make illegal states unrepresentable | Use enums to model valid states only |
-| `?` over `unwrap()` | Propagate errors, never panic in library/production code |
-| Parse, don't validate | Convert unstructured data to typed structs at the boundary |
-| Newtype for type safety | Wrap primitives in newtypes to prevent argument swaps |
-| Prefer iterators over loops | Declarative chains are clearer and often faster |
-| `#[must_use]` on Results | Ensure callers handle return values |
-| `Cow` for flexible ownership | Avoid allocations when borrowing suffices |
-| Exhaustive matching | No wildcard `_` for business-critical enums |
-| Minimal `pub` surface | Use `pub(crate)` for internal APIs |
+| Idiom                               | Description                                                |
+| ----------------------------------- | ---------------------------------------------------------- |
+| Borrow, don't clone                 | Pass `&T` instead of cloning unless ownership is needed    |
+| Make illegal states unrepresentable | Use enums to model valid states only                       |
+| `?` over `unwrap()`                 | Propagate errors, never panic in library/production code   |
+| Parse, don't validate               | Convert unstructured data to typed structs at the boundary |
+| Newtype for type safety             | Wrap primitives in newtypes to prevent argument swaps      |
+| Prefer iterators over loops         | Declarative chains are clearer and often faster            |
+| `#[must_use]` on Results            | Ensure callers handle return values                        |
+| `Cow` for flexible ownership        | Avoid allocations when borrowing suffices                  |
+| Exhaustive matching                 | No wildcard `_` for business-critical enums                |
+| Minimal `pub` surface               | Use `pub(crate)` for internal APIs                         |
 
 ## Anti-Patterns to Avoid
 

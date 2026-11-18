@@ -1,6 +1,7 @@
 # Dependencies and Supply Chain
 
 ## Contents
+
 - [Which tool for which ecosystem](#which-tool-for-which-ecosystem)
 - [osv-scanner](#osv-scanner)
 - [Trivy](#trivy)
@@ -15,15 +16,15 @@
 
 ## Which tool for which ecosystem
 
-| Situation | Run |
-|---|---|
-| Any repo, first pass | `osv-scanner` |
-| Second opinion, or containers/IaC/licences too | `trivy` |
-| Go | `govulncheck` — authoritative, proves reachability |
-| Node | `npm audit` + `npm audit signatures` |
-| Python | `pip-audit` |
-| Need an SBOM artifact | `syft`, then scan the SBOM |
-| Java or .NET with fat JARs / DLLs | OWASP dependency-check, otherwise skip it |
+| Situation                                      | Run                                                |
+| ---------------------------------------------- | -------------------------------------------------- |
+| Any repo, first pass                           | `osv-scanner`                                      |
+| Second opinion, or containers/IaC/licences too | `trivy`                                            |
+| Go                                             | `govulncheck` — authoritative, proves reachability |
+| Node                                           | `npm audit` + `npm audit signatures`               |
+| Python                                         | `pip-audit`                                        |
+| Need an SBOM artifact                          | `syft`, then scan the SBOM                         |
+| Java or .NET with fat JARs / DLLs              | OWASP dependency-check, otherwise skip it          |
 
 Do not run every tool. Two overlapping scanners plus the language-native one is
 enough; more just multiplies duplicate findings you then have to merge.
@@ -246,6 +247,7 @@ Catches lockfile injection — a dependency whose resolved URL points somewhere 
 than the registry. Runs offline, exits nonzero on violation.
 
 Baseline hygiene to recommend when absent:
+
 - Commit the lockfile; install with `npm ci` / `pnpm install --frozen-lockfile` /
   `pip install --require-hashes`.
 - Pin the registry in `.npmrc`; use scoped names for internal packages so a public

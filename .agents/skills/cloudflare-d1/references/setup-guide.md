@@ -11,6 +11,7 @@ npx wrangler d1 create my-database
 ```
 
 **Output:**
+
 ```
 ✅ Successfully created DB 'my-database'
 
@@ -30,17 +31,17 @@ Add to `wrangler.jsonc`:
 
 ```jsonc
 {
-  "name": "my-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2025-10-11",
-  "d1_databases": [
-    {
-      "binding": "DB",                    // env.DB in code
-      "database_name": "my-database",     // From Step 1
-      "database_id": "<UUID>",            // From Step 1
-      "preview_database_id": "local-db"   // For local dev
-    }
-  ]
+	"name": "my-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-10-11",
+	"d1_databases": [
+		{
+			"binding": "DB", // env.DB in code
+			"database_name": "my-database", // From Step 1
+			"database_id": "<UUID>", // From Step 1
+			"preview_database_id": "local-db" // For local dev
+		}
+	]
 }
 ```
 
@@ -97,36 +98,36 @@ npx wrangler d1 migrations apply my-database --remote
 ## Step 6: Query from Worker
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  DB: D1Database;
+	DB: D1Database;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-app.get('/users/:email', async (c) => {
-  const email = c.req.param('email');
+app.get("/users/:email", async (c) => {
+	const email = c.req.param("email");
 
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE email = ?'
-  )
-    .bind(email)
-    .all();
+	const { results } = await c.env.DB.prepare(
+		"SELECT * FROM users WHERE email = ?",
+	)
+		.bind(email)
+		.all();
 
-  return c.json(results);
+	return c.json(results);
 });
 
-app.post('/users', async (c) => {
-  const { email, username } = await c.req.json();
+app.post("/users", async (c) => {
+	const { email, username } = await c.req.json();
 
-  const { results } = await c.env.DB.prepare(
-    'INSERT INTO users (email, username, created_at) VALUES (?, ?, ?) RETURNING *'
-  )
-    .bind(email, username, Date.now())
-    .all();
+	const { results } = await c.env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?) RETURNING *",
+	)
+		.bind(email, username, Date.now())
+		.all();
 
-  return c.json(results[0]);
+	return c.json(results[0]);
 });
 
 export default app;

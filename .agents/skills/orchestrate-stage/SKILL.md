@@ -1,10 +1,11 @@
 ---
+
 name: orchestrate-stage
 description: Run one stage of the OpenTaint pipeline by coordinating leaf subagents and deterministic joins. Use when a separate OpenTaint pipeline stage needs to be executed
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Run one stage

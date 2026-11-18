@@ -1,4 +1,5 @@
 ---
+
 name: deep-agents-memory
 description: "INVOKE THIS SKILL when your Deep Agent needs memory, persistence, or filesystem access. Covers StateBackend (ephemeral), StoreBackend (persistent), FilesystemMiddleware, and CompositeBackend for routing."
 ---
@@ -15,12 +16,12 @@ FilesystemMiddleware provides tools: `ls`, `read_file`, `write_file`, `edit_file
 
 <backend-selection>
 
-| Use Case | Backend | Why |
-|----------|---------|-----|
-| Temporary working files | StateBackend | Default, no setup |
-| Local development CLI | FilesystemBackend | Direct disk access |
-| Cross-session memory | StoreBackend | Persists across threads |
-| Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
+| Use Case                | Backend           | Why                        |
+| ----------------------- | ----------------- | -------------------------- |
+| Temporary working files | StateBackend      | Default, no setup          |
+| Local development CLI   | FilesystemBackend | Direct disk access         |
+| Cross-session memory    | StoreBackend      | Persists across threads    |
+| Hybrid storage          | CompositeBackend  | Mix ephemeral + persistent |
 
 </backend-selection>
 
@@ -44,10 +45,13 @@ Default StateBackend stores files ephemerally within a thread.
 ```typescript
 import { createDeepAgent } from "deepagents";
 
-const agent = await createDeepAgent();  // Default: StateBackend
-const result = await agent.invoke({
-  messages: [{ role: "user", content: "Write notes to /draft.txt" }]
-}, { configurable: { thread_id: "thread-1" } });
+const agent = await createDeepAgent(); // Default: StateBackend
+const result = await agent.invoke(
+	{
+		messages: [{ role: "user", content: "Write notes to /draft.txt" }],
+	},
+	{ configurable: { thread_id: "thread-1" } },
+);
 // /draft.txt is lost when thread ends
 ```
 </typescript>
@@ -79,17 +83,22 @@ agent = create_deep_agent(backend=composite_backend, store=store)
 Configure CompositeBackend to route paths to different storage backends.
 
 ```typescript
-import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
+import {
+	createDeepAgent,
+	CompositeBackend,
+	StateBackend,
+	StoreBackend,
+} from "deepagents";
 import { InMemoryStore } from "@langchain/langgraph";
 
 const store = new InMemoryStore();
 
 const agent = await createDeepAgent({
-  backend: (config) => new CompositeBackend(
-    new StateBackend(config),
-    { "/memories/": new StoreBackend(config) }
-  ),
-  store
+	backend: (config) =>
+		new CompositeBackend(new StateBackend(config), {
+			"/memories/": new StoreBackend(config),
+		}),
+	store,
 });
 
 // /draft.txt -> ephemeral (StateBackend)
@@ -118,10 +127,16 @@ Files in /memories/ persist across threads via StoreBackend routing.
 ```typescript
 // Using CompositeBackend from previous example
 const config1 = { configurable: { thread_id: "thread-1" } };
-await agent.invoke({ messages: [{ role: "user", content: "Save to /memories/style.txt" }] }, config1);
+await agent.invoke(
+	{ messages: [{ role: "user", content: "Save to /memories/style.txt" }] },
+	config1,
+);
 
 const config2 = { configurable: { thread_id: "thread-2" } };
-await agent.invoke({ messages: [{ role: "user", content: "Read /memories/style.txt" }] }, config2);
+await agent.invoke(
+	{ messages: [{ role: "user", content: "Read /memories/style.txt" }] },
+	config2,
+);
 // Thread 2 can read file saved by Thread 1
 ```
 </typescript>
@@ -153,9 +168,9 @@ import { createDeepAgent, FilesystemBackend } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = await createDeepAgent({
-  backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
-  interruptOn: { write_file: true, edit_file: true },
-  checkpointer: new MemorySaver()
+	backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
+	interruptOn: { write_file: true, edit_file: true },
+	checkpointer: new MemorySaver(),
 });
 ```
 </typescript>
@@ -210,7 +225,7 @@ agent = create_agent(
 - Tool names (ls, read_file, write_file, edit_file, glob, grep)
 - Access files outside virtual_mode restrictions
 - Cross-thread file access without proper backend setup
-</boundaries>
+  </boundaries>
 
 <fix-storebackend-requires-store>
 <python>
@@ -232,7 +247,10 @@ StoreBackend requires a store instance.
 const agent = await createDeepAgent({ backend: (c) => new StoreBackend(c) });
 
 // CORRECT
-const agent = await createDeepAgent({ backend: (c) => new StoreBackend(c), store: new InMemoryStore() });
+const agent = await createDeepAgent({
+	backend: (c) => new StoreBackend(c),
+	store: new InMemoryStore(),
+});
 ```
 </typescript>
 </fix-storebackend-requires-store>
@@ -293,7 +311,8 @@ Use PostgresStore for production (InMemoryStore lost on restart).
 
 ```typescript
 // WRONG                                    // CORRECT
-const store = new InMemoryStore();          const store = new PostgresStore({ connectionString: "..." });
+const store = new InMemoryStore();
+const store = new PostgresStore({ connectionString: "..." });
 ```
 </typescript>
 </fix-production-store>

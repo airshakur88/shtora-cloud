@@ -10,13 +10,13 @@ Find reachable Rust application vulnerabilities that API-name matching misses: e
 
 Inventory the effective routes and middleware before tracing findings.
 
-| Stack | Entry points and security signals |
-|---|---|
-| Actix Web | `App::route`, `web::resource`, `#[get]`/`#[post]`, `web::Query`, `web::Path`, `web::Json`, `web::Form`, `HttpRequest`, `Payload`, `Transform`, `Service`, `wrap`/`wrap_fn` |
-| Axum | `Router::route`, `nest`, `merge`, `fallback`, `Query`, `Path`, `Json`, `Form`, `Multipart`, `State`, `Extension`, `FromRequest`, `FromRequestParts`, `route_layer`, `layer`, Tower middleware |
-| Warp | `path`, `path!`, `query`, `body`, `header`, `cookie`, `and`, `or`, `map`, `and_then`, `recover`, `with`, rejection handlers |
-| Rocket | `#[get]`/`#[post]` and other route attributes, `mount`, rank/format guards, path/query parameters, `Form`, `Json`, `Data`, `TempFile`, request guards, fairings, catchers |
-| RPC and messaging | Tonic services/interceptors, GraphQL resolvers, WebSockets, queue consumers, cron jobs, file imports, webhook workers, admin CLIs |
+| Stack             | Entry points and security signals                                                                                                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actix Web         | `App::route`, `web::resource`, `#[get]`/`#[post]`, `web::Query`, `web::Path`, `web::Json`, `web::Form`, `HttpRequest`, `Payload`, `Transform`, `Service`, `wrap`/`wrap_fn`                    |
+| Axum              | `Router::route`, `nest`, `merge`, `fallback`, `Query`, `Path`, `Json`, `Form`, `Multipart`, `State`, `Extension`, `FromRequest`, `FromRequestParts`, `route_layer`, `layer`, Tower middleware |
+| Warp              | `path`, `path!`, `query`, `body`, `header`, `cookie`, `and`, `or`, `map`, `and_then`, `recover`, `with`, rejection handlers                                                                   |
+| Rocket            | `#[get]`/`#[post]` and other route attributes, `mount`, rank/format guards, path/query parameters, `Form`, `Json`, `Data`, `TempFile`, request guards, fairings, catchers                     |
+| RPC and messaging | Tonic services/interceptors, GraphQL resolvers, WebSockets, queue consumers, cron jobs, file imports, webhook workers, admin CLIs                                                             |
 
 Also inspect `Cargo.toml`, `Cargo.lock`, workspace features, `build.rs`, `.cargo/config*`, framework configuration, template directories, migrations, TLS settings, container/runtime configuration, and feature-gated code. Cargo features and target-specific dependencies change the compiled attack surface.
 

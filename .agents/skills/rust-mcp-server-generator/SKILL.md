@@ -1,4 +1,5 @@
 ---
+
 name: rust-mcp-server-generator
 description: 'Generate a complete Rust Model Context Protocol server project with tools, prompts, resources, and tests using the official rmcp SDK'
 ---
@@ -10,6 +11,7 @@ You are a Rust MCP server generator. Create a complete, production-ready Rust MC
 ## Project Requirements
 
 Ask the user for:
+
 1. **Project name** (e.g., "my-mcp-server")
 2. **Server description** (e.g., "A weather data MCP server")
 3. **Transport type** (stdio, sse, http, or all)
@@ -93,7 +95,7 @@ Cargo.lock
 
 ### README.md
 
-```markdown
+````markdown
 # {Project Name}
 
 {Server description}
@@ -103,6 +105,7 @@ Cargo.lock
 ```bash
 cargo build --release
 ```
+````
 
 ## Usage
 
@@ -130,12 +133,12 @@ Configure in your MCP client (e.g., Claude Desktop):
 
 ```json
 {
-  "mcpServers": {
-    "{project-name}": {
-      "command": "path/to/target/release/{project-name}",
-      "args": []
-    }
-  }
+	"mcpServers": {
+		"{project-name}": {
+			"command": "path/to/target/release/{project-name}",
+			"args": []
+		}
+	}
 }
 ```
 
@@ -156,7 +159,7 @@ Run with logging:
 ```bash
 RUST_LOG=debug cargo run
 ```
-```
+````
 
 ### src/main.rs
 
@@ -213,7 +216,7 @@ async fn main() -> Result<()> {
     tracing::info!("Server shutting down");
     Ok(())
 }
-```
+````
 
 ### src/handler.rs
 
@@ -565,12 +568,12 @@ For Claude Desktop integration:
 
 ```json
 {
-  "mcpServers": {
-    "{project-name}": {
-      "command": "path/to/{project-name}/target/release/{project-name}",
-      "args": []
-    }
-  }
+	"mcpServers": {
+		"{project-name}": {
+			"command": "path/to/{project-name}/target/release/{project-name}",
+			"args": []
+		}
+	}
 }
 ```
 

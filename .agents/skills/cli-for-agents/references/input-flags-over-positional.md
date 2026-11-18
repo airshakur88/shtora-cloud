@@ -1,4 +1,5 @@
 ---
+
 title: Prefer Named Flags Over Positional Arguments
 impact: HIGH
 impactDescription: prevents argument-order guessing and future breakage
@@ -63,6 +64,7 @@ func main() {
 ```
 
 **When NOT to use this pattern:**
+
 - A single primary operand is fine as positional: `cp source dest`, `rm file`, `cat file`
 - Variadic inputs like `rm file1 file2 file3` are clearer positional than `rm --file a --file b`
 

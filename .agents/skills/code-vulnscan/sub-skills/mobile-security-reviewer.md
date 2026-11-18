@@ -1,4 +1,5 @@
 ---
+
 name: mobile-security-reviewer
 description: iOS and Android mobile security review sub-skill
 ---
@@ -42,6 +43,7 @@ SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
 ```
 
 **Kotlin:**
+
 ```kotlin
 // Flag
 val prefs = getSharedPreferences("prefs", Context.MODE_PRIVATE)
@@ -376,6 +378,7 @@ kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly  // strongest: requires passcode
 ```
 
 **Objective-C:**
+
 ```objc
 // Flag
 NSDictionary *query = @{
@@ -488,15 +491,16 @@ func application(_ app: UIApplication, open url: URL,
 
 These should be present in a production binary. Flag their absence:
 
-| Protection | How to check (source) | How to verify (binary) |
-|-----------|----------------------|----------------------|
-| **PIE (Position Independent Executable)** | Not directly visible in source; check Xcode build settings `OTHER_CFLAGS` for `-no-pie` | `otool -hv <binary>` — should show `PIE` flag |
-| **Stack canary** | Absence of `-fno-stack-protector` in build flags | `otool -I -v <binary>` — check `___stack_chk_fail` symbol exists |
-| **ARC (Automatic Reference Counting)** | Source uses ARC by default; flag: `-fno-objc-arc` in build settings | Presence of `objc_release` / `objc_retain` calls |
-| **Bitcode** | Xcode `ENABLE_BITCODE = YES` (less critical, deprecated in Xcode 14) | |
-| **Debug symbols stripped** | Release builds: `STRIP_INSTALLED_PRODUCT = YES` in build settings | `nm <binary>` should return no debug symbols |
+| Protection                                | How to check (source)                                                                   | How to verify (binary)                                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **PIE (Position Independent Executable)** | Not directly visible in source; check Xcode build settings `OTHER_CFLAGS` for `-no-pie` | `otool -hv <binary>` — should show `PIE` flag                    |
+| **Stack canary**                          | Absence of `-fno-stack-protector` in build flags                                        | `otool -I -v <binary>` — check `___stack_chk_fail` symbol exists |
+| **ARC (Automatic Reference Counting)**    | Source uses ARC by default; flag: `-fno-objc-arc` in build settings                     | Presence of `objc_release` / `objc_retain` calls                 |
+| **Bitcode**                               | Xcode `ENABLE_BITCODE = YES` (less critical, deprecated in Xcode 14)                    |                                                                  |
+| **Debug symbols stripped**                | Release builds: `STRIP_INSTALLED_PRODUCT = YES` in build settings                       | `nm <binary>` should return no debug symbols                     |
 
 **Detection in source (build settings/Podfile/project.pbxproj):**
+
 ```
 # Flag in project.pbxproj
 ENABLE_HARDENED_RUNTIME = NO;     // disables runtime memory protections on macOS (also affects iOS extensions)
@@ -539,6 +543,7 @@ func urlSession(_ session: URLSession,
 ```
 
 **Objective-C:**
+
 ```objc
 // Flag: kCFStreamSSLValidatesCertificateChain = kCFBooleanFalse
 NSDictionary *settings = @{
@@ -615,11 +620,13 @@ os_log("User logged in: %{private}@", username)  // %{private} redacts in non-de
 ## React Native and Flutter notes
 
 **React Native:**
+
 - `AsyncStorage` is unencrypted — same issue as SharedPreferences/NSUserDefaults. Use `react-native-encrypted-storage` or `react-native-keychain`.
 - Deep links handled in `Linking.addEventListener` — check for open redirects and injected parameters.
 - `WebView` component: check `javaScriptEnabled`, `allowsInlineMediaPlayback`, `mixedContentMode`.
 
 **Flutter:**
+
 - `SharedPreferences` package maps to SharedPreferences (Android) / NSUserDefaults (iOS) — unencrypted.
 - `flutter_secure_storage` uses Android Keystore / iOS Keychain — preferred for secrets.
 - HTTP package: does not do certificate pinning by default. Use `dart:io` `SecurityContext` for pinning.
@@ -628,32 +635,32 @@ os_log("User logged in: %{private}@", username)  // %{private} redacts in non-de
 
 ## Detection checklist
 
-| Check | Android | iOS |
-|-------|---------|-----|
-| Secrets in persistent storage | SharedPreferences keys like `token`, `password`, `key` | UserDefaults keys like `auth`, `secret`, `pin` |
-| Cleartext HTTP | `usesCleartextTraffic="true"` in manifest | `NSAllowsArbitraryLoads` in Info.plist |
-| WebView JS exposure | `addJavascriptInterface` | `userContentController.add` with untrusted URLs |
-| SQL injection | `rawQuery(query, null)` with string concat | `sqlite3_exec` with string formatting |
-| Cert validation disabled | Empty `checkServerTrusted` | `completionHandler(.useCredential, ...)` always |
-| Exported components | `exported="true"` in manifest | URL schemes without Universal Links |
-| Hardcoded secrets | `API_KEY = "..."` in source/BuildConfig | Hardcoded strings, `plist` API keys |
-| Backup enabled | `allowBackup="true"` | Files not excluded from backup |
-| Old WebView | N/A | `UIWebView` usage |
-| Logging sensitive data | `Log.d(TAG, token)` | `print(token)` / `NSLog` with credentials |
+| Check                         | Android                                                | iOS                                             |
+| ----------------------------- | ------------------------------------------------------ | ----------------------------------------------- |
+| Secrets in persistent storage | SharedPreferences keys like `token`, `password`, `key` | UserDefaults keys like `auth`, `secret`, `pin`  |
+| Cleartext HTTP                | `usesCleartextTraffic="true"` in manifest              | `NSAllowsArbitraryLoads` in Info.plist          |
+| WebView JS exposure           | `addJavascriptInterface`                               | `userContentController.add` with untrusted URLs |
+| SQL injection                 | `rawQuery(query, null)` with string concat             | `sqlite3_exec` with string formatting           |
+| Cert validation disabled      | Empty `checkServerTrusted`                             | `completionHandler(.useCredential, ...)` always |
+| Exported components           | `exported="true"` in manifest                          | URL schemes without Universal Links             |
+| Hardcoded secrets             | `API_KEY = "..."` in source/BuildConfig                | Hardcoded strings, `plist` API keys             |
+| Backup enabled                | `allowBackup="true"`                                   | Files not excluded from backup                  |
+| Old WebView                   | N/A                                                    | `UIWebView` usage                               |
+| Logging sensitive data        | `Log.d(TAG, token)`                                    | `print(token)` / `NSLog` with credentials       |
 
 ## Output format per finding
 
 ```json
 {
-  "file": "app/src/main/java/com/example/LoginActivity.java",
-  "line": 48,
-  "platform": "android",
-  "vuln_type": "insecure_storage",
-  "severity": "high",
-  "cwe": "CWE-312",
-  "owasp_mobile": "M2:2024 - Inadequate Supply Chain Security",
-  "title": "Auth token stored in plaintext SharedPreferences",
-  "description": "The authentication token is stored using SharedPreferences with MODE_PRIVATE. This data is readable on rooted devices, via adb backup (if allowBackup=true), or through a malicious app with matching user ID on older OS versions.",
-  "remediation": "Replace with EncryptedSharedPreferences using MasterKey with AES256_GCM. Ensure android:allowBackup=false in AndroidManifest.xml."
+	"file": "app/src/main/java/com/example/LoginActivity.java",
+	"line": 48,
+	"platform": "android",
+	"vuln_type": "insecure_storage",
+	"severity": "high",
+	"cwe": "CWE-312",
+	"owasp_mobile": "M2:2024 - Inadequate Supply Chain Security",
+	"title": "Auth token stored in plaintext SharedPreferences",
+	"description": "The authentication token is stored using SharedPreferences with MODE_PRIVATE. This data is readable on rooted devices, via adb backup (if allowBackup=true), or through a malicious app with matching user ID on older OS versions.",
+	"remediation": "Replace with EncryptedSharedPreferences using MasterKey with AES256_GCM. Ensure android:allowBackup=false in AndroidManifest.xml."
 }
 ```

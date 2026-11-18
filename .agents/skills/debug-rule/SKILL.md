@@ -1,10 +1,11 @@
 ---
+
 name: debug-rule
 description: Debug a rule or approximation that behaves unexpectedly by tracing where taint is dropped. Use when its samples won't pass after repeated attempts, or it passes tests but is wrong on a real scan
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Debug Rule

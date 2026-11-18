@@ -1,4 +1,5 @@
 ---
+
 name: npm-package-release-hardening
 description: Use when releasing or publishing a JavaScript/TypeScript npm package or CLI publicly — making a package public-ready, reviewing package.json or tarball contents, setting up GitHub CI, Dependabot, security settings, or branch protection, triaging dependency-update PRs, or when an agent-built package may overstate the Node runtime it supports.
 ---

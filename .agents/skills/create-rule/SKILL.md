@@ -1,10 +1,11 @@
 ---
+
 name: create-rule
 description: Author and verify an OpenTaint rule. Use whenever a rule creation is needed
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Create Rule
@@ -94,7 +95,12 @@ This skill writes only each unit entry's `rule_id` and its `stages.tests_passing
 dependencies:
   - org.springframework:spring-websocket:6.1.0
 sources:
-  - { method: org.springframework.web.socket.TextMessage#getPayload, signature: "()Ljava/lang/String;", note: untrusted WebSocket frame data, rule_id: null }
+  - {
+      method: org.springframework.web.socket.TextMessage#getPayload,
+      signature: "()Ljava/lang/String;",
+      note: untrusted WebSocket frame data,
+      rule_id: null,
+    }
 stages:
   test_project: pending
   tests_passing: pending
@@ -106,7 +112,13 @@ stages:
 dependencies:
   - cn.hutool:hutool-core:5.8.20
 sinks:
-  - { method: cn.hutool.core.io.FileUtil#writeBytes, signature: "([BLjava/lang/String;)Ljava/io/File;", vuln_class: path-traversal, note: writes data to an untrusted path, rule_id: null }
+  - {
+      method: cn.hutool.core.io.FileUtil#writeBytes,
+      signature: "([BLjava/lang/String;)Ljava/io/File;",
+      vuln_class: path-traversal,
+      note: writes data to an untrusted path,
+      rule_id: null,
+    }
 stages:
   test_project: pending
   tests_passing: pending

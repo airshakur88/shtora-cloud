@@ -1,4 +1,5 @@
 ---
+
 title: Select Optimal Primary Key Strategy
 impact: HIGH
 impactDescription: Better index locality, reduced fragmentation

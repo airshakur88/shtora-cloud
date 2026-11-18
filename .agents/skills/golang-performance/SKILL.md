@@ -1,26 +1,26 @@
 ---
+
 name: golang-performance
 description: "Golang performance optimization patterns and methodology - if X bottleneck, then apply Y. Covers allocation reduction, CPU efficiency, memory layout, GC tuning, pooling, caching, and hot-path optimization. Use when profiling or benchmarks have identified a bottleneck and you need the right optimization pattern to fix it. Also use when performing performance code review to suggest improvements or benchmarks that could help identify quick performance gains. Not for measurement methodology (→ See `samber/cc-skills-golang@golang-benchmark` skill) or debugging workflow (→ See `samber/cc-skills-golang@golang-troubleshooting` skill)."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "1.3.2"
-  openclaw:
-    emoji: "🏎"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-        - benchstat
-    install:
-      - kind: go
-        package: golang.org/x/perf/cmd/benchstat@latest
-        bins: [benchstat]
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch Bash(benchstat:*) Bash(fieldalignment:*) Bash(staticcheck:*) Bash(curl:*) Bash(fgprof:*) Bash(perf:*) WebSearch AskUserQuestion EnterWorktree ExitWorktree
+author: samber
+version: "1.3.2"
+openclaw:
+emoji: "🏎"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go - benchstat
+install: - kind: go
+package: golang.org/x/perf/cmd/benchstat@latest
+bins: [benchstat]
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:_) Agent WebFetch Bash(benchstat:_) Bash(fieldalignment:_) Bash(staticcheck:_) Bash(curl:_) Bash(fgprof:_) Bash(perf:*) WebSearch AskUserQuestion EnterWorktree ExitWorktree
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a Go performance engineer. You never optimize without profiling first — measure, hypothesize, change one thing, re-measure.
@@ -74,28 +74,28 @@ When multiple candidate optimizations compete for the same bottleneck, implement
 
 ## Decision Tree: Where Is Time Spent?
 
-| Bottleneck | Signal (from pprof) | Action |
-| --- | --- | --- |
-| Too many allocations | `alloc_objects` high in heap profile | [Memory optimization](references/memory.md) |
-| CPU-bound hot loop | function dominates CPU profile | [CPU optimization](references/cpu.md) |
-| GC pauses / OOM | high GC%, container limits | [Runtime tuning](references/runtime.md) |
-| Network / I/O latency | goroutines blocked on I/O | [I/O & networking](references/io-networking.md) |
-| Repeated expensive work | same computation/fetch multiple times | [Caching patterns](references/caching.md) |
-| Wrong algorithm | O(n²) where O(n) exists | [Algorithmic complexity](references/caching.md#algorithmic-complexity) |
-| Lock contention | mutex/block profile hot | → See `samber/cc-skills-golang@golang-concurrency` skill |
-| Slow queries | DB time dominates traces | → See `samber/cc-skills-golang@golang-database` skill |
+| Bottleneck              | Signal (from pprof)                   | Action                                                                 |
+| ----------------------- | ------------------------------------- | ---------------------------------------------------------------------- |
+| Too many allocations    | `alloc_objects` high in heap profile  | [Memory optimization](references/memory.md)                            |
+| CPU-bound hot loop      | function dominates CPU profile        | [CPU optimization](references/cpu.md)                                  |
+| GC pauses / OOM         | high GC%, container limits            | [Runtime tuning](references/runtime.md)                                |
+| Network / I/O latency   | goroutines blocked on I/O             | [I/O & networking](references/io-networking.md)                        |
+| Repeated expensive work | same computation/fetch multiple times | [Caching patterns](references/caching.md)                              |
+| Wrong algorithm         | O(n²) where O(n) exists               | [Algorithmic complexity](references/caching.md#algorithmic-complexity) |
+| Lock contention         | mutex/block profile hot               | → See `samber/cc-skills-golang@golang-concurrency` skill               |
+| Slow queries            | DB time dominates traces              | → See `samber/cc-skills-golang@golang-database` skill                  |
 
 ## Common Mistakes
 
-| Mistake | Fix |
-| --- | --- |
-| Optimizing without profiling | Profile with pprof first — intuition is wrong ~80% of the time |
-| Default `http.Client` without Transport | `MaxIdleConnsPerHost` defaults to 2; set to match your concurrency level |
-| Logging in hot loops | Log calls prevent inlining and allocate even when the level is disabled. Use `slog.LogAttrs` |
-| `panic`/`recover` as control flow | panic allocates a stack trace and unwinds the stack; use error returns |
-| `unsafe` without benchmark proof | Only justified when profiling shows >10% improvement in a verified hot path |
-| No GC tuning in containers | Set `GOMEMLIMIT` to 80-90% of container memory to prevent OOM kills |
-| `reflect.DeepEqual` in production | 50-200x slower than typed comparison; use `slices.Equal`, `maps.Equal`, `bytes.Equal` |
+| Mistake                                 | Fix                                                                                          |
+| --------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Optimizing without profiling            | Profile with pprof first — intuition is wrong ~80% of the time                               |
+| Default `http.Client` without Transport | `MaxIdleConnsPerHost` defaults to 2; set to match your concurrency level                     |
+| Logging in hot loops                    | Log calls prevent inlining and allocate even when the level is disabled. Use `slog.LogAttrs` |
+| `panic`/`recover` as control flow       | panic allocates a stack trace and unwinds the stack; use error returns                       |
+| `unsafe` without benchmark proof        | Only justified when profiling shows >10% improvement in a verified hot path                  |
+| No GC tuning in containers              | Set `GOMEMLIMIT` to 80-90% of container memory to prevent OOM kills                          |
+| `reflect.DeepEqual` in production       | 50-200x slower than typed comparison; use `slices.Equal`, `maps.Equal`, `bytes.Equal`        |
 
 ## Deep Dives
 

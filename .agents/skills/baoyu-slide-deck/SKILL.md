@@ -1,14 +1,13 @@
 ---
+
 name: baoyu-slide-deck
 description: Generates professional slide deck images from content. Creates outlines with style instructions, then generates individual slide images. Use when user asks to "create slides", "make a presentation", "generate deck", "slide deck", or "PPT".
 version: 1.117.4
 metadata:
-  openclaw:
-    homepage: https://github.com/JimLiu/baoyu-skills#baoyu-slide-deck
-    requires:
-      anyBins:
-        - bun
-        - npx
+openclaw:
+homepage: https://github.com/JimLiu/baoyu-skills#baoyu-slide-deck
+requires:
+anyBins: - bun - npx
 ---
 
 # Slide Deck Generator
@@ -84,25 +83,25 @@ Respond in the user's language across questions, progress reports, error message
 
 `{baseDir}` = this SKILL.md's directory. Resolve `${BUN_X}`: prefer `bun`; else `npx -y bun`; else suggest `brew install oven-sh/bun/bun`.
 
-| Script | Purpose |
-|--------|---------|
+| Script                     | Purpose                      |
+| -------------------------- | ---------------------------- |
 | `scripts/merge-to-pptx.ts` | Merge slides into PowerPoint |
-| `scripts/merge-to-pdf.ts` | Merge slides into PDF |
+| `scripts/merge-to-pdf.ts`  | Merge slides into PDF        |
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--style <name>` | Preset (see Presets below), `custom`, or custom style name |
-| `--audience <type>` | beginners / intermediate / experts / executives / general |
-| `--lang <code>` | Output language (en, zh, ja, ...) |
-| `--slides <N>` | Target slide count (8-25 recommended, max 30) |
-| `--ref <files...>` | Reference images applied per slide (style / palette / composition / subject) |
-| `--batch-size <n>` | Temporary slide image generation batch size for this run. Default: `generation_batch_size` from EXTEND.md, otherwise 4. Clamp to 1-8. |
-| `--outline-only` | Stop after outline |
-| `--prompts-only` | Stop after prompts (skip image generation) |
-| `--images-only` | Skip to Step 7; requires existing `prompts/` |
-| `--regenerate <N>` | Regenerate specific slide(s): `3` or `2,5,8` |
+| Option              | Description                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `--style <name>`    | Preset (see Presets below), `custom`, or custom style name                                                                            |
+| `--audience <type>` | beginners / intermediate / experts / executives / general                                                                             |
+| `--lang <code>`     | Output language (en, zh, ja, ...)                                                                                                     |
+| `--slides <N>`      | Target slide count (8-25 recommended, max 30)                                                                                         |
+| `--ref <files...>`  | Reference images applied per slide (style / palette / composition / subject)                                                          |
+| `--batch-size <n>`  | Temporary slide image generation batch size for this run. Default: `generation_batch_size` from EXTEND.md, otherwise 4. Clamp to 1-8. |
+| `--outline-only`    | Stop after outline                                                                                                                    |
+| `--prompts-only`    | Stop after prompts (skip image generation)                                                                                            |
+| `--images-only`     | Skip to Step 7; requires existing `prompts/`                                                                                          |
+| `--regenerate <N>`  | Regenerate specific slide(s): `3` or `2,5,8`                                                                                          |
 
 ## Style System
 
@@ -110,36 +109,36 @@ Respond in the user's language across questions, progress reports, error message
 
 ### Presets (17)
 
-| Preset | Dimensions | Best For |
-|--------|------------|----------|
-| `blueprint` (Default) | grid + cool + technical + balanced | Architecture, system design |
-| `chalkboard` | organic + warm + handwritten + balanced | Education, tutorials |
-| `corporate` | clean + professional + geometric + balanced | Investor decks, proposals |
-| `minimal` | clean + neutral + geometric + minimal | Executive briefings |
-| `sketch-notes` | organic + warm + handwritten + balanced | Educational, tutorials |
-| `hand-drawn-edu` | organic + macaron + handwritten + balanced | Educational diagrams, process explainers |
-| `watercolor` | organic + warm + humanist + minimal | Lifestyle, wellness |
-| `dark-atmospheric` | clean + dark + editorial + balanced | Entertainment, gaming |
-| `notion` | clean + neutral + geometric + dense | Product demos, SaaS |
-| `bold-editorial` | clean + vibrant + editorial + balanced | Product launches, keynotes |
-| `editorial-infographic` | clean + cool + editorial + dense | Tech explainers, research |
-| `fantasy-animation` | organic + vibrant + handwritten + minimal | Educational storytelling |
-| `intuition-machine` | clean + cool + technical + dense | Technical docs, academic |
-| `pixel-art` | pixel + vibrant + technical + balanced | Gaming, developer talks |
-| `scientific` | clean + cool + technical + dense | Biology, chemistry, medical |
-| `vector-illustration` | clean + vibrant + humanist + balanced | Creative, children's content |
-| `vintage` | paper + warm + editorial + balanced | Historical, heritage |
+| Preset                  | Dimensions                                  | Best For                                 |
+| ----------------------- | ------------------------------------------- | ---------------------------------------- |
+| `blueprint` (Default)   | grid + cool + technical + balanced          | Architecture, system design              |
+| `chalkboard`            | organic + warm + handwritten + balanced     | Education, tutorials                     |
+| `corporate`             | clean + professional + geometric + balanced | Investor decks, proposals                |
+| `minimal`               | clean + neutral + geometric + minimal       | Executive briefings                      |
+| `sketch-notes`          | organic + warm + handwritten + balanced     | Educational, tutorials                   |
+| `hand-drawn-edu`        | organic + macaron + handwritten + balanced  | Educational diagrams, process explainers |
+| `watercolor`            | organic + warm + humanist + minimal         | Lifestyle, wellness                      |
+| `dark-atmospheric`      | clean + dark + editorial + balanced         | Entertainment, gaming                    |
+| `notion`                | clean + neutral + geometric + dense         | Product demos, SaaS                      |
+| `bold-editorial`        | clean + vibrant + editorial + balanced      | Product launches, keynotes               |
+| `editorial-infographic` | clean + cool + editorial + dense            | Tech explainers, research                |
+| `fantasy-animation`     | organic + vibrant + handwritten + minimal   | Educational storytelling                 |
+| `intuition-machine`     | clean + cool + technical + dense            | Technical docs, academic                 |
+| `pixel-art`             | pixel + vibrant + technical + balanced      | Gaming, developer talks                  |
+| `scientific`            | clean + cool + technical + dense            | Biology, chemistry, medical              |
+| `vector-illustration`   | clean + vibrant + humanist + balanced       | Creative, children's content             |
+| `vintage`               | paper + warm + editorial + balanced         | Historical, heritage                     |
 
 Per-preset specs: `references/styles/<preset>.md`. Preset → dimension mapping: `references/dimensions/presets.md`.
 
 ### Dimensions (when "Custom dimensions" picked)
 
-| Dimension | Options | Purpose |
-|-----------|---------|---------|
-| **Texture** | clean, grid, organic, pixel, paper | Background treatment |
-| **Mood** | professional, warm, cool, vibrant, dark, neutral, macaron | Color temperature |
-| **Typography** | geometric, humanist, handwritten, editorial, technical | Headline/body styling |
-| **Density** | minimal, balanced, dense | Information per slide |
+| Dimension      | Options                                                   | Purpose               |
+| -------------- | --------------------------------------------------------- | --------------------- |
+| **Texture**    | clean, grid, organic, pixel, paper                        | Background treatment  |
+| **Mood**       | professional, warm, cool, vibrant, dark, neutral, macaron | Color temperature     |
+| **Typography** | geometric, humanist, handwritten, editorial, technical    | Headline/body styling |
+| **Density**    | minimal, balanced, dense                                  | Information per slide |
 
 Full per-dimension specs: `references/dimensions/*.md`.
 
@@ -147,50 +146,51 @@ Full per-dimension specs: `references/dimensions/*.md`.
 
 Match content signals to a preset. Pick the first row whose signal keywords appear in the source; fall back to `blueprint` if nothing matches.
 
-| Signals in source | Preset |
-|-------------------|--------|
-| tutorial, learn, education, guide, beginner | `sketch-notes` |
-| hand-drawn, infographic, diagram, process, onboarding | `hand-drawn-edu` |
-| classroom, teaching, school, chalkboard | `chalkboard` |
-| architecture, system, data, analysis, technical | `blueprint` |
-| creative, children, kids, cute | `vector-illustration` |
-| briefing, academic, research, bilingual | `intuition-machine` |
-| executive, minimal, clean, simple | `minimal` |
-| saas, product, dashboard, metrics | `notion` |
-| investor, quarterly, business, corporate | `corporate` |
-| launch, marketing, keynote, magazine | `bold-editorial` |
-| entertainment, music, gaming, atmospheric | `dark-atmospheric` |
-| explainer, journalism, science communication | `editorial-infographic` |
-| story, fantasy, animation, magical | `fantasy-animation` |
-| gaming, retro, pixel, developer | `pixel-art` |
-| biology, chemistry, medical, scientific | `scientific` |
-| history, heritage, vintage, expedition | `vintage` |
-| lifestyle, wellness, travel, artistic | `watercolor` |
+| Signals in source                                     | Preset                  |
+| ----------------------------------------------------- | ----------------------- |
+| tutorial, learn, education, guide, beginner           | `sketch-notes`          |
+| hand-drawn, infographic, diagram, process, onboarding | `hand-drawn-edu`        |
+| classroom, teaching, school, chalkboard               | `chalkboard`            |
+| architecture, system, data, analysis, technical       | `blueprint`             |
+| creative, children, kids, cute                        | `vector-illustration`   |
+| briefing, academic, research, bilingual               | `intuition-machine`     |
+| executive, minimal, clean, simple                     | `minimal`               |
+| saas, product, dashboard, metrics                     | `notion`                |
+| investor, quarterly, business, corporate              | `corporate`             |
+| launch, marketing, keynote, magazine                  | `bold-editorial`        |
+| entertainment, music, gaming, atmospheric             | `dark-atmospheric`      |
+| explainer, journalism, science communication          | `editorial-infographic` |
+| story, fantasy, animation, magical                    | `fantasy-animation`     |
+| gaming, retro, pixel, developer                       | `pixel-art`             |
+| biology, chemistry, medical, scientific               | `scientific`            |
+| history, heritage, vintage, expedition                | `vintage`               |
+| lifestyle, wellness, travel, artistic                 | `watercolor`            |
 
 ### Slide Count Heuristic
 
-| Source length | Recommended slides |
-|---------------|--------------------|
-| < 1000 words | 5-10 |
-| 1000-3000 words | 10-18 |
-| 3000-5000 words | 15-25 |
-| > 5000 words | 20-30 (consider splitting) |
+| Source length   | Recommended slides         |
+| --------------- | -------------------------- |
+| < 1000 words    | 5-10                       |
+| 1000-3000 words | 10-18                      |
+| 3000-5000 words | 15-25                      |
+| > 5000 words    | 20-30 (consider splitting) |
 
 ## Reference Images
 
 Users may supply reference images to guide style, palette, layout, or subject.
 
 **Intake**: Accept via `--ref <files...>` or when the user provides file paths / pastes images in conversation.
+
 - File path → copy to `{slide-deck-dir}/refs/NN-ref-{slug}.{ext}`
 - Pasted image with no path → ask for the path, or extract style traits verbally as a text fallback
 
 **Usage modes** (per reference):
 
-| Usage | Effect |
-|-------|--------|
-| `direct` | Pass the file to the backend as a reference image for each slide |
-| `style` | Extract style traits (line treatment, texture, mood) and append to every slide's prompt body |
-| `palette` | Extract hex colors and append to every slide's prompt body |
+| Usage     | Effect                                                                                       |
+| --------- | -------------------------------------------------------------------------------------------- |
+| `direct`  | Pass the file to the backend as a reference image for each slide                             |
+| `style`   | Extract style traits (line treatment, texture, mood) and append to every slide's prompt body |
+| `palette` | Extract hex colors and append to every slide's prompt body                                   |
 
 Record refs in each slide's prompt frontmatter:
 
@@ -239,11 +239,11 @@ Copy this checklist and check off items as you complete them:
 
 **1.1 Load EXTEND.md** — check these paths in order; first hit wins:
 
-| Path | Scope |
-|------|-------|
-| `.baoyu-skills/baoyu-slide-deck/EXTEND.md` | Project |
-| `${XDG_CONFIG_HOME:-$HOME/.config}/baoyu-skills/baoyu-slide-deck/EXTEND.md` | XDG |
-| `$HOME/.baoyu-skills/baoyu-slide-deck/EXTEND.md` | User home |
+| Path                                                                        | Scope     |
+| --------------------------------------------------------------------------- | --------- |
+| `.baoyu-skills/baoyu-slide-deck/EXTEND.md`                                  | Project   |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/baoyu-skills/baoyu-slide-deck/EXTEND.md` | XDG       |
+| `$HOME/.baoyu-skills/baoyu-slide-deck/EXTEND.md`                            | User home |
 
 If found, read, parse, and print a summary (style / audience / language / review / generation batch size). If not, proceed with defaults — first-time setup is not blocking for this skill. Schema: `references/config/preferences-schema.md`.
 
@@ -260,6 +260,7 @@ Save findings to `analysis.md`: topic, audience, signals, recommended style and 
 **Round 1 (always)** — batch five questions in one `AskUserQuestion` call: style, audience, slide count, review-outline?, review-prompts?. Verbatim options in `references/confirmation.md`.
 
 Summary displayed before the questions:
+
 - Content type + topic
 - Detected language
 - Recommended style (based on signals)
@@ -284,6 +285,7 @@ On "Edit outline first", tell the user to edit `outline.md` and ask again when r
 ### Step 5: Generate Prompts
 
 For each slide in outline:
+
 1. Read `references/base-prompt.md`
 2. Extract `STYLE_INSTRUCTIONS` from the outline (don't re-read the style file)
 3. Add the slide's content
@@ -334,11 +336,11 @@ PDF: {topic-slug}.pdf
 
 ## Slide Modification
 
-| Action | How |
-|--------|-----|
-| Edit | Update `prompts/NN-slide-{slug}.md` **first**, then `--regenerate N` |
-| Add | Create new prompt at position, generate image, renumber subsequent `NN` (slugs unchanged), update `outline.md`, re-merge |
-| Delete | Remove PNG + prompt, renumber subsequent, update `outline.md`, re-merge |
+| Action | How                                                                                                                      |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Edit   | Update `prompts/NN-slide-{slug}.md` **first**, then `--regenerate N`                                                     |
+| Add    | Create new prompt at position, generate image, renumber subsequent `NN` (slugs unchanged), update `outline.md`, re-merge |
+| Delete | Remove PNG + prompt, renumber subsequent, update `outline.md`, re-merge                                                  |
 
 Always update the prompt file before regenerating the image — this keeps the prompts directory as the source of truth and makes changes reproducible. Only `NN` changes on renumber; slugs stay stable so references remain valid.
 
@@ -352,19 +354,19 @@ See `references/modification-guide.md` for full details.
 
 ## References
 
-| File | Content |
-|------|---------|
-| `references/confirmation.md` | Verbatim AskUserQuestion option copy for every confirmation |
-| `references/analysis-framework.md` | Content analysis framework |
-| `references/outline-template.md` | Outline structure |
-| `references/base-prompt.md` | Base prompt body for image generation |
-| `references/layouts.md` | Layout options |
-| `references/design-guidelines.md` | Audience, typography, color selection |
-| `references/content-rules.md` | Content guidelines |
-| `references/modification-guide.md` | Edit/add/delete workflows |
-| `references/styles/<preset>.md` | Per-preset specifications |
-| `references/dimensions/*.md` | Per-dimension specifications |
-| `references/config/preferences-schema.md` | EXTEND.md schema |
+| File                                      | Content                                                     |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `references/confirmation.md`              | Verbatim AskUserQuestion option copy for every confirmation |
+| `references/analysis-framework.md`        | Content analysis framework                                  |
+| `references/outline-template.md`          | Outline structure                                           |
+| `references/base-prompt.md`               | Base prompt body for image generation                       |
+| `references/layouts.md`                   | Layout options                                              |
+| `references/design-guidelines.md`         | Audience, typography, color selection                       |
+| `references/content-rules.md`             | Content guidelines                                          |
+| `references/modification-guide.md`        | Edit/add/delete workflows                                   |
+| `references/styles/<preset>.md`           | Per-preset specifications                                   |
+| `references/dimensions/*.md`              | Per-dimension specifications                                |
+| `references/config/preferences-schema.md` | EXTEND.md schema                                            |
 
 ## Notes
 

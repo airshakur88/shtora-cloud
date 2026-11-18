@@ -9,6 +9,7 @@ For each sink unit `get_status.py` lists as not passing, run this two-step pipel
 ### 1. Dispatch create-test-project
 
 Inputs:
+
 - `language`
 - `type: rule-sink`
 - `unit`
@@ -18,6 +19,7 @@ Expect back — `stages.test_project: done` on the unit.
 ### 2. Dispatch create-rule
 
 Inputs:
+
 - `language`
 - `side: sinks`
 - `unit`
@@ -30,6 +32,7 @@ Expect back — each sink's `rule_id` set and `stages.tests_passing: done`.
 Once no sink unit is pending, status names unwired sink rules. Dispatch assemble-lib-rules.
 
 Inputs:
+
 - `language`
 
 Expect back — the created-sink joins added to the joins tally, each refing all relevant sources. Then delete the sink units' `test-compiled/` models.

@@ -1,4 +1,5 @@
 ---
+
 title: List Both Short and Long Forms for Every Flag
 impact: HIGH
 impactDescription: prevents brittle single-letter scripts and collision bugs
@@ -38,11 +39,13 @@ Options:
 ```
 
 **Benefits:**
+
 - Agents prefer `--env staging` over `-e staging` — clearer in scripts, diff-friendly
 - Long flags are stable across versions; short flags can collide and get remapped
 - Matches GNU/POSIX conventions that other tools rely on
 
 **When NOT to use this pattern:**
+
 - Commands with only a single flag (e.g., `--help`) don't need a short form
 - Experimental or debug-only flags can be long-only to discourage scripting against them
 

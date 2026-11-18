@@ -1,4 +1,5 @@
 ---
+
 name: email-marketing
 description: "Email marketing automation - campaign creation, sequence building, A/B testing, deliverability optimization, and analytics"
 version: "1.0.0"
@@ -7,40 +8,40 @@ license: MIT
 
 category: marketing
 tags:
-  - email
-  - marketing-automation
-  - newsletters
-  - drip-campaigns
-  - mailchimp
-department: Marketing
+
+- email
+- marketing-automation
+- newsletters
+- drip-campaigns
+- mailchimp
+  department: Marketing
 
 models:
-  recommended:
-    - claude-sonnet-4
-    - claude-opus-4
+recommended: - claude-sonnet-4 - claude-opus-4
 
 mcp:
-  server: email-mcp
-  tools:
-    - mailchimp_send
-    - sendgrid_campaign
-    - klaviyo_flow
+server: email-mcp
+tools: - mailchimp_send - sendgrid_campaign - klaviyo_flow
 
 capabilities:
-  - campaign_creation
-  - sequence_building
-  - ab_testing
-  - segmentation
-  - deliverability
+
+- campaign_creation
+- sequence_building
+- ab_testing
+- segmentation
+- deliverability
 
 languages:
-  - en
-  - zh
+
+- en
+- zh
 
 related_skills:
-  - email-drafter
-  - crm-automation
-  - content-writer
+
+- email-drafter
+- crm-automation
+- content-writer
+
 ---
 
 # Email Marketing
@@ -50,6 +51,7 @@ Comprehensive email marketing skill covering campaign creation, automated sequen
 ## Overview
 
 This skill covers:
+
 - Email campaign creation and templates
 - Automated drip sequences
 - A/B testing frameworks
@@ -73,35 +75,35 @@ emails:
       goal: deliver_lead_magnet + set_expectations
       template: |
         Hi {first_name},
-        
+
         Welcome to {Brand}! Here's your [free resource].
-        
+
         Over the next 2 weeks, I'll share:
         • {benefit_1}
         • {benefit_2}
         • {benefit_3}
-        
+
         First up: [teaser for email 2]
-        
+
         Talk soon,
         {sender_name}
-        
+
   - day_2:
       subject: "The #1 mistake {audience} make"
       goal: educate + build_trust
-      
+
   - day_4:
       subject: "{first_name}, quick question"
       goal: engagement + segmentation
-      
+
   - day_7:
       subject: "How {customer} achieved {result}"
       goal: social_proof + soft_pitch
-      
+
   - day_10:
       subject: "Ready to {achieve_goal}?"
       goal: conversion + offer
-      
+
   - day_14:
       subject: "Last chance: {offer_details}"
       goal: urgency + final_conversion
@@ -114,35 +116,35 @@ newsletter:
   frequency: weekly
   day: Tuesday
   time: 10:00 AM
-  
+
   structure:
     - header:
         logo: true
         issue_number: true
-        
+
     - intro:
         personal_note: 2-3 sentences
         tease_content: true
-        
+
     - main_content:
         sections: 3-5
         format: |
           ## {Section Title}
-          
+
           {2-3 paragraph insight}
-          
+
           **Key takeaway**: {one-liner}
-          
+
           [Read more →]({link})
-          
+
     - curated_links:
         count: 3-5
         format: "• {title} - {one-line description}"
-        
+
     - cta:
         primary: product/service
         secondary: share/reply
-        
+
     - footer:
         social_links: true
         unsubscribe: required
@@ -153,28 +155,28 @@ newsletter:
 ```yaml
 promo_email:
   type: sale_announcement
-  
+
   subject_options:
     - "{first_name}, 30% off ends tonight"
     - "🚨 Final hours: Your exclusive deal"
     - "Last call: Save $X on {product}"
-    
+
   structure:
     hero:
       headline: "{Offer headline}"
       subhead: "Limited time only"
       cta_button: "Shop Now"
-      
+
     body:
       - urgency: "Sale ends in {countdown}"
       - social_proof: "{X} customers already saved"
       - benefits: bullet list
       - testimonial: 1 short quote
-      
+
     cta:
       button_text: "Claim Your {X}% Off"
       link: "{promo_landing_page}"
-      
+
     ps:
       text: "P.S. {urgency reminder or bonus}"
 ```
@@ -196,37 +198,37 @@ emails:
       subject: "Forgot something? 🛒"
       content: |
         Hi {first_name},
-        
+
         You left some items in your cart:
-        
+
         {cart_items_with_images}
-        
+
         [Complete Your Order →]
-        
+
         Questions? Reply to this email.
-        
+
   - email_2:
       delay: 24_hours
       subject: "Your cart is waiting"
       content: |
         Still thinking it over?
-        
+
         Here's why {X} customers love {product}:
-        
+
         ⭐ "{testimonial}"
-        
+
         [Complete Purchase →]
-        
+
   - email_3:
       delay: 72_hours
       subject: "Last chance + free shipping"
       content: |
         Hi {first_name},
-        
+
         Your cart expires soon, but here's a little incentive:
-        
+
         Use code FREESHIP for free shipping.
-        
+
         [Complete Order with Free Shipping →]
 ```
 
@@ -241,35 +243,35 @@ emails:
       subject: "We miss you, {first_name}"
       content: |
         It's been a while! Here's what's new at {Brand}:
-        
+
         • {New feature 1}
         • {New feature 2}
         • {New content}
-        
+
         Come back and check it out →
-        
+
   - email_2:
       delay: 7_days
       subject: "A special offer just for you"
       content: |
         {first_name},
-        
+
         We'd love to have you back. Here's 20% off your next purchase.
-        
+
         Use code: COMEBACK20
-        
+
   - email_3:
       delay: 14_days
       subject: "Should we part ways?"
       content: |
         Hi {first_name},
-        
+
         We noticed you haven't opened our emails in a while.
-        
+
         If you'd like to stay subscribed, click here: [Stay Subscribed]
-        
+
         If not, we'll remove you from our list in 7 days.
-        
+
         No hard feelings either way.
 ```
 
@@ -286,21 +288,21 @@ ab_test_elements:
         variants: 2-3
         sample_size: 20% of list
         winner_criteria: open_rate
-        
+
     - send_time:
         variants: [morning, afternoon, evening]
         test_duration: 2_weeks
-        
+
     - cta_button:
         variants: [text, color, placement]
         winner_criteria: click_rate
-        
+
   medium_impact:
     - preview_text
     - email_length
     - personalization_level
     - image_vs_no_image
-    
+
   low_impact:
     - font_choice
     - button_shape
@@ -314,17 +316,17 @@ test_1:
   hypothesis: "Emoji increases open rate"
   variant_a: "Your weekly productivity tips"
   variant_b: "Your weekly productivity tips 🚀"
-  
+
 test_2:
   hypothesis: "Personalization increases open rate"
   variant_a: "New features you'll love"
   variant_b: "{first_name}, new features you'll love"
-  
+
 test_3:
   hypothesis: "Curiosity gap increases open rate"
   variant_a: "5 ways to save money"
   variant_b: "The $500 mistake I almost made"
-  
+
 test_4:
   hypothesis: "Urgency increases open rate"
   variant_a: "30% off this weekend"
@@ -340,7 +342,7 @@ segmentation:
   behavioral:
     - purchase_history:
         segments: [never_purchased, one_time, repeat, vip]
-        
+
     - engagement_level:
         segments: [highly_engaged, moderate, inactive, churned]
         criteria:
@@ -348,15 +350,15 @@ segmentation:
           moderate: opened_2_5_of_last_5
           inactive: no_open_30_days
           churned: no_open_90_days
-          
+
     - product_interest:
         based_on: [clicks, page_views, cart_adds]
-        
+
   demographic:
     - location: for timezone optimization
     - industry: for B2B personalization
     - company_size: for offer customization
-    
+
   lifecycle:
     - stage: [lead, trial, customer, churned]
     - tenure: [new, established, long_term]
@@ -366,7 +368,7 @@ segment_specific_content:
     - early_access: true
     - exclusive_discounts: true
     - personalized_recommendations: true
-    
+
   inactive_subscribers:
     - reduced_frequency: true
     - re_engagement_offers: true
@@ -385,20 +387,20 @@ deliverability:
       - DKIM: domain keys
       - DMARC: alignment policy
     check: mxtoolbox.com
-    
+
   list_hygiene:
     - remove_bounces: immediately
     - remove_unsubscribes: immediately
     - re_engage_inactive: after_60_days
     - remove_inactive: after_90_days
-    
+
   content_best_practices:
     - spam_words_avoid: [free, act now, limited time, click here]
     - text_to_image_ratio: 60:40
     - alt_text: on all images
     - unsubscribe_link: prominent
     - physical_address: required (CAN-SPAM)
-    
+
   sending_practices:
     - warm_up_new_domain: 2-4 weeks
     - consistent_sending: same days/times
@@ -416,28 +418,28 @@ email_metrics:
     - open_rate:
         benchmark: 20-25%
         improve_with: subject_lines, sender_name, send_time
-        
+
     - click_rate:
         benchmark: 2-5%
         improve_with: content, cta, design
-        
+
     - conversion_rate:
         benchmark: 1-3%
         improve_with: offer, landing_page, targeting
-        
+
   secondary:
     - unsubscribe_rate:
         healthy: <0.5%
         action: review frequency, content relevance
-        
+
     - bounce_rate:
         healthy: <2%
         action: clean list, verify emails
-        
+
     - spam_complaints:
         healthy: <0.1%
         action: improve opt-in, add unsubscribe
-        
+
   revenue:
     - revenue_per_email
     - revenue_per_subscriber
@@ -445,23 +447,23 @@ email_metrics:
 
 reporting_template: |
   # Email Performance Report - {Week/Month}
-  
+
   ## Campaign Summary
   | Campaign | Sent | Opens | Clicks | Conv | Revenue |
   |----------|------|-------|--------|------|---------|
   | Newsletter | 10K | 22% | 3.5% | 1.2% | $5,000 |
   | Promo | 10K | 28% | 5.2% | 2.8% | $12,000 |
-  
+
   ## List Health
   - Total subscribers: 50,000
   - New this week: 500
   - Unsubscribes: 45 (0.09%)
   - Bounces: 12 (0.02%)
-  
+
   ## Top Performing
   - Best subject: "{subject}" (32% open rate)
   - Best CTA: "{cta}" (8% click rate)
-  
+
   ## Recommendations
   1. Test more curiosity-based subjects
   2. Segment by engagement for next promo
@@ -480,8 +482,8 @@ reporting_template: |
 # Welcome Sequence - SaaS Product
 
 ## Email 1: Welcome (Immediate)
-**Subject**: Welcome to {Product}! Here's your quick start guide 🚀
 
+**Subject**: Welcome to {Product}! Here's your quick start guide 🚀
 ```
 Hi {first_name},
 
@@ -502,6 +504,7 @@ Let's do this,
 {founder_name}
 
 P.S. Need help? [Book a free onboarding call]
+
 ```
 
 ---
@@ -519,6 +522,7 @@ Day 2, and I want to share the #1 feature our users love:
 It takes 2 minutes to set up, and users report saving 1+ hour every day.
 
 Here's how:
+
 1. Go to Settings → [Feature]
 2. Click "Enable"
 3. That's it!
@@ -529,6 +533,7 @@ Tomorrow, I'll show you how {Customer} used this to {impressive result}.
 
 Talk soon,
 {founder_name}
+
 ```
 
 ---
@@ -558,6 +563,7 @@ Want similar results? Here are Sarah's top 3 tips:
 What's your biggest productivity challenge? Reply and let me know.
 
 {founder_name}
+
 ```
 
 ---
@@ -583,6 +589,7 @@ Based on your response, I'll send you the most relevant resources.
 {founder_name}
 
 P.S. If you picked C, reply with details and my team will help within 24 hours.
+
 ```
 
 ---
@@ -611,6 +618,7 @@ Teams who upgrade see {X%} more productivity on average.
 Use code WELCOME20 for 20% off your first year.
 
 {founder_name}
+
 ```
 
 ---
@@ -624,4 +632,4 @@ Use code WELCOME20 for 20% off your first year.
 
 ---
 
-*Email Marketing Skill - Part of Claude Office Skills*
+_Email Marketing Skill - Part of Claude Office Skills_

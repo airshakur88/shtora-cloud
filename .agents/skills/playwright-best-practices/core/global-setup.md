@@ -18,8 +18,8 @@
 import { FullConfig } from "@playwright/test";
 
 async function globalSetup(config: FullConfig) {
-  console.log("Running global setup...");
-  // Perform one-time setup: start services, run migrations, etc.
+	console.log("Running global setup...");
+	// Perform one-time setup: start services, run migrations, etc.
 }
 
 export default globalSetup;
@@ -32,8 +32,8 @@ export default globalSetup;
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  globalSetup: require.resolve("./global-setup"),
-  globalTeardown: require.resolve("./global-teardown"),
+	globalSetup: require.resolve("./global-setup"),
+	globalTeardown: require.resolve("./global-teardown"),
 });
 ```
 
@@ -44,12 +44,12 @@ export default defineConfig({
 ```typescript
 // global-setup.ts
 async function globalSetup(config: FullConfig): Promise<() => Promise<void>> {
-  const server = await startTestServer();
+	const server = await startTestServer();
 
-  // Return cleanup function (alternative to globalTeardown)
-  return async () => {
-    await server.stop();
-  };
+	// Return cleanup function (alternative to globalTeardown)
+	return async () => {
+		await server.stop();
+	};
 }
 
 export default globalSetup;
@@ -62,15 +62,15 @@ export default globalSetup;
 import { FullConfig } from "@playwright/test";
 
 async function globalSetup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use;
-  console.log(`Setting up for ${baseURL}`);
+	const { baseURL } = config.projects[0].use;
+	console.log(`Setting up for ${baseURL}`);
 
-  // Access custom config
-  const workers = config.workers;
-  const timeout = config.timeout;
+	// Access custom config
+	const workers = config.workers;
+	const timeout = config.timeout;
 
-  // Access environment
-  const isCI = !!process.env.CI;
+	// Access environment
+	const isCI = !!process.env.CI;
 }
 
 export default globalSetup;
@@ -86,18 +86,18 @@ import { FullConfig } from "@playwright/test";
 import fs from "fs";
 
 async function globalTeardown(config: FullConfig) {
-  console.log("Running global teardown...");
+	console.log("Running global teardown...");
 
-  // Clean up auth files
-  if (fs.existsSync(".auth")) {
-    fs.rmSync(".auth", { recursive: true });
-  }
+	// Clean up auth files
+	if (fs.existsSync(".auth")) {
+		fs.rmSync(".auth", { recursive: true });
+	}
 
-  // Clean up test data
-  await cleanupTestDatabase();
+	// Clean up test data
+	await cleanupTestDatabase();
 
-  // Stop services
-  await stopTestServices();
+	// Stop services
+	await stopTestServices();
 }
 
 export default globalTeardown;
@@ -108,14 +108,14 @@ export default globalTeardown;
 ```typescript
 // global-teardown.ts
 async function globalTeardown(config: FullConfig) {
-  // Skip cleanup in CI (containers are discarded anyway)
-  if (process.env.CI) {
-    console.log("Skipping teardown in CI");
-    return;
-  }
+	// Skip cleanup in CI (containers are discarded anyway)
+	if (process.env.CI) {
+		console.log("Skipping teardown in CI");
+		return;
+	}
 
-  // Local cleanup
-  await cleanupLocalTestData();
+	// Local cleanup
+	await cleanupLocalTestData();
 }
 
 export default globalTeardown;
@@ -135,13 +135,13 @@ This section covers **one-time database setup** (migrations, snapshots, per-work
 import { execSync } from "child_process";
 
 async function globalSetup() {
-  console.log("Running database migrations...");
+	console.log("Running database migrations...");
 
-  // Run migrations
-  execSync("npx prisma migrate deploy", { stdio: "inherit" });
+	// Run migrations
+	execSync("npx prisma migrate deploy", { stdio: "inherit" });
 
-  // Seed test data
-  execSync("npx prisma db seed", { stdio: "inherit" });
+	// Seed test data
+	execSync("npx prisma db seed", { stdio: "inherit" });
 }
 
 export default globalSetup;
@@ -157,18 +157,18 @@ import fs from "fs";
 const SNAPSHOT_PATH = "./test-db-snapshot.sql";
 
 async function globalSetup() {
-  // Check if snapshot exists
-  if (fs.existsSync(SNAPSHOT_PATH)) {
-    console.log("Restoring database from snapshot...");
-    execSync(`psql $DATABASE_URL < ${SNAPSHOT_PATH}`, { stdio: "inherit" });
-    return;
-  }
+	// Check if snapshot exists
+	if (fs.existsSync(SNAPSHOT_PATH)) {
+		console.log("Restoring database from snapshot...");
+		execSync(`psql $DATABASE_URL < ${SNAPSHOT_PATH}`, { stdio: "inherit" });
+		return;
+	}
 
-  // First run: migrate and create snapshot
-  console.log("Creating database snapshot...");
-  execSync("npx prisma migrate deploy", { stdio: "inherit" });
-  execSync("npx prisma db seed", { stdio: "inherit" });
-  execSync(`pg_dump $DATABASE_URL > ${SNAPSHOT_PATH}`, { stdio: "inherit" });
+	// First run: migrate and create snapshot
+	console.log("Creating database snapshot...");
+	execSync("npx prisma migrate deploy", { stdio: "inherit" });
+	execSync("npx prisma db seed", { stdio: "inherit" });
+	execSync(`pg_dump $DATABASE_URL > ${SNAPSHOT_PATH}`, { stdio: "inherit" });
 }
 
 export default globalSetup;
@@ -179,24 +179,24 @@ export default globalSetup;
 ```typescript
 // global-setup.ts
 async function globalSetup(config: FullConfig) {
-  const workerCount = config.workers || 1;
+	const workerCount = config.workers || 1;
 
-  // Create a database for each worker
-  for (let i = 0; i < workerCount; i++) {
-    const dbName = `test_db_worker_${i}`;
-    await createDatabase(dbName);
-    await runMigrations(dbName);
-    await seedDatabase(dbName);
-  }
+	// Create a database for each worker
+	for (let i = 0; i < workerCount; i++) {
+		const dbName = `test_db_worker_${i}`;
+		await createDatabase(dbName);
+		await runMigrations(dbName);
+		await seedDatabase(dbName);
+	}
 }
 
 // global-teardown.ts
 async function globalTeardown(config: FullConfig) {
-  const workerCount = config.workers || 1;
+	const workerCount = config.workers || 1;
 
-  for (let i = 0; i < workerCount; i++) {
-    await dropDatabase(`test_db_worker_${i}`);
-  }
+	for (let i = 0; i < workerCount; i++) {
+		await dropDatabase(`test_db_worker_${i}`);
+	}
 }
 ```
 
@@ -211,33 +211,33 @@ import { execSync, spawn } from "child_process";
 let serverProcess: any;
 
 async function globalSetup() {
-  // Start backend server
-  serverProcess = spawn("npm", ["run", "start:test"], {
-    stdio: "pipe",
-    detached: true,
-  });
+	// Start backend server
+	serverProcess = spawn("npm", ["run", "start:test"], {
+		stdio: "pipe",
+		detached: true,
+	});
 
-  // Wait for server to be ready
-  await waitForServer("http://localhost:3000/health", 30000);
+	// Wait for server to be ready
+	await waitForServer("http://localhost:3000/health", 30000);
 
-  // Store PID for teardown
-  process.env.SERVER_PID = serverProcess.pid.toString();
+	// Store PID for teardown
+	process.env.SERVER_PID = serverProcess.pid.toString();
 }
 
 async function waitForServer(url: string, timeout: number) {
-  const start = Date.now();
+	const start = Date.now();
 
-  while (Date.now() - start < timeout) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) return;
-    } catch {
-      // Server not ready yet
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
+	while (Date.now() - start < timeout) {
+		try {
+			const response = await fetch(url);
+			if (response.ok) return;
+		} catch {
+			// Server not ready yet
+		}
+		await new Promise((r) => setTimeout(r, 1000));
+	}
 
-  throw new Error(`Server did not start within ${timeout}ms`);
+	throw new Error(`Server did not start within ${timeout}ms`);
 }
 
 export default globalSetup;
@@ -250,16 +250,16 @@ export default globalSetup;
 import { execSync } from "child_process";
 
 async function globalSetup() {
-  console.log("Starting Docker services...");
+	console.log("Starting Docker services...");
 
-  execSync("docker-compose -f docker-compose.test.yml up -d", {
-    stdio: "inherit",
-  });
+	execSync("docker-compose -f docker-compose.test.yml up -d", {
+		stdio: "inherit",
+	});
 
-  // Wait for services to be healthy
-  execSync("docker-compose -f docker-compose.test.yml exec -T db pg_isready", {
-    stdio: "inherit",
-  });
+	// Wait for services to be healthy
+	execSync("docker-compose -f docker-compose.test.yml exec -T db pg_isready", {
+		stdio: "inherit",
+	});
 }
 
 export default globalSetup;
@@ -270,11 +270,11 @@ export default globalSetup;
 import { execSync } from "child_process";
 
 async function globalTeardown() {
-  console.log("Stopping Docker services...");
+	console.log("Stopping Docker services...");
 
-  execSync("docker-compose -f docker-compose.test.yml down -v", {
-    stdio: "inherit",
-  });
+	execSync("docker-compose -f docker-compose.test.yml down -v", {
+		stdio: "inherit",
+	});
 }
 
 export default globalTeardown;
@@ -288,17 +288,17 @@ import dotenv from "dotenv";
 import path from "path";
 
 async function globalSetup() {
-  // Load test-specific environment
-  const envFile = process.env.CI ? ".env.ci" : ".env.test";
-  dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+	// Load test-specific environment
+	const envFile = process.env.CI ? ".env.ci" : ".env.test";
+	dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
-  // Validate required variables
-  const required = ["DATABASE_URL", "API_KEY", "TEST_EMAIL"];
-  for (const key of required) {
-    if (!process.env[key]) {
-      throw new Error(`Missing required environment variable: ${key}`);
-    }
-  }
+	// Validate required variables
+	const required = ["DATABASE_URL", "API_KEY", "TEST_EMAIL"];
+	for (const key of required) {
+		if (!process.env[key]) {
+			throw new Error(`Missing required environment variable: ${key}`);
+		}
+	}
 }
 
 export default globalSetup;
@@ -320,24 +320,24 @@ export default globalSetup;
 ```typescript
 // playwright.config.ts
 export default defineConfig({
-  projects: [
-    // Setup project
-    {
-      name: "setup",
-      testMatch: /.*\.setup\.ts/,
-    },
-    // Test projects depend on setup
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-      dependencies: ["setup"],
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-      dependencies: ["setup"],
-    },
-  ],
+	projects: [
+		// Setup project
+		{
+			name: "setup",
+			testMatch: /.*\.setup\.ts/,
+		},
+		// Test projects depend on setup
+		{
+			name: "chromium",
+			use: { ...devices["Desktop Chrome"] },
+			dependencies: ["setup"],
+		},
+		{
+			name: "firefox",
+			use: { ...devices["Desktop Firefox"] },
+			dependencies: ["setup"],
+		},
+	],
 });
 ```
 
@@ -348,22 +348,22 @@ export default defineConfig({
 ```typescript
 // playwright.config.ts
 export default defineConfig({
-  // Global: Start services, run migrations
-  globalSetup: require.resolve("./global-setup"),
-  globalTeardown: require.resolve("./global-teardown"),
+	// Global: Start services, run migrations
+	globalSetup: require.resolve("./global-setup"),
+	globalTeardown: require.resolve("./global-teardown"),
 
-  projects: [
-    // Setup project: Create auth states
-    { name: "setup", testMatch: /.*\.setup\.ts/ },
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: ".auth/user.json",
-      },
-      dependencies: ["setup"],
-    },
-  ],
+	projects: [
+		// Setup project: Create auth states
+		{ name: "setup", testMatch: /.*\.setup\.ts/ },
+		{
+			name: "chromium",
+			use: {
+				...devices["Desktop Chrome"],
+				storageState: ".auth/user.json",
+			},
+			dependencies: ["setup"],
+		},
+	],
 });
 ```
 
@@ -407,7 +407,7 @@ Use **worker-scoped fixtures** instead of globalSetup when:
 ```typescript
 // ❌ BAD: Global setup creates ONE user, all workers fight over it
 async function globalSetup() {
-  await createUser({ email: "test@example.com" }); // Shared!
+	await createUser({ email: "test@example.com" }); // Shared!
 }
 
 // ✅ GOOD: Each worker gets its own user via worker-scoped fixture

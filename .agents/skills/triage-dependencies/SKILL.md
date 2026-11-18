@@ -1,10 +1,11 @@
 ---
+
 name: triage-dependencies
 description: Mark which of a project's dependency libraries could introduce taint sources. Use to start source discovery
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Triage Dependencies

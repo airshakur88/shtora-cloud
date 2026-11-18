@@ -30,24 +30,24 @@ import { z } from "zod";
 const client = new Anthropic();
 
 const getWeather = betaZodTool({
-  name: "get_weather",
-  description: "Get current weather for a location",
-  inputSchema: z.object({
-    location: z.string().describe("City and state, e.g., San Francisco, CA"),
-    unit: z.enum(["celsius", "fahrenheit"]).optional(),
-  }),
-  run: async (input) => {
-    // Your implementation here
-    return `72°F and sunny in ${input.location}`;
-  },
+	name: "get_weather",
+	description: "Get current weather for a location",
+	inputSchema: z.object({
+		location: z.string().describe("City and state, e.g., San Francisco, CA"),
+		unit: z.enum(["celsius", "fahrenheit"]).optional(),
+	}),
+	run: async (input) => {
+		// Your implementation here
+		return `72°F and sunny in ${input.location}`;
+	},
 });
 
 // The tool runner handles the agentic loop and returns the final message
 const finalMessage = await client.beta.messages.toolRunner({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  tools: [getWeather],
-  messages: [{ role: "user", content: "What's the weather in Paris?" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	tools: [getWeather],
+	messages: [{ role: "user", content: "What's the weather in Paris?" }],
 });
 
 console.log(finalMessage.content);
@@ -70,30 +70,44 @@ The runner's `tools` array accepts raw server-tool definitions (`web_search_2026
 
 ```typescript
 const params = {
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  tools: [getWeather, { type: "web_search_20260209", name: "web_search", max_uses: 5 }],
-  messages: [{ role: "user", content: "Compare this week's forecasts for Paris across two sources" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	tools: [
+		getWeather,
+		{ type: "web_search_20260209", name: "web_search", max_uses: 5 },
+	],
+	messages: [
+		{
+			role: "user",
+			content: "Compare this week's forecasts for Paris across two sources",
+		},
+	],
 };
 
 const runner = client.beta.messages.toolRunner(params);
 
 // Non-streaming: each iteration yields a complete message
 for await (const message of runner) {
-  if (message.stop_reason === "pause_turn") {
-    runner.pushMessages({ role: "assistant", content: message.content });
-  }
+	if (message.stop_reason === "pause_turn") {
+		runner.pushMessages({ role: "assistant", content: message.content });
+	}
 }
 
 // Streaming alternative - construct the runner with `stream: true` (same
 // params as above). Each iteration then yields a stream, not a message - a
 // bare `message.stop_reason` check never fires. Resolve the stream first:
-const streamingRunner = client.beta.messages.toolRunner({ ...params, stream: true });
+const streamingRunner = client.beta.messages.toolRunner({
+	...params,
+	stream: true,
+});
 for await (const stream of streamingRunner) {
-  const message = await stream.finalMessage();
-  if (message.stop_reason === "pause_turn") {
-    streamingRunner.pushMessages({ role: "assistant", content: message.content });
-  }
+	const message = await stream.finalMessage();
+	if (message.stop_reason === "pause_turn") {
+		streamingRunner.pushMessages({
+			role: "assistant",
+			content: message.content,
+		});
+	}
 }
 ```
 
@@ -103,7 +117,7 @@ Each pause-resume consumes a `max_iterations` tick, so a capped run can still en
 
 ## Manual Agentic Loop
 
-Prefer the tool runner above. Drop to a manual loop only when you need control the runner does not expose (e.g., a custom transport, request shapes the SDK cannot build, or avoiding a beta dependency - the runner is beta, and it supports per-token streaming via `stream: true`). Human-in-the-loop approval does *not* require a manual loop - gate inside the tool's `run()` function (return a "user declined" result) or inspect pending `tool_use` blocks and call `setMessagesParams()` between iterations.
+Prefer the tool runner above. Drop to a manual loop only when you need control the runner does not expose (e.g., a custom transport, request shapes the SDK cannot build, or avoiding a beta dependency - the runner is beta, and it supports per-token streaming via `stream: true`). Human-in-the-loop approval does _not_ require a manual loop - gate inside the tool's `run()` function (return a "user declined" result) or inspect pending `tool_use` blocks and call `setMessagesParams()` between iterations.
 
 If you do need a manual loop:
 
@@ -163,109 +177,115 @@ const client = new Anthropic();
 const ROOT = nodePath.resolve(process.cwd());
 const WriteFileInput = z.object({ path: z.string(), contents: z.string() });
 const tools: Anthropic.Tool[] = [
-  {
-    name: "write_file",
-    description: "Write text to a file at the given path",
-    eager_input_streaming: true, // stream large inputs as generated
-    input_schema: {
-      type: "object",
-      properties: { path: { type: "string" }, contents: { type: "string" } },
-      required: ["path", "contents"],
-    },
-  },
+	{
+		name: "write_file",
+		description: "Write text to a file at the given path",
+		eager_input_streaming: true, // stream large inputs as generated
+		input_schema: {
+			type: "object",
+			properties: { path: { type: "string" }, contents: { type: "string" } },
+			required: ["path", "contents"],
+		},
+	},
 ];
 let messages: Anthropic.MessageParam[] = [{ role: "user", content: userInput }];
 let jsonRetries = 0;
 
 while (true) {
-  const stream = client.messages.stream({
-    model: "claude-opus-5-5",
-    max_tokens: 64000,
-    tools,
-    messages,
-  });
+	const stream = client.messages.stream({
+		model: "claude-opus-5-5",
+		max_tokens: 64000,
+		tools,
+		messages,
+	});
 
-  // Stream text deltas on each iteration
-  stream.on("text", (delta) => {
-    process.stdout.write(delta);
-  });
+	// Stream text deltas on each iteration
+	stream.on("text", (delta) => {
+		process.stdout.write(delta);
+	});
 
-  // finalMessage() resolves with the complete Message - no need to
-  // manually wire up .on("message") / .on("error") / .on("abort").
-  // With eager input streaming it rejects if a tool input could not be
-  // parsed at all. Only that case is retried; API errors are rethrown.
-  let message: Anthropic.Message;
-  try {
-    message = await stream.finalMessage();
-    jsonRetries = 0; // the cap is on consecutive failures of one turn
-  } catch (err) {
-    if (err instanceof Anthropic.APIError || jsonRetries++ >= 2) throw err;
-    console.error("tool input was not parseable JSON, re-issuing the turn");
-    continue;
-  }
+	// finalMessage() resolves with the complete Message - no need to
+	// manually wire up .on("message") / .on("error") / .on("abort").
+	// With eager input streaming it rejects if a tool input could not be
+	// parsed at all. Only that case is retried; API errors are rethrown.
+	let message: Anthropic.Message;
+	try {
+		message = await stream.finalMessage();
+		jsonRetries = 0; // the cap is on consecutive failures of one turn
+	} catch (err) {
+		if (err instanceof Anthropic.APIError || jsonRetries++ >= 2) throw err;
+		console.error("tool input was not parseable JSON, re-issuing the turn");
+		continue;
+	}
 
-  if (message.stop_reason === "end_turn") break;
-  // A refusal can cut a tool_use off mid-input; never run that turn's tools.
-  if (message.stop_reason === "refusal") break;
+	if (message.stop_reason === "end_turn") break;
+	// A refusal can cut a tool_use off mid-input; never run that turn's tools.
+	if (message.stop_reason === "refusal") break;
 
-  // Server-side tool hit iteration limit; append assistant turn and re-send to continue
-  if (message.stop_reason === "pause_turn") {
-    messages.push({ role: "assistant", content: message.content });
-    continue;
-  }
+	// Server-side tool hit iteration limit; append assistant turn and re-send to continue
+	if (message.stop_reason === "pause_turn") {
+		messages.push({ role: "assistant", content: message.content });
+		continue;
+	}
 
-  const toolUseBlocks = message.content.filter(
-    (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
-  );
-  if (toolUseBlocks.length === 0) break; // other terminal stop
+	const toolUseBlocks = message.content.filter(
+		(b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
+	);
+	if (toolUseBlocks.length === 0) break; // other terminal stop
 
-  // A tool input cut off at max_tokens usually parses as a valid partial
-  // object; check the stop reason and retry with a higher max_tokens
-  // instead of running the tool on truncated input.
-  if (message.stop_reason === "max_tokens") {
-    throw new Error("tool input truncated (max_tokens); retry with a higher max_tokens");
-  }
+	// A tool input cut off at max_tokens usually parses as a valid partial
+	// object; check the stop reason and retry with a higher max_tokens
+	// instead of running the tool on truncated input.
+	if (message.stop_reason === "max_tokens") {
+		throw new Error(
+			"tool input truncated (max_tokens); retry with a higher max_tokens",
+		);
+	}
 
-  messages.push({ role: "assistant", content: message.content });
+	messages.push({ role: "assistant", content: message.content });
 
-  const toolResults: Anthropic.ToolResultBlockParam[] = [];
-  for (const tool of toolUseBlocks) {
-    // The SDK's tolerant parser can return a silently truncated input (for
-    // example at an unescaped inner quote), so validate before running.
-    const parsed = WriteFileInput.safeParse(tool.input);
-    if (!parsed.success) {
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: tool.id,
-        is_error: true,
-        content: JSON.stringify({ INVALID_JSON: JSON.stringify(tool.input) }),
-      });
-      continue;
-    }
-    // `path` is untrusted model output: resolve it and reject anything that
-    // escapes the project root (`..`, absolute paths) before the write -
-    // schema validation alone does not check this. This check is lexical; if
-    // the root contains symlinked directories, canonicalize with fs.realpath
-    // too (shared/tool-use-concepts.md -> the text-editor security note).
-    const target = nodePath.resolve(ROOT, parsed.data.path);
-    const relative = nodePath.relative(ROOT, target);
-    if (relative === ".." || relative.startsWith(".." + nodePath.sep) || nodePath.isAbsolute(relative)) {
-      toolResults.push({
-        type: "tool_result",
-        tool_use_id: tool.id,
-        is_error: true,
-        content: "path escapes the project root",
-      });
-      continue;
-    }
-    toolResults.push({
-      type: "tool_result",
-      tool_use_id: tool.id,
-      content: await executeTool(tool.name, { ...parsed.data, path: target }),
-    });
-  }
+	const toolResults: Anthropic.ToolResultBlockParam[] = [];
+	for (const tool of toolUseBlocks) {
+		// The SDK's tolerant parser can return a silently truncated input (for
+		// example at an unescaped inner quote), so validate before running.
+		const parsed = WriteFileInput.safeParse(tool.input);
+		if (!parsed.success) {
+			toolResults.push({
+				type: "tool_result",
+				tool_use_id: tool.id,
+				is_error: true,
+				content: JSON.stringify({ INVALID_JSON: JSON.stringify(tool.input) }),
+			});
+			continue;
+		}
+		// `path` is untrusted model output: resolve it and reject anything that
+		// escapes the project root (`..`, absolute paths) before the write -
+		// schema validation alone does not check this. This check is lexical; if
+		// the root contains symlinked directories, canonicalize with fs.realpath
+		// too (shared/tool-use-concepts.md -> the text-editor security note).
+		const target = nodePath.resolve(ROOT, parsed.data.path);
+		const relative = nodePath.relative(ROOT, target);
+		if (
+			relative === ".." ||
+			relative.startsWith(".." + nodePath.sep) ||
+			nodePath.isAbsolute(relative)
+		) {
+			toolResults.push({
+				type: "tool_result",
+				tool_use_id: tool.id,
+				is_error: true,
+				content: "path escapes the project root",
+			});
+			continue;
+		}
+		toolResults.push({
+			type: "tool_result",
+			tool_use_id: tool.id,
+			content: await executeTool(tool.name, { ...parsed.data, path: target }),
+		});
+	}
 
-  messages.push({ role: "user", content: toolResults });
+	messages.push({ role: "user", content: toolResults });
 }
 ```
 
@@ -281,32 +301,32 @@ while (true) {
 
 ```typescript
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  tools: tools,
-  messages: [{ role: "user", content: "What's the weather in Paris?" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	tools: tools,
+	messages: [{ role: "user", content: "What's the weather in Paris?" }],
 });
 
 for (const block of response.content) {
-  if (block.type === "tool_use") {
-    const result = await executeTool(block.name, block.input);
+	if (block.type === "tool_use") {
+		const result = await executeTool(block.name, block.input);
 
-    const followup = await client.messages.create({
-      model: "claude-opus-5-5",
-      max_tokens: 16000,
-      tools: tools,
-      messages: [
-        { role: "user", content: "What's the weather in Paris?" },
-        { role: "assistant", content: response.content },
-        {
-          role: "user",
-          content: [
-            { type: "tool_result", tool_use_id: block.id, content: result },
-          ],
-        },
-      ],
-    });
-  }
+		const followup = await client.messages.create({
+			model: "claude-opus-5-5",
+			max_tokens: 16000,
+			tools: tools,
+			messages: [
+				{ role: "user", content: "What's the weather in Paris?" },
+				{ role: "assistant", content: response.content },
+				{
+					role: "user",
+					content: [
+						{ type: "tool_result", tool_use_id: block.id, content: result },
+					],
+				},
+			],
+		});
+	}
 }
 ```
 
@@ -318,10 +338,15 @@ for (const block of response.content) {
 
 ```typescript
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  tools: tools.map((tool) => ({ ...tool, strict: true })), // schemas must set additionalProperties: false
-  messages: [{ role: "user", content: "What's the weather in Paris? Use the get_weather tool." }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	tools: tools.map((tool) => ({ ...tool, strict: true })), // schemas must set additionalProperties: false
+	messages: [
+		{
+			role: "user",
+			content: "What's the weather in Paris? Use the get_weather tool.",
+		},
+	],
 });
 // auto does not guarantee a call - check for a tool_use block and re-prompt if none came back
 ```
@@ -337,35 +362,34 @@ Version-suffixed `type` literals; `name` is fixed per interface. Web search and 
 ```typescript
 // Good: let inference work - no annotation
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  tools: [
-    { type: "text_editor_20250728", name: "str_replace_based_edit_tool" },
-    { type: "bash_20250124", name: "bash" },
-    { type: "web_search_20260209", name: "web_search" },
-    { type: "code_execution_20260120", name: "code_execution" },
-  ],
-  messages: [{ role: "user", content: "..." }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	tools: [
+		{ type: "text_editor_20250728", name: "str_replace_based_edit_tool" },
+		{ type: "bash_20250124", name: "bash" },
+		{ type: "web_search_20260209", name: "web_search" },
+		{ type: "code_execution_20260120", name: "code_execution" },
+	],
+	messages: [{ role: "user", content: "..." }],
 });
 
 // Bad: this is a TS2352 - Tool is the CUSTOM tool variant only
 // const tools: Anthropic.Tool[] = [{ type: "text_editor_20250728", ... }]
 ```
 
-| Interface | `name` | `type` |
-|---|---|---|
-| `ToolTextEditor20250124` | `str_replace_editor` | `text_editor_20250124` |
-| `ToolTextEditor20250429` | `str_replace_based_edit_tool` | `text_editor_20250429` |
-| `ToolTextEditor20250728` | `str_replace_based_edit_tool` | `text_editor_20250728` |
-| `ToolBash20250124` | `bash` | `bash_20250124` |
-| `WebSearchTool20260209` | `web_search` | `web_search_20260209` |
-| `WebFetchTool20260209` | `web_fetch` | `web_fetch_20260209` |
-| `CodeExecutionTool20260120` | `code_execution` | `code_execution_20260120` |
+| Interface                   | `name`                        | `type`                    |
+| --------------------------- | ----------------------------- | ------------------------- |
+| `ToolTextEditor20250124`    | `str_replace_editor`          | `text_editor_20250124`    |
+| `ToolTextEditor20250429`    | `str_replace_based_edit_tool` | `text_editor_20250429`    |
+| `ToolTextEditor20250728`    | `str_replace_based_edit_tool` | `text_editor_20250728`    |
+| `ToolBash20250124`          | `bash`                        | `bash_20250124`           |
+| `WebSearchTool20260209`     | `web_search`                  | `web_search_20260209`     |
+| `WebFetchTool20260209`      | `web_fetch`                   | `web_fetch_20260209`      |
+| `CodeExecutionTool20260120` | `code_execution`              | `code_execution_20260120` |
 
 **Don't mix beta and non-beta types**: if you call `client.beta.messages.create()`, the response `content` is `BetaContentBlock[]` - you cannot pass that to a non-beta `ContentBlockParam[]` without narrowing each element.
 
 ---
-
 
 ## Code Execution
 
@@ -377,16 +401,16 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic();
 
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content:
-        "Calculate the mean and standard deviation of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]",
-    },
-  ],
-  tools: [{ type: "code_execution_20260120", name: "code_execution" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content:
+				"Calculate the mean and standard deviation of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]",
+		},
+	],
+	tools: [{ type: "code_execution_20260120", name: "code_execution" }],
 });
 ```
 
@@ -415,31 +439,29 @@ const client = new Anthropic();
 
 // 1. Upload a file
 const uploaded = await client.beta.files.upload({
-  file: await toFile(createReadStream("sales_data.csv"), undefined, {
-    type: "text/csv",
-  }),
+	file: await toFile(createReadStream("sales_data.csv"), undefined, {
+		type: "text/csv",
+	}),
 });
 
 // 2. Pass to code execution
-const response = await client.messages.create(
-  {
-    model: "claude-opus-5-5",
-    max_tokens: 16000,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Analyze this sales data. Show trends and create a visualization.",
-          },
-          { type: "container_upload", file_id: uploaded.id },
-        ],
-      },
-    ],
-    tools: [{ type: "code_execution_20260120", name: "code_execution" }],
-  },
-);
+const response = await client.messages.create({
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content: [
+				{
+					type: "text",
+					text: "Analyze this sales data. Show trends and create a visualization.",
+				},
+				{ type: "container_upload", file_id: uploaded.id },
+			],
+		},
+	],
+	tools: [{ type: "code_execution_20260120", name: "code_execution" }],
+});
 ```
 
 ### Retrieve Generated Files
@@ -452,28 +474,30 @@ const OUTPUT_DIR = "./claude_outputs";
 await fs.promises.mkdir(OUTPUT_DIR, { recursive: true });
 
 for (const block of response.content) {
-  if (block.type === "bash_code_execution_tool_result") {
-    const result = block.content;
-    if (result.type === "bash_code_execution_result" && result.content) {
-      for (const fileRef of result.content) {
-        if (fileRef.type === "bash_code_execution_output") {
-          const metadata = await client.beta.files.retrieveMetadata(
-            fileRef.file_id,
-          );
-          const downloadResponse = await client.beta.files.download(fileRef.file_id);
-          const fileBytes = Buffer.from(await downloadResponse.arrayBuffer());
-          const safeName = path.basename(metadata.filename);
-          if (!safeName || safeName === "." || safeName === "..") {
-            console.warn(`Skipping invalid filename: ${metadata.filename}`);
-            continue;
-          }
-          const outputPath = path.join(OUTPUT_DIR, safeName);
-          await fs.promises.writeFile(outputPath, fileBytes);
-          console.log(`Saved: ${outputPath}`);
-        }
-      }
-    }
-  }
+	if (block.type === "bash_code_execution_tool_result") {
+		const result = block.content;
+		if (result.type === "bash_code_execution_result" && result.content) {
+			for (const fileRef of result.content) {
+				if (fileRef.type === "bash_code_execution_output") {
+					const metadata = await client.beta.files.retrieveMetadata(
+						fileRef.file_id,
+					);
+					const downloadResponse = await client.beta.files.download(
+						fileRef.file_id,
+					);
+					const fileBytes = Buffer.from(await downloadResponse.arrayBuffer());
+					const safeName = path.basename(metadata.filename);
+					if (!safeName || safeName === "." || safeName === "..") {
+						console.warn(`Skipping invalid filename: ${metadata.filename}`);
+						continue;
+					}
+					const outputPath = path.join(OUTPUT_DIR, safeName);
+					await fs.promises.writeFile(outputPath, fileBytes);
+					console.log(`Saved: ${outputPath}`);
+				}
+			}
+		}
+	}
 }
 ```
 
@@ -482,15 +506,15 @@ for (const block of response.content) {
 ```typescript
 // First request: set up environment
 const response1 = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content: "Install tabulate and create data.json with sample user data",
-    },
-  ],
-  tools: [{ type: "code_execution_20260120", name: "code_execution" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content: "Install tabulate and create data.json with sample user data",
+		},
+	],
+	tools: [{ type: "code_execution_20260120", name: "code_execution" }],
 });
 
 // Reuse container
@@ -498,16 +522,16 @@ const response1 = await client.messages.create({
 const containerId = response1.container!.id;
 
 const response2 = await client.messages.create({
-  container: containerId,
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content: "Read data.json and display as a formatted table",
-    },
-  ],
-  tools: [{ type: "code_execution_20260120", name: "code_execution" }],
+	container: containerId,
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content: "Read data.json and display as a formatted table",
+		},
+	],
+	tools: [{ type: "code_execution_20260120", name: "code_execution" }],
 });
 ```
 
@@ -519,15 +543,15 @@ const response2 = await client.messages.create({
 
 ```typescript
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content: "Remember that my preferred language is TypeScript.",
-    },
-  ],
-  tools: [{ type: "memory_20250818", name: "memory" }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content: "Remember that my preferred language is TypeScript.",
+		},
+	],
+	tools: [{ type: "memory_20250818", name: "memory" }],
 });
 ```
 
@@ -580,28 +604,28 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 const ContactInfoSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  plan: z.string(),
-  interests: z.array(z.string()),
-  demo_requested: z.boolean(),
+	name: z.string(),
+	email: z.string(),
+	plan: z.string(),
+	interests: z.array(z.string()),
+	demo_requested: z.boolean(),
 });
 
 const client = new Anthropic();
 
 const response = await client.messages.parse({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content:
-        "Extract: Jane Doe (jane@co.com) wants Enterprise, interested in API and SDKs, wants a demo.",
-    },
-  ],
-  output_config: {
-    format: zodOutputFormat(ContactInfoSchema),
-  },
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content:
+				"Extract: Jane Doe (jane@co.com) wants Enterprise, interested in API and SDKs, wants a demo.",
+		},
+	],
+	output_config: {
+		format: zodOutputFormat(ContactInfoSchema),
+	},
 });
 
 // parsed_output is null if parsing failed - assert or guard
@@ -612,34 +636,34 @@ console.log(response.parsed_output!.name); // "Jane Doe"
 
 ```typescript
 const response = await client.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  messages: [
-    {
-      role: "user",
-      content: "Book a flight to Tokyo for 2 passengers on March 15",
-    },
-  ],
-  tools: [
-    {
-      name: "book_flight",
-      description: "Book a flight to a destination",
-      strict: true,
-      input_schema: {
-        type: "object",
-        properties: {
-          destination: { type: "string" },
-          date: { type: "string", format: "date" },
-          passengers: {
-            type: "integer",
-            enum: [1, 2, 3, 4, 5, 6, 7, 8],
-          },
-        },
-        required: ["destination", "date", "passengers"],
-        additionalProperties: false,
-      },
-    },
-  ],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	messages: [
+		{
+			role: "user",
+			content: "Book a flight to Tokyo for 2 passengers on March 15",
+		},
+	],
+	tools: [
+		{
+			name: "book_flight",
+			description: "Book a flight to a destination",
+			strict: true,
+			input_schema: {
+				type: "object",
+				properties: {
+					destination: { type: "string" },
+					date: { type: "string", format: "date" },
+					passengers: {
+						type: "integer",
+						enum: [1, 2, 3, 4, 5, 6, 7, 8],
+					},
+				},
+				required: ["destination", "date", "passengers"],
+				additionalProperties: false,
+			},
+		},
+	],
 });
 ```
 
@@ -651,14 +675,14 @@ Enable an Anthropic-managed skill (e.g., `pptx`) via `container.skills` + the `c
 
 ```typescript
 const response = await client.beta.messages.create({
-  model: "claude-opus-5-5",
-  max_tokens: 16000,
-  container: {
-    skills: [{ type: "anthropic", skill_id: "pptx", version: "latest" }],
-  },
-  tools: [{ type: "code_execution_20260521", name: "code_execution" }],
-  betas: ["code-execution-2025-08-25"],
-  messages: [{ role: "user", content: "Create a 3-slide deck about X." }],
+	model: "claude-opus-5-5",
+	max_tokens: 16000,
+	container: {
+		skills: [{ type: "anthropic", skill_id: "pptx", version: "latest" }],
+	},
+	tools: [{ type: "code_execution_20260521", name: "code_execution" }],
+	betas: ["code-execution-2025-08-25"],
+	messages: [{ role: "user", content: "Create a 3-slide deck about X." }],
 });
 // Find the file_id in response.content, then:
 // await client.beta.files.download(fileId)

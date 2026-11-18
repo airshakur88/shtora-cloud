@@ -22,12 +22,12 @@ When using the Prometheus client library, refer to the library's official docume
 
 ## Metric Types
 
-| Type | What it measures | Example | When to use |
-| --- | --- | --- | --- |
-| **Counter** | Cumulative total (only goes up) | Total requests, total errors | Counting events |
-| **Gauge** | Current value (goes up and down) | In-flight requests, queue size, temperature | Current state |
-| **Histogram** | Distribution of values in configurable buckets | Request duration, response size | Latency, sizes — when you need percentiles |
-| **Summary** | Client-computed quantiles | Request duration (pre-computed P50, P99) | Rarely — prefer Histogram |
+| Type          | What it measures                               | Example                                     | When to use                                |
+| ------------- | ---------------------------------------------- | ------------------------------------------- | ------------------------------------------ |
+| **Counter**   | Cumulative total (only goes up)                | Total requests, total errors                | Counting events                            |
+| **Gauge**     | Current value (goes up and down)               | In-flight requests, queue size, temperature | Current state                              |
+| **Histogram** | Distribution of values in configurable buckets | Request duration, response size             | Latency, sizes — when you need percentiles |
+| **Summary**   | Client-computed quantiles                      | Request duration (pre-computed P50, P99)    | Rarely — prefer Histogram                  |
 
 ## Histogram vs Summary
 
@@ -115,13 +115,13 @@ Metric names MUST follow the [Prometheus naming best practices](https://promethe
 
 **Suffix conventions:**
 
-| Suffix | When to use | Example |
-| --- | --- | --- |
-| `_total` | Counters MUST use this suffix | `myapp_http_requests_total` |
-| `_seconds` | Duration measurements | `myapp_http_request_duration_seconds` |
-| `_bytes` | Data sizes | `myapp_response_size_bytes` |
-| `_info` | Pseudo-metrics exposing metadata | `myapp_build_info` |
-| `_created` | Creation timestamp of a counter | `myapp_http_requests_created` |
+| Suffix     | When to use                      | Example                               |
+| ---------- | -------------------------------- | ------------------------------------- |
+| `_total`   | Counters MUST use this suffix    | `myapp_http_requests_total`           |
+| `_seconds` | Duration measurements            | `myapp_http_request_duration_seconds` |
+| `_bytes`   | Data sizes                       | `myapp_response_size_bytes`           |
+| `_info`    | Pseudo-metrics exposing metadata | `myapp_build_info`                    |
+| `_created` | Creation timestamp of a counter  | `myapp_http_requests_created`         |
 
 ```go
 // ✓ Good — namespace, subsystem, descriptive name, base unit suffix
@@ -495,11 +495,11 @@ For critical services, simple threshold alerts ("error rate > 1%") fire too late
 
 For a **99.9% availability SLO** (0.1% error budget over 30 days):
 
-| Window | Burn rate | Error rate | Severity | Meaning |
-| --- | --- | --- | --- | --- |
-| 5m + 1h | 14.4x | > 1.44% | Critical (page) | Budget exhausted in ~2 days |
-| 30m + 6h | 6x | > 0.6% | Critical (page) | Budget exhausted in ~5 days |
-| 2h + 24h | 1x | > 0.1% | Warning (ticket) | On track to exhaust budget |
+| Window   | Burn rate | Error rate | Severity         | Meaning                     |
+| -------- | --------- | ---------- | ---------------- | --------------------------- |
+| 5m + 1h  | 14.4x     | > 1.44%    | Critical (page)  | Budget exhausted in ~2 days |
+| 30m + 6h | 6x        | > 0.6%     | Critical (page)  | Budget exhausted in ~5 days |
+| 2h + 24h | 1x        | > 0.1%     | Warning (ticket) | On track to exhaust budget  |
 
 ```promql
 # Fast burn — page immediately (for: 2m)

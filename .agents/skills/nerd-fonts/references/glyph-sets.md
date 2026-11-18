@@ -4,26 +4,26 @@ Data: Nerd Fonts v3.5.1 (2026-08-21), retrieved 2026-08-28. Source: upstream `gl
 
 ## Sets
 
-| Prefix | Set | Upstream | Codepoints | Glyphs |
-|---|---|---|---|---|
-| `nf-cod-` | Codicons | microsoft/vscode-codicons | U+EA60 to U+EC84 (with gaps) | 540 |
-| `nf-custom-` | Seti-UI + Custom | jesseweed/seti-ui and Nerd Fonts custom glyphs | U+E5FA to U+E6BB (with gaps) | 45 |
-| `nf-dev-` | Devicons | vorillaz/devicons | U+E700 to U+E958 | 613 |
-| `nf-extra-` | Progress indicators (Nerd Fonts extra) | Nerd Fonts | U+EE00 to U+EE0B | 12 |
-| `nf-fa-` | Font Awesome | FortAwesome/Font-Awesome | U+ED00 to U+EDFF, U+EE0C to U+EFCF, U+F000 to U+F2FF | 1,818 |
-| `nf-fae-` | Font Awesome Extension | AndreLZGava/font-awesome-extension | U+E200 to U+E2A9 | 170 |
-| `nf-iec-` | IEC Power Symbols | unicodepowersymbol.com | U+23FB to U+23FE, U+2B58 | 5 |
-| `nf-indent-` | Indent guide (custom) | Nerd Fonts | U+E621 | 2 |
-| `nf-indentation-` | Indentation guide (custom) | Nerd Fonts | U+E621 | 1 |
-| `nf-linux-` | Font Logos | lukas-w/font-logos | U+F300 to U+F385 | 134 |
-| `nf-md-` | Material Design Icons | Templarian/MaterialDesign | U+F0001 to U+F1AF0 | 6,896 |
-| `nf-oct-` | Octicons | primer/octicons | U+2665, U+26A1, U+F400 to U+F533 | 310 |
-| `nf-pl-` | Powerline Symbols | powerline/powerline | U+E0A0 to U+E0A2, U+E0B0 to U+E0B3 | 9 |
-| `nf-ple-` | Powerline Extra Symbols | ryanoasis/powerline-extra-symbols | U+E0A3 to U+E0D7 (with gaps) | 34 |
-| `nf-pom-` | Pomicons | gabrielelana/pomicons | U+E000 to U+E00A | 11 |
-| `nf-seti-` | Seti-UI | jesseweed/seti-ui | U+E600 to U+E6AA (with gaps) | 167 |
-| `nf-weather-` | Weather Icons | erikflowers/weather-icons | U+E300 to U+E3E3 | 228 |
-| | Total | | | 10,995 |
+| Prefix            | Set                                    | Upstream                                       | Codepoints                                           | Glyphs |
+| ----------------- | -------------------------------------- | ---------------------------------------------- | ---------------------------------------------------- | ------ |
+| `nf-cod-`         | Codicons                               | microsoft/vscode-codicons                      | U+EA60 to U+EC84 (with gaps)                         | 540    |
+| `nf-custom-`      | Seti-UI + Custom                       | jesseweed/seti-ui and Nerd Fonts custom glyphs | U+E5FA to U+E6BB (with gaps)                         | 45     |
+| `nf-dev-`         | Devicons                               | vorillaz/devicons                              | U+E700 to U+E958                                     | 613    |
+| `nf-extra-`       | Progress indicators (Nerd Fonts extra) | Nerd Fonts                                     | U+EE00 to U+EE0B                                     | 12     |
+| `nf-fa-`          | Font Awesome                           | FortAwesome/Font-Awesome                       | U+ED00 to U+EDFF, U+EE0C to U+EFCF, U+F000 to U+F2FF | 1,818  |
+| `nf-fae-`         | Font Awesome Extension                 | AndreLZGava/font-awesome-extension             | U+E200 to U+E2A9                                     | 170    |
+| `nf-iec-`         | IEC Power Symbols                      | unicodepowersymbol.com                         | U+23FB to U+23FE, U+2B58                             | 5      |
+| `nf-indent-`      | Indent guide (custom)                  | Nerd Fonts                                     | U+E621                                               | 2      |
+| `nf-indentation-` | Indentation guide (custom)             | Nerd Fonts                                     | U+E621                                               | 1      |
+| `nf-linux-`       | Font Logos                             | lukas-w/font-logos                             | U+F300 to U+F385                                     | 134    |
+| `nf-md-`          | Material Design Icons                  | Templarian/MaterialDesign                      | U+F0001 to U+F1AF0                                   | 6,896  |
+| `nf-oct-`         | Octicons                               | primer/octicons                                | U+2665, U+26A1, U+F400 to U+F533                     | 310    |
+| `nf-pl-`          | Powerline Symbols                      | powerline/powerline                            | U+E0A0 to U+E0A2, U+E0B0 to U+E0B3                   | 9      |
+| `nf-ple-`         | Powerline Extra Symbols                | ryanoasis/powerline-extra-symbols              | U+E0A3 to U+E0D7 (with gaps)                         | 34     |
+| `nf-pom-`         | Pomicons                               | gabrielelana/pomicons                          | U+E000 to U+E00A                                     | 11     |
+| `nf-seti-`        | Seti-UI                                | jesseweed/seti-ui                              | U+E600 to U+E6AA (with gaps)                         | 167    |
+| `nf-weather-`     | Weather Icons                          | erikflowers/weather-icons                      | U+E300 to U+E3E3                                     | 228    |
+|                   | Total                                  |                                                |                                                      | 10,995 |
 
 Notes:
 
@@ -58,16 +58,16 @@ fc-list ':charset=f408' family
 
 ## Writing a glyph
 
-| Where | 4-digit (`nf-oct-mark_github` U+F408) | 5-digit (`nf-md-folder` U+F024B) |
-|-------|------|------|
-| bash, zsh | `printf ''` | `printf '\U000f024b'` |
-| Lua, Neovim | `"\u{f408}"` or `vim.fn.nr2char(0xf408)` | `"\u{f024b}"` |
-| Rust | `'\u{f408}'` | `'\u{f024b}'` |
-| JavaScript, TypeScript | `""` | `"\u{f024b}"` |
-| Vimscript | `""` | `"\U000f024b"` |
-| CSS | `content: "\f408"` | `content: "\f024b"` |
-| Go | `""` | `"\U000f024b"` |
-| Config files (starship, tmux, kitty) | the literal glyph `` | the literal glyph `󰉋` |
+| Where                                | 4-digit (`nf-oct-mark_github` U+F408)    | 5-digit (`nf-md-folder` U+F024B) |
+| ------------------------------------ | ---------------------------------------- | -------------------------------- |
+| bash, zsh                            | `printf ''`                             | `printf '\U000f024b'`            |
+| Lua, Neovim                          | `"\u{f408}"` or `vim.fn.nr2char(0xf408)` | `"\u{f024b}"`                    |
+| Rust                                 | `'\u{f408}'`                             | `'\u{f024b}'`                    |
+| JavaScript, TypeScript               | `""`                                    | `"\u{f024b}"`                    |
+| Vimscript                            | `""`                                    | `"\U000f024b"`                   |
+| CSS                                  | `content: "\f408"`                       | `content: "\f024b"`              |
+| Go                                   | `""`                                    | `"\U000f024b"`                   |
+| Config files (starship, tmux, kitty) | the literal glyph ``                    | the literal glyph `󰉋`            |
 
 Linux GTK apps accept direct input with `Ctrl+Shift+U`, the hex code, then Enter.
 

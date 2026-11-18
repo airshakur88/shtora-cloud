@@ -87,7 +87,7 @@ rules:
         - rule: java/lib/<area>/my-new-sink.yaml#my-new-sink
           as: sink
       on:
-        - 'src.$UNTRUSTED -> sink.$UNTRUSTED'
+        - "src.$UNTRUSTED -> sink.$UNTRUSTED"
 ```
 
 The marker rules resolve from the sub-project's `test-rules` root, your lib rules from `.opentaint/rules` — `test rule run` is passed both. Metavariable names must match across `refs` and `on`.

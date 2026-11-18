@@ -3,22 +3,22 @@
 Match the project's existing choice. Introducing a second PBT library into a codebase
 that already has one is not worth the property you wanted to write.
 
-| Language | Default | Also in use |
-|---|---|---|
-| Python | Hypothesis | — |
-| TypeScript / JavaScript | fast-check | — |
-| Rust | proptest | quickcheck (simpler API, per-type shrinking) |
-| Go | rapid | gopter (ScalaCheck-style, more explicit) |
-| Java | jqwik | — |
-| Scala | ScalaCheck | — |
-| C# | FsCheck | — |
-| Elixir | StreamData | — |
-| Haskell | QuickCheck | Hedgehog (integrated shrinking, no type classes) |
-| Clojure | test.check | — |
-| Ruby | PropCheck | — |
-| Kotlin | Kotest | — |
-| C++ | RapidCheck | — |
-| Swift | SwiftCheck | unmaintained — check before recommending |
+| Language                | Default    | Also in use                                      |
+| ----------------------- | ---------- | ------------------------------------------------ |
+| Python                  | Hypothesis | —                                                |
+| TypeScript / JavaScript | fast-check | —                                                |
+| Rust                    | proptest   | quickcheck (simpler API, per-type shrinking)     |
+| Go                      | rapid      | gopter (ScalaCheck-style, more explicit)         |
+| Java                    | jqwik      | —                                                |
+| Scala                   | ScalaCheck | —                                                |
+| C#                      | FsCheck    | —                                                |
+| Elixir                  | StreamData | —                                                |
+| Haskell                 | QuickCheck | Hedgehog (integrated shrinking, no type classes) |
+| Clojure                 | test.check | —                                                |
+| Ruby                    | PropCheck  | —                                                |
+| Kotlin                  | Kotest     | —                                                |
+| C++                     | RapidCheck | —                                                |
+| Swift                   | SwiftCheck | unmaintained — check before recommending         |
 
 Detect what a repo already uses before proposing anything:
 

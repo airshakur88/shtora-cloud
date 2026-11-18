@@ -419,8 +419,8 @@ public class UserSecurityService {
 ```yaml
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000  # 24 hours
-  refresh-expiration: 604800000  # 7 days
+  expiration: 86400000 # 24 hours
+  refresh-expiration: 604800000 # 7 days
 
 spring:
   security:
@@ -433,13 +433,13 @@ spring:
 
 ## Quick Reference
 
-| Annotation | Purpose |
-|-----------|---------|
-| `@EnableWebSecurity` | Enable Spring Security |
-| `@EnableMethodSecurity` | Enable method-level security |
-| `@PreAuthorize` | Check before method execution |
-| `@PostAuthorize` | Check after method execution |
-| `@Secured` | Role-based access control |
-| `@RolesAllowed` | JSR-250 security |
-| `SecurityContextHolder` | Access current security context |
-| `@AuthenticationPrincipal` | Inject current user |
+| Annotation                 | Purpose                         |
+| -------------------------- | ------------------------------- |
+| `@EnableWebSecurity`       | Enable Spring Security          |
+| `@EnableMethodSecurity`    | Enable method-level security    |
+| `@PreAuthorize`            | Check before method execution   |
+| `@PostAuthorize`           | Check after method execution    |
+| `@Secured`                 | Role-based access control       |
+| `@RolesAllowed`            | JSR-250 security                |
+| `SecurityContextHolder`    | Access current security context |
+| `@AuthenticationPrincipal` | Inject current user             |

@@ -5,6 +5,7 @@ supports. These labels appear on the product page and help users find apps
 that support their needs before they download.
 
 Docs:
+
 - [Overview of Accessibility Nutrition Labels](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/overview-of-accessibility-nutrition-labels)
 - [Manage Accessibility Nutrition Labels](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/manage-accessibility-nutrition-labels)
 
@@ -21,17 +22,17 @@ Docs:
 
 Apple's current App Store Accessibility Nutrition Labels are:
 
-| Label | What It Means | Key Implementation |
-|-------|---------------|-------------------|
-| **VoiceOver** | Users can navigate, understand, and operate the app with VoiceOver | Concise labels, values, traits, logical order, alternatives for images/charts, accessible custom controls |
-| **Voice Control** | Users can navigate and operate the app with voice commands | Speakable visible/accessibility labels, `accessibilityInputLabels`, custom actions for hidden or gesture-only behavior |
-| **Larger Text** | Text can scale to at least 200% where supported | Dynamic Type or an equivalent in-app scaling control, layouts that avoid clipping and overlap |
-| **Dark Interface** | The app can keep common-task UI dark | System Dark Mode or an equivalent dark mode without bright flashes in common tasks |
-| **Differentiate Without Color Alone** | Color is not the only way to convey information | Text, shape, icon, position, or pattern alternatives for color-coded state and data |
-| **Sufficient Contrast** | Text, icons, controls, and state indicators have enough contrast | Semantic colors, high-contrast variants, Reduce Transparency handling, contrast checks in light and dark appearances |
-| **Reduced Motion** | Problematic motion can be reduced or replaced | Respect Reduce Motion; replace parallax, spinning, scaling, depth, and ongoing motion with fades or static states where appropriate |
-| **Captions** | Dialogue and relevant sounds are available as text for video or audio content | Captions, SDH, subtitles, or transcripts; detect and honor system caption settings |
-| **Audio Descriptions** | Visual time-based content has narrated descriptions | Audio description tracks or equivalent narration for video, cut scenes, and visual-only cues |
+| Label                                 | What It Means                                                                 | Key Implementation                                                                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **VoiceOver**                         | Users can navigate, understand, and operate the app with VoiceOver            | Concise labels, values, traits, logical order, alternatives for images/charts, accessible custom controls                           |
+| **Voice Control**                     | Users can navigate and operate the app with voice commands                    | Speakable visible/accessibility labels, `accessibilityInputLabels`, custom actions for hidden or gesture-only behavior              |
+| **Larger Text**                       | Text can scale to at least 200% where supported                               | Dynamic Type or an equivalent in-app scaling control, layouts that avoid clipping and overlap                                       |
+| **Dark Interface**                    | The app can keep common-task UI dark                                          | System Dark Mode or an equivalent dark mode without bright flashes in common tasks                                                  |
+| **Differentiate Without Color Alone** | Color is not the only way to convey information                               | Text, shape, icon, position, or pattern alternatives for color-coded state and data                                                 |
+| **Sufficient Contrast**               | Text, icons, controls, and state indicators have enough contrast              | Semantic colors, high-contrast variants, Reduce Transparency handling, contrast checks in light and dark appearances                |
+| **Reduced Motion**                    | Problematic motion can be reduced or replaced                                 | Respect Reduce Motion; replace parallax, spinning, scaling, depth, and ongoing motion with fades or static states where appropriate |
+| **Captions**                          | Dialogue and relevant sounds are available as text for video or audio content | Captions, SDH, subtitles, or transcripts; detect and honor system caption settings                                                  |
+| **Audio Descriptions**                | Visual time-based content has narrated descriptions                           | Audio description tracks or equivalent narration for video, cut scenes, and visual-only cues                                        |
 
 Apple states these labels appear on Apple devices running iOS 26, iPadOS 26,
 macOS 26, tvOS 26, visionOS 26, and watchOS 26 or later. App Store Connect asks
@@ -53,9 +54,9 @@ Create one row for every common task on every supported device type. Test only
 the feature claims that apply to that task, and link each result to reproducible
 evidence rather than a general statement that the app is accessible.
 
-| Device | Common task | Feature claim | Evidence | Result | Owner |
-|---|---|---|---|---|---|
-| iPhone | Complete checkout | VoiceOver | Test steps, recording, and issue link | Pass/Fail | Team or person |
+| Device | Common task       | Feature claim | Evidence                              | Result    | Owner          |
+| ------ | ----------------- | ------------- | ------------------------------------- | --------- | -------------- |
+| iPhone | Complete checkout | VoiceOver     | Test steps, recording, and issue link | Pass/Fail | Team or person |
 
 For each proposed label:
 

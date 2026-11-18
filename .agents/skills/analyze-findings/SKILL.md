@@ -1,10 +1,11 @@
 ---
+
 name: analyze-findings
 description: Triage OpenTaint findings statically. Use when scan findings need a TP/FP verdict
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Analyze Findings

@@ -86,17 +86,17 @@ A `message.part.updated` (text/tool) confirms the prompt action drove the model 
 
 ```typescript
 export default {
-  id: "qa-logger",
-  async server(input, options) {
-    return {
-      event: async (event) => {
-        console.log("[event]", event.type, event.properties);
-      },
-      "tool.execute.before": async (tool, args, context) => {
-        console.log("[tool.before]", tool.name, args);
-      },
-    };
-  },
+	id: "qa-logger",
+	async server(input, options) {
+		return {
+			event: async (event) => {
+				console.log("[event]", event.type, event.properties);
+			},
+			"tool.execute.before": async (tool, args, context) => {
+				console.log("[tool.before]", tool.name, args);
+			},
+		};
+	},
 };
 ```
 

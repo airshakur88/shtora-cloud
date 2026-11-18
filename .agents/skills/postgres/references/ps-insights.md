@@ -1,4 +1,5 @@
 ---
+
 title: PlanetScale Query Insights
 description: Query insights guide
 tags: postgres, planetscale, insights, monitoring, optimization

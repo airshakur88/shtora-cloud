@@ -1,4 +1,5 @@
 ---
+
 name: apify-actorization
 description: Convert existing projects into Apify Actors - serverless cloud programs. Actorize JavaScript/TypeScript (SDK with Actor.init/exit), Python (async context manager), or any language (CLI wrapper). Use when migrating code to Apify, wrapping CLI tools as Actors, or adding Actor SDK to existing projects.
 ---
@@ -119,15 +120,16 @@ Choose based on your project's language:
 
 ### Quick reference
 
-| Language | Install | Wrap Code |
-|----------|---------|-----------|
-| JS/TS | `npm install apify` | `await Actor.init()` ... `await Actor.exit()` |
-| Python | `pip install apify` | `async with Actor:` |
-| Other | Use CLI in wrapper script | `apify actor:get-input` / `apify actor:push-data` |
+| Language | Install                   | Wrap Code                                         |
+| -------- | ------------------------- | ------------------------------------------------- |
+| JS/TS    | `npm install apify`       | `await Actor.init()` ... `await Actor.exit()`     |
+| Python   | `pip install apify`       | `async with Actor:`                               |
+| Other    | Use CLI in wrapper script | `apify actor:get-input` / `apify actor:push-data` |
 
 ## Steps 4-6: Configure schemas
 
 See [schemas-and-output.md](references/schemas-and-output.md) for detailed configuration of:
+
 - Input schema (`.actor/input_schema.json`)
 - Output schema (`.actor/output_schema.json`)
 - Actor configuration (`.actor/actor.json`)
@@ -233,12 +235,12 @@ Or add it manually to your MCP config:
 
 ```json
 {
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
+	"mcpServers": {
+		"playwright": {
+			"command": "npx",
+			"args": ["@playwright/mcp@latest"]
+		}
+	}
 }
 ```
 

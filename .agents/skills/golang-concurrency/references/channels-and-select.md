@@ -95,11 +95,11 @@ func generate(ctx context.Context) <-chan int {
 
 ## Buffer Size
 
-| Size | When to use |
-| --- | --- |
-| 0 (unbuffered) | Default. Synchronizes sender and receiver — use when you need handoff guarantees |
-| 1 | Signal channels (`done := make(chan struct{}, 1)`), or when sender must not block on a single pending item |
-| N > 1 | Only with measured justification — document why N was chosen and what happens when the buffer fills |
+| Size           | When to use                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------- |
+| 0 (unbuffered) | Default. Synchronizes sender and receiver — use when you need handoff guarantees                           |
+| 1              | Signal channels (`done := make(chan struct{}, 1)`), or when sender must not block on a single pending item |
+| N > 1          | Only with measured justification — document why N was chosen and what happens when the buffer fills        |
 
 ```go
 // ✓ Good — unbuffered for synchronous handoff

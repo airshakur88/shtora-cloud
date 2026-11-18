@@ -34,12 +34,14 @@ Teaches architectural patterns for building n8n workflows. Provides structure, b
 ## Dependencies
 
 **n8n-mcp tools**:
+
 - search_nodes (find nodes for patterns)
 - get_node (understand node operations)
 - search_templates (find example workflows)
 - tools_documentation with topic "ai_agents_guide" (AI pattern guidance)
 
 **Related skills**:
+
 - n8n MCP Tools Expert (find and configure nodes)
 - n8n Expression Syntax (write expressions in patterns)
 - n8n Node Configuration (configure pattern nodes)
@@ -86,6 +88,7 @@ Teaches architectural patterns for building n8n workflows. Provides structure, b
 ## Evaluations
 
 5 scenarios (100% coverage expected):
+
 1. **eval-001**: Webhook workflow structure
 2. **eval-002**: HTTP API integration pattern
 3. **eval-003**: Database sync pattern
@@ -114,6 +117,7 @@ Teaches architectural patterns for building n8n workflows. Provides structure, b
 ## Success Metrics
 
 **Expected outcomes**:
+
 - Users select appropriate pattern for their use case
 - Workflows follow proven structural patterns
 - Common gotchas avoided (webhook $json.body, SQL injection, etc.)
@@ -125,24 +129,28 @@ Teaches architectural patterns for building n8n workflows. Provides structure, b
 Common workflow composition:
 
 **Trigger Distribution**:
+
 - Webhook: 35% (most common)
 - Schedule: 28%
 - Manual: 22%
 - Service triggers: 15%
 
 **Transformation Nodes**:
+
 - Set: 68%
 - Code: 42%
 - IF: 38%
 - Switch: 18%
 
 **Output Channels**:
+
 - HTTP Request: 45%
 - Slack: 32%
 - Database: 28%
 - Email: 24%
 
 **Complexity**:
+
 - Simple (3-5 nodes): 42%
 - Medium (6-10 nodes): 38%
 - Complex (11+ nodes): 20%
@@ -150,29 +158,34 @@ Common workflow composition:
 ## Critical Insights
 
 **Webhook Processing**:
+
 - 813 searches (most common use case!)
 - #1 gotcha: Data under $json.body (not $json directly)
 - Must choose response mode: onReceived vs lastNode
 
 **API Integration**:
+
 - Authentication via credentials (never hardcode!)
 - Pagination essential for large datasets
 - Rate limiting prevents API bans
 - continueOnFail: true for error handling
 
 **Database Operations**:
+
 - Always use parameterized queries (SQL injection prevention)
 - Batch processing for large datasets
 - Read-only access for AI tools
 - Transaction handling for multi-step operations
 
 **AI Agents**:
+
 - 8 AI connection types (ai_languageModel, ai_tool, ai_memory, etc.)
 - ANY node can be an AI tool (connect to ai_tool port)
 - Memory essential for conversations (Window Buffer recommended)
 - Tool descriptions critical (AI uses them to decide when to call)
 
 **Scheduled Tasks**:
+
 - Set workflow timezone explicitly (DST handling)
 - Prevent overlapping executions (use locks)
 - Error Trigger workflow for alerts
@@ -183,12 +196,14 @@ Common workflow composition:
 Every pattern follows this checklist:
 
 ### Planning Phase
+
 - [ ] Identify the pattern (webhook, API, database, AI, scheduled)
 - [ ] List required nodes (use search_nodes)
 - [ ] Understand data flow (input → transform → output)
 - [ ] Plan error handling strategy
 
 ### Implementation Phase
+
 - [ ] Create workflow with appropriate trigger
 - [ ] Add data source nodes
 - [ ] Configure authentication/credentials
@@ -197,12 +212,14 @@ Every pattern follows this checklist:
 - [ ] Configure error handling
 
 ### Validation Phase
+
 - [ ] Validate each node configuration
 - [ ] Validate complete workflow
 - [ ] Test with sample data
 - [ ] Handle edge cases
 
 ### Deployment Phase
+
 - [ ] Review workflow settings
 - [ ] Activate workflow
 - [ ] Monitor first executions
@@ -211,6 +228,7 @@ Every pattern follows this checklist:
 ## Real Template Examples
 
 **Weather to Slack** (Template #2947):
+
 ```
 Schedule (daily 8 AM) → HTTP Request (weather) → Set → Slack
 ```
@@ -225,6 +243,7 @@ Use `search_templates` to find examples for your use case!
 ## Integration with Other Skills
 
 **Pattern Selection** (this skill):
+
 1. Identify use case
 2. Select appropriate pattern
 3. Follow pattern structure

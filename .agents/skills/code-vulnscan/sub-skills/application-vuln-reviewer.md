@@ -49,6 +49,7 @@ Flag any endpoint where credential or key metadata fields appear in a response g
 ## Cross-tenant global user mutation via tenant-scoped authorization
 
 When a `users` table is global (shared across tenants) but a `tenant_memberships` table provides the many-to-many tenant relationship, an endpoint that:
+
 1. Authorizes the actor only against the tenant membership (actor is OrgAdmin of tenant T)
 2. Mutates the **global** user or credential row (password, account status, lock state)
 
@@ -82,6 +83,7 @@ for _, record := range importRecords {
 ```
 
 The critical path is:
+
 1. User supplies a manifest where `version` is a UUID string matching a different, already-existing pack version.
 2. The import job creates a `content_pack_version` import record with `source_ref = manifest.Version`.
 3. `isUUID(source_ref)` returns true → `resource_id` is set to the attacker-supplied UUID.

@@ -132,6 +132,7 @@ override void OnInit()
 ```
 
 Each `UIAction*` widget type has its own prefab layout file. Benefits:
+
 - Consistent sizing and spacing across all panels
 - No layout file duplication
 - New action types added once, used everywhere
@@ -287,12 +288,12 @@ For formatted text with inline images, headings, and line breaks.
 
 ### Common ImageSets
 
-| ImageSet | Contents |
-|----------|----------|
-| `dayz_gui` | General UI icons (pin, notifications) |
-| `dayz_inventory` | Inventory slot icons |
-| `xbox_buttons` | Xbox controller buttons (A, B, X, Y) |
-| `playstation_buttons` | PlayStation controller buttons |
+| ImageSet              | Contents                              |
+| --------------------- | ------------------------------------- |
+| `dayz_gui`            | General UI icons (pin, notifications) |
+| `dayz_inventory`      | Inventory slot icons                  |
+| `xbox_buttons`        | Xbox controller buttons (A, B, X, Y)  |
+| `playstation_buttons` | PlayStation controller buttons        |
 
 ### Usage
 
@@ -333,13 +334,13 @@ content.LoadFile(book.ConfigGetString("file"));  // Load .html text file
 
 ### When to Use Which
 
-| Feature | TextWidget | RichTextWidget |
-|---------|-----------|---------------|
-| Inline images | No | Yes |
-| Heading tags | No | Yes |
-| Line breaks `</br>` | No (use `\n`) | Yes |
-| Content scrolling | No | Yes |
-| Performance | Faster | Slower (tag parsing) |
+| Feature             | TextWidget    | RichTextWidget       |
+| ------------------- | ------------- | -------------------- |
+| Inline images       | No            | Yes                  |
+| Heading tags        | No            | Yes                  |
+| Line breaks `</br>` | No (use `\n`) | Yes                  |
+| Content scrolling   | No            | Yes                  |
+| Performance         | Faster        | Slower (tag parsing) |
 
 Use `TextWidget` for simple labels. Use `RichTextWidget` only when you need inline images or formatted content.
 
@@ -517,6 +518,7 @@ void ClosePanel()
 Layout files (`.layout`) use a brace-delimited format, NOT XML. Widget types use `Class` suffix.
 
 ### Basic Structure
+
 ```
 TextWidgetClass MyLabel {
     position 0.1 0.05
@@ -542,6 +544,7 @@ TextWidgetClass MyLabel {
 ```
 
 ### Key Rules
+
 - Widget types use `Class` suffix: `TextWidgetClass`, `ButtonWidgetClass`, `ImageWidgetClass`
 - `key value` pairs (no `=` sign)
 - Multi-word attribute names in quotes: `"exact text size" 14`
@@ -551,7 +554,9 @@ TextWidgetClass MyLabel {
 - `priority` for z-ordering (integer)
 
 ### scriptclass Binding
+
 Binds a layout widget to an Enforce Script class:
+
 ```
 FrameWidgetClass MyPanel {
     scriptclass "MyPanelController"
@@ -562,6 +567,7 @@ The class MUST inherit from `Managed` and implement `OnWidgetScriptInit(Widget w
 If the class doesn't inherit Managed or has a constructor error, the handler is silently null.
 
 ### Gotchas
+
 - `scriptclass` names must be globally unique across all mods
 - 500+ widgets in one layout cause measurable frame drops
 - Some widget types ignore alpha in `color` — need `inheritalpha 1` on parent
@@ -572,16 +578,18 @@ If the class doesn't inherit Managed or has a constructor error, the handler is 
 ## Sizing & Positioning System
 
 ### Dual Coordinate Mode
+
 Four flags independently control proportional vs pixel per axis:
 
-| Flag | 0 (default) | 1 |
-|------|-------------|---|
-| `hexactpos` | Proportional X position (0.0-1.0) | Pixel X position |
-| `vexactpos` | Proportional Y position (0.0-1.0) | Pixel Y position |
-| `hexactsize` | Proportional width (0.0-1.0) | Pixel width |
-| `vexactsize` | Proportional height (0.0-1.0) | Pixel height |
+| Flag         | 0 (default)                       | 1                |
+| ------------ | --------------------------------- | ---------------- |
+| `hexactpos`  | Proportional X position (0.0-1.0) | Pixel X position |
+| `vexactpos`  | Proportional Y position (0.0-1.0) | Pixel Y position |
+| `hexactsize` | Proportional width (0.0-1.0)      | Pixel width      |
+| `vexactsize` | Proportional height (0.0-1.0)     | Pixel height     |
 
 ### Alignment
+
 ```
 halign left_ref      // left_ref, center_ref, right_ref
 valign center_ref    // top_ref, center_ref, bottom_ref
@@ -589,17 +597,19 @@ valign center_ref    // top_ref, center_ref, bottom_ref
 With `center_ref` + pixel pos `0 0` = centered in parent.
 
 ### Z-Order Priority Ranges
-| Range | Use |
-|-------|-----|
-| 0-5 | Background panels |
-| 10-50 | Normal UI elements |
-| 50-100 | Overlays |
-| 100-200 | Notifications |
-| 998-999 | Modals/Dialogs |
+
+| Range   | Use                |
+| ------- | ------------------ |
+| 0-5     | Background panels  |
+| 10-50   | Normal UI elements |
+| 50-100  | Overlays           |
+| 100-200 | Notifications      |
+| 998-999 | Modals/Dialogs     |
 
 Priority only affects siblings within the same parent. Children always render on top of parent.
 
 ### Common Sizing Patterns
+
 ```c
 // Full-screen overlay (proportional)
 widget.SetPos(0, 0);
@@ -612,6 +622,7 @@ widget.SetPos(0, 0);  // Centered due to alignment refs
 ```
 
 ### CRITICAL
+
 - **No negative size values** — causes undefined behavior, invisible widgets, or UI crashes
 - `SetScreenPos`/`SetScreenSize` must be called after widget is attached to parent
 - `scaled` attribute respects DayZ's HUD Size setting (only pixel-mode dimensions)
@@ -621,17 +632,23 @@ widget.SetPos(0, 0);  // Centered due to alignment refs
 ## Container Widgets
 
 ### WrapSpacerWidget
+
 Auto-wraps children horizontally/vertically.
+
 - **Must call `Update()` after `CreateWidgets()` or `Unlink()`** — layout does NOT auto-recalculate
 - WrapSpacer inside WrapSpacer with `Size To Content` on both can cause infinite layout loops
 
 ### GridSpacerWidget
+
 Arranges children in a fixed grid.
+
 - **Overrides children's size attributes entirely** — setting size on a grid child has no effect
 - Children fill cells in order of creation
 
 ### ScrollWidget
+
 Scrollable content area.
+
 ```c
 ScrollWidget scroll;
 scroll.VScrollToPos(0);                  // Scroll to top
@@ -639,6 +656,7 @@ float pos = scroll.GetVScrollPos();      // Current scroll position
 float height = scroll.GetContentHeight(); // Total content height
 scroll.VScrollStep(1);                   // Scroll one step
 ```
+
 - Always set `clipchildren 1` on ScrollWidget
 - After adding children, may need to defer `VScrollToPos()` by one frame via `CallLater`
 - 50+ children cause frame drops — use widget pooling for large lists
@@ -649,34 +667,37 @@ scroll.VScrollStep(1);                   // Scroll one step
 
 ### ScriptedWidgetEventHandler Methods
 
-| Method | Parameters | When Fired |
-|--------|-----------|------------|
-| `OnClick` | `Widget w, int x, int y, int button` | Button click (0=left, 1=right, 2=middle) |
-| `OnDoubleClick` | `Widget w, int x, int y, int button` | Double-click |
-| `OnChange` | `Widget w, int x, int y, bool finished` | Value changed (finished=true on Enter) |
-| `OnFocus` | `Widget w, int x, int y` | Widget gains focus |
-| `OnFocusLost` | `Widget w, int x, int y` | Widget loses focus |
-| `OnMouseEnter` | `Widget w, int x, int y` | Mouse enters widget |
-| `OnMouseLeave` | `Widget w, Widget enterW, int x, int y` | Mouse leaves (enterW = new target) |
-| `OnMouseWheel` | `Widget w, int x, int y, int wheel` | Scroll (positive=up, negative=down) |
-| `OnMouseButtonDown` | `Widget w, int x, int y, int button` | Mouse button pressed |
-| `OnMouseButtonUp` | `Widget w, int x, int y, int button` | Mouse button released |
-| `OnKeyDown` | `Widget w, int x, int y, int key` | Keyboard key pressed |
-| `OnKeyUp` | `Widget w, int x, int y, int key` | Keyboard key released |
-| `OnDrag` | `Widget w, int x, int y` | Drag started |
-| `OnDragging` | `Widget w, int x, int y, Widget reciever` | During drag |
-| `OnDrop` | `Widget w, int x, int y` | Drag ended |
-| `OnDropReceived` | `Widget w, int x, int y, Widget receiver` | Item dropped on this widget |
-| `OnResize` | `Widget w, int x, int y` | Widget resized |
-| `OnUpdate` | `Widget w` | Per-frame update |
-| `OnItemSelected` | `Widget w, int x, int y, int row, int col, int oldRow, int oldCol` | Listbox selection |
+| Method              | Parameters                                                         | When Fired                               |
+| ------------------- | ------------------------------------------------------------------ | ---------------------------------------- |
+| `OnClick`           | `Widget w, int x, int y, int button`                               | Button click (0=left, 1=right, 2=middle) |
+| `OnDoubleClick`     | `Widget w, int x, int y, int button`                               | Double-click                             |
+| `OnChange`          | `Widget w, int x, int y, bool finished`                            | Value changed (finished=true on Enter)   |
+| `OnFocus`           | `Widget w, int x, int y`                                           | Widget gains focus                       |
+| `OnFocusLost`       | `Widget w, int x, int y`                                           | Widget loses focus                       |
+| `OnMouseEnter`      | `Widget w, int x, int y`                                           | Mouse enters widget                      |
+| `OnMouseLeave`      | `Widget w, Widget enterW, int x, int y`                            | Mouse leaves (enterW = new target)       |
+| `OnMouseWheel`      | `Widget w, int x, int y, int wheel`                                | Scroll (positive=up, negative=down)      |
+| `OnMouseButtonDown` | `Widget w, int x, int y, int button`                               | Mouse button pressed                     |
+| `OnMouseButtonUp`   | `Widget w, int x, int y, int button`                               | Mouse button released                    |
+| `OnKeyDown`         | `Widget w, int x, int y, int key`                                  | Keyboard key pressed                     |
+| `OnKeyUp`           | `Widget w, int x, int y, int key`                                  | Keyboard key released                    |
+| `OnDrag`            | `Widget w, int x, int y`                                           | Drag started                             |
+| `OnDragging`        | `Widget w, int x, int y, Widget reciever`                          | During drag                              |
+| `OnDrop`            | `Widget w, int x, int y`                                           | Drag ended                               |
+| `OnDropReceived`    | `Widget w, int x, int y, Widget receiver`                          | Item dropped on this widget              |
+| `OnResize`          | `Widget w, int x, int y`                                           | Widget resized                           |
+| `OnUpdate`          | `Widget w`                                                         | Per-frame update                         |
+| `OnItemSelected`    | `Widget w, int x, int y, int row, int col, int oldRow, int oldCol` | Listbox selection                        |
 
 ### Return Value Semantics
+
 - `return true` = event consumed, stops propagation to parent
 - `return false` = event passed to parent widget handler
 
 ### WidgetEventHandler Singleton (Alternative)
+
 Per-widget, per-event named callbacks — supports multiple handlers on one widget:
+
 ```c
 WidgetEventHandler.GetInstance().RegisterOnClick(myButton, this, "OnButtonClicked");
 WidgetEventHandler.GetInstance().RegisterOnMouseEnter(myButton, this, "OnButtonHover");
@@ -688,6 +709,7 @@ WidgetEventHandler.GetInstance().UnregisterWidget(myButton);
 **Key difference:** `SetHandler()` allows only ONE handler per widget. `WidgetEventHandler.RegisterOnClick()` is additive — multiple mods can register on the same widget.
 
 ### Gotchas
+
 - `OnClick` fires reliably ONLY on `ButtonWidget`. For other types use `OnMouseButtonDown`/`OnMouseButtonUp`
 - `SetHandler()` replaces old handler silently — old handler's resources leak
 - `TextWidget` does NOT have `GetText()`. Only `EditBoxWidget` and `ButtonWidget` have it. Store text in a variable when calling `SetText()`
@@ -738,6 +760,7 @@ menu.Close();
 ## ShowDialog() — Native Engine Dialogs
 
 Simple Yes/No/OK prompts:
+
 ```c
 g_Game.GetUIManager().ShowDialog(
     "Confirm",                    // Caption
@@ -763,6 +786,7 @@ override bool OnModalResult(Widget w, int x, int y, int code, int result)
 ## Interactive Widget APIs
 
 ### CheckBoxWidget
+
 ```c
 CheckBoxWidget cb;
 bool checked = cb.IsChecked();
@@ -771,6 +795,7 @@ cb.SetChecked(true);
 ```
 
 ### EditBoxWidget
+
 ```c
 EditBoxWidget edit;
 string text = edit.GetText();
@@ -779,6 +804,7 @@ edit.SetText("Hello");
 ```
 
 ### XComboBoxWidget (Dropdown)
+
 ```c
 XComboBoxWidget combo;
 combo.AddItem("Option A");
@@ -790,6 +816,7 @@ combo.ClearAll();
 ```
 
 ### TextListboxWidget
+
 ```c
 TextListboxWidget list;
 list.AddItem("Row 1", null, 0);
@@ -802,6 +829,7 @@ list.ClearItems();
 ```
 
 ### SliderWidget
+
 ```c
 SliderWidget slider;
 slider.SetMinMax(0, 100);
@@ -811,6 +839,7 @@ float val = slider.GetCurrent();
 ```
 
 ### ProgressBarWidget
+
 ```c
 ProgressBarWidget bar;
 bar.SetCurrent(75.0);  // 0-100 range
@@ -821,6 +850,7 @@ bar.SetCurrent(75.0);  // 0-100 range
 ## 3D Preview Widgets
 
 ### ItemPreviewWidget
+
 ```c
 ItemPreviewWidget preview;
 preview.SetItem(item);
@@ -831,6 +861,7 @@ preview.SetView(0);
 ```
 
 ### PlayerPreviewWidget
+
 ```c
 PlayerPreviewWidget playerPreview;
 playerPreview.SetPlayer(player);
@@ -845,23 +876,28 @@ playerPreview.SetModelOrientation(Vector(0, 0, 0));
 ## Styles & Fonts
 
 ### Built-in Styles
+
 `blank`, `Empty`, `Default`, `Colorable`, `DayZNormal`, `MenuDefault`, `OutlineFilled`, `Outline_1px_BlackBackground`
 
 ### Built-in Fonts
-| Font Path | Notes |
-|-----------|-------|
-| `gui/fonts/Metron` | Default sans-serif |
-| `gui/fonts/Metron28` | Larger variant |
-| `gui/fonts/Metron-Bold` | Bold weight |
+
+| Font Path                    | Notes                                                     |
+| ---------------------------- | --------------------------------------------------------- |
+| `gui/fonts/Metron`           | Default sans-serif                                        |
+| `gui/fonts/Metron28`         | Larger variant                                            |
+| `gui/fonts/Metron-Bold`      | Bold weight                                               |
 | `gui/fonts/sdf_MetronBook24` | SDF — renders crisp at any size (best for variable-scale) |
 
 ### Text Sizing
+
 - Proportional (default): Font scales with widget height
 - Exact pixel: `"exact text" 1` + `"exact text size" 14`
 - Auto-size widget to text: `"size to text h" 1` / `"size to text v" 1`
 
 ### ImageSet Registration
+
 Custom imagesets must be registered in config.cpp:
+
 ```cpp
 class defs
 {
@@ -876,4 +912,5 @@ Without registration, images fail silently (blank widgets).
 Reference syntax: `set:SETNAME image:IMAGENAME`
 
 ### Color Gotcha
+
 `SetColor()` tints the widget's existing visual. On styled widgets, it MULTIPLIES with the style's base color — unexpected results.

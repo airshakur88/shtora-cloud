@@ -1,9 +1,10 @@
 ---
+
 name: mantis-pipeline-adapter
 description: >-
-  Interactively guides the design and implementation of custom deterministic orchestrator harnesses.
-  Use when a user wants to build their own pipeline to wrap and run Mantis skills reliably.
-  Don't use for executing the default pipeline directly.
+Interactively guides the design and implementation of custom deterministic orchestrator harnesses.
+Use when a user wants to build their own pipeline to wrap and run Mantis skills reliably.
+Don't use for executing the default pipeline directly.
 ---
 
 # Mantis Pipeline Designer (/mantis-pipeline-adapter)
@@ -51,52 +52,52 @@ that wraps Mantis Skills.
 
 Follow these guidelines during the consultation:
 
-01. **Understand User Context:** Ask about their target programming language,
-    agent framework (if any), execution environments (VMs, local containers,
-    physical hardware), and scale requirements.
-02. **Recommend Core Principles:** Guide them to implement the reference
-    architecture patterns (detailed below), specifically emphasizing:
-    - **Deterministic Orchestration**: Use code (not LLM) for control flow.
-    - **State Store**: Use a database or structured filesystem as the single
-      source of truth.
-    - **Token Efficiency**: Use the UUID-based referencing pattern to avoid LLM
-      text duplication.
-    - **Custom Environment Integration**: Use Custom MCP servers for isolated
-      testing (VMs) or hardware interaction.
-03. **Ensure Schema Consistency**: Advise the user to strictly adhere to the
-    inter-stage data contracts defined in [schema.json](../schema.json) when
-    building their harness.
-04. **Adaptive Design**: Help them draft the code/architecture tailored to their
-    specific stack, rather than imposing a rigid template.
-05. **Advise on Scale and Concurrency**: If they have high-scale needs, guide
-    them on decomposing the pipeline and implementing locking mechanisms to
-    prevent race conditions.
-06. **Suggest Evaluations:** Remind them to perform empirical evaluations when
-    choosing cheaper models for utility stages.
-07. **Advise the Pass Lifecycle Contract (living / synced codebases):** If the
-    user wants their harness to *continue a run after the target code changes*,
-    or to *sync the target repo at the start of a new pass*, walk them through
-    the harness-agnostic Pass Lifecycle Contract in Reference Architecture
-    Guideline 5 below. Emphasize that this support is **opt-in**: a harness that
-    does not implement the contract MUST leave `snapshot_pinned` unset, which
-    preserves today's single-snapshot behavior byte-for-byte. When `--sync` is
-    requested, the harness PINs in the PIN step and passes
-    `--snapshot_root`/`--snapshot_id` normally; Block A (Locator Resolution) is
-    universal across all code-reading stages.
-08. **Advise on Semantic Retrieval at Scale:** If the user is targeting a large
-    codebase (e.g., thousands of source files, multi-pass campaigns, or multiple
-    teams contributing findings), walk them through the optional semantic
-    retrieval patterns in Reference Architecture Guidelines 6 and 7 below.
-    Emphasize that these are **opt-in**: they augment the pipeline via a
-    dedicated query skill or MCP tools, but never modify the existing skills'
-    own deterministic logic or fail-safe invariants.
-09. **Advise on SAST Seeding:** If the user wants to augment LLM-based discovery
-    with external SAST tool findings (CodeQL, Semgrep, etc.), walk them through
-    the optional SAST seeding pattern in Reference Architecture Guideline 8
-    below. Emphasize that this is **opt-in**: it ingests external findings as
-    candidates that must earn their verdict through unchanged downstream gates,
-    and it follows exactly the RAG pattern (provenance-tracked, snapshot-aware,
-    fallback on failure).
+1. **Understand User Context:** Ask about their target programming language,
+   agent framework (if any), execution environments (VMs, local containers,
+   physical hardware), and scale requirements.
+2. **Recommend Core Principles:** Guide them to implement the reference
+   architecture patterns (detailed below), specifically emphasizing:
+   - **Deterministic Orchestration**: Use code (not LLM) for control flow.
+   - **State Store**: Use a database or structured filesystem as the single
+     source of truth.
+   - **Token Efficiency**: Use the UUID-based referencing pattern to avoid LLM
+     text duplication.
+   - **Custom Environment Integration**: Use Custom MCP servers for isolated
+     testing (VMs) or hardware interaction.
+3. **Ensure Schema Consistency**: Advise the user to strictly adhere to the
+   inter-stage data contracts defined in [schema.json](../schema.json) when
+   building their harness.
+4. **Adaptive Design**: Help them draft the code/architecture tailored to their
+   specific stack, rather than imposing a rigid template.
+5. **Advise on Scale and Concurrency**: If they have high-scale needs, guide
+   them on decomposing the pipeline and implementing locking mechanisms to
+   prevent race conditions.
+6. **Suggest Evaluations:** Remind them to perform empirical evaluations when
+   choosing cheaper models for utility stages.
+7. **Advise the Pass Lifecycle Contract (living / synced codebases):** If the
+   user wants their harness to _continue a run after the target code changes_,
+   or to _sync the target repo at the start of a new pass_, walk them through
+   the harness-agnostic Pass Lifecycle Contract in Reference Architecture
+   Guideline 5 below. Emphasize that this support is **opt-in**: a harness that
+   does not implement the contract MUST leave `snapshot_pinned` unset, which
+   preserves today's single-snapshot behavior byte-for-byte. When `--sync` is
+   requested, the harness PINs in the PIN step and passes
+   `--snapshot_root`/`--snapshot_id` normally; Block A (Locator Resolution) is
+   universal across all code-reading stages.
+8. **Advise on Semantic Retrieval at Scale:** If the user is targeting a large
+   codebase (e.g., thousands of source files, multi-pass campaigns, or multiple
+   teams contributing findings), walk them through the optional semantic
+   retrieval patterns in Reference Architecture Guidelines 6 and 7 below.
+   Emphasize that these are **opt-in**: they augment the pipeline via a
+   dedicated query skill or MCP tools, but never modify the existing skills'
+   own deterministic logic or fail-safe invariants.
+9. **Advise on SAST Seeding:** If the user wants to augment LLM-based discovery
+   with external SAST tool findings (CodeQL, Semgrep, etc.), walk them through
+   the optional SAST seeding pattern in Reference Architecture Guideline 8
+   below. Emphasize that this is **opt-in**: it ingests external findings as
+   candidates that must earn their verdict through unchanged downstream gates,
+   and it follows exactly the RAG pattern (provenance-tracked, snapshot-aware,
+   fallback on failure).
 10. **Advise on Structural Code Indexing:** If the user is targeting a large
     codebase where grep-based call-site discovery is unreliable, walk them
     through the optional structural code index stage in Reference Architecture
@@ -130,7 +131,7 @@ Use the following guidelines as your technical reference when advising the user.
    subsets of this (like textual synthesis), such as by providing an executive
    summary if necessary.
 4. **Token Efficiency & Reusable Deterministic Tools:** Structure LLM outputs to
-   return only the *minimum necessary information* (e.g., UUIDs, status codes).
+   return only the _minimum necessary information_ (e.g., UUIDs, status codes).
    Do not force the LLM to write one-off scripts (e.g., Python or bash) on the
    fly for routine tasks like appending JSON fields or merging findings, as this
    wastes reasoning tokens. Instead, the harness should provide reusable,
@@ -237,7 +238,6 @@ them back, use the following pattern:
    ```
 
 3. **Harness Action (Deterministic):**
-
    - Reads the content of the affected files.
    - Programmatically merges fields following the rules in
      [Mantis Deduplicator](../mantis-dedupe/SKILL.md) (e.g., union of
@@ -253,7 +253,7 @@ them back, use the following pattern:
 
 - **Harness Action:** For each finding `workspace/findings/<UUID>.json`, pass
   only the relevant code context and finding description to the LLM.
-- **LLM Action:** Output *only* a structured verification result (e.g.,
+- **LLM Action:** Output _only_ a structured verification result (e.g.,
   `{"valid": true, "reason": "..."}`).
 - **Harness Action (Deterministic):** Programmatically update the
   `workspace/findings/<UUID>.json` file with the validation status and reason.
@@ -267,8 +267,8 @@ to expose a clean, restricted API.
 - **Architecture**:
   `[Reproducer Agent] <--- MCP ---> [Custom MCP Server] <--- API ---> [Target Env]`
 - **Custom Environments**:
-  - *VMs*: Implement tools like `reboot_vm()`, `execute_payload()`.
-  - *Hardware/USB*: Implement tools like `power_cycle_device()` (via smart
+  - _VMs_: Implement tools like `reboot_vm()`, `execute_payload()`.
+  - _Hardware/USB_: Implement tools like `power_cycle_device()` (via smart
     plug), `send_usb_packet()`.
 - **Integration Note**: If the user's harness uses raw LLM APIs (e.g., direct
   Gemini API calls) instead of an MCP-native client framework, the harness must
@@ -296,9 +296,9 @@ The pipeline can be split into independent services. When scaling horizontally
 
 Match task complexity with the appropriate model tier:
 
-- *Frontier Models*: For deep reasoning (Research, Reproduce, Patch).
-- *Flash/Lite Models*: For structured utility tasks (Dedupe, Calibrate).
-- *Variability*: Run different models in parallel during the Research stage to
+- _Frontier Models_: For deep reasoning (Research, Reproduce, Patch).
+- _Flash/Lite Models_: For structured utility tasks (Dedupe, Calibrate).
+- _Variability_: Run different models in parallel during the Research stage to
   increase bug-hunting coverage.
 
 #### C. Importance of Evaluation
@@ -322,8 +322,8 @@ work.
 
 A custom orchestrator (a bespoke CLI, an ADK agent, an MCP-native pipeline, or
 any deterministic harness) does **not** inherit the living-project lifecycle
-that `mantis-meta-agent` implements. To support *continue-after-edits* and
-*opt-in boundary sync* **without producing silent wrong results** (false
+that `mantis-meta-agent` implements. To support _continue-after-edits_ and
+_opt-in boundary sync_ **without producing silent wrong results** (false
 `VERIFIED_SECURE`, false `failed_to_reproduce`, dropped regressions), the
 harness must implement the following harness-agnostic contract. This is the same
 contract recorded in [schema.json](../schema.json) under **Non-JSON Contracts**;
@@ -535,7 +535,7 @@ Evidence is recorded in `repro_hints`. In HALT mode, the HALT ceiling
 additionally forces `not_attempted` (no `failed_to_reproduce`), since a negative
 result on an unpinned tree cannot be trusted as authoritative.
 
-______________________________________________________________________
+---
 
 ### 6. Semantic Retrieval (RAG) for Large Codebases
 
@@ -590,7 +590,7 @@ The first line of `chunks.jsonl` is a provenance header recording the
 `SNAPSHOT_ID` the chunks were built against:
 
 ```json
-{"_provenance": true, "snapshot_id": "abc123", "kb_snapshot_id": "abc123"}
+{ "_provenance": true, "snapshot_id": "abc123", "kb_snapshot_id": "abc123" }
 ```
 
 Before serving queries, check `snapshot_id` in the provenance header against the
@@ -682,7 +682,7 @@ of the pinned snapshot**, never a live view:
   refuse to serve — same conservative degradation as every other stage.
 - In MODE-OFF, skip the index entirely.
 
-______________________________________________________________________
+---
 
 ### 7. Embedding-Based Deduplication Pre-Filtering
 
@@ -758,32 +758,32 @@ across distributed codebases and multi-tenant audit pipelines, SQLite vector
 storage can be swapped for managed cloud vector engines:
 
 - **Cloud Spanner Vector Search:**
-  - *Best For*: Mission-critical enterprise pipelines requiring global ACID
+  - _Best For_: Mission-critical enterprise pipelines requiring global ACID
     consistency, 99.999% availability, and synchronized finding lineage
     tracking.
-  - *Architecture*: Store findings and `lineage_vectors` in Spanner with
+  - _Architecture_: Store findings and `lineage_vectors` in Spanner with
     `ARRAY<FLOAT32>` vector columns. Utilize `COSINE_DISTANCE` with KNN search
     indexes for real-time finding deduplication during parallel scan passes.
 - **Cloud SQL for PostgreSQL (`pgvector`):**
-  - *Best For*: Standard enterprise relational backends needing ACID compliance
+  - _Best For_: Standard enterprise relational backends needing ACID compliance
     with low operational complexity.
-  - *Architecture*: Enable the `vector` extension. Store finding embeddings in a
+  - _Architecture_: Enable the `vector` extension. Store finding embeddings in a
     `vector(768)` or `vector(256)` column with HNSW (`vector_cosine_ops`) or
     IVFFlat indexes for sub-millisecond similarity queries.
 - **AlloyDB for PostgreSQL:**
-  - *Best For*: High-throughput multi-agent audit farms running concurrent
+  - _Best For_: High-throughput multi-agent audit farms running concurrent
     research waves.
-  - *Architecture*: Leverage AlloyDB's columnar vector engine and ScaNN-based
+  - _Architecture_: Leverage AlloyDB's columnar vector engine and ScaNN-based
     approximate nearest neighbor indexing for up to 10x faster vector queries
     over standard PostgreSQL.
 - **BigQuery Vector Search:**
-  - *Best For*: Batch analytical processing, organization-wide threat
+  - _Best For_: Batch analytical processing, organization-wide threat
     intelligence clustering, and cross-campaign vulnerability lineage analysis.
-  - *Architecture*: Ingest finding embeddings into BigQuery and execute
+  - _Architecture_: Ingest finding embeddings into BigQuery and execute
     `VECTOR_SEARCH(TABLE findings, 'embedding', ...)` with `COSINE` distance for
     serverless batch deduplication and historical regression analytics.
 
-______________________________________________________________________
+---
 
 ### 8. SAST Seeding (External Tool Ingestion)
 
@@ -835,7 +835,13 @@ follows the same provenance-header pattern as `chunks.jsonl` (Guideline 6A).
 **Line 1 — Provenance header:**
 
 ```json
-{"_provenance": true, "scan_snapshot_id": "abc123def456", "tool": "codeql", "tool_version": "2.15.0", "scan_timestamp": "2026-07-22T10:00:00Z"}
+{
+	"_provenance": true,
+	"scan_snapshot_id": "abc123def456",
+	"tool": "codeql",
+	"tool_version": "2.15.0",
+	"scan_timestamp": "2026-07-22T10:00:00Z"
+}
 ```
 
 - `scan_snapshot_id`: The SNAPSHOT_ID the scan was run against. This is the
@@ -849,7 +855,14 @@ follows the same provenance-header pattern as `chunks.jsonl` (Guideline 6A).
 **Lines 2+ — One finding per line:**
 
 ```json
-{"rule_id": "cpp/sql-injection", "rule_name": "SQL injection", "cwe": "CWE-89", "severity": "HIGH", "code_paths": ["src/db/query.c:42"], "message": "User input flows into SQL query without sanitization"}
+{
+	"rule_id": "cpp/sql-injection",
+	"rule_name": "SQL injection",
+	"cwe": "CWE-89",
+	"severity": "HIGH",
+	"code_paths": ["src/db/query.c:42"],
+	"message": "User input flows into SQL query without sanitization"
+}
 ```
 
 | Field        | Type   | Required | Description                                        |
@@ -940,18 +953,26 @@ This is the exact same "UNTRUSTED-IF-ABSENT" pattern as `discovery_commit`
 
 ```json
 {
-  "enabled": true,
-  "severity_filter": ["CRITICAL", "HIGH"],
-  "cwe_allowlist": {
-    "enabled": true,
-    "cwes": ["CWE-89", "CWE-78", "CWE-79", "CWE-22", "CWE-787", "CWE-416", "CWE-502"]
-  },
-  "rule_allowlist": {
-    "enabled": false,
-    "rules": []
-  },
-  "per_rule_cap": 5,
-  "total_cap": 50
+	"enabled": true,
+	"severity_filter": ["CRITICAL", "HIGH"],
+	"cwe_allowlist": {
+		"enabled": true,
+		"cwes": [
+			"CWE-89",
+			"CWE-78",
+			"CWE-79",
+			"CWE-22",
+			"CWE-787",
+			"CWE-416",
+			"CWE-502"
+		]
+	},
+	"rule_allowlist": {
+		"enabled": false,
+		"rules": []
+	},
+	"per_rule_cap": 5,
+	"total_cap": 50
 }
 ```
 
@@ -1028,7 +1049,7 @@ the gap: it re-grounds each finding against the pinned CODE_ROOT before stamping
   critical invariant, gate, or verdict. The finding's `discovery_commit` is the
   field that governs Block B snapshot matching.
 
-______________________________________________________________________
+---
 
 ### 9. Structural Code Index (AST-Level Context)
 
@@ -1106,7 +1127,7 @@ behave exactly as they do today:
 - The structural index and the RAG index can share the same vector embedding
   infrastructure if both are implemented.
 
-______________________________________________________________________
+---
 
 ### 10. Tiered Iterative Reproduction & Multi-Conversation Retry Strategy
 
@@ -1119,26 +1140,23 @@ prevents reasoning deadlocks and context bloat.
 #### A. Orchestration & Inter-Conversation Retries
 
 1. **Intra-Conversation Retries (Local Agent Trajectory):**
-
    - The active subagent conversation retries 2–3 times locally within its
      context window to adjust parameters, fix setup bugs, or refine payloads.
 
 2. **Inter-Conversation Retries (Fresh Context + Accumulated Artifacts):**
-
    - **Trigger:** If intra-conversation retries fail to reach Tier 3
      (`reproduced`), the orchestrator terminates the stalled conversation and
      launches a **new subagent conversation** (a fresh context window).
    - **Context Provisioning:** The orchestrator populates the new prompt with
      structured attempt data from
      `state_root/workspace/archive/.repro_attempts.json` and trajectory
-     learnings from `workspace/learnings.jsonl` (e.g., *"Attempt 1 failed due to
-     missing auth header X; Attempt 2 proved parser strips unescaped quotes"*).
+     learnings from `workspace/learnings.jsonl` (e.g., _"Attempt 1 failed due to
+     missing auth header X; Attempt 2 proved parser strips unescaped quotes"_).
    - **Benefit:** Eliminates context bloat and reasoning inertia ("hallucination
      traps"), enabling a fresh agent to solve the problem using prior empirical
      observations without repeating past mistakes.
 
 3. **Attempt Cap Accounting & Arithmetic:**
-
    - The orchestrator maintains
      `state_root/workspace/archive/.repro_attempts.json`.
    - **Tier 3 Increment Only:** Only Tier-3 full sandboxed service executions

@@ -12,7 +12,7 @@
 Trigger → AI Agent (Model + Tools + Memory + optional Output Parser) → [Process Response] → Output
 ```
 
-**Key Characteristic**: AI-powered decision making with tool use. From the *workflow* angle, an agent is one node with a main input/output plus `ai_*` sub-node slots — it slots into the same trigger → process → deliver spine as every other pattern.
+**Key Characteristic**: AI-powered decision making with tool use. From the _workflow_ angle, an agent is one node with a main input/output plus `ai_*` sub-node slots — it slots into the same trigger → process → deliver spine as every other pattern.
 
 ---
 
@@ -20,16 +20,16 @@ Trigger → AI Agent (Model + Tools + Memory + optional Output Parser) → [Proc
 
 Agent workflows wire sub-nodes into the agent with dedicated `ai_*` connection types — **not** the regular `main` connection. This is the single most important architectural fact: a tool wired to `main` is invisible to the agent (and `validate_workflow` flags it as disconnected).
 
-| Connection type | Wires in | Into slot |
-|---|---|---|
+| Connection type    | Wires in                                     | Into slot        |
+| ------------------ | -------------------------------------------- | ---------------- |
 | `ai_languageModel` | The LLM (OpenAI, Anthropic, Gemini, Ollama…) | model (required) |
-| `ai_tool` | Any node the agent can call | tools |
-| `ai_memory` | Conversation context store | memory |
-| `ai_outputParser` | Structured-output parser | output parser |
-| `ai_embedding` | Vector embeddings | RAG chain |
-| `ai_vectorStore` | Vector database | RAG chain |
-| `ai_document` | Document loaders | RAG ingest |
-| `ai_textSplitter` | Text chunking | RAG ingest |
+| `ai_tool`          | Any node the agent can call                  | tools            |
+| `ai_memory`        | Conversation context store                   | memory           |
+| `ai_outputParser`  | Structured-output parser                     | output parser    |
+| `ai_embedding`     | Vector embeddings                            | RAG chain        |
+| `ai_vectorStore`   | Vector database                              | RAG chain        |
+| `ai_document`      | Document loaders                             | RAG ingest       |
+| `ai_textSplitter`  | Text chunking                                | RAG ingest       |
 
 **Wiring direction**: a sub-node connects FROM itself TO the agent, and the connection lives on the sub-node keyed by its `ai_*` type. With `n8n_update_partial_workflow` you add each with an `addConnection` op using `sourceOutput: "ai_tool"` (or `"ai_languageModel"`, etc.). Multiple tools all stack on the same `ai_tool` index 0.
 
@@ -58,6 +58,7 @@ For the deep slot mechanics — tool types, `$fromAI` parameters, memory configu
 Short architecture sketches. Each is a trigger → agent → output spine; the agent's sub-nodes are listed under it.
 
 ### 1. Conversational Chatbot
+
 ```
 Webhook (chat message) → AI Agent → Webhook Response
                           ├─ Chat Model (ai_languageModel)
@@ -67,6 +68,7 @@ Webhook (chat message) → AI Agent → Webhook Response
 ```
 
 ### 2. Document Q&A (RAG)
+
 ```
 Setup (run once):  Read Files → Text Splitter → Embeddings → Vector Store
 Query (recurring): Webhook → AI Agent → Webhook Response
@@ -76,6 +78,7 @@ Query (recurring): Webhook → AI Agent → Webhook Response
 ```
 
 ### 3. Data Analysis Assistant
+
 ```
 Webhook (data question) → AI Agent → Code (chart data) → Webhook Response
                           ├─ Chat Model (ai_languageModel)
@@ -84,6 +87,7 @@ Webhook (data question) → AI Agent → Code (chart data) → Webhook Response
 ```
 
 ### 4. Workflow Automation Agent
+
 ```
 Slack (slash command) → AI Agent → Slack (status)
                         ├─ Chat Model (ai_languageModel)
@@ -93,6 +97,7 @@ Slack (slash command) → AI Agent → Slack (status)
 ```
 
 ### 5. Email Processing Agent
+
 ```
 Email Trigger → AI Agent → Email (auto-response) → Slack (notify team)
                 ├─ Chat Model (ai_languageModel)
@@ -100,7 +105,7 @@ Email Trigger → AI Agent → Email (auto-response) → Slack (notify team)
                 └─ HTTP Request Tool — create Jira ticket (ai_tool)
 ```
 
-For the *content* of these (tool descriptions, system prompts, schema design), see **n8n-agents** `EXAMPLES.md`.
+For the _content_ of these (tool descriptions, system prompts, schema design), see **n8n-agents** `EXAMPLES.md`.
 
 ---
 
@@ -116,7 +121,7 @@ This file is the workflow-architecture view. The design depth below is owned by 
 - **Error handling** (tool failures, LLM API errors, retries, error workflows) → **n8n-error-handling**, plus the agent-specific notes in **n8n-agents**.
 - **Performance, security, testing, common gotchas** → **n8n-agents** (anti-patterns table and quick-reference checklist) for the agent-specific ones; the workflow lifecycle (test → validate → activate) is in this skill's SKILL.md "Workflow lifecycle" section.
 
-One workflow-architecture safety note worth restating here: **any tool that fetches third-party content** (HTTP Request, web search, MCP Client, scrapers) can return attacker-controlled text that reaches the agent's context — indirect prompt injection. If the agent can both *read the internet* AND *take an action the user can't undo*, put a guardrail (human review, read-only scopes) between them. The detail lives in **n8n-agents** `HUMAN_REVIEW.md` and the **n8n-agents** anti-patterns.
+One workflow-architecture safety note worth restating here: **any tool that fetches third-party content** (HTTP Request, web search, MCP Client, scrapers) can return attacker-controlled text that reaches the agent's context — indirect prompt injection. If the agent can both _read the internet_ AND _take an action the user can't undo_, put a guardrail (human review, read-only scopes) between them. The detail lives in **n8n-agents** `HUMAN_REVIEW.md` and the **n8n-agents** anti-patterns.
 
 ---
 
@@ -139,6 +144,7 @@ Architecture-level checks (the design-level checklist lives in **n8n-agents**):
 ## Summary
 
 **Key Points**:
+
 1. An agent is **one node** with a main input/output plus `ai_*` sub-node slots — it fits the standard trigger → process → deliver spine.
 2. **8 AI connection types** — wire the model with `ai_languageModel`, tools with `ai_tool`, memory with `ai_memory`, parsers with `ai_outputParser`. Never `main`.
 3. **ANY node can be a tool** — connect it via the `ai_tool` port.
@@ -148,6 +154,7 @@ Architecture-level checks (the design-level checklist lives in **n8n-agents**):
 **Pattern**: Trigger → AI Agent (Model + Tools + Memory + optional Parser) → Output
 
 **Related**:
+
 - **n8n-agents** — the deep agent design guide (tools, memory, prompts, structured output, RAG, human review, chat topologies)
 - [webhook_processing.md](webhook_processing.md) — receiving chat messages
 - [http_api_integration.md](http_api_integration.md) — tools that call APIs

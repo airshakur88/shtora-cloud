@@ -1,4 +1,5 @@
 ---
+
 title: Include a Concrete Fix in Every Error Message
 impact: HIGH
 impactDescription: reduces retry loops by collapsing guess-and-check to one round
@@ -41,6 +42,7 @@ def deploy(env):
 ```
 
 **Benefits:**
+
 - Agent fixes the input on the first retry, not the fifth
 - `ClickException` exits with code 1 and prints to stderr automatically
 - Listing valid values turns the error into a mini-help message

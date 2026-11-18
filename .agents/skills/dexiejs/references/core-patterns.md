@@ -32,22 +32,22 @@ Use only the packages needed by the target framework.
 Create one shared module and import it everywhere.
 
 ```ts
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable } from "dexie";
 
 export interface Todo {
-  id?: number;
-  title: string;
-  done: 0 | 1;
-  updatedAt: number;
-  tags?: string[];
+	id?: number;
+	title: string;
+	done: 0 | 1;
+	updatedAt: number;
+	tags?: string[];
 }
 
-export const db = new Dexie('app-db') as Dexie & {
-  todos: EntityTable<Todo, 'id'>;
+export const db = new Dexie("app-db") as Dexie & {
+	todos: EntityTable<Todo, "id">;
 };
 
 db.version(1).stores({
-  todos: '++id,done,updatedAt,[done+updatedAt],*tags',
+	todos: "++id,done,updatedAt,[done+updatedAt],*tags",
 });
 ```
 
@@ -72,7 +72,8 @@ Example:
 
 ```ts
 db.version(1).stores({
-  orders: '++id,customerId,status,createdAt,[status+createdAt],[customerId+status]'
+	orders:
+		"++id,customerId,status,createdAt,[status+createdAt],[customerId+status]",
 });
 ```
 
@@ -82,16 +83,18 @@ Prefer data-layer helper functions instead of querying tables directly in UI.
 
 ```ts
 export async function listOpenTodos() {
-  return db.todos.where('done').equals(0).reverse().sortBy('updatedAt');
+	return db.todos.where("done").equals(0).reverse().sortBy("updatedAt");
 }
 
 export async function markDone(id: number) {
-  return db.todos.update(id, { done: 1, updatedAt: Date.now() });
+	return db.todos.update(id, { done: 1, updatedAt: Date.now() });
 }
 
 export async function addManyTodos(titles: string[]) {
-  const now = Date.now();
-  return db.todos.bulkAdd(titles.map((title) => ({ title, done: 0, updatedAt: now })));
+	const now = Date.now();
+	return db.todos.bulkAdd(
+		titles.map((title) => ({ title, done: 0, updatedAt: now })),
+	);
 }
 ```
 
@@ -107,12 +110,12 @@ Use `db.transaction()` whenever multiple reads/writes must be atomic.
 
 ```ts
 export async function completeAndLog(todoId: number) {
-  await db.transaction('rw', db.todos, async () => {
-    const todo = await db.todos.get(todoId);
-    if (!todo) return;
+	await db.transaction("rw", db.todos, async () => {
+		const todo = await db.todos.get(todoId);
+		if (!todo) return;
 
-    await db.todos.update(todoId, { done: 1, updatedAt: Date.now() });
-  });
+		await db.todos.update(todoId, { done: 1, updatedAt: Date.now() });
+	});
 }
 ```
 
@@ -124,14 +127,17 @@ Increment schema versions and migrate forward in `upgrade()` callbacks.
 
 ```ts
 db.version(2)
-  .stores({
-    todos: '++id,done,updatedAt,priority,[done+priority],*tags',
-  })
-  .upgrade(async (tx) => {
-    await tx.table('todos').toCollection().modify((todo: any) => {
-      if (todo.priority == null) todo.priority = 'normal';
-    });
-  });
+	.stores({
+		todos: "++id,done,updatedAt,priority,[done+priority],*tags",
+	})
+	.upgrade(async (tx) => {
+		await tx
+			.table("todos")
+			.toCollection()
+			.modify((todo: any) => {
+				if (todo.priority == null) todo.priority = "normal";
+			});
+	});
 ```
 
 Migration rules:
@@ -145,10 +151,10 @@ Migration rules:
 Use `liveQuery()` for automatic UI updates from IndexedDB changes.
 
 ```ts
-import { liveQuery } from 'dexie';
+import { liveQuery } from "dexie";
 
 export const openTodos$ = liveQuery(() =>
-  db.todos.where('done').equals(0).reverse().sortBy('updatedAt')
+	db.todos.where("done").equals(0).reverse().sortBy("updatedAt"),
 );
 ```
 

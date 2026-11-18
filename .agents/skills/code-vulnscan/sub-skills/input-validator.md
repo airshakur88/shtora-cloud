@@ -26,34 +26,38 @@ Check every validator for these bypass classes:
 ### Type juggling / loose comparison
 
 **PHP**: `"0" == false`, `"0e123" == "0e456"` (hash comparison bypass), `strcmp()` returns 0 for array input
+
 - Flag: any security check using `==` instead of `===` in PHP
 - Flag: `strcmp($user, $expected) == 0` when `$user` can be an array (returns NULL, which `== 0`)
 
 **JavaScript**: `"1" == 1`, `null == undefined`, `[] == false`
+
 - Flag: security checks with `==` instead of `===`
 - Flag: `isNaN()` on untrusted numeric strings
 
 **Python**: No implicit type coercion for comparisons, but watch for:
+
 - `int(request.args.get('id'))` without try/except — exception handling may expose info or bypass logic
 
 ### Regex bypass patterns
 
 Flag these regex validator weaknesses:
 
-| Pattern | Bypass |
-|---------|--------|
-| `re.match(r'\d+', val)` | Matches prefix only — `"123abc"` passes |
-| `re.search(r'safe', val)` | Matches substring — `"evil\nsafe"` passes |
-| No anchors `^` or `$` | Partial match — add payload after valid prefix |
-| Missing `re.DOTALL` | `.` doesn't match `\n` — newline injection possible |
-| Missing `re.IGNORECASE` | `Admin` passes `admin` blocklist |
-| Catastrophic backtracking | ReDoS possible with complex patterns |
+| Pattern                   | Bypass                                              |
+| ------------------------- | --------------------------------------------------- |
+| `re.match(r'\d+', val)`   | Matches prefix only — `"123abc"` passes             |
+| `re.search(r'safe', val)` | Matches substring — `"evil\nsafe"` passes           |
+| No anchors `^` or `$`     | Partial match — add payload after valid prefix      |
+| Missing `re.DOTALL`       | `.` doesn't match `\n` — newline injection possible |
+| Missing `re.IGNORECASE`   | `Admin` passes `admin` blocklist                    |
+| Catastrophic backtracking | ReDoS possible with complex patterns                |
 
 The correct pattern is `re.fullmatch(r'^[a-zA-Z0-9_]+$', val)` (anchored) or equivalently `re.match(r'^[a-zA-Z0-9_]+$', val)`.
 
 ### Allowlist vs blocklist
 
 Blocklists should always raise a question. Flag any validation that:
+
 - Checks for known bad characters (`.`, `/`, `..`, `<`, `>`, etc.) instead of checking for known good characters
 - Could be bypassed by alternate encodings: URL encoding (`%2e%2f`), double encoding (`%252e`), Unicode equivalents, HTML entities
 - Relies on removing bad input rather than rejecting it (sanitization instead of validation)
@@ -76,6 +80,7 @@ Correct approach: define exactly what is allowed (allowlist) and reject everythi
 ### Path canonicalization
 
 For any path-related input:
+
 - Flag: `os.path.join(BASE, user_input)` without `os.path.realpath()` check
 - Flag: prefix check before canonicalization: `if user_path.startswith('/safe/')` — pass `'/safe/../etc/passwd'`
 - Correct pattern: `abs = os.path.realpath(os.path.join(BASE, user_input)); assert abs.startswith(BASE)`
@@ -143,6 +148,7 @@ For any path-related input:
 Second-order vulnerabilities occur when data is validated on input but not re-validated on output or when used in a different context later.
 
 Flag:
+
 - User-supplied data stored in DB, then later retrieved and used in a security-sensitive context without re-checking
 - File content treated as safe because the filename passed validation
 - JWT claims trusted after signature verification without re-checking claim values against the database
@@ -154,20 +160,21 @@ For each entry point, record:
 
 ```json
 {
-  "file": "app/views/search.py",
-  "line": 18,
-  "entry_point": "GET /search?q=",
-  "parameter": "q",
-  "validation_present": true,
-  "validation_type": "length_check_only",
-  "bypass_possible": true,
-  "bypass_description": "Only length is checked. No allowlist. Special characters pass through to SQL query at line 34.",
-  "finding": "partial_validation",
-  "severity": "high"
+	"file": "app/views/search.py",
+	"line": 18,
+	"entry_point": "GET /search?q=",
+	"parameter": "q",
+	"validation_present": true,
+	"validation_type": "length_check_only",
+	"bypass_possible": true,
+	"bypass_description": "Only length is checked. No allowlist. Special characters pass through to SQL query at line 34.",
+	"finding": "partial_validation",
+	"severity": "high"
 }
 ```
 
 Mark each entry point as one of:
+
 - `validated_correctly` — allowlist-based, appropriate for context, cannot be bypassed
 - `partial_validation` — some validation present but bypassable or incomplete
 - `no_validation` — no validation before dangerous use

@@ -4,49 +4,49 @@ Load this file when writing or editing prose to check specific words and phrases
 
 ## Vocabulary — never use
 
-| Word | Replace with |
-|---|---|
-| delve | dig into, explore, research |
-| leverage | use, tap, make the most of |
-| tapestry | mix, range, collection |
-| testament | proof, sign, evidence |
-| vibrant | lively, busy, active, growing |
-| pivotal | key, critical, central |
-| utilize | use |
-| synergy | collaboration, integration, or be specific |
-| holistic | complete, full-stack, or say what parts it covers |
-| robust | reliable, handles edge cases, or stays up |
-| seamless | works without friction, no setup needed |
-| groundbreaking | new, first, fastest, or state the advantage |
-| cutting-edge | new, first, fastest, or state the advantage |
-| innovative | new, different, or describe what it actually does |
+| Word            | Replace with                                                  |
+| --------------- | ------------------------------------------------------------- |
+| delve           | dig into, explore, research                                   |
+| leverage        | use, tap, make the most of                                    |
+| tapestry        | mix, range, collection                                        |
+| testament       | proof, sign, evidence                                         |
+| vibrant         | lively, busy, active, growing                                 |
+| pivotal         | key, critical, central                                        |
+| utilize         | use                                                           |
+| synergy         | collaboration, integration, or be specific                    |
+| holistic        | complete, full-stack, or say what parts it covers             |
+| robust          | reliable, handles edge cases, or stays up                     |
+| seamless        | works without friction, no setup needed                       |
+| groundbreaking  | new, first, fastest, or state the advantage                   |
+| cutting-edge    | new, first, fastest, or state the advantage                   |
+| innovative      | new, different, or describe what it actually does             |
 | agile / agility | adaptable, quick to change, or describe the concrete response |
-| dynamic | describe the actual change or quality |
-| comprehensive | full, complete, thorough |
-| embark | start, begin |
-| foster | support, encourage, build |
-| ensure | make sure (or restructure the sentence) |
-| explore | look into, try, study, test |
-| navigate | say what was actually handled or moved through |
-| unpack | say what was actually examined or explained |
-| enhance | improve, or say what specifically got better |
-| showcase | show, display |
-| interplay | relationship, interaction, or tension |
-| revolutionize | change, overhaul, replace |
-| transformative | changed X, made Y possible |
-| empower | enable, allow, make possible |
-| unlock | enable, allow, make possible |
-| supercharge | speed up, boost, improve |
-| significant | say how significant (3x faster, 40% reduction) |
-| commence | start, begin |
-| obtain | get |
-| implement | do, apply, set up |
-| facilitate | help |
-| subsequently | then, after |
-| discontinue | stop |
-| dispatch | send |
-| streamline | describe the concrete simplification or process change |
-| ascertain | find out |
+| dynamic         | describe the actual change or quality                         |
+| comprehensive   | full, complete, thorough                                      |
+| embark          | start, begin                                                  |
+| foster          | support, encourage, build                                     |
+| ensure          | make sure (or restructure the sentence)                       |
+| explore         | look into, try, study, test                                   |
+| navigate        | say what was actually handled or moved through                |
+| unpack          | say what was actually examined or explained                   |
+| enhance         | improve, or say what specifically got better                  |
+| showcase        | show, display                                                 |
+| interplay       | relationship, interaction, or tension                         |
+| revolutionize   | change, overhaul, replace                                     |
+| transformative  | changed X, made Y possible                                    |
+| empower         | enable, allow, make possible                                  |
+| unlock          | enable, allow, make possible                                  |
+| supercharge     | speed up, boost, improve                                      |
+| significant     | say how significant (3x faster, 40% reduction)                |
+| commence        | start, begin                                                  |
+| obtain          | get                                                           |
+| implement       | do, apply, set up                                             |
+| facilitate      | help                                                          |
+| subsequently    | then, after                                                   |
+| discontinue     | stop                                                          |
+| dispatch        | send                                                          |
+| streamline      | describe the concrete simplification or process change        |
+| ascertain       | find out                                                      |
 
 ## Phrases — never use
 

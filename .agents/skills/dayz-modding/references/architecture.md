@@ -51,6 +51,7 @@ MyModServer/                        # Server mod (server only)
 ```
 
 **Why split?**
+
 - Clients don't download server logic (smaller download)
 - Server logic is hidden (anti-cheat, proprietary systems)
 - Clear separation of concerns
@@ -68,11 +69,11 @@ MyModServer/                        # Server mod (server only)
 
 **THE RULE:** A layer can ONLY reference types defined in itself or LOWER layers.
 
-| If code is in... | Can reference... | CANNOT reference... |
-|-------------------|------------------|---------------------|
-| `3_Game` | Engine types, 3_Game types | 4_World, 5_Mission |
-| `4_World` | Engine, 3_Game, 4_World types | 5_Mission |
-| `5_Mission` | Everything | — |
+| If code is in... | Can reference...              | CANNOT reference... |
+| ---------------- | ----------------------------- | ------------------- |
+| `3_Game`         | Engine types, 3_Game types    | 4_World, 5_Mission  |
+| `4_World`        | Engine, 3_Game, 4_World types | 5_Mission           |
+| `5_Mission`      | Everything                    | —                   |
 
 ### Common Layer Violations
 
@@ -94,6 +95,7 @@ class MyConfig
 ### What Goes Where
 
 **3_Game (earliest — no entity access):**
+
 - Enum definitions
 - Constants and static values
 - RPC identifiers and route strings
@@ -101,6 +103,7 @@ class MyConfig
 - Utility functions that don't touch the world
 
 **4_World (middle — entity access, no mission access):**
+
 - Entity subclasses (items, vehicles, buildings)
 - Manager classes (spawning, tracking, persistence)
 - Modded entity overrides
@@ -108,6 +111,7 @@ class MyConfig
 - World interaction logic
 
 **5_Mission (latest — full access):**
+
 - `MissionServer` / `MissionGameplay` overrides
 - UI panels, HUD elements
 - Input handling
@@ -193,6 +197,7 @@ modded class MissionServer
 ### WHY Cleanup Matters
 
 DayZ missions can restart WITHOUT restarting the process. Static variables survive across mission restarts. If you don't null static refs:
+
 - Old data persists into the new mission
 - Event handlers fire on destroyed objects
 - RPC handlers reference stale state
@@ -504,13 +509,13 @@ if (mod)
 
 ### CF vs Manual Singletons
 
-| Feature | CF Module | Manual Singleton |
-|---------|-----------|-----------------|
-| Auto-instantiation | Yes (via attribute) | No (manual GetInstance) |
-| Lifecycle hooks | Built-in (OnInit, OnUpdate, etc.) | Manual (modded MissionServer) |
-| Cleanup | Automatic on mission finish | Must call DestroyInstance manually |
-| Event opt-in | EnableUpdate(), EnableInvokeConnect() | Manual timer/hook setup |
-| Dependency | Requires CF mod loaded | No external dependency |
+| Feature            | CF Module                             | Manual Singleton                   |
+| ------------------ | ------------------------------------- | ---------------------------------- |
+| Auto-instantiation | Yes (via attribute)                   | No (manual GetInstance)            |
+| Lifecycle hooks    | Built-in (OnInit, OnUpdate, etc.)     | Manual (modded MissionServer)      |
+| Cleanup            | Automatic on mission finish           | Must call DestroyInstance manually |
+| Event opt-in       | EnableUpdate(), EnableInvokeConnect() | Manual timer/hook setup            |
+| Dependency         | Requires CF mod loaded                | No external dependency             |
 
 **Use CF modules** when: your mod already depends on CF, you need lifecycle hooks, or you want automatic cleanup.
 
@@ -590,29 +595,29 @@ modded class PlayerBase
 
 ### NetSync Limits
 
-| Rule | Detail |
-|------|--------|
-| Max ~32 synced variables per entity | Use bitfields to stay under the limit |
-| `SetSynchDirty()` is entity-level | One call per update is enough for all vars |
+| Rule                                     | Detail                                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Max ~32 synced variables per entity      | Use bitfields to stay under the limit                                                                  |
+| `SetSynchDirty()` is entity-level        | One call per update is enough for all vars                                                             |
 | `RegisterNetSyncVariableFloat` precision | `RegisterNetSyncVariableFloat("m_Val", 0.0, 1.0, 2)` — last param = decimal places (reduces bandwidth) |
-| NetSync is eventual | Don't assume client has latest value immediately after SetSynchDirty |
-| Register only in `Init()` | Late registration causes silent failure |
+| NetSync is eventual                      | Don't assume client has latest value immediately after SetSynchDirty                                   |
+| Register only in `Init()`                | Late registration causes silent failure                                                                |
 
 ---
 
 ## Naming Conventions
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Member variables | `m_` prefix | `m_Health`, `m_PlayerName` |
-| Static variables | `s_` prefix | `s_Instance`, `s_Config` |
-| Constants | `UPPER_SNAKE_CASE` | `MAX_PLAYERS`, `RPC_MY_ACTION` |
-| Classes | PascalCase | `MyManager`, `PlayerDataStore` |
-| Methods | PascalCase | `GetInstance()`, `ProcessItem()` |
-| Local variables | camelCase | `playerCount`, `itemIndex` |
-| Mod prefix | Short uppercase | `SDZ_`, `MOD_`, `EXP_` |
-| Enums | `E` prefix + PascalCase | `EWeatherState`, `EPermLevel` |
-| RPC routes | `ModName:Action` | `"StarDZ:PlayerReady"` |
+| Element          | Convention              | Example                          |
+| ---------------- | ----------------------- | -------------------------------- |
+| Member variables | `m_` prefix             | `m_Health`, `m_PlayerName`       |
+| Static variables | `s_` prefix             | `s_Instance`, `s_Config`         |
+| Constants        | `UPPER_SNAKE_CASE`      | `MAX_PLAYERS`, `RPC_MY_ACTION`   |
+| Classes          | PascalCase              | `MyManager`, `PlayerDataStore`   |
+| Methods          | PascalCase              | `GetInstance()`, `ProcessItem()` |
+| Local variables  | camelCase               | `playerCount`, `itemIndex`       |
+| Mod prefix       | Short uppercase         | `SDZ_`, `MOD_`, `EXP_`           |
+| Enums            | `E` prefix + PascalCase | `EWeatherState`, `EPermLevel`    |
+| RPC routes       | `ModName:Action`        | `"StarDZ:PlayerReady"`           |
 
 ---
 
@@ -620,19 +625,20 @@ modded class PlayerBase
 
 The engine has 5 script layers, not 3. Layers 1-2 are rarely needed but important to know:
 
-| Layer | Config Name | Path | Purpose |
-|-------|------------|------|---------|
-| 1_Core | `engineScriptModule` | `Scripts/1_Core/` | Fundamental constants, logging infrastructure, preprocessor defines |
-| 2_GameLib | `gameLibScriptModule` | `Scripts/2_GameLib/` | Game library utilities (rare — used by DabsFramework for MVC) |
-| 3_Game | `gameScriptModule` | `Scripts/3_Game/` | Enums, constants, RPC defs, config classes |
-| 4_World | `worldScriptModule` | `Scripts/4_World/` | Entities, managers, world logic |
-| 5_Mission | `missionScriptModule` | `Scripts/5_Mission/` | Mission hooks, UI panels, HUD |
+| Layer     | Config Name           | Path                 | Purpose                                                             |
+| --------- | --------------------- | -------------------- | ------------------------------------------------------------------- |
+| 1_Core    | `engineScriptModule`  | `Scripts/1_Core/`    | Fundamental constants, logging infrastructure, preprocessor defines |
+| 2_GameLib | `gameLibScriptModule` | `Scripts/2_GameLib/` | Game library utilities (rare — used by DabsFramework for MVC)       |
+| 3_Game    | `gameScriptModule`    | `Scripts/3_Game/`    | Enums, constants, RPC defs, config classes                          |
+| 4_World   | `worldScriptModule`   | `Scripts/4_World/`   | Entities, managers, world logic                                     |
+| 5_Mission | `missionScriptModule` | `Scripts/5_Mission/` | Mission hooks, UI panels, HUD                                       |
 
 **Compilation order:** Engine compiles ALL mods' scripts for each layer before moving to the next. Within a layer, mods compile in `requiredAddons` dependency order. Unrelated mods compile in ASCII alphabetical order of CfgMods class name.
 
 **Runtime init sequence:** Engine boots → 1_Core → 2_GameLib → 3_Game (CfgMods entry functions) → 4_World (entities available) → Mission loads → 5_Mission (OnInit fires)
 
 ### Layer Placement Decision Guide
+
 - Extends EntityAI? → `4_World`
 - References MissionServer or UI widgets? → `5_Mission`
 - Pure data/config/enum/RPC? → `3_Game`
@@ -640,7 +646,9 @@ The engine has 5 script layers, not 3. Layers 1-2 are rarely needed but importan
 - None of the above? → `3_Game` (default)
 
 ### Cross-Layer Workaround: Cast Through Base Types
+
 When 3_Game code needs to handle an entity that's `PlayerBase` at runtime, use `Man` (defined in 3_Game) and cast later in 4_World:
+
 ```c
 // In 3_Game — use Man, not PlayerBase
 void HandlePlayer(Man man) { /* store reference */ }
@@ -655,6 +663,7 @@ if (Class.CastTo(player, man)) { player.DoSomething(); }
 ## config.cpp Deep Dive
 
 ### CfgPatches Field Reference
+
 ```cpp
 class CfgPatches
 {
@@ -669,15 +678,17 @@ class CfgPatches
 ```
 
 **Common requiredAddons entries:**
-| Addon | When Needed |
-|-------|-------------|
-| `"DZ_Data"` | Always (base data) |
-| `"DZ_Scripts"` | Always (base scripts) |
-| `"DZ_Weapons_Firearms"` | Weapon mods |
-| `"JM_CF_Scripts"` | CommunityFramework dependency |
-| `"DF_Scripts"` | DabsFramework dependency |
+
+| Addon                   | When Needed                   |
+| ----------------------- | ----------------------------- |
+| `"DZ_Data"`             | Always (base data)            |
+| `"DZ_Scripts"`          | Always (base scripts)         |
+| `"DZ_Weapons_Firearms"` | Weapon mods                   |
+| `"JM_CF_Scripts"`       | CommunityFramework dependency |
+| `"DF_Scripts"`          | DabsFramework dependency      |
 
 ### CfgMods Script Modules
+
 ```cpp
 class CfgMods
 {
@@ -700,6 +711,7 @@ class CfgMods
 ```
 
 ### CfgVehicles for Custom Items
+
 ```cpp
 class CfgVehicles
 {
@@ -719,6 +731,7 @@ class CfgVehicles
 ```
 
 ### CfgSoundSets & CfgSoundShaders
+
 ```cpp
 class CfgSoundShaders
 {
@@ -746,31 +759,34 @@ class CfgSoundSets
 
 ### Three Execution Contexts
 
-| Context | `IsServer()` | `IsClient()` | `IsDedicatedServer()` | `GetPlayer()` |
-|---------|-------------|-------------|----------------------|----------------|
-| Dedicated Server | `true` | `false` | `true` | `null` |
-| Client | `false` | `true` | `false` | valid `Man` |
-| Listen Server | `true` | `true` | `false` | valid `Man` |
+| Context          | `IsServer()` | `IsClient()` | `IsDedicatedServer()` | `GetPlayer()` |
+| ---------------- | ------------ | ------------ | --------------------- | ------------- |
+| Dedicated Server | `true`       | `false`      | `true`                | `null`        |
+| Client           | `false`      | `true`       | `false`               | valid `Man`   |
+| Listen Server    | `true`       | `true`       | `false`               | valid `Man`   |
 
 ### Preprocessor vs Runtime Guards
+
 - `#ifdef SERVER` — Compile-time. SERVER is defined on dedicated AND listen server.
 - `GetGame().IsServer()` — Runtime. Use for logic that runs differently per context.
 - `#ifndef SERVER` — Only needed when code body references client-only types (widgets, UI).
 
 ### Responsibility Split
-| Responsibility | Where |
-|---------------|-------|
-| Spawn/delete entities | Server |
-| Apply damage | Server |
-| Validate actions | Server |
-| Check permissions | Server |
-| Show UI | Client |
-| Read player input | Client |
-| Play sounds/effects | Client |
+
+| Responsibility           | Where                 |
+| ------------------------ | --------------------- |
+| Spawn/delete entities    | Server                |
+| Apply damage             | Server                |
+| Validate actions         | Server                |
+| Check permissions        | Server                |
+| Show UI                  | Client                |
+| Read player input        | Client                |
+| Play sounds/effects      | Client                |
 | Send authoritative state | Server → Client (RPC) |
-| Send player requests | Client → Server (RPC) |
+| Send player requests     | Client → Server (RPC) |
 
 ### Listen-Server Gotchas
+
 - Both `IsServer()` and `IsClient()` return true
 - Code that works on listen server may break on dedicated
 - Always test on dedicated server before publishing
@@ -780,6 +796,7 @@ class CfgSoundSets
 ## mod.cpp Reference
 
 mod.cpp is NOT Enforce Script. It's a simple key-value file read by the DayZ launcher.
+
 ```
 name = "My Mod";
 picture = "MyMod/mod_logo.edds";       // Only .edds, .paa, .tga work (PNG/JPG ignored)
@@ -804,11 +821,12 @@ CSV with 15 columns. Must be at mod root (next to mod.cpp), NOT inside Scripts/.
 ```
 
 ### Referencing Strings
-| Context | Syntax | Example |
-|---------|--------|---------|
-| Layout files | `#STR_KEY` | `text "#STR_MYMOD_WELCOME"` |
-| Script `Widget` | `"#STR_KEY"` | `textWidget.SetText("#STR_MYMOD_WELCOME")` |
-| inputs.xml `loc` | `STR_KEY` (NO #) | `loc="STR_MYMOD_ACTION"` |
+
+| Context          | Syntax           | Example                                    |
+| ---------------- | ---------------- | ------------------------------------------ |
+| Layout files     | `#STR_KEY`       | `text "#STR_MYMOD_WELCOME"`                |
+| Script `Widget`  | `"#STR_KEY"`     | `textWidget.SetText("#STR_MYMOD_WELCOME")` |
+| inputs.xml `loc` | `STR_KEY` (NO #) | `loc="STR_MYMOD_ACTION"`                   |
 
 Fallback chain: Player's language → english → original → raw key name.
 
@@ -817,7 +835,9 @@ Fallback chain: Player's language → english → original → raw key name.
 ## Singleton Improvements
 
 ### Re-Entrancy Protection
+
 If `GetInstance()` is called during construction (e.g., registering with another system), the instance is still null:
+
 ```c
 static MyManager GetInstance()
 {
@@ -831,7 +851,9 @@ static MyManager GetInstance()
 ```
 
 ### Static-Only Class Alternative
+
 When a class holds no instance state (all static methods/fields), skip GetInstance() entirely:
+
 ```c
 class MyLog
 {
@@ -842,6 +864,7 @@ class MyLog
 Use for logging, RPC dispatchers, event buses. No null-check overhead.
 
 ### Centralized Shutdown
+
 ```c
 static void ShutdownAll()
 {
@@ -853,7 +876,9 @@ static void ShutdownAll()
 ```
 
 ### Listen-Server Guard
+
 Server-only singletons must guard construction on listen servers:
+
 ```c
 static MyServerManager GetInstance()
 {
@@ -973,6 +998,7 @@ MyEventBus.OnPlayerConnected.Remove(OnPlayerJoin);
 ```
 
 ### ScriptInvoker Safety Rules
+
 - Every `Insert()` MUST have a matching `Remove()`
 - Double `Insert()` = handler called twice per `Invoke()` (one `Remove()` only removes one)
 - No compile-time type safety on parameters — document expected signature
@@ -985,6 +1011,7 @@ MyEventBus.OnPlayerConnected.Remove(OnPlayerJoin);
 ## Permission Patterns
 
 ### VPP Group-Based Permissions
+
 ```c
 // Groups: "SuperAdmin" → ["*"], "Moderator" → ["admin.kick", "admin.ban"]
 // Players: "76561198..." → "SuperAdmin"
@@ -992,7 +1019,9 @@ MyEventBus.OnPlayerConnected.Remove(OnPlayerJoin);
 ```
 
 ### CF Three-State Permissions (ALLOW/DENY/INHERIT)
+
 Each node in the permission tree can be:
+
 - `ALLOW (2)` — Granted
 - `DENY (1)` — Explicitly denied (overrides parent ALLOW)
 - `INHERIT (0)` — Inherits from parent
@@ -1000,6 +1029,7 @@ Each node in the permission tree can be:
 Enables: "Grant `Admin.*` but deny `Admin.Teleport`".
 
 ### Permission Security Rules
+
 1. **Never trust the client** — Server validates all permissions
 2. **Default deny** — If not explicitly granted, denied
 3. **Fail closed** — If check fails (null identity, corrupted data), deny
@@ -1080,12 +1110,12 @@ class MyMod_ViewModel : ScriptView
 
 ### Comparison
 
-| Feature | Vanilla | CF | Dabs |
-|---------|---------|-----|------|
-| Action registration | `SetActions()` override per item | Manual | `[RegisterAction]` attribute |
-| Module system | `PluginBase` | `CF_ModuleWorld` | `[CF_RegisterModule]` |
-| GUI binding | Manual widget wiring | Manual | MVC ScriptView + bindings |
-| Dependency | None | CF mod | CF + Dabs mods |
+| Feature             | Vanilla                          | CF               | Dabs                         |
+| ------------------- | -------------------------------- | ---------------- | ---------------------------- |
+| Action registration | `SetActions()` override per item | Manual           | `[RegisterAction]` attribute |
+| Module system       | `PluginBase`                     | `CF_ModuleWorld` | `[CF_RegisterModule]`        |
+| GUI binding         | Manual widget wiring             | Manual           | MVC ScriptView + bindings    |
+| Dependency          | None                             | CF mod           | CF + Dabs mods               |
 
 ---
 
@@ -1109,33 +1139,33 @@ caller.Invoke(sender, args);
 
 ## DayZPlayerConstants (Common Action UIDs)
 
-| Constant | Description |
-|----------|-------------|
-| `DayZPlayerConstants.CMD_ACTIONMOD_EAT` | Eating animation |
-| `DayZPlayerConstants.CMD_ACTIONMOD_DRINK` | Drinking animation |
-| `DayZPlayerConstants.CMD_ACTIONMOD_BANDAGE` | Bandaging animation |
+| Constant                                    | Description          |
+| ------------------------------------------- | -------------------- |
+| `DayZPlayerConstants.CMD_ACTIONMOD_EAT`     | Eating animation     |
+| `DayZPlayerConstants.CMD_ACTIONMOD_DRINK`   | Drinking animation   |
+| `DayZPlayerConstants.CMD_ACTIONMOD_BANDAGE` | Bandaging animation  |
 | `DayZPlayerConstants.CMD_ACTIONFB_CRAFTING` | Crafting (full body) |
 | `DayZPlayerConstants.CMD_ACTIONFB_ASSEMBLE` | Assembly (full body) |
-| `DayZPlayerConstants.CMD_GESTUREFB_DANCE` | Dance emote |
-| `DayZPlayerConstants.CMD_GESTUREFB_SALUTE` | Salute emote |
+| `DayZPlayerConstants.CMD_GESTUREFB_DANCE`   | Dance emote          |
+| `DayZPlayerConstants.CMD_GESTUREFB_SALUTE`  | Salute emote         |
 
 ---
 
 ## ECE Creation Flags Reference
 
-| Flag | Description |
-|------|-------------|
-| `ECE_PLACE_ON_SURFACE` | Snap to terrain surface |
-| `ECE_UPDATEPATHGRAPH` | Update AI navmesh |
-| `ECE_CREATEPHYSICS` | Create physics body |
-| `ECE_ROTATIONFLAGS` | Apply rotation |
-| `ECE_EQUIP` | Equip the item |
-| `ECE_EQUIP_ATTACHMENTS` | Attach default parts |
-| `ECE_EQUIP_CARGO` | Fill default cargo |
-| `ECE_IN_INVENTORY` | Create inside inventory |
-| `ECE_LOCAL` | Local-only (not networked) |
-| `ECE_NOLIFETIME` | No CE lifetime (won't despawn) |
-| `ECE_DYNAMIC_PERSISTENCY` | CE-tracked dynamic entity |
+| Flag                      | Description                    |
+| ------------------------- | ------------------------------ |
+| `ECE_PLACE_ON_SURFACE`    | Snap to terrain surface        |
+| `ECE_UPDATEPATHGRAPH`     | Update AI navmesh              |
+| `ECE_CREATEPHYSICS`       | Create physics body            |
+| `ECE_ROTATIONFLAGS`       | Apply rotation                 |
+| `ECE_EQUIP`               | Equip the item                 |
+| `ECE_EQUIP_ATTACHMENTS`   | Attach default parts           |
+| `ECE_EQUIP_CARGO`         | Fill default cargo             |
+| `ECE_IN_INVENTORY`        | Create inside inventory        |
+| `ECE_LOCAL`               | Local-only (not networked)     |
+| `ECE_NOLIFETIME`          | No CE lifetime (won't despawn) |
+| `ECE_DYNAMIC_PERSISTENCY` | CE-tracked dynamic entity      |
 
 ```c
 // Common combinations

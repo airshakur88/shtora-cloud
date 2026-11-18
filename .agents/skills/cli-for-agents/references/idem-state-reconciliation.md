@@ -1,4 +1,5 @@
 ---
+
 title: Prefer "Ensure State" Semantics Over Delta Application
 impact: MEDIUM
 impactDescription: prevents errors when partial state is already applied
@@ -44,11 +45,13 @@ def migrate(target):
 ```
 
 **Benefits:**
+
 - Agent retries are always safe — reconciliation is the happy path
 - Partial failures don't require manual rollback before retry
 - The target state is the contract, not the steps to get there
 
 **When NOT to use this pattern:**
+
 - Destructive reconciliation (drop columns, delete rows) should still be explicit — use `--allow-destructive` or a separate command
 - Ordered, non-commutative operations (e.g., "run this exact set of scripts in order") are delta-shaped by design
 

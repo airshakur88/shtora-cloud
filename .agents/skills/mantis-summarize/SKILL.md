@@ -1,9 +1,10 @@
 ---
+
 name: mantis-summarize
 description: >-
-  Pre-processes the repository by generating security-focused summaries (mantis-summary.md) for each directory to make planning and research more efficient.
-  Use when starting a review campaign to map the codebase before threat modeling and planning.
-  Don't use for executing code reviews, writing test scripts, or patching code.
+Pre-processes the repository by generating security-focused summaries (mantis-summary.md) for each directory to make planning and research more efficient.
+Use when starting a review campaign to map the codebase before threat modeling and planning.
+Don't use for executing code reviews, writing test scripts, or patching code.
 ---
 
 # Summarizer (/mantis-summarize)
@@ -122,11 +123,10 @@ Execute the summarize stage as follows:
 1. **Write the Traversal Script (Bottom-Up Hierarchical):** Write a script
    (e.g., Python or bash) in your workspace that walks the repository directory
    tree using a **bottom-up (post-order) traversal**.
-
    - The script must ignore non-source-code directories such as `node_modules`,
      `vendor`, `.git`, build outputs, and `tests/`.
    - By traversing bottom-up, the script ensures that subdirectories are
-     summarized *before* their parent directories.
+     summarized _before_ their parent directories.
    - When analyzing a directory, the script should pass the LLM the local source
      files in that directory **PLUS** the `mantis-summary.md` files of its
      immediate subdirectories. Do not pass the raw source files of
@@ -144,7 +144,6 @@ Execute the summarize stage as follows:
    To keep token lengths reasonable at higher levels of the directory tree, the
    LLM should abstract away lower-level details, focusing on the rolled-up
    architecture. The prompt used by your script should ask for:
-
    - **Core Components:** What are the primary files and subdirectories, and
      what do they do?
    - **API Endpoints & Exports:** What functions or classes are exposed to other

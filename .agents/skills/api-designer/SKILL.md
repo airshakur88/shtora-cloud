@@ -1,17 +1,18 @@
 ---
+
 name: api-designer
 description: Use when designing REST or GraphQL APIs, creating OpenAPI specifications, or planning API architecture. Invoke for resource modeling, versioning strategies, pagination patterns, error handling standards.
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: api-architecture
-  triggers: API design, REST API, OpenAPI, API specification, API architecture, resource modeling, API versioning, GraphQL schema, API documentation
-  role: architect
-  scope: design
-  output-format: specification
-  related-skills: graphql-architect, fastapi-expert, nestjs-expert, spring-boot-engineer, security-reviewer
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: api-architecture
+triggers: API design, REST API, OpenAPI, API specification, API architecture, resource modeling, API versioning, GraphQL schema, API documentation
+role: architect
+scope: design
+output-format: specification
+related-skills: graphql-architect, fastapi-expert, nestjs-expert, spring-boot-engineer, security-reviewer
 ---
 
 # API Designer
@@ -31,17 +32,18 @@ Senior API architect specializing in REST and GraphQL APIs with comprehensive Op
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| REST Patterns | `references/rest-patterns.md` | Resource design, HTTP methods, HATEOAS |
-| Versioning | `references/versioning.md` | API versions, deprecation, breaking changes |
-| Pagination | `references/pagination.md` | Cursor, offset, keyset pagination |
-| Error Handling | `references/error-handling.md` | Error responses, RFC 7807, status codes |
-| OpenAPI | `references/openapi.md` | OpenAPI 3.1, documentation, code generation |
+| Topic          | Reference                      | Load When                                   |
+| -------------- | ------------------------------ | ------------------------------------------- |
+| REST Patterns  | `references/rest-patterns.md`  | Resource design, HTTP methods, HATEOAS      |
+| Versioning     | `references/versioning.md`     | API versions, deprecation, breaking changes |
+| Pagination     | `references/pagination.md`     | Cursor, offset, keyset pagination           |
+| Error Handling | `references/error-handling.md` | Error responses, RFC 7807, status codes     |
+| OpenAPI        | `references/openapi.md`        | OpenAPI 3.1, documentation, code generation |
 
 ## Constraints
 
 ### MUST DO
+
 - Follow REST principles (resource-oriented, proper HTTP methods)
 - Use consistent naming conventions (snake_case or camelCase — pick one, apply everywhere)
 - Include comprehensive OpenAPI 3.1 specification
@@ -52,6 +54,7 @@ Load detailed guidance based on context:
 - Provide request/response examples
 
 ### MUST NOT DO
+
 - Use verbs in resource URIs (use `/users/{id}`, not `/getUser/{id}`)
 - Return inconsistent response structures
 - Skip error code documentation
@@ -125,9 +128,9 @@ components:
       type: object
       required: [id, email, created_at]
       properties:
-        id:    { type: string, format: uuid, readOnly: true }
+        id: { type: string, format: uuid, readOnly: true }
         email: { type: string, format: email }
-        name:  { type: string }
+        name: { type: string }
         created_at: { type: string, format: date-time, readOnly: true }
 
     CursorPage:
@@ -135,16 +138,25 @@ components:
       required: [next_cursor, has_more]
       properties:
         next_cursor: { type: string, nullable: true }
-        has_more:    { type: boolean }
+        has_more: { type: boolean }
 
-    Problem:                       # RFC 7807 Problem Details
+    Problem: # RFC 7807 Problem Details
       type: object
       required: [type, title, status]
       properties:
-        type:     { type: string, format: uri, example: "https://api.example.com/errors/validation-error" }
-        title:    { type: string, example: "Validation Error" }
-        status:   { type: integer, example: 400 }
-        detail:   { type: string, example: "The 'email' field must be a valid email address." }
+        type:
+          {
+            type: string,
+            format: uri,
+            example: "https://api.example.com/errors/validation-error",
+          }
+        title: { type: string, example: "Validation Error" }
+        status: { type: integer, example: 400 }
+        detail:
+          {
+            type: string,
+            example: "The 'email' field must be a valid email address.",
+          }
         instance: { type: string, format: uri, example: "/users/req-abc123" }
 
   responses:
@@ -185,14 +197,12 @@ security:
 
 ```json
 {
-  "type": "https://api.example.com/errors/validation-error",
-  "title": "Validation Error",
-  "status": 422,
-  "detail": "The 'email' field must be a valid email address.",
-  "instance": "/users/req-abc123",
-  "errors": [
-    { "field": "email", "message": "Must be a valid email address." }
-  ]
+	"type": "https://api.example.com/errors/validation-error",
+	"title": "Validation Error",
+	"status": 422,
+	"detail": "The 'email' field must be a valid email address.",
+	"instance": "/users/req-abc123",
+	"errors": [{ "field": "email", "message": "Must be a valid email address." }]
 }
 ```
 
@@ -204,6 +214,7 @@ security:
 ## Output Checklist
 
 When delivering an API design, provide:
+
 1. Resource model and relationships (diagram or table)
 2. Endpoint specifications with URIs and HTTP methods
 3. OpenAPI 3.1 specification (YAML)

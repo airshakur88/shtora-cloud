@@ -23,16 +23,16 @@ Clear handwritten style for body text and labels. Warm gray (#6B6B6B) for annota
 
 ## Color Palette
 
-| Role | Color | Hex | Usage |
-|------|-------|-----|-------|
-| Background | Warm Cream | #F5F0E8 | Primary background |
-| Primary Text | Deep Charcoal | #2D2D2D | Headlines, main text, outlines |
-| Macaron Blue | Sky Blue | #A8D8EA | Info block fill, cool-toned zones |
-| Macaron Mint | Mint Green | #B5E5CF | Info block fill, growth/positive zones |
-| Macaron Lavender | Lavender | #D5C6E0 | Info block fill, abstract/concept zones |
-| Macaron Peach | Peach | #FFD5C2 | Info block fill, warm-toned zones |
-| Accent | Coral Red | #E8655A | Key data, warnings, emphasis |
-| Muted Text | Warm Gray | #6B6B6B | Secondary annotations, small labels |
+| Role             | Color         | Hex     | Usage                                   |
+| ---------------- | ------------- | ------- | --------------------------------------- |
+| Background       | Warm Cream    | #F5F0E8 | Primary background                      |
+| Primary Text     | Deep Charcoal | #2D2D2D | Headlines, main text, outlines          |
+| Macaron Blue     | Sky Blue      | #A8D8EA | Info block fill, cool-toned zones       |
+| Macaron Mint     | Mint Green    | #B5E5CF | Info block fill, growth/positive zones  |
+| Macaron Lavender | Lavender      | #D5C6E0 | Info block fill, abstract/concept zones |
+| Macaron Peach    | Peach         | #FFD5C2 | Info block fill, warm-toned zones       |
+| Accent           | Coral Red     | #E8655A | Key data, warnings, emphasis            |
+| Muted Text       | Warm Gray     | #6B6B6B | Secondary annotations, small labels     |
 
 ## Visual Elements
 

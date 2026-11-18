@@ -23,15 +23,15 @@ await page.context().storageState({ path: ".auth/session.json" });
 
 // Reuse in config — every test starts authenticated
 {
-  use: {
-    storageState: ".auth/session.json"
-  }
+	use: {
+		storageState: ".auth/session.json";
+	}
 }
 
 // API login — skip the UI entirely
 const context = await browser.newContext();
 const response = await context.request.post("/api/auth/login", {
-  data: { email: "testuser@example.com", password: "secretPass123" },
+	data: { email: "testuser@example.com", password: "secretPass123" },
 });
 await context.storageState({ path: ".auth/session.json" });
 ```
@@ -50,18 +50,18 @@ await context.storageState({ path: ".auth/session.json" });
 import { chromium } from "@playwright/test";
 
 async function generateAuthState() {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+	const browser = await chromium.launch();
+	const context = await browser.newContext();
+	const page = await context.newPage();
 
-  await page.goto("http://localhost:4000/login");
-  await page.getByLabel("Username").fill("testuser@example.com");
-  await page.getByLabel("Password").fill("secretPass123");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL("/home");
+	await page.goto("http://localhost:4000/login");
+	await page.getByLabel("Username").fill("testuser@example.com");
+	await page.getByLabel("Password").fill("secretPass123");
+	await page.getByRole("button", { name: "Log in" }).click();
+	await page.waitForURL("/home");
 
-  await context.storageState({ path: ".auth/session.json" });
-  await browser.close();
+	await context.storageState({ path: ".auth/session.json" });
+	await browser.close();
 }
 
 generateAuthState();
@@ -72,10 +72,10 @@ generateAuthState();
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  use: {
-    baseURL: "http://localhost:4000",
-    storageState: ".auth/session.json",
-  },
+	use: {
+		baseURL: "http://localhost:4000",
+		storageState: ".auth/session.json",
+	},
 });
 ```
 
@@ -84,8 +84,8 @@ export default defineConfig({
 import { test, expect } from "@playwright/test";
 
 test("authenticated user sees home page", async ({ page }) => {
-  await page.goto("/home");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+	await page.goto("/home");
+	await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 });
 ```
 
@@ -99,19 +99,19 @@ test("authenticated user sees home page", async ({ page }) => {
 import { chromium, type FullConfig } from "@playwright/test";
 
 async function globalSetup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use;
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+	const { baseURL } = config.projects[0].use;
+	const browser = await chromium.launch();
+	const context = await browser.newContext();
+	const page = await context.newPage();
 
-  await page.goto(`${baseURL}/login`);
-  await page.getByLabel("Username").fill(process.env.TEST_USER_EMAIL!);
-  await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
-  await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL("**/home");
+	await page.goto(`${baseURL}/login`);
+	await page.getByLabel("Username").fill(process.env.TEST_USER_EMAIL!);
+	await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
+	await page.getByRole("button", { name: "Log in" }).click();
+	await page.waitForURL("**/home");
 
-  await context.storageState({ path: ".auth/session.json" });
-  await browser.close();
+	await context.storageState({ path: ".auth/session.json" });
+	await browser.close();
 }
 
 export default globalSetup;
@@ -122,11 +122,11 @@ export default globalSetup;
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  globalSetup: require.resolve("./global-setup"),
-  use: {
-    baseURL: "http://localhost:4000",
-    storageState: ".auth/session.json",
-  },
+	globalSetup: require.resolve("./global-setup"),
+	use: {
+		baseURL: "http://localhost:4000",
+		storageState: ".auth/session.json",
+	},
 });
 ```
 
@@ -144,29 +144,29 @@ Add `.auth/` to `.gitignore`. Auth state files contain session tokens and should
 import { test as base, type BrowserContext } from "@playwright/test";
 
 type AuthFixtures = {
-  authenticatedContext: BrowserContext;
+	authenticatedContext: BrowserContext;
 };
 
 export const test = base.extend<{}, AuthFixtures>({
-  authenticatedContext: [
-    async ({ browser }, use) => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
+	authenticatedContext: [
+		async ({ browser }, use) => {
+			const context = await browser.newContext();
+			const page = await context.newPage();
 
-      await page.goto("/login");
-      await page
-        .getByLabel("Username")
-        .fill(`worker-${test.info().parallelIndex}@example.com`);
-      await page.getByLabel("Password").fill("secretPass123");
-      await page.getByRole("button", { name: "Log in" }).click();
-      await page.waitForURL("/home");
-      await page.close();
+			await page.goto("/login");
+			await page
+				.getByLabel("Username")
+				.fill(`worker-${test.info().parallelIndex}@example.com`);
+			await page.getByLabel("Password").fill("secretPass123");
+			await page.getByRole("button", { name: "Log in" }).click();
+			await page.waitForURL("/home");
+			await page.close();
 
-      await use(context);
-      await context.close();
-    },
-    { scope: "worker" },
-  ],
+			await use(context);
+			await context.close();
+		},
+		{ scope: "worker" },
+	],
 });
 
 export { expect } from "@playwright/test";
@@ -177,11 +177,11 @@ export { expect } from "@playwright/test";
 import { test, expect } from "../fixtures/auth";
 
 test("update display name", async ({ authenticatedContext }) => {
-  const page = await authenticatedContext.newPage();
-  await page.goto("/settings/profile");
-  await page.getByLabel("Display name").fill("Updated Name");
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByText("Profile saved")).toBeVisible();
+	const page = await authenticatedContext.newPage();
+	await page.goto("/settings/profile");
+	await page.getByLabel("Display name").fill("Updated Name");
+	await page.getByRole("button", { name: "Save" }).click();
+	await expect(page.getByText("Profile saved")).toBeVisible();
 });
 ```
 
@@ -195,40 +195,40 @@ test("update display name", async ({ authenticatedContext }) => {
 import { chromium, type FullConfig } from "@playwright/test";
 
 const accounts = [
-  {
-    role: "admin",
-    email: "admin@example.com",
-    password: process.env.ADMIN_PASSWORD!,
-  },
-  {
-    role: "member",
-    email: "member@example.com",
-    password: process.env.MEMBER_PASSWORD!,
-  },
-  {
-    role: "guest",
-    email: "guest@example.com",
-    password: process.env.GUEST_PASSWORD!,
-  },
+	{
+		role: "admin",
+		email: "admin@example.com",
+		password: process.env.ADMIN_PASSWORD!,
+	},
+	{
+		role: "member",
+		email: "member@example.com",
+		password: process.env.MEMBER_PASSWORD!,
+	},
+	{
+		role: "guest",
+		email: "guest@example.com",
+		password: process.env.GUEST_PASSWORD!,
+	},
 ];
 
 async function globalSetup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use;
+	const { baseURL } = config.projects[0].use;
 
-  for (const { role, email, password } of accounts) {
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
+	for (const { role, email, password } of accounts) {
+		const browser = await chromium.launch();
+		const context = await browser.newContext();
+		const page = await context.newPage();
 
-    await page.goto(`${baseURL}/login`);
-    await page.getByLabel("Username").fill(email);
-    await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Log in" }).click();
-    await page.waitForURL("**/home");
+		await page.goto(`${baseURL}/login`);
+		await page.getByLabel("Username").fill(email);
+		await page.getByLabel("Password").fill(password);
+		await page.getByRole("button", { name: "Log in" }).click();
+		await page.waitForURL("**/home");
 
-    await context.storageState({ path: `.auth/${role}.json` });
-    await browser.close();
-  }
+		await context.storageState({ path: `.auth/${role}.json` });
+		await browser.close();
+	}
 }
 
 export default globalSetup;
@@ -239,29 +239,29 @@ export default globalSetup;
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  globalSetup: require.resolve("./global-setup"),
-  projects: [
-    {
-      name: "admin",
-      use: { storageState: ".auth/admin.json" },
-      testMatch: "**/*.admin.spec.ts",
-    },
-    {
-      name: "member",
-      use: { storageState: ".auth/member.json" },
-      testMatch: "**/*.member.spec.ts",
-    },
-    {
-      name: "guest",
-      use: { storageState: ".auth/guest.json" },
-      testMatch: "**/*.guest.spec.ts",
-    },
-    {
-      name: "anonymous",
-      use: { storageState: { cookies: [], origins: [] } },
-      testMatch: "**/*.anon.spec.ts",
-    },
-  ],
+	globalSetup: require.resolve("./global-setup"),
+	projects: [
+		{
+			name: "admin",
+			use: { storageState: ".auth/admin.json" },
+			testMatch: "**/*.admin.spec.ts",
+		},
+		{
+			name: "member",
+			use: { storageState: ".auth/member.json" },
+			testMatch: "**/*.member.spec.ts",
+		},
+		{
+			name: "guest",
+			use: { storageState: ".auth/guest.json" },
+			testMatch: "**/*.guest.spec.ts",
+		},
+		{
+			name: "anonymous",
+			use: { storageState: { cookies: [], origins: [] } },
+			testMatch: "**/*.anon.spec.ts",
+		},
+	],
 });
 ```
 
@@ -270,11 +270,11 @@ export default defineConfig({
 import { test, expect } from "@playwright/test";
 
 test("admin can access user management", async ({ page }) => {
-  await page.goto("/admin/users");
-  await expect(
-    page.getByRole("heading", { name: "User Management" })
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Remove user" })).toBeEnabled();
+	await page.goto("/admin/users");
+	await expect(
+		page.getByRole("heading", { name: "User Management" }),
+	).toBeVisible();
+	await expect(page.getByRole("button", { name: "Remove user" })).toBeEnabled();
 });
 ```
 
@@ -283,8 +283,8 @@ test("admin can access user management", async ({ page }) => {
 import { test, expect } from "@playwright/test";
 
 test("guest cannot access admin panel", async ({ page }) => {
-  await page.goto("/admin/users");
-  await expect(page.getByText("Access denied")).toBeVisible();
+	await page.goto("/admin/users");
+	await expect(page.getByText("Access denied")).toBeVisible();
 });
 ```
 
@@ -296,30 +296,30 @@ import { test as base, type Page } from "@playwright/test";
 import fs from "fs";
 
 type RoleFixtures = {
-  loginAs: (role: "admin" | "member" | "guest") => Promise<Page>;
+	loginAs: (role: "admin" | "member" | "guest") => Promise<Page>;
 };
 
 export const test = base.extend<RoleFixtures>({
-  loginAs: async ({ browser }, use) => {
-    const pages: Page[] = [];
+	loginAs: async ({ browser }, use) => {
+		const pages: Page[] = [];
 
-    await use(async (role) => {
-      const statePath = `.auth/${role}.json`;
-      if (!fs.existsSync(statePath)) {
-        throw new Error(
-          `Auth state for role "${role}" not found at ${statePath}`
-        );
-      }
-      const context = await browser.newContext({ storageState: statePath });
-      const page = await context.newPage();
-      pages.push(page);
-      return page;
-    });
+		await use(async (role) => {
+			const statePath = `.auth/${role}.json`;
+			if (!fs.existsSync(statePath)) {
+				throw new Error(
+					`Auth state for role "${role}" not found at ${statePath}`,
+				);
+			}
+			const context = await browser.newContext({ storageState: statePath });
+			const page = await context.newPage();
+			pages.push(page);
+			return page;
+		});
 
-    for (const page of pages) {
-      await page.context().close();
-    }
-  },
+		for (const page of pages) {
+			await page.context().close();
+		}
+	},
 });
 
 export { expect } from "@playwright/test";
@@ -330,15 +330,15 @@ export { expect } from "@playwright/test";
 import { test, expect } from "../fixtures/auth";
 
 test("admin sees remove button, guest does not", async ({ loginAs }) => {
-  const adminPage = await loginAs("admin");
-  await adminPage.goto("/admin/users");
-  await expect(
-    adminPage.getByRole("button", { name: "Remove user" })
-  ).toBeVisible();
+	const adminPage = await loginAs("admin");
+	await adminPage.goto("/admin/users");
+	await expect(
+		adminPage.getByRole("button", { name: "Remove user" }),
+	).toBeVisible();
 
-  const guestPage = await loginAs("guest");
-  await guestPage.goto("/admin/users");
-  await expect(guestPage.getByText("Access denied")).toBeVisible();
+	const guestPage = await loginAs("guest");
+	await guestPage.goto("/admin/users");
+	await expect(guestPage.getByText("Access denied")).toBeVisible();
 });
 ```
 
@@ -362,21 +362,21 @@ For cases where you want to skip the browser redirect entirely, a second approac
 import { test, expect } from "@playwright/test";
 
 test("login via mocked OAuth flow", async ({ page }) => {
-  await page.route("https://accounts.provider.com/**", async (route) => {
-    const callbackUrl = new URL("http://localhost:4000/auth/callback");
-    callbackUrl.searchParams.set("code", "mock-auth-code-xyz");
-    callbackUrl.searchParams.set("state", "expected-state-value");
-    await route.fulfill({
-      status: 302,
-      headers: { location: callbackUrl.toString() },
-    });
-  });
+	await page.route("https://accounts.provider.com/**", async (route) => {
+		const callbackUrl = new URL("http://localhost:4000/auth/callback");
+		callbackUrl.searchParams.set("code", "mock-auth-code-xyz");
+		callbackUrl.searchParams.set("state", "expected-state-value");
+		await route.fulfill({
+			status: 302,
+			headers: { location: callbackUrl.toString() },
+		});
+	});
 
-  await page.goto("/login");
-  await page.getByRole("button", { name: "Sign in with Provider" }).click();
+	await page.goto("/login");
+	await page.getByRole("button", { name: "Sign in with Provider" }).click();
 
-  await page.waitForURL("/home");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+	await page.waitForURL("/home");
+	await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 });
 ```
 
@@ -384,22 +384,20 @@ test("login via mocked OAuth flow", async ({ page }) => {
 // tests/oauth-login.spec.ts — API-based session injection
 import { test, expect } from "@playwright/test";
 
-test("bypass OAuth entirely via API session injection", async ({
-  page,
-}) => {
-  // Call a test-only endpoint that creates a session without OAuth
-  const response = await page.request.post("/api/test/create-session", {
-    data: {
-      email: "oauth-user@example.com",
-      provider: "provider",
-      role: "member",
-    },
-  });
-  expect(response.ok()).toBeTruthy();
+test("bypass OAuth entirely via API session injection", async ({ page }) => {
+	// Call a test-only endpoint that creates a session without OAuth
+	const response = await page.request.post("/api/test/create-session", {
+		data: {
+			email: "oauth-user@example.com",
+			provider: "provider",
+			role: "member",
+		},
+	});
+	expect(response.ok()).toBeTruthy();
 
-  await page.context().storageState({ path: ".auth/oauth-user.json" });
-  await page.goto("/home");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+	await page.context().storageState({ path: ".auth/oauth-user.json" });
+	await page.goto("/home");
+	await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 });
 ```
 
@@ -417,13 +415,13 @@ test("bypass OAuth entirely via API session injection", async ({
 import * as OTPAuth from "otpauth";
 
 export function generateTOTP(secret: string): string {
-  const totp = new OTPAuth.TOTP({
-    secret: OTPAuth.Secret.fromBase32(secret),
-    digits: 6,
-    period: 30,
-    algorithm: "SHA1",
-  });
-  return totp.generate();
+	const totp = new OTPAuth.TOTP({
+		secret: OTPAuth.Secret.fromBase32(secret),
+		digits: 6,
+		period: 30,
+		algorithm: "SHA1",
+	});
+	return totp.generate();
 }
 ```
 
@@ -433,19 +431,19 @@ import { test, expect } from "@playwright/test";
 import { generateTOTP } from "../helpers/totp";
 
 test("login with TOTP two-factor auth", async ({ page }) => {
-  await page.goto("/login");
-  await page.getByLabel("Username").fill("mfa-user@example.com");
-  await page.getByLabel("Password").fill("secretPass123");
-  await page.getByRole("button", { name: "Log in" }).click();
+	await page.goto("/login");
+	await page.getByLabel("Username").fill("mfa-user@example.com");
+	await page.getByLabel("Password").fill("secretPass123");
+	await page.getByRole("button", { name: "Log in" }).click();
 
-  await expect(page.getByText("Enter your authentication code")).toBeVisible();
+	await expect(page.getByText("Enter your authentication code")).toBeVisible();
 
-  const code = generateTOTP(process.env.MFA_TOTP_SECRET!);
-  await page.getByLabel("Authentication code").fill(code);
-  await page.getByRole("button", { name: "Verify" }).click();
+	const code = generateTOTP(process.env.MFA_TOTP_SECRET!);
+	await page.getByLabel("Authentication code").fill(code);
+	await page.getByRole("button", { name: "Verify" }).click();
 
-  await page.waitForURL("/home");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+	await page.waitForURL("/home");
+	await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 });
 ```
 
@@ -464,40 +462,40 @@ import { test as base, type BrowserContext } from "@playwright/test";
 import fs from "fs";
 
 type AuthFixtures = {
-  authenticatedPage: import("@playwright/test").Page;
+	authenticatedPage: import("@playwright/test").Page;
 };
 
 export const test = base.extend<AuthFixtures>({
-  authenticatedPage: async ({ browser }, use) => {
-    const statePath = ".auth/session.json";
+	authenticatedPage: async ({ browser }, use) => {
+		const statePath = ".auth/session.json";
 
-    let context: BrowserContext;
-    if (fs.existsSync(statePath)) {
-      context = await browser.newContext({ storageState: statePath });
-      const page = await context.newPage();
+		let context: BrowserContext;
+		if (fs.existsSync(statePath)) {
+			context = await browser.newContext({ storageState: statePath });
+			const page = await context.newPage();
 
-      const response = await page.request.get("/api/auth/me");
-      if (response.ok()) {
-        await use(page);
-        await context.close();
-        return;
-      }
-      await context.close();
-    }
+			const response = await page.request.get("/api/auth/me");
+			if (response.ok()) {
+				await use(page);
+				await context.close();
+				return;
+			}
+			await context.close();
+		}
 
-    context = await browser.newContext();
-    const page = await context.newPage();
-    await page.goto("/login");
-    await page.getByLabel("Username").fill(process.env.TEST_USER_EMAIL!);
-    await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
-    await page.getByRole("button", { name: "Log in" }).click();
-    await page.waitForURL("/home");
+		context = await browser.newContext();
+		const page = await context.newPage();
+		await page.goto("/login");
+		await page.getByLabel("Username").fill(process.env.TEST_USER_EMAIL!);
+		await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
+		await page.getByRole("button", { name: "Log in" }).click();
+		await page.waitForURL("/home");
 
-    await context.storageState({ path: statePath });
+		await context.storageState({ path: statePath });
 
-    await use(page);
-    await context.close();
-  },
+		await use(page);
+		await context.close();
+	},
 });
 
 export { expect } from "@playwright/test";
@@ -513,53 +511,53 @@ export { expect } from "@playwright/test";
 import { type Page, type Locator, expect } from "@playwright/test";
 
 export class LoginPage {
-  readonly page: Page;
-  readonly usernameInput: Locator;
-  readonly passwordInput: Locator;
-  readonly loginButton: Locator;
-  readonly errorMessage: Locator;
-  readonly forgotPasswordLink: Locator;
+	readonly page: Page;
+	readonly usernameInput: Locator;
+	readonly passwordInput: Locator;
+	readonly loginButton: Locator;
+	readonly errorMessage: Locator;
+	readonly forgotPasswordLink: Locator;
 
-  constructor(page: Page) {
-    this.page = page;
-    this.usernameInput = page.getByLabel("Username");
-    this.passwordInput = page.getByLabel("Password");
-    this.loginButton = page.getByRole("button", { name: "Log in" });
-    this.errorMessage = page.getByRole("alert");
-    this.forgotPasswordLink = page.getByRole("link", {
-      name: "Forgot password",
-    });
-  }
+	constructor(page: Page) {
+		this.page = page;
+		this.usernameInput = page.getByLabel("Username");
+		this.passwordInput = page.getByLabel("Password");
+		this.loginButton = page.getByRole("button", { name: "Log in" });
+		this.errorMessage = page.getByRole("alert");
+		this.forgotPasswordLink = page.getByRole("link", {
+			name: "Forgot password",
+		});
+	}
 
-  async goto() {
-    await this.page.goto("/login");
-    await expect(this.loginButton).toBeVisible();
-  }
+	async goto() {
+		await this.page.goto("/login");
+		await expect(this.loginButton).toBeVisible();
+	}
 
-  async login(username: string, password: string) {
-    await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
-    await this.loginButton.click();
-  }
+	async login(username: string, password: string) {
+		await this.usernameInput.fill(username);
+		await this.passwordInput.fill(password);
+		await this.loginButton.click();
+	}
 
-  async loginAndWaitForHome(username: string, password: string) {
-    await this.login(username, password);
-    await this.page.waitForURL("/home");
-  }
+	async loginAndWaitForHome(username: string, password: string) {
+		await this.login(username, password);
+		await this.page.waitForURL("/home");
+	}
 
-  async expectError(message: string | RegExp) {
-    await expect(this.errorMessage).toContainText(message);
-  }
+	async expectError(message: string | RegExp) {
+		await expect(this.errorMessage).toContainText(message);
+	}
 
-  async expectFieldError(field: "username" | "password", message: string) {
-    const input =
-      field === "username" ? this.usernameInput : this.passwordInput;
-    await expect(input).toHaveAttribute("aria-invalid", "true");
-    const errorId = await input.getAttribute("aria-describedby");
-    if (errorId) {
-      await expect(this.page.locator(`#${errorId}`)).toContainText(message);
-    }
-  }
+	async expectFieldError(field: "username" | "password", message: string) {
+		const input =
+			field === "username" ? this.usernameInput : this.passwordInput;
+		await expect(input).toHaveAttribute("aria-invalid", "true");
+		const errorId = await input.getAttribute("aria-describedby");
+		if (errorId) {
+			await expect(this.page.locator(`#${errorId}`)).toContainText(message);
+		}
+	}
 }
 ```
 
@@ -571,38 +569,38 @@ import { LoginPage } from "../page-objects/LoginPage";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("login page", () => {
-  let loginPage: LoginPage;
+	let loginPage: LoginPage;
 
-  test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
-    await loginPage.goto();
-  });
+	test.beforeEach(async ({ page }) => {
+		loginPage = new LoginPage(page);
+		await loginPage.goto();
+	});
 
-  test("successful login redirects to home", async ({ page }) => {
-    await loginPage.loginAndWaitForHome(
-      "testuser@example.com",
-      "secretPass123"
-    );
-    await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
-  });
+	test("successful login redirects to home", async ({ page }) => {
+		await loginPage.loginAndWaitForHome(
+			"testuser@example.com",
+			"secretPass123",
+		);
+		await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+	});
 
-  test("wrong password shows error", async () => {
-    await loginPage.login("testuser@example.com", "wrong-password");
-    await loginPage.expectError("Invalid username or password");
-  });
+	test("wrong password shows error", async () => {
+		await loginPage.login("testuser@example.com", "wrong-password");
+		await loginPage.expectError("Invalid username or password");
+	});
 
-  test("empty fields show validation errors", async () => {
-    await loginPage.loginButton.click();
-    await loginPage.expectFieldError("username", "Username is required");
-  });
+	test("empty fields show validation errors", async () => {
+		await loginPage.loginButton.click();
+		await loginPage.expectFieldError("username", "Username is required");
+	});
 
-  test("forgot password link navigates correctly", async ({ page }) => {
-    await loginPage.forgotPasswordLink.click();
-    await page.waitForURL("/forgot-password");
-    await expect(
-      page.getByRole("heading", { name: "Reset password" })
-    ).toBeVisible();
-  });
+	test("forgot password link navigates correctly", async ({ page }) => {
+		await loginPage.forgotPasswordLink.click();
+		await page.waitForURL("/forgot-password");
+		await expect(
+			page.getByRole("heading", { name: "Reset password" }),
+		).toBeVisible();
+	});
 });
 ```
 
@@ -618,25 +616,25 @@ API login is typically 5-10x faster than UI login.
 import { request, type FullConfig } from "@playwright/test";
 
 async function globalSetup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use;
+	const { baseURL } = config.projects[0].use;
 
-  const requestContext = await request.newContext({ baseURL });
+	const requestContext = await request.newContext({ baseURL });
 
-  const response = await requestContext.post("/api/auth/login", {
-    data: {
-      email: process.env.TEST_USER_EMAIL!,
-      password: process.env.TEST_USER_PASSWORD!,
-    },
-  });
+	const response = await requestContext.post("/api/auth/login", {
+		data: {
+			email: process.env.TEST_USER_EMAIL!,
+			password: process.env.TEST_USER_PASSWORD!,
+		},
+	});
 
-  if (!response.ok()) {
-    throw new Error(
-      `API login failed: ${response.status()} ${await response.text()}`
-    );
-  }
+	if (!response.ok()) {
+		throw new Error(
+			`API login failed: ${response.status()} ${await response.text()}`,
+		);
+	}
 
-  await requestContext.storageState({ path: ".auth/session.json" });
-  await requestContext.dispose();
+	await requestContext.storageState({ path: ".auth/session.json" });
+	await requestContext.dispose();
 }
 
 export default globalSetup;
@@ -647,27 +645,27 @@ export default globalSetup;
 import { test as base } from "@playwright/test";
 
 export const test = base.extend({
-  authenticatedPage: async ({ browser, playwright }, use) => {
-    const apiContext = await playwright.request.newContext({
-      baseURL: "http://localhost:4000",
-    });
+	authenticatedPage: async ({ browser, playwright }, use) => {
+		const apiContext = await playwright.request.newContext({
+			baseURL: "http://localhost:4000",
+		});
 
-    await apiContext.post("/api/auth/login", {
-      data: {
-        email: "testuser@example.com",
-        password: "secretPass123",
-      },
-    });
+		await apiContext.post("/api/auth/login", {
+			data: {
+				email: "testuser@example.com",
+				password: "secretPass123",
+			},
+		});
 
-    const state = await apiContext.storageState();
-    const context = await browser.newContext({ storageState: state });
-    const page = await context.newPage();
+		const state = await apiContext.storageState();
+		const context = await browser.newContext({ storageState: state });
+		const page = await context.newPage();
 
-    await use(page);
+		await use(page);
 
-    await context.close();
-    await apiContext.dispose();
-  },
+		await context.close();
+		await apiContext.dispose();
+	},
 });
 
 export { expect } from "@playwright/test";
@@ -687,38 +685,38 @@ import { test, expect } from "@playwright/test";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("unauthenticated access", () => {
-  test("homepage is accessible without login", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
-  });
+	test("homepage is accessible without login", async ({ page }) => {
+		await page.goto("/");
+		await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
+		await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
+	});
 
-  test("protected route redirects to login", async ({ page }) => {
-    await page.goto("/home");
-    await page.waitForURL("**/login**");
-    expect(page.url()).toContain("redirect=%2Fhome");
-  });
+	test("protected route redirects to login", async ({ page }) => {
+		await page.goto("/home");
+		await page.waitForURL("**/login**");
+		expect(page.url()).toContain("redirect=%2Fhome");
+	});
 
-  test("expired session shows re-login prompt", async ({ page, context }) => {
-    await page.goto("/home");
-    await context.clearCookies();
+	test("expired session shows re-login prompt", async ({ page, context }) => {
+		await page.goto("/home");
+		await context.clearCookies();
 
-    await page.goto("/settings");
-    await page.waitForURL("**/login**");
-    await expect(page.getByText("Your session has expired")).toBeVisible();
-  });
+		await page.goto("/settings");
+		await page.waitForURL("**/login**");
+		await expect(page.getByText("Your session has expired")).toBeVisible();
+	});
 
-  test("signup flow creates account", async ({ page }) => {
-    await page.goto("/signup");
-    await page.getByLabel("Name").fill("New User");
-    await page.getByLabel("Email").fill(`test-${Date.now()}@example.com`);
-    await page.getByLabel("Password", { exact: true }).fill("secretPass123");
-    await page.getByLabel("Confirm password").fill("secretPass123");
-    await page.getByRole("button", { name: "Create account" }).click();
+	test("signup flow creates account", async ({ page }) => {
+		await page.goto("/signup");
+		await page.getByLabel("Name").fill("New User");
+		await page.getByLabel("Email").fill(`test-${Date.now()}@example.com`);
+		await page.getByLabel("Password", { exact: true }).fill("secretPass123");
+		await page.getByLabel("Confirm password").fill("secretPass123");
+		await page.getByRole("button", { name: "Create account" }).click();
 
-    await page.waitForURL("/onboarding");
-    await expect(page.getByText("Welcome, New User")).toBeVisible();
-  });
+		await page.waitForURL("/onboarding");
+		await expect(page.getByText("Welcome, New User")).toBeVisible();
+	});
 });
 ```
 
@@ -779,9 +777,9 @@ Need to test the login page itself?
 ```typescript
 const response = await page.waitForResponse("**/api/auth/**");
 if (!response.ok()) {
-  throw new Error(
-    `Login failed in global setup: ${response.status()} ${await response.text()}`
-  );
+	throw new Error(
+		`Login failed in global setup: ${response.status()} ${await response.text()}`,
+	);
 }
 ```
 
@@ -807,7 +805,7 @@ if (!response.ok()) {
 ```typescript
 const cookies = await context.cookies();
 if (cookies.length === 0) {
-  throw new Error("No cookies found after login");
+	throw new Error("No cookies found after login");
 }
 await context.storageState({ path: ".auth/session.json" });
 ```
@@ -855,9 +853,9 @@ projects: [
 
 ```typescript
 page.on("request", (req) => {
-  if (req.url().includes("oauth") || req.url().includes("accounts.provider")) {
-    console.log("OAuth request:", req.url());
-  }
+	if (req.url().includes("oauth") || req.url().includes("accounts.provider")) {
+		console.log("OAuth request:", req.url());
+	}
 });
 ```
 

@@ -2,12 +2,12 @@
 
 ## Summary
 
-| Field | Value |
-|-------|-------|
-| **Original Bug** | [BUG_ID / CVE] |
-| **Analysis Date** | [DATE] |
-| **Codebase** | [REPO/PROJECT] |
-| **Variants Found** | [COUNT] |
+| Field              | Value          |
+| ------------------ | -------------- |
+| **Original Bug**   | [BUG_ID / CVE] |
+| **Analysis Date**  | [DATE]         |
+| **Codebase**       | [REPO/PROJECT] |
+| **Variants Found** | [COUNT]        |
 
 ## Original Vulnerability
 
@@ -21,12 +21,13 @@
 
 ## Search Methodology
 
-| Version | Pattern | Tool | Matches | TP | FP |
-|---------|---------|------|---------|----|----|
-| v1 | [exact] | ripgrep | 1 | 1 | 0 |
-| v2 | [abstract] | semgrep | N | N | N |
+| Version | Pattern    | Tool    | Matches | TP  | FP  |
+| ------- | ---------- | ------- | ------- | --- | --- |
+| v1      | [exact]    | ripgrep | 1       | 1   | 0   |
+| v2      | [abstract] | semgrep | N       | N   | N   |
 
 **Final Pattern:**
+
 ```yaml
 # Pattern used
 ```
@@ -35,9 +36,9 @@
 
 ### Variant #1: [BRIEF_TITLE]
 
-| Severity | Confidence | Status |
-|----------|------------|--------|
-| High | High | Confirmed |
+| Severity | Confidence | Status    |
+| -------- | ---------- | --------- |
+| High     | High       | Confirmed |
 
 **Location:** `[path/to/file.py:LINE]`
 
@@ -48,6 +49,7 @@
 **Analysis:** [Why this is a true/false positive]
 
 **Exploitability:**
+
 - [ ] Reachable from external input
 - [ ] User-controlled data
 - [ ] No sanitization
@@ -58,16 +60,18 @@
 
 ## False Positive Patterns
 
-| Pattern | Count | Reason |
-|---------|-------|--------|
-| [pattern] | N | [why safe] |
+| Pattern   | Count | Reason     |
+| --------- | ----- | ---------- |
+| [pattern] | N     | [why safe] |
 
 ## Recommendations
 
 ### Immediate
+
 1. Fix variant in [location]
 
 ### Preventive
+
 1. Add Semgrep rule to CI
 
 ```yaml

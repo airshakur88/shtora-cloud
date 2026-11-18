@@ -1,8 +1,9 @@
 ---
+
 name: bun-runtime
 description: Bun as runtime, package manager, bundler, and test runner. When to choose Bun vs Node, migration notes, and Vercel support.
 metadata:
-  origin: ECC
+origin: ECC
 ---
 
 # Bun Runtime
@@ -69,7 +70,7 @@ For CI on Bun 1.4, available options include `bun test --changed[=<ref>]` for af
 import { expect, test } from "bun:test";
 
 test("add", () => {
-  expect(1 + 2).toBe(3);
+	expect(1 + 2).toBe(3);
 });
 ```
 
@@ -80,10 +81,10 @@ const file = Bun.file("package.json");
 const json = await file.json();
 
 Bun.serve({
-  port: 3000,
-  fetch(req) {
-    return new Response("Hello");
-  },
+	port: 3000,
+	fetch(req) {
+		return new Response("Hello");
+	},
 });
 ```
 

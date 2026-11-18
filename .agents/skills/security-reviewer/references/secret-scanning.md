@@ -57,15 +57,15 @@ grep -rn "eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\." .
 
 ## Common Secret Patterns
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| AWS Access Key | `AKIA[0-9A-Z]{16}` | `<aws-access-key-id>` |
-| AWS Secret Key | 40 char base64 | `<aws-secret-access-key>` |
-| GitHub Token | `ghp_[A-Za-z0-9]{36}` | `<github-token>` |
-| Slack Token | `xox[baprs]-` | `<slack-bot-token>` |
-| Stripe Key | `sk_live_[A-Za-z0-9]{24}` | `<stripe-secret-key>` |
-| Private Key | `-----BEGIN.*PRIVATE KEY-----` | RSA/EC keys |
-| JWT | `eyJ[A-Za-z0-9_-]*\.eyJ` | Encoded tokens |
+| Type           | Pattern                        | Example                   |
+| -------------- | ------------------------------ | ------------------------- |
+| AWS Access Key | `AKIA[0-9A-Z]{16}`             | `<aws-access-key-id>`     |
+| AWS Secret Key | 40 char base64                 | `<aws-secret-access-key>` |
+| GitHub Token   | `ghp_[A-Za-z0-9]{36}`          | `<github-token>`          |
+| Slack Token    | `xox[baprs]-`                  | `<slack-bot-token>`       |
+| Stripe Key     | `sk_live_[A-Za-z0-9]{24}`      | `<stripe-secret-key>`     |
+| Private Key    | `-----BEGIN.*PRIVATE KEY-----` | RSA/EC keys               |
+| JWT            | `eyJ[A-Za-z0-9_-]*\.eyJ`       | Encoded tokens            |
 
 ## Pre-commit Hook
 
@@ -117,9 +117,9 @@ git filter-branch --force --index-filter \
 
 ## Quick Reference
 
-| Tool | Best For | Speed |
-|------|----------|-------|
-| Gitleaks | Git history | Fast |
-| TruffleHog | Deep scanning | Medium |
-| grep | Quick checks | Fast |
-| GitHub Secret Scanning | GitHub repos | Auto |
+| Tool                   | Best For      | Speed  |
+| ---------------------- | ------------- | ------ |
+| Gitleaks               | Git history   | Fast   |
+| TruffleHog             | Deep scanning | Medium |
+| grep                   | Quick checks  | Fast   |
+| GitHub Secret Scanning | GitHub repos  | Auto   |

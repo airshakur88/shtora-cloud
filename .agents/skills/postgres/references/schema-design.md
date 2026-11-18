@@ -1,4 +1,5 @@
 ---
+
 title: PostgreSQL Schema Design
 description: Schema design guide
 tags: postgres, schema, primary-keys, data-types, foreign-keys, naming
@@ -21,12 +22,12 @@ Random UUID PKs (v4) can cause index fragmentation; UUIDs are also larger (16 vs
 
 ## Data Types
 
-| Use | Avoid |
-| --- | --- |
-| `TEXT`, `VARCHAR` | Extension-specific types |
-| `JSONB` | Custom ENUMs (use CHECK instead) |
-| `TIMESTAMPTZ` | `TIMESTAMP` without time zone |
-| `BIGINT`, `INTEGER` | Platform-specific types |
+| Use                 | Avoid                            |
+| ------------------- | -------------------------------- |
+| `TEXT`, `VARCHAR`   | Extension-specific types         |
+| `JSONB`             | Custom ENUMs (use CHECK instead) |
+| `TIMESTAMPTZ`       | `TIMESTAMP` without time zone    |
+| `BIGINT`, `INTEGER` | Platform-specific types          |
 
 Prefer CHECK constraints over ENUM types — they're easier to modify:
 

@@ -1,4 +1,5 @@
 ---
+
 title: Include Copy-Pasteable Examples in Every --help
 impact: CRITICAL
 impactDescription: reduces invocation guessing to O(1) lookup
@@ -49,6 +50,7 @@ See also:
 ```
 
 **Benefits:**
+
 - Agents learn flag shapes from examples instead of guessing
 - Real values (`v1.2.3`, `staging`) are far more useful than angle-bracket placeholders
 - Chained examples (`$(mycli build ...)`) teach the agent how to compose subcommands

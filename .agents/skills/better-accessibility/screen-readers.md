@@ -8,16 +8,16 @@ The canonical `.sr-only` pattern hides content visually while keeping it in the 
 
 ```css
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
 }
 ```
 
@@ -38,10 +38,10 @@ Work down this list and stop at the first match:
 
 ## Live regions
 
-| Mechanism | Politeness | Use for |
-| --- | --- | --- |
-| `role="status"` (= `aria-live="polite"` + `aria-atomic="true"`) | Waits for a pause | Toasts, "Saved", result counts, loading updates |
-| `role="alert"` (= `aria-live="assertive"` + `aria-atomic="true"`) | Interrupts immediately | Errors and urgent problems only |
+| Mechanism                                                         | Politeness             | Use for                                         |
+| ----------------------------------------------------------------- | ---------------------- | ----------------------------------------------- |
+| `role="status"` (= `aria-live="polite"` + `aria-atomic="true"`)   | Waits for a pause      | Toasts, "Saved", result counts, loading updates |
+| `role="alert"` (= `aria-live="assertive"` + `aria-atomic="true"`) | Interrupts immediately | Errors and urgent problems only                 |
 
 Rules for reliable announcements:
 
@@ -54,8 +54,8 @@ Rules for reliable announcements:
 ```tsx
 // Region rendered from the start, message injected later
 <div role="status" className="sr-only">
-  {statusMessage}
-</div>
+	{statusMessage}
+</div>;
 ```
 
 For loading states: set `aria-busy="true"` on the updating region, announce "Loading…" politely, then announce the outcome ("Loaded, 12 results").
@@ -68,13 +68,13 @@ For loading states: set `aria-busy="true"` on the updating region, announce "Loa
 
 Choose by purpose, not by what the image looks like:
 
-| Purpose | Alt | Example |
-| --- | --- | --- |
-| Decorative, or redundant with adjacent text | `alt=""` (empty, but present) | Logo next to the company name in text |
-| Informative | Describe the meaning it adds | `alt="Ticket QR code"` |
-| Functional (image is the link/button) | Describe the action or destination | Search icon → `alt="Search"`, not `alt="magnifying glass"` |
-| Image of text | The exact text (better: use real text) | `alt="50% off everything"` |
-| Complex (chart, diagram) | Short summary in `alt`, full data as a table or text nearby | `alt="Revenue by quarter, described below"` |
+| Purpose                                     | Alt                                                         | Example                                                    |
+| ------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
+| Decorative, or redundant with adjacent text | `alt=""` (empty, but present)                               | Logo next to the company name in text                      |
+| Informative                                 | Describe the meaning it adds                                | `alt="Ticket QR code"`                                     |
+| Functional (image is the link/button)       | Describe the action or destination                          | Search icon → `alt="Search"`, not `alt="magnifying glass"` |
+| Image of text                               | The exact text (better: use real text)                      | `alt="50% off everything"`                                 |
+| Complex (chart, diagram)                    | Short summary in `alt`, full data as a table or text nearby | `alt="Revenue by quarter, described below"`                |
 
 A missing `alt` is worse than an empty one, because screen readers fall back to reading the file name.
 

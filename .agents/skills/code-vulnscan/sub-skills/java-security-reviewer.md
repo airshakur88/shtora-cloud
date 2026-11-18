@@ -12,18 +12,18 @@ Find Java/JVM vulnerabilities that generic pattern matching misses: annotation a
 
 Inventory the framework before tracing findings. Treat all externally supplied values as untrusted, including data loaded later from a database, queue, cache, object store, or identity-provider claim.
 
-| Stack | Entry-point and security signals |
-|---|---|
-| Spring MVC / Boot | `@Controller`, `@RestController`, `@RequestMapping`, `@*Mapping`, `@RequestParam`, `@PathVariable`, `@RequestBody`, `@ModelAttribute`, multipart handlers, `HandlerInterceptor`, `OncePerRequestFilter` |
-| Spring Security | `SecurityFilterChain`, `requestMatchers`, `securityMatcher`, `permitAll`, `WebSecurityCustomizer`, `@PreAuthorize`, `@PostAuthorize`, `@Secured`, `@RolesAllowed`, OAuth2 resource-server and login configuration |
-| Jakarta EE / Servlet | `HttpServlet`, `doGet`/`doPost`/`service`, filters, listeners, `web.xml`, `@ServletSecurity`, `@RolesAllowed`, request parameters, headers, cookies, parts, input streams |
-| JAX-RS / Jersey / RESTEasy | `@Path`, `@GET`/`@POST`/other method annotations, `@PathParam`, `@QueryParam`, `@HeaderParam`, `@CookieParam`, `@FormParam`, `@BeanParam`, entity-body parameters, request filters |
-| Struts | `ActionSupport`, action mappings, public setters populated from requests, interceptors, result redirects, OGNL expressions, dynamic method invocation |
-| JSF | managed/CDI beans, action methods, request/view/session scoped state, `f:viewParam`, converters, validators, Unified EL, Facelets output and `escape="false"` |
-| Hibernate / JPA | repositories, `EntityManager`, `Session`, JPQL/HQL/native SQL, entity listeners, converters, tenant filters, caches, lifecycle callbacks |
-| Micronaut / Quarkus | `@Controller`, HTTP method annotations, `@Body`, `@QueryValue`, `@PathVariable`, Jakarta REST resources, security annotations, reactive routes, scheduled/event consumers |
-| Ktor | `routing {}`, `get`/`post`/other route builders, `authenticate`, `call.parameters`, `call.receive<T>()`, plugins/interceptors, Ktor Resources, sessions, WebSockets, content negotiation |
-| Async / messaging | `@Async`, `CompletableFuture`, executors, Reactor, virtual threads, `@Scheduled`, JMS/Kafka/Rabbit listeners, retry/dead-letter handlers, batch jobs, gRPC methods |
+| Stack                      | Entry-point and security signals                                                                                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spring MVC / Boot          | `@Controller`, `@RestController`, `@RequestMapping`, `@*Mapping`, `@RequestParam`, `@PathVariable`, `@RequestBody`, `@ModelAttribute`, multipart handlers, `HandlerInterceptor`, `OncePerRequestFilter`           |
+| Spring Security            | `SecurityFilterChain`, `requestMatchers`, `securityMatcher`, `permitAll`, `WebSecurityCustomizer`, `@PreAuthorize`, `@PostAuthorize`, `@Secured`, `@RolesAllowed`, OAuth2 resource-server and login configuration |
+| Jakarta EE / Servlet       | `HttpServlet`, `doGet`/`doPost`/`service`, filters, listeners, `web.xml`, `@ServletSecurity`, `@RolesAllowed`, request parameters, headers, cookies, parts, input streams                                         |
+| JAX-RS / Jersey / RESTEasy | `@Path`, `@GET`/`@POST`/other method annotations, `@PathParam`, `@QueryParam`, `@HeaderParam`, `@CookieParam`, `@FormParam`, `@BeanParam`, entity-body parameters, request filters                                |
+| Struts                     | `ActionSupport`, action mappings, public setters populated from requests, interceptors, result redirects, OGNL expressions, dynamic method invocation                                                             |
+| JSF                        | managed/CDI beans, action methods, request/view/session scoped state, `f:viewParam`, converters, validators, Unified EL, Facelets output and `escape="false"`                                                     |
+| Hibernate / JPA            | repositories, `EntityManager`, `Session`, JPQL/HQL/native SQL, entity listeners, converters, tenant filters, caches, lifecycle callbacks                                                                          |
+| Micronaut / Quarkus        | `@Controller`, HTTP method annotations, `@Body`, `@QueryValue`, `@PathVariable`, Jakarta REST resources, security annotations, reactive routes, scheduled/event consumers                                         |
+| Ktor                       | `routing {}`, `get`/`post`/other route builders, `authenticate`, `call.parameters`, `call.receive<T>()`, plugins/interceptors, Ktor Resources, sessions, WebSockets, content negotiation                          |
+| Async / messaging          | `@Async`, `CompletableFuture`, executors, Reactor, virtual threads, `@Scheduled`, JMS/Kafka/Rabbit listeners, retry/dead-letter handlers, batch jobs, gRPC methods                                                |
 
 Also inspect `pom.xml`, Gradle files and version catalogs, `application*.properties`/YAML, `web.xml`, persistence configuration, security configuration, templates, logging configuration, keystores, and deployment descriptors. Framework auto-configuration is part of the effective attack surface even when there is little application code.
 

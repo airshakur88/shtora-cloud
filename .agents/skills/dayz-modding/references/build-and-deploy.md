@@ -43,24 +43,24 @@ The mod folder name doubles as a C-style identifier in `CfgPatches`:
 Everything ships with DayZ Tools (Steam, free with DayZ). Verified paths, relative
 to the install root:
 
-| Tool | Path | Use |
-|---|---|---|
-| **AddonBuilder** | `Bin\AddonBuilder\AddonBuilder.exe` | Folder → PBO, with binarization |
-| **FileBank** | `Bin\PboUtils\FileBank.exe` | Folder → PBO, **no** binarization |
-| **BankRev** | `Bin\PboUtils\BankRev.exe` | PBO → folder (unpack) |
-| **binarize** | `Bin\Binarize\binarize.exe` | MLOD → ODOL, config.cpp → config.bin |
-| **CfgConvert** | `Bin\CfgConvert\CfgConvert.exe` | config.cpp ⇄ config.bin, standalone |
-| **ImageToPAA** | `Bin\ImageToPAA\ImageToPAA.exe` | PNG/TGA → PAA |
-| **TexView** | `Bin\ImageToPAA\TexView.exe` | PAA viewer/editor |
-| **Object Builder** | `Bin\ObjectBuilder\ObjectBuilder.exe` | `.p3d` editing |
-| **Workbench** | `Bin\Workbench\workbenchApp.exe` | Script editor/debugger, particle editor, animation |
-| **DSCreateKey** | `Bin\DsUtils\DSCreateKey.exe` | Generate signing key pair |
-| **DSSignFile** | `Bin\DsUtils\DSSignFile.exe` | Sign a PBO |
-| **DSCheckSignatures** | `Bin\DsUtils\DSCheckSignatures.exe` | Verify signatures |
-| **Publisher** | `Bin\Publisher\Publisher.exe` | Steam Workshop upload |
-| **CeEditor** | `Bin\CeEditor\CeEditor.exe` | Central Economy editor |
-| **TerrainBuilder** | `Bin\TerrainBuilder\terrainBuilder.exe` | Maps |
-| **NavMeshGenerator** | `Bin\NavMeshGenerator\NavMeshGenerator_x64.exe` | AI navmesh for custom buildings |
+| Tool                  | Path                                            | Use                                                |
+| --------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| **AddonBuilder**      | `Bin\AddonBuilder\AddonBuilder.exe`             | Folder → PBO, with binarization                    |
+| **FileBank**          | `Bin\PboUtils\FileBank.exe`                     | Folder → PBO, **no** binarization                  |
+| **BankRev**           | `Bin\PboUtils\BankRev.exe`                      | PBO → folder (unpack)                              |
+| **binarize**          | `Bin\Binarize\binarize.exe`                     | MLOD → ODOL, config.cpp → config.bin               |
+| **CfgConvert**        | `Bin\CfgConvert\CfgConvert.exe`                 | config.cpp ⇄ config.bin, standalone                |
+| **ImageToPAA**        | `Bin\ImageToPAA\ImageToPAA.exe`                 | PNG/TGA → PAA                                      |
+| **TexView**           | `Bin\ImageToPAA\TexView.exe`                    | PAA viewer/editor                                  |
+| **Object Builder**    | `Bin\ObjectBuilder\ObjectBuilder.exe`           | `.p3d` editing                                     |
+| **Workbench**         | `Bin\Workbench\workbenchApp.exe`                | Script editor/debugger, particle editor, animation |
+| **DSCreateKey**       | `Bin\DsUtils\DSCreateKey.exe`                   | Generate signing key pair                          |
+| **DSSignFile**        | `Bin\DsUtils\DSSignFile.exe`                    | Sign a PBO                                         |
+| **DSCheckSignatures** | `Bin\DsUtils\DSCheckSignatures.exe`             | Verify signatures                                  |
+| **Publisher**         | `Bin\Publisher\Publisher.exe`                   | Steam Workshop upload                              |
+| **CeEditor**          | `Bin\CeEditor\CeEditor.exe`                     | Central Economy editor                             |
+| **TerrainBuilder**    | `Bin\TerrainBuilder\terrainBuilder.exe`         | Maps                                               |
+| **NavMeshGenerator**  | `Bin\NavMeshGenerator\NavMeshGenerator_x64.exe` | AI navmesh for custom buildings                    |
 
 Resolve the install root from `DAYZ_TOOLS_PATH` if set, otherwise the Steam
 library path, before hardcoding anything.
@@ -103,26 +103,26 @@ and every texture, model and script path in your configs breaks at once.
 AddonBuilder.exe P:\MyMod P:\Mods\@MyMod\Addons -prefix=MyMod -temp=P:\temp\MyMod -clear
 ```
 
-| Argument | Meaning |
-|---|---|
-| arg 1 | Source folder |
-| arg 2 | Output folder (the PBO lands here) |
-| `-prefix=` | PBO prefix (mirrors `$PBOPREFIX$`) |
-| `-temp=` | Staging folder AddonBuilder copies sources into |
-| `-clear` | Wipe the temp folder before staging |
+| Argument   | Meaning                                         |
+| ---------- | ----------------------------------------------- |
+| arg 1      | Source folder                                   |
+| arg 2      | Output folder (the PBO lands here)              |
+| `-prefix=` | PBO prefix (mirrors `$PBOPREFIX$`)              |
+| `-temp=`   | Staging folder AddonBuilder copies sources into |
+| `-clear`   | Wipe the temp folder before staging             |
 
 **Two verified traps, both of which produce "my fix did not take effect":**
 
 1. **Without `-clear`, the temp sync is incremental — and it can serve stale
-   sources.** With `-clear` the log says *"Clearing temp folder"*; without it,
-   *"Syncing folders"*, and a changed `.c` may simply not be re-copied. Observed
+   sources.** With `-clear` the log says _"Clearing temp folder"_; without it,
+   _"Syncing folders"_, and a changed `.c` may simply not be re-copied. Observed
    in production: one script file kept a two-month-old copy in `P:\temp\<Mod>\`,
    so every build packed old code while the source on disk was correct and
    verified. The canonical symptom is **a compile error that persists unchanged
    after you edit and re-verify the source.** Always `-clear`, or delete
    `P:\temp\<Mod>` before building.
 
-2. **AddonBuilder clears `-temp` *before* copying, and Windows paths are
+2. **AddonBuilder clears `-temp` _before_ copying, and Windows paths are
    case-insensitive.** Staging your sources anywhere under `P:\temp\*` (or
    `P:\TEMP\*`) while passing `-temp=P:\temp\<X>` makes AddonBuilder delete your
    staging directory and then fail to copy. Never put sources under `P:\temp`.
@@ -160,7 +160,7 @@ at server start.
 - Validates every asset reference. A missing texture that "worked" in an unpacked
   test becomes a hard build error here.
 
-Binarization failures are usually *reference* failures (a path that does not
+Binarization failures are usually _reference_ failures (a path that does not
 resolve under `P:\`) rather than syntax failures.
 
 ---
@@ -212,10 +212,10 @@ DSCreateKey.exe MyKeyName
 
 produces two files:
 
-| File | Goes where | Secrecy |
-|---|---|---|
-| `MyKeyName.biprivatekey` | Stays on your machine | **Never distribute** |
-| `MyKeyName.bikey` | `@MyMod\Keys\`, and the server's `keys\` folder | Public |
+| File                     | Goes where                                      | Secrecy              |
+| ------------------------ | ----------------------------------------------- | -------------------- |
+| `MyKeyName.biprivatekey` | Stays on your machine                           | **Never distribute** |
+| `MyKeyName.bikey`        | `@MyMod\Keys\`, and the server's `keys\` folder | Public               |
 
 ```cmd
 DSSignFile.exe MyKeyName.biprivatekey P:\Mods\@MyMod\Addons\MyMod.pbo
@@ -255,32 +255,32 @@ DayZDiag_x64.exe -profiles=<clientProfileDir> -mod=@Mod1;@Mod2 ^
 
 `-mission=` **must be absolute**. If it is missing or relative the engine looks
 under the binary's `mpmissions\`, finds nothing, and starts with an empty mission —
-the tell in the log is *"Mission script has no main function. PlayerConnect will
-stay disabled"*.
+the tell in the log is _"Mission script has no main function. PlayerConnect will
+stay disabled"_.
 
-| Flag | Effect |
-|---|---|
-| `-mod=` | Client-and-server mods (scripts run on both sides) |
-| `-servermod=` | Server-only mods; never sent to clients |
-| `-filePatching` | Load loose files from disk instead of from the PBO |
-| `-scriptDebug=true` | Verbose script diagnostics |
-| `-profiles=` | Where logs, BattlEye and cached data go — point it at a per-run folder |
-| `-window -x=1920 -y=1080` | Windowed client, useful for iteration |
-| `-newErrorsAreWarnings=1` | Downgrade some fatal script errors **(convention)** |
+| Flag                      | Effect                                                                 |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `-mod=`                   | Client-and-server mods (scripts run on both sides)                     |
+| `-servermod=`             | Server-only mods; never sent to clients                                |
+| `-filePatching`           | Load loose files from disk instead of from the PBO                     |
+| `-scriptDebug=true`       | Verbose script diagnostics                                             |
+| `-profiles=`              | Where logs, BattlEye and cached data go — point it at a per-run folder |
+| `-window -x=1920 -y=1080` | Windowed client, useful for iteration                                  |
+| `-newErrorsAreWarnings=1` | Downgrade some fatal script errors **(convention)**                    |
 
 Mod paths with spaces break `-mod` parsing on some binaries. Use junctions without
 spaces (`mklink /J`) or paths relative to the working directory.
 
 ### File patching: what it does and does not reload
 
-| Changed file | Rebuild needed? |
-|---|---|
-| `.c` script | No — restart the mission/server is enough |
-| `.layout` | No |
-| `.paa`, `.ogg` | No |
-| **`config.cpp`** | **Yes — always rebuild the PBO** |
-| `model.cfg` | Yes |
-| `.p3d` | Yes |
+| Changed file     | Rebuild needed?                           |
+| ---------------- | ----------------------------------------- |
+| `.c` script      | No — restart the mission/server is enough |
+| `.layout`        | No                                        |
+| `.paa`, `.ogg`   | No                                        |
+| **`config.cpp`** | **Yes — always rebuild the PBO**          |
+| `model.cfg`      | Yes                                       |
+| `.p3d`           | Yes                                       |
 
 This asymmetry produces a classic false diagnosis: you edit `config.cpp`, restart,
 nothing changes, and you start debugging the script.
@@ -312,11 +312,11 @@ Set `allowFilePatching = 0` for production; keep it at `1` on the dev box.
 
 ## 8. BattlEye Kick Codes
 
-| Code | Cause | Fix |
-|---|---|---|
-| `0x00020005` | Client connected with `-filePatching`, server has `allowFilePatching = 0` | Set `allowFilePatching = 1;` in `serverDZ.cfg` |
-| `0x00010002` | Mod signature mismatch | Rebuild the PBO **and re-sign it**; check the `.bikey` is in the server `keys\` folder |
-| *Public Variable Restriction* | A BattlEye filter caught unexpected network traffic | Whitelist in `publicvariable.txt` |
+| Code                          | Cause                                                                     | Fix                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `0x00020005`                  | Client connected with `-filePatching`, server has `allowFilePatching = 0` | Set `allowFilePatching = 1;` in `serverDZ.cfg`                                         |
+| `0x00010002`                  | Mod signature mismatch                                                    | Rebuild the PBO **and re-sign it**; check the `.bikey` is in the server `keys\` folder |
+| _Public Variable Restriction_ | A BattlEye filter caught unexpected network traffic                       | Whitelist in `publicvariable.txt`                                                      |
 
 A signature kick after a successful build almost always means "you rebuilt and
 forgot to re-sign".
@@ -327,18 +327,18 @@ forgot to re-sign".
 
 Under the `-profiles=` directory:
 
-| File | Contains | Read it when |
-|---|---|---|
-| `script_<timestamp>.log` | Script compile errors, `Print()` output, script runtime errors | Your code misbehaves |
-| `<name>_<timestamp>.RPT` | Engine-side errors: missing models/textures, malformed configs, addon load order, access violations | The mod does not load, or an asset is missing |
-| `crash_<date>_<time>.log` | **Handled** exceptions — not hard segfaults | After an unexplained exit |
+| File                      | Contains                                                                                            | Read it when                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `script_<timestamp>.log`  | Script compile errors, `Print()` output, script runtime errors                                      | Your code misbehaves                          |
+| `<name>_<timestamp>.RPT`  | Engine-side errors: missing models/textures, malformed configs, addon load order, access violations | The mod does not load, or an asset is missing |
+| `crash_<date>_<time>.log` | **Handled** exceptions — not hard segfaults                                                         | After an unexplained exit                     |
 
 Rules that save hours:
 
 - A missing texture, a bad `model=` path or a skipped `requiredAddons` entry show
   up **only in the RPT**, never in `script.log`. Reading only the script log is
   the most common triage mistake.
-- Script errors **cascade**. Fix the *first* `SCRIPT (E)` and rebuild before
+- Script errors **cascade**. Fix the _first_ `SCRIPT (E)` and rebuild before
   reading the rest.
 - `Print()` goes to `script_*.log`, not to the RPT.
 - A misspelled `requiredAddons` entry silently skips the whole PBO — the evidence
@@ -374,13 +374,13 @@ Server owners copy the `.bikey` into their server's `keys\` folder.
 
 ## Symptom → Cause Quick Table
 
-| Symptom | First thing to check |
-|---|---|
-| Mod does not appear at all | RPT: CfgPatches loaded? `requiredAddons` spelled correctly? |
-| Kicked at connect, code `0x00020005` | `allowFilePatching` on the server |
-| Kicked at connect, signature error | Re-sign the PBO; `.bikey` in server `keys\` |
-| Fix verified on disk has no effect | Stale AddonBuilder `-temp`; rebuild with `-clear` |
-| `config.cpp` change ignored | Config changes need a PBO rebuild — file patching does not cover them |
-| Textures missing in game, no script error | RPT, not script.log; check `$PBOPREFIX$` and in-PBO paths |
-| Server starts with no players allowed in | *"Mission script has no main function"* → `-mission=` path wrong |
-| Build "succeeded" but PBO is stale/empty | AddonBuilder can exit 0 on failure — read the log |
+| Symptom                                   | First thing to check                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| Mod does not appear at all                | RPT: CfgPatches loaded? `requiredAddons` spelled correctly?           |
+| Kicked at connect, code `0x00020005`      | `allowFilePatching` on the server                                     |
+| Kicked at connect, signature error        | Re-sign the PBO; `.bikey` in server `keys\`                           |
+| Fix verified on disk has no effect        | Stale AddonBuilder `-temp`; rebuild with `-clear`                     |
+| `config.cpp` change ignored               | Config changes need a PBO rebuild — file patching does not cover them |
+| Textures missing in game, no script error | RPT, not script.log; check `$PBOPREFIX$` and in-PBO paths             |
+| Server starts with no players allowed in  | _"Mission script has no main function"_ → `-mission=` path wrong      |
+| Build "succeeded" but PBO is stale/empty  | AddonBuilder can exit 0 on failure — read the log                     |

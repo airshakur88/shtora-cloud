@@ -7,6 +7,7 @@ Systematic engineering discipline adapted for DayZ's manual verification environ
 ## Core Philosophy
 
 DayZ modding has:
+
 - **No automated test framework** — Validation is manual (build → launch → observe)
 - **No linter** for Enforce Script — The compiler is your only static checker
 - **No CI/CD** — PBO building and testing is local
@@ -37,9 +38,11 @@ This means discipline must come from process, not tooling. Every step below comp
 ## Feature: [Name]
 
 ### Goal
+
 [One sentence: what does this feature do?]
 
 ### Architecture
+
 - Layer placement: [3_Game / 4_World / 5_Mission for each class]
 - New classes: [list with parent class]
 - Modded classes: [list with what's being added/changed]
@@ -47,15 +50,18 @@ This means discipline must come from process, not tooling. Every step below comp
 - Configs: [JSON files with path]
 
 ### Dependencies
+
 - Mod dependencies: [requiredAddons additions]
 - Cross-mod: [#ifdef guards needed]
 
 ### Implementation Steps
+
 1. [Step 1 — specific, small, verifiable]
 2. [Step 2]
 3. ...
 
 ### Verification
+
 - Build succeeds
 - No SCRIPT (E) errors
 - [Specific in-game test steps]
@@ -239,6 +245,7 @@ python dev.py check    # Find the error message and file:line
 ```
 
 Common error patterns:
+
 - `Undefined variable 'X'` → Variable not declared or wrong layer
 - `Cannot convert from 'X' to 'Y'` → Wrong type, missing cast
 - `Member not found 'X'` → Method doesn't exist on that type
@@ -277,6 +284,7 @@ If 3+ fix attempts fail:
 Before committing any code, run through this checklist:
 
 ### Enforce Script Rules
+
 - [ ] No ternary `? :`
 - [ ] No `do...while` loops
 - [ ] No `try/catch` blocks
@@ -286,6 +294,7 @@ Before committing any code, run through this checklist:
 - [ ] `string.Format()` used (not interpolation)
 
 ### Type Safety
+
 - [ ] All downcasts use `Class.CastTo()`
 - [ ] `GetGame().GetPlayer()` cast to `PlayerBase`
 - [ ] `IsAlive()` only called on `EntityAI` or subclass
@@ -293,6 +302,7 @@ Before committing any code, run through this checklist:
 - [ ] Float-to-int conversions use `Math.Round()` where needed
 
 ### Memory Safety
+
 - [ ] No `ref` cycles (A→B→A)
 - [ ] No `autoptr` usage (use `ref` instead)
 - [ ] Static refs nulled in `DestroyInstance()` or cleanup
@@ -300,6 +310,7 @@ Before committing any code, run through this checklist:
 - [ ] ScriptInvoker listeners removed on cleanup
 
 ### Architecture
+
 - [ ] Code in correct layer (3_Game / 4_World / 5_Mission)
 - [ ] No upward layer references (3_Game using 4_World types)
 - [ ] `requiredAddons[]` includes all mod dependencies
@@ -308,6 +319,7 @@ Before committing any code, run through this checklist:
 - [ ] Permissions checked before privileged operations
 
 ### Style
+
 - [ ] `m_` prefix on member variables
 - [ ] `s_` prefix on static variables
 - [ ] PascalCase for classes and methods
@@ -319,26 +331,32 @@ Before committing any code, run through this checklist:
 ## Anti-Patterns to Avoid
 
 ### 1. Testing by Assumption
+
 **Bad:** "This should work because the logic looks right."
 **Good:** Build it, check logs, test in-game. Evidence over assumption.
 
 ### 2. Shotgun Debugging
+
 **Bad:** Change 5 things at once hoping one fixes it.
 **Good:** One change → rebuild → test. Isolate the variable.
 
 ### 3. Ignoring Layer Rules
+
 **Bad:** "I'll just put everything in 5_Mission, it compiles there."
 **Good:** Place code in the lowest appropriate layer. It prevents circular dependencies and makes the mod more maintainable.
 
 ### 4. Skipping Cleanup
+
 **Bad:** "The server restarts anyway, who cares about memory."
 **Good:** Missions restart without process restart. Stale singletons WILL cause bugs in the next mission cycle.
 
 ### 5. Trusting RPC Input
+
 **Bad:** Use RPC data directly without validation.
 **Good:** Validate type, range, permissions, and context on every RPC receive.
 
 ### 6. Copy-Pasting Without Understanding
+
 **Bad:** Copy vanilla code and modify blindly.
 **Good:** Read the vanilla code, understand what each line does, then adapt with full understanding. Consult the wiki for API explanations.
 
@@ -346,20 +364,20 @@ Before committing any code, run through this checklist:
 
 ## When to Consult References
 
-| Situation | Reference |
-|-----------|-----------|
-| Unfamiliar API method | `docs/wiki/en/06-engine-api/` or Grep `scripts/` |
-| GUI / widget work | `docs/DAYZ_GUI_REFERENCE.md` |
-| CF module system | `docs/CF_COMPLETE_REFERENCE.md` |
-| Compilation error you don't understand | `docs/wiki/en/troubleshooting.md` |
-| Designing a new system | `docs/wiki/en/07-patterns/` |
-| First time building a mod type | `docs/wiki/en/08-tutorials/` |
-| Quick syntax lookup | `docs/wiki/en/cheatsheet.md` |
-| Term you don't know | `docs/wiki/en/glossary.md` |
-| File patching / hot-reload | `references/advanced-patterns.md` File Patching section |
-| Pre-release preparation | `references/advanced-patterns.md` Pre-Release Checklist |
-| Custom keybindings | `references/advanced-patterns.md` Input System section |
-| Vehicle modding | `references/api-patterns.md` Vehicle System section |
-| Sound integration | `references/api-patterns.md` Sound System section |
+| Situation                              | Reference                                               |
+| -------------------------------------- | ------------------------------------------------------- |
+| Unfamiliar API method                  | `docs/wiki/en/06-engine-api/` or Grep `scripts/`        |
+| GUI / widget work                      | `docs/DAYZ_GUI_REFERENCE.md`                            |
+| CF module system                       | `docs/CF_COMPLETE_REFERENCE.md`                         |
+| Compilation error you don't understand | `docs/wiki/en/troubleshooting.md`                       |
+| Designing a new system                 | `docs/wiki/en/07-patterns/`                             |
+| First time building a mod type         | `docs/wiki/en/08-tutorials/`                            |
+| Quick syntax lookup                    | `docs/wiki/en/cheatsheet.md`                            |
+| Term you don't know                    | `docs/wiki/en/glossary.md`                              |
+| File patching / hot-reload             | `references/advanced-patterns.md` File Patching section |
+| Pre-release preparation                | `references/advanced-patterns.md` Pre-Release Checklist |
+| Custom keybindings                     | `references/advanced-patterns.md` Input System section  |
+| Vehicle modding                        | `references/api-patterns.md` Vehicle System section     |
+| Sound integration                      | `references/api-patterns.md` Sound System section       |
 
 **Rule of thumb:** If you're about to use an API you haven't used in this session, take 30 seconds to read the reference first. It's faster than debugging a wrong assumption.

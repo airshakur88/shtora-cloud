@@ -22,11 +22,11 @@ Backend observability (logs, metrics, traces, profiles) tells you how your **sys
 
 ## RUM Capabilities
 
-| Capability | What it reveals | Example tools |
-| --- | --- | --- |
-| **Product Analytics** | What users do — page views, clicks, feature adoption, retention | PostHog, Amplitude, Mixpanel |
-| **Funnel Analysis** | Where users drop off in multi-step flows (signup, checkout, onboarding) | PostHog, Amplitude, Mixpanel |
-| **CDP** | Unified user profile from all data sources — events, properties, segments | Segment, RudderStack |
+| Capability            | What it reveals                                                           | Example tools                |
+| --------------------- | ------------------------------------------------------------------------- | ---------------------------- |
+| **Product Analytics** | What users do — page views, clicks, feature adoption, retention           | PostHog, Amplitude, Mixpanel |
+| **Funnel Analysis**   | Where users drop off in multi-step flows (signup, checkout, onboarding)   | PostHog, Amplitude, Mixpanel |
+| **CDP**               | Unified user profile from all data sources — events, properties, segments | Segment, RudderStack         |
 
 ## Identity Key: Use `user_id`, Never Email
 
@@ -250,13 +250,13 @@ func (h *PrivacyHandler) HandleDataExport(w http.ResponseWriter, r *http.Request
 
 ## Self-Hosted vs SaaS
 
-| Factor | Self-hosted (PostHog, Matomo) | SaaS (Amplitude, Mixpanel) |
-| --- | --- | --- |
-| **Data residency** | Full control — data stays in your infra | Data on vendor's servers |
+| Factor              | Self-hosted (PostHog, Matomo)           | SaaS (Amplitude, Mixpanel)               |
+| ------------------- | --------------------------------------- | ---------------------------------------- |
+| **Data residency**  | Full control — data stays in your infra | Data on vendor's servers                 |
 | **GDPR compliance** | Simpler — no cross-border data transfer | Requires DPA, SCCs, or adequacy decision |
-| **Cost** | Infrastructure cost, scales with volume | Per-event or per-seat pricing |
-| **Maintenance** | You manage upgrades, scaling, backups | Vendor handles everything |
-| **Features** | Catching up but improving fast | Often more polished and feature-rich |
+| **Cost**            | Infrastructure cost, scales with volume | Per-event or per-seat pricing            |
+| **Maintenance**     | You manage upgrades, scaling, backups   | Vendor handles everything                |
+| **Features**        | Catching up but improving fast          | Often more polished and feature-rich     |
 
 For EU-focused products or strict data residency requirements, self-hosting PostHog is the pragmatic choice — it eliminates most GDPR concerns around cross-border data transfer.
 

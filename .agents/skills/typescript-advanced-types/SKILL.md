@@ -1,4 +1,5 @@
 ---
+
 name: typescript-advanced-types
 description: Master TypeScript's advanced type system including generics, conditional types, mapped types, template literals, and utility types for building type-safe applications. Use when implementing complex type logic, creating reusable type utilities, or ensuring compile-time type safety in TypeScript projects.
 ---
@@ -28,7 +29,7 @@ Comprehensive guidance for mastering TypeScript's advanced type system including
 
 ```typescript
 function identity<T>(value: T): T {
-  return value;
+	return value;
 }
 
 const num = identity<number>(42); // Type: number
@@ -40,12 +41,12 @@ const auto = identity(true); // Type inferred: boolean
 
 ```typescript
 interface HasLength {
-  length: number;
+	length: number;
 }
 
 function logLength<T extends HasLength>(item: T): T {
-  console.log(item.length);
-  return item;
+	console.log(item.length);
+	return item;
 }
 
 logLength("hello"); // OK: string has length
@@ -58,7 +59,7 @@ logLength({ length: 10 }); // OK: object has length
 
 ```typescript
 function merge<T, U>(obj1: T, obj2: U): T & U {
-  return { ...obj1, ...obj2 };
+	return { ...obj1, ...obj2 };
 }
 
 const merged = merge({ name: "John" }, { age: 30 });
@@ -84,7 +85,7 @@ type B = IsString<number>; // false
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
 
 function getUser() {
-  return { id: 1, name: "John" };
+	return { id: 1, name: "John" };
 }
 
 type User = ReturnType<typeof getUser>;
@@ -104,16 +105,16 @@ type StrOrNumArray = ToArray<string | number>;
 
 ```typescript
 type TypeName<T> = T extends string
-  ? "string"
-  : T extends number
-    ? "number"
-    : T extends boolean
-      ? "boolean"
-      : T extends undefined
-        ? "undefined"
-        : T extends Function
-          ? "function"
-          : "object";
+	? "string"
+	: T extends number
+		? "number"
+		: T extends boolean
+			? "boolean"
+			: T extends undefined
+				? "undefined"
+				: T extends Function
+					? "function"
+					: "object";
 
 type T1 = TypeName<string>; // "string"
 type T2 = TypeName<() => void>; // "function"
@@ -127,12 +128,12 @@ type T2 = TypeName<() => void>; // "function"
 
 ```typescript
 type Readonly<T> = {
-  readonly [P in keyof T]: T[P];
+	readonly [P in keyof T]: T[P];
 };
 
 interface User {
-  id: number;
-  name: string;
+	id: number;
+	name: string;
 }
 
 type ReadonlyUser = Readonly<User>;
@@ -143,7 +144,7 @@ type ReadonlyUser = Readonly<User>;
 
 ```typescript
 type Partial<T> = {
-  [P in keyof T]?: T[P];
+	[P in keyof T]?: T[P];
 };
 
 type PartialUser = Partial<User>;
@@ -154,12 +155,12 @@ type PartialUser = Partial<User>;
 
 ```typescript
 type Getters<T> = {
-  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
+	[K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
 };
 
 interface Person {
-  name: string;
-  age: number;
+	name: string;
+	age: number;
 }
 
 type PersonGetters = Getters<Person>;
@@ -170,14 +171,14 @@ type PersonGetters = Getters<Person>;
 
 ```typescript
 type PickByType<T, U> = {
-  [K in keyof T as T[K] extends U ? K : never]: T[K];
+	[K in keyof T as T[K] extends U ? K : never]: T[K];
 };
 
 interface Mixed {
-  id: number;
-  name: string;
-  age: number;
-  active: boolean;
+	id: number;
+	name: string;
+	age: number;
+	active: boolean;
 }
 
 type OnlyNumbers = PickByType<Mixed, number>;
@@ -209,19 +210,19 @@ type UncapitalizedName = Uncapitalize<"John">; // "john"
 
 ```typescript
 type Path<T> = T extends object
-  ? {
-      [K in keyof T]: K extends string ? `${K}` | `${K}.${Path<T[K]>}` : never;
-    }[keyof T]
-  : never;
+	? {
+			[K in keyof T]: K extends string ? `${K}` | `${K}.${Path<T[K]>}` : never;
+		}[keyof T]
+	: never;
 
 interface Config {
-  server: {
-    host: string;
-    port: number;
-  };
-  database: {
-    url: string;
-  };
+	server: {
+		host: string;
+		port: number;
+	};
+	database: {
+		url: string;
+	};
 }
 
 type ConfigPath = Path<Config>;
@@ -283,10 +284,10 @@ Detailed sections (starting with `## Advanced Patterns`) live in `references/det
 ```typescript
 // Type assertion tests
 type AssertEqual<T, U> = [T] extends [U]
-  ? [U] extends [T]
-    ? true
-    : false
-  : false;
+	? [U] extends [T]
+		? true
+		: false
+	: false;
 
 type Test1 = AssertEqual<string, string>; // true
 type Test2 = AssertEqual<string, number>; // false

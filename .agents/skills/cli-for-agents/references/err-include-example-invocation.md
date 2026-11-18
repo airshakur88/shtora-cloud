@@ -1,4 +1,5 @@
 ---
+
 title: Include a Correct Example Invocation in Error Messages
 impact: HIGH
 impactDescription: reduces re-reads of --help after a failed command
@@ -55,6 +56,7 @@ fn main() {
 ```
 
 **Benefits:**
+
 - Agent copies the example verbatim on retry
 - Multiple examples teach variation without listing every flag
 - No round-trip to `--help` after a failed command

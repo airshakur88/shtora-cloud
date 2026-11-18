@@ -9,11 +9,13 @@
 ## Overview
 
 Sentry Crons tracks whether scheduled tasks run on time, succeed, and complete within expected durations. Sentry alerts when a job:
+
 - Misses its scheduled start time (checkin margin exceeded)
 - Takes too long to complete (maxRuntime exceeded)
 - Fails (status `"error"`)
 
 Cloudflare Workers support cron triggers via the `scheduled` handler. When wrapped with `withSentry`, the scheduled handler is automatically instrumented with a `faas.cron` span that includes:
+
 - `faas.cron` — the cron expression
 - `faas.time` — the scheduled time (ISO 8601)
 - `faas.trigger` — `"timer"`
@@ -28,20 +30,20 @@ When you use `withSentry`, the `scheduled` handler is automatically wrapped. Err
 import * as Sentry from "@sentry/cloudflare";
 
 export default Sentry.withSentry(
-  (env: Env) => ({
-    dsn: env.SENTRY_DSN,
-    tracesSampleRate: 1.0,
-  }),
-  {
-    async fetch(request, env, ctx) {
-      return new Response("OK");
-    },
+	(env: Env) => ({
+		dsn: env.SENTRY_DSN,
+		tracesSampleRate: 1.0,
+	}),
+	{
+		async fetch(request, env, ctx) {
+			return new Response("OK");
+		},
 
-    async scheduled(controller, env, ctx) {
-      // Automatically instrumented — errors captured, spans created
-      await cleanupOldRecords(env.DB);
-    },
-  } satisfies ExportedHandler<Env>,
+		async scheduled(controller, env, ctx) {
+			// Automatically instrumented — errors captured, spans created
+			await cleanupOldRecords(env.DB);
+		},
+	} satisfies ExportedHandler<Env>,
 );
 ```
 
@@ -117,27 +119,27 @@ Sentry.captureCheckIn({ monitorSlug: "health-check", status: "error" });
 ```typescript
 // Signal start
 const checkInId = Sentry.captureCheckIn({
-  monitorSlug: "data-sync",
-  status: "in_progress",
+	monitorSlug: "data-sync",
+	status: "in_progress",
 });
 
 try {
-  await syncData(env.DB);
+	await syncData(env.DB);
 
-  // Signal success
-  Sentry.captureCheckIn({
-    checkInId,
-    monitorSlug: "data-sync",
-    status: "ok",
-  });
+	// Signal success
+	Sentry.captureCheckIn({
+		checkInId,
+		monitorSlug: "data-sync",
+		status: "ok",
+	});
 } catch (error) {
-  // Signal failure
-  Sentry.captureCheckIn({
-    checkInId,
-    monitorSlug: "data-sync",
-    status: "error",
-  });
-  throw error;
+	// Signal failure
+	Sentry.captureCheckIn({
+		checkInId,
+		monitorSlug: "data-sync",
+		status: "error",
+	});
+	throw error;
 }
 ```
 
@@ -145,13 +147,13 @@ try {
 
 ```typescript
 const checkInId = Sentry.captureCheckIn(
-  { monitorSlug: "data-sync", status: "in_progress" },
-  {
-    schedule: { type: "crontab", value: "0 * * * *" },
-    checkinMargin: 5,
-    maxRuntime: 30,
-    timezone: "UTC",
-  },
+	{ monitorSlug: "data-sync", status: "in_progress" },
+	{
+		schedule: { type: "crontab", value: "0 * * * *" },
+		checkinMargin: 5,
+		maxRuntime: 30,
+		timezone: "UTC",
+	},
 );
 ```
 
@@ -159,22 +161,22 @@ const checkInId = Sentry.captureCheckIn(
 
 ## Schedule Types
 
-| Type | Format | Example |
-|------|--------|---------|
-| `crontab` | Standard cron expression | `"*/5 * * * *"` (every 5 min) |
-| `interval` | Repeated interval | `{ value: 10, unit: "minute" }` |
+| Type       | Format                   | Example                         |
+| ---------- | ------------------------ | ------------------------------- |
+| `crontab`  | Standard cron expression | `"*/5 * * * *"` (every 5 min)   |
+| `interval` | Repeated interval        | `{ value: 10, unit: "minute" }` |
 
 ### Interval Schedule
 
 ```typescript
 const monitorConfig = {
-  schedule: {
-    type: "interval",
-    value: 10,
-    unit: "minute", // "minute", "hour", "day", "week", "month", "year"
-  },
-  checkinMargin: 2,
-  maxRuntime: 10,
+	schedule: {
+		type: "interval",
+		value: 10,
+		unit: "minute", // "minute", "hour", "day", "week", "month", "year"
+	},
+	checkinMargin: 2,
+	maxRuntime: 10,
 };
 ```
 
@@ -182,16 +184,16 @@ const monitorConfig = {
 
 ## Monitor Config Options
 
-| Option | Type | Default | Notes |
-|--------|------|---------|-------|
-| `schedule.type` | `"crontab" \| "interval"` | — | Required |
-| `schedule.value` | `string \| number` | — | Cron expression or interval value |
-| `schedule.unit` | `string` | — | Required for `interval` type |
-| `checkinMargin` | `number` | — | Minutes before a check-in is considered missed |
-| `maxRuntime` | `number` | — | Minutes before a running job is considered timed out |
-| `timezone` | `string` | `"UTC"` | IANA timezone for crontab schedules |
-| `failureIssueThreshold` | `number` | — | Number of consecutive failures before creating an issue |
-| `recoveryThreshold` | `number` | — | Number of consecutive successes before resolving an issue |
+| Option                  | Type                      | Default | Notes                                                     |
+| ----------------------- | ------------------------- | ------- | --------------------------------------------------------- |
+| `schedule.type`         | `"crontab" \| "interval"` | —       | Required                                                  |
+| `schedule.value`        | `string \| number`        | —       | Cron expression or interval value                         |
+| `schedule.unit`         | `string`                  | —       | Required for `interval` type                              |
+| `checkinMargin`         | `number`                  | —       | Minutes before a check-in is considered missed            |
+| `maxRuntime`            | `number`                  | —       | Minutes before a running job is considered timed out      |
+| `timezone`              | `string`                  | `"UTC"` | IANA timezone for crontab schedules                       |
+| `failureIssueThreshold` | `number`                  | —       | Number of consecutive failures before creating an issue   |
+| `recoveryThreshold`     | `number`                  | —       | Number of consecutive successes before resolving an issue |
 
 ---
 
@@ -211,10 +213,10 @@ const monitorConfig = {
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue                                    | Solution                                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
 | Monitor not appearing in Crons dashboard | Ensure `captureCheckIn` or `withMonitor` is called at least once with a valid `monitorSlug` |
-| Check-in always shows "missed" | Verify `checkinMargin` is large enough for scheduling jitter |
-| Check-in shows "timed out" | Verify `maxRuntime` exceeds expected job duration |
-| In-progress check-in never completes | Ensure both `in_progress` and `ok`/`error` check-ins use the same `checkInId` |
-| Schedule mismatch | Ensure `schedule.value` in config matches the actual cron expression in `wrangler.toml` |
+| Check-in always shows "missed"           | Verify `checkinMargin` is large enough for scheduling jitter                                |
+| Check-in shows "timed out"               | Verify `maxRuntime` exceeds expected job duration                                           |
+| In-progress check-in never completes     | Ensure both `in_progress` and `ok`/`error` check-ins use the same `checkInId`               |
+| Schedule mismatch                        | Ensure `schedule.value` in config matches the actual cron expression in `wrangler.toml`     |

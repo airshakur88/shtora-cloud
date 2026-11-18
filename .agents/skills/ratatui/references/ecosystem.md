@@ -12,6 +12,7 @@ tachyonfx = "0.2"
 ```
 
 Key features:
+
 - Compose and layer simple effects
 - Smooth transitions and visual polish
 - Interactive demo: https://junkdog.github.io/tachyonfx-ftl/
@@ -26,6 +27,7 @@ mousefood = "0.1"
 ```
 
 Key features:
+
 - Use Ratatui with embedded displays
 - Works with various embedded-graphics draw targets
 - Example: Tuitar - guitar learning tool
@@ -40,6 +42,7 @@ ratzilla = "0.1"
 ```
 
 Key features:
+
 - Run Ratatui apps in the browser
 - Demo: https://ratatui.github.io/ratzilla/demo/
 
@@ -69,6 +72,7 @@ frame.render_widget(
 ```
 
 Key features:
+
 - Hot buffer (1000 entries) + main buffer (10000)
 - Per-target capture and display levels
 - `slog` and `tracing-subscriber` support
@@ -76,15 +80,16 @@ Key features:
 - Env-var config (`RUST_LOG`) via `set_env_filter_from_env()`
 
 Smart widget commands:
-| Key | Action |
-|-----|--------|
-| `h` | Toggle target selector |
-| `f` | Focus selected target |
-| `+` / `-` | Increase / decrease captured level |
-| `Right` / `Left` | Increase / decrease shown level |
-| `PageUp` / `PageDown` | Page mode scroll |
-| `Esc` | Exit page mode |
-| `Space` | Hide targets with no enabled level |
+
+| Key                   | Action                             |
+| --------------------- | ---------------------------------- |
+| `h`                   | Toggle target selector             |
+| `f`                   | Focus selected target              |
+| `+` / `-`             | Increase / decrease captured level |
+| `Right` / `Left`      | Increase / decrease shown level    |
+| `PageUp` / `PageDown` | Page mode scroll                   |
+| `Esc`                 | Exit page mode                     |
+| `Space`               | Hide targets with no enabled level |
 
 - **Repository**: https://github.com/gin66/tui-logger
 - **Docs**: https://docs.rs/tui-logger/
@@ -100,6 +105,7 @@ tui-breadcrumb = "0.1"
 ```
 
 Key features:
+
 - Separator presets (`>`, `→`, `/`, custom)
 - Five truncation strategies: `Middle`, `Start`, `ShortenNames`, `End`, `None`
 - Interactive: keyboard and mouse navigation
@@ -118,6 +124,7 @@ ratcn = { version = "0.0.1", features = ["crossterm"] }
 ```
 
 Key features:
+
 - 12 components: `Button`, `List`, `Select`, `Tabs`, `Dialog`, `ToasterWidget`, `BarChartWidget`, `Tooltip`, `ScrollArea`, `Checkbox`, `Cycle`, `ProgressWidget`
 - Full theme system (`Theme`); `Theme::adaptive` for terminal colors
 - Browser build via `ratzilla` (WASM)
@@ -138,6 +145,7 @@ edtui = "0.11"
 ```
 
 Key features:
+
 - Vim keybindings (Emacs mode available)
 - Custom keybindings and theming
 - Mouse events
@@ -158,6 +166,7 @@ malevich = { version = "1.17", features = ["ratatui"] }
 ```
 
 Key features:
+
 - 8 marks (line, points, bars, area, cells, range, rule, text)
 - Statistical layer: box plots, KDE violins, trend lines, ECDFs, 2D densities
 - ~10M points in tens of ms via M4 aggregation
@@ -179,6 +188,7 @@ ratatui-explorer = "0.3"
 ```
 
 Key features:
+
 - Input handling via crossterm, termion, or termwiz
 - Theming/customization
 - Toggle hidden files (Ctrl+h)
@@ -196,6 +206,7 @@ ratatui-textarea = "0.9"
 ```
 
 Key features:
+
 - Multi-line editing with cursor, selection, clipboard
 - Backend features: `crossterm`, `termion`, `termwiz`
 - `search` feature (regex), `serde`, `arbitrary`
@@ -213,6 +224,7 @@ ratatui-code-editor = { version = "0.0.6", features = ["crossterm"] }
 ```
 
 Key features:
+
 - Tree-sitter syntax highlighting (16 languages)
 - Mouse support: clicks, scroll, selection
 - Copy/paste via system clipboard (arboard)
@@ -234,6 +246,7 @@ ratatui-markdown = { version = "0.3", features = ["preview"] }
 ```
 
 Key features:
+
 - Markdown: headings, lists, code blocks, blockquotes, tables, images
 - Mermaid diagrams: sequence, pie, gantt, state (`mermaid` feature)
 - Tree-sitter code-block highlighting
@@ -257,6 +270,7 @@ tui-menu = "0.3"
 ```
 
 Key features:
+
 - Nested submenu groups (`MenuItem::group`)
 - Intuitive keyboard movement
 - Generic item data — any `Clone` type
@@ -274,6 +288,7 @@ rat-widget = "3.2"
 ```
 
 Key features:
+
 - Extended widget library
 - Companion event-loop crate (`rat-salsa`)
 - Family of sibling widgets (menus, dialogs, popups, markdown, ftable, scrolled, focus, text, theme)
@@ -284,6 +299,7 @@ Key features:
 ## References
 
 ### Official Resources
+
 - **Official Documentation**: https://docs.rs/ratatui/
 - **GitHub Repository**: https://github.com/ratatui-org/ratatui
 - **Official Examples**: https://github.com/ratatui-org/ratatui/tree/main/examples
@@ -291,6 +307,7 @@ Key features:
 - **Ratatui Book**: https://ratatui.rs/
 
 ### Ecosystem Libraries
+
 - **Tachyonfx (Animations)**: https://ratatui.rs/ecosystem/tachyonfx/
 - **Mousefood (Embedded)**: https://ratatui.rs/ecosystem/mousefood/
 - **Ratzilla (WebAssembly)**: https://ratatui.rs/ecosystem/ratzilla/
@@ -298,6 +315,7 @@ Key features:
 - **Third-Party Widgets**: https://ratatui.rs/showcase/third-party-widgets/
 
 ### Official Recipes
+
 - **Better Panic Handling**: https://ratatui.rs/recipes/apps/better-panic/
 - **Color Eyre Errors**: https://ratatui.rs/recipes/apps/color-eyre/
 - **Terminal Event Handler**: https://ratatui.rs/recipes/apps/terminal-and-event-handler/
@@ -311,10 +329,12 @@ Key features:
 - **Display Text**: https://ratatui.rs/recipes/render/display-text/
 
 ### Concepts & Architecture
+
 - **Backends Overview**: https://ratatui.rs/concepts/backends/
 - **Mouse Capture**: https://ratatui.rs/concepts/backends/mouse-capture/
 
 ### Community & Inspiration
+
 - **Awesome Ratatui**: https://github.com/ratatui-org/awesome-ratatui
 - **Ratatui Discord**: https://discord.gg/p2wdh46R6d
 - **Ratatui Twitter/X**: https://twitter.com/ratatui_rs

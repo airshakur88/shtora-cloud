@@ -3,6 +3,7 @@
 Detailed reference for the refactorings that break down long methods into well-named, cohesive pieces. These are the most frequently used refactorings and the foundation of all code improvement.
 
 ## Table of Contents
+
 1. [Extract Method](#extract-method)
 2. [Inline Method](#inline-method)
 3. [Extract Variable](#extract-variable)
@@ -25,7 +26,7 @@ You have a code fragment that can be grouped together. The longer a method, the 
 
 ### Mechanics
 
-1. Create a new method and name it after the *intention* of the code (what it does, not how)
+1. Create a new method and name it after the _intention_ of the code (what it does, not how)
 2. Copy the extracted code into the new method
 3. Scan the extracted code for references to local variables -- these become parameters or return values
 4. Declare any local-scope variables as local to the new method if they're only used within the extracted code
@@ -37,65 +38,67 @@ You have a code fragment that can be grouped together. The longer a method, the 
 ### Example
 
 **Before:**
+
 ```javascript
 function printOwing(invoice) {
-  let outstanding = 0;
+	let outstanding = 0;
 
-  // print banner
-  console.log("***********************");
-  console.log("**** Customer Owes ****");
-  console.log("***********************");
+	// print banner
+	console.log("***********************");
+	console.log("**** Customer Owes ****");
+	console.log("***********************");
 
-  // calculate outstanding
-  for (const order of invoice.orders) {
-    outstanding += order.amount;
-  }
+	// calculate outstanding
+	for (const order of invoice.orders) {
+		outstanding += order.amount;
+	}
 
-  // print details
-  console.log(`name: ${invoice.customer}`);
-  console.log(`amount: ${outstanding}`);
-  console.log(`due: ${invoice.dueDate.toLocaleDateString()}`);
+	// print details
+	console.log(`name: ${invoice.customer}`);
+	console.log(`amount: ${outstanding}`);
+	console.log(`due: ${invoice.dueDate.toLocaleDateString()}`);
 }
 ```
 
 **After:**
+
 ```javascript
 function printOwing(invoice) {
-  printBanner();
-  const outstanding = calculateOutstanding(invoice);
-  printDetails(invoice, outstanding);
+	printBanner();
+	const outstanding = calculateOutstanding(invoice);
+	printDetails(invoice, outstanding);
 }
 
 function printBanner() {
-  console.log("***********************");
-  console.log("**** Customer Owes ****");
-  console.log("***********************");
+	console.log("***********************");
+	console.log("**** Customer Owes ****");
+	console.log("***********************");
 }
 
 function calculateOutstanding(invoice) {
-  let result = 0;
-  for (const order of invoice.orders) {
-    result += order.amount;
-  }
-  return result;
+	let result = 0;
+	for (const order of invoice.orders) {
+		result += order.amount;
+	}
+	return result;
 }
 
 function printDetails(invoice, outstanding) {
-  console.log(`name: ${invoice.customer}`);
-  console.log(`amount: ${outstanding}`);
-  console.log(`due: ${invoice.dueDate.toLocaleDateString()}`);
+	console.log(`name: ${invoice.customer}`);
+	console.log(`amount: ${outstanding}`);
+	console.log(`due: ${invoice.dueDate.toLocaleDateString()}`);
 }
 ```
 
 ### Naming Guidelines
 
-| Bad Name | Good Name | Why |
-|----------|-----------|-----|
-| `doStuff()` | `calculateMonthlyTotal()` | Names the intent, not the vagueness |
-| `process()` | `validateAndSaveOrder()` | Specific about what it does |
-| `handleData()` | `parseCSVRow()` | Names the domain concept |
-| `helper()` | `formatCurrencyForDisplay()` | Describes the transformation |
-| `step2()` | `applyDiscountRules()` | Names the business concept |
+| Bad Name       | Good Name                    | Why                                 |
+| -------------- | ---------------------------- | ----------------------------------- |
+| `doStuff()`    | `calculateMonthlyTotal()`    | Names the intent, not the vagueness |
+| `process()`    | `validateAndSaveOrder()`     | Specific about what it does         |
+| `handleData()` | `parseCSVRow()`              | Names the domain concept            |
+| `helper()`     | `formatCurrencyForDisplay()` | Describes the transformation        |
+| `step2()`      | `applyDiscountRules()`       | Names the business concept          |
 
 **Rule of thumb:** If you can't find a good name, the extraction boundaries may be wrong. Try extracting a different fragment.
 
@@ -120,6 +123,7 @@ Sometimes a method body is as obvious as the method name. Indirection without va
 ### Example
 
 **Before:**
+
 ```python
 def get_rating(self):
     return 2 if self.more_than_five_late_deliveries() else 1
@@ -129,6 +133,7 @@ def more_than_five_late_deliveries(self):
 ```
 
 **After:**
+
 ```python
 def get_rating(self):
     return 2 if self.late_deliveries > 5 else 1
@@ -160,6 +165,7 @@ Expressions can become hard to read. A well-named variable for a sub-expression 
 ### Example
 
 **Before:**
+
 ```javascript
 return order.quantity * order.itemPrice -
   Math.max(0, order.quantity - 500) * order.itemPrice * 0.05 +
@@ -167,6 +173,7 @@ return order.quantity * order.itemPrice -
 ```
 
 **After:**
+
 ```javascript
 const basePrice = order.quantity * order.itemPrice;
 const quantityDiscount = Math.max(0, order.quantity - 500) * order.itemPrice * 0.05;
@@ -189,12 +196,14 @@ The inverse of Extract Variable. Remove a variable when the expression is just a
 ### Example
 
 **Before:**
+
 ```python
 base_price = order.base_price()
 return base_price > 1000
 ```
 
 **After:**
+
 ```python
 return order.base_price() > 1000
 ```
@@ -220,33 +229,35 @@ Temporaries can only be seen within a single method. If the same computation is 
 ### Example
 
 **Before:**
+
 ```javascript
 class Order {
-  getPrice() {
-    const basePrice = this.quantity * this.itemPrice;
-    if (basePrice > 1000) {
-      return basePrice * 0.95;
-    } else {
-      return basePrice * 0.98;
-    }
-  }
+	getPrice() {
+		const basePrice = this.quantity * this.itemPrice;
+		if (basePrice > 1000) {
+			return basePrice * 0.95;
+		} else {
+			return basePrice * 0.98;
+		}
+	}
 }
 ```
 
 **After:**
+
 ```javascript
 class Order {
-  getPrice() {
-    if (this.basePrice() > 1000) {
-      return this.basePrice() * 0.95;
-    } else {
-      return this.basePrice() * 0.98;
-    }
-  }
+	getPrice() {
+		if (this.basePrice() > 1000) {
+			return this.basePrice() * 0.95;
+		} else {
+			return this.basePrice() * 0.98;
+		}
+	}
 
-  basePrice() {
-    return this.quantity * this.itemPrice;
-  }
+	basePrice() {
+		return this.quantity * this.itemPrice;
+	}
 }
 ```
 
@@ -275,14 +286,16 @@ A temp assigned twice for different purposes misleads the reader into thinking t
 ### Example
 
 **Before:**
+
 ```javascript
-let temp = 2 * (height + width);  // perimeter
+let temp = 2 * (height + width); // perimeter
 console.log(temp);
-temp = height * width;            // area
+temp = height * width; // area
 console.log(temp);
 ```
 
 **After:**
+
 ```javascript
 const perimeter = 2 * (height + width);
 console.log(perimeter);
@@ -305,6 +318,7 @@ Never assign to a parameter inside a method body. It confuses readers about whet
 ### Example
 
 **Before:**
+
 ```python
 def discount(input_val, quantity):
     if quantity > 50:
@@ -315,6 +329,7 @@ def discount(input_val, quantity):
 ```
 
 **After:**
+
 ```python
 def discount(input_val, quantity):
     result = input_val
@@ -348,6 +363,7 @@ Sometimes a long method has so many interrelated local variables that Extract Me
 ### Example
 
 **Before:**
+
 ```python
 class Account:
     def gamma(self, input_val, quantity, year_to_date):
@@ -357,6 +373,7 @@ class Account:
 ```
 
 **After:**
+
 ```python
 class GammaCalculation:
     def __init__(self, account, input_val, quantity, year_to_date):
@@ -387,13 +404,13 @@ class Account:
 
 ## Decision Guide: Which Composing Refactoring to Use
 
-| Situation | Refactoring |
-|-----------|-------------|
-| Code block can be named by intent | Extract Method |
-| Method body is trivial and name adds nothing | Inline Method |
-| Complex expression needs explanation | Extract Variable |
-| Variable adds no meaning beyond the expression | Inline Variable |
-| Same computation needed in multiple methods | Replace Temp with Query |
-| One variable serves two purposes | Split Temporary Variable |
-| Parameter is reassigned inside method | Remove Assignments to Parameters |
-| Long method with too many entangled locals | Replace Method with Method Object |
+| Situation                                      | Refactoring                       |
+| ---------------------------------------------- | --------------------------------- |
+| Code block can be named by intent              | Extract Method                    |
+| Method body is trivial and name adds nothing   | Inline Method                     |
+| Complex expression needs explanation           | Extract Variable                  |
+| Variable adds no meaning beyond the expression | Inline Variable                   |
+| Same computation needed in multiple methods    | Replace Temp with Query           |
+| One variable serves two purposes               | Split Temporary Variable          |
+| Parameter is reassigned inside method          | Remove Assignments to Parameters  |
+| Long method with too many entangled locals     | Replace Method with Method Object |

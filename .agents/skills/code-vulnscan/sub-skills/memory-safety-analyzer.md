@@ -9,6 +9,7 @@ Find memory corruption vulnerabilities: buffer overflows, use-after-free, format
 ## Scope
 
 Skip this sub-skill entirely for pure Python, JavaScript, Java, Go, Ruby, or C# codebases with no native extensions. Apply it to:
+
 - C and C++ source files (`.c`, `.cpp`, `.h`, `.hpp`, `.cc`, `.cxx`)
 - Rust files with `unsafe {}` blocks
 - Python/Ruby/Node.js extensions in C (`.c` files with Python/Ruby C API calls)
@@ -106,6 +107,7 @@ syslog(LOG_INFO, "%s", user_input);
 ```
 
 Also flag:
+
 ```python
 # Python — % formatting with user-controlled format
 "%s" % user_input            # safe (format literal)
@@ -190,17 +192,17 @@ Only report reachable findings as vulnerabilities. Note unreachable ones as lowe
 
 ```json
 {
-  "file": "src/parser.c",
-  "line": 142,
-  "category": "stack_buffer_overflow",
-  "title": "Stack buffer overflow via unbounded strcpy with HTTP header value",
-  "description": "strcpy(buf, header_value) copies a user-supplied HTTP header into a 256-byte stack buffer without length check. An attacker can overflow the stack with a header value > 256 bytes.",
-  "evidence": "char buf[256]; strcpy(buf, header_value);  // line 141-142",
-  "taint_source": "header_value derived from HTTP header at parse_request() line 88",
-  "reachability": "directly_reachable",
-  "exploitability": "Stack canary may or may not be present. If absent, direct EIP control.",
-  "remediation": "Replace with: strncpy(buf, header_value, sizeof(buf) - 1); buf[sizeof(buf)-1] = '\\0'; Or use dynamic allocation with validated length.",
-  "cwe": "CWE-121",
-  "severity": "critical"
+	"file": "src/parser.c",
+	"line": 142,
+	"category": "stack_buffer_overflow",
+	"title": "Stack buffer overflow via unbounded strcpy with HTTP header value",
+	"description": "strcpy(buf, header_value) copies a user-supplied HTTP header into a 256-byte stack buffer without length check. An attacker can overflow the stack with a header value > 256 bytes.",
+	"evidence": "char buf[256]; strcpy(buf, header_value);  // line 141-142",
+	"taint_source": "header_value derived from HTTP header at parse_request() line 88",
+	"reachability": "directly_reachable",
+	"exploitability": "Stack canary may or may not be present. If absent, direct EIP control.",
+	"remediation": "Replace with: strncpy(buf, header_value, sizeof(buf) - 1); buf[sizeof(buf)-1] = '\\0'; Or use dynamic allocation with validated length.",
+	"cwe": "CWE-121",
+	"severity": "critical"
 }
 ```

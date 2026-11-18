@@ -107,11 +107,11 @@ function originAllowed(request: Request): boolean {
 function validPassword(password: unknown): password is string {
 	if (typeof password !== "string") return false;
 	let length = 0;
-	for (const _character of password) {
+	for (const _ of password) {
 		length += 1;
-		if (length > 4096) return false;
+		if (length > PASSWORD_MAX) return false;
 	}
-	return length > 0;
+	return length >= PASSWORD_MIN;
 }
 
 function validUsername(username: unknown): username is string {
@@ -165,10 +165,6 @@ async function register(request: Request): Promise<Response> {
 	const body = await readJson(request);
 	const { username, password } = body;
 	if (!validUsername(username) || !validPassword(password))
-		throw new AuthRequestError(400, "invalid_request");
-	let points = 0;
-	for (const _character of password) points += 1;
-	if (points < PASSWORD_MIN || points > PASSWORD_MAX)
 		throw new AuthRequestError(400, "invalid_request");
 	const normalized = username.toLowerCase();
 	const limited = await checkRateLimit(normalized, "register", request);

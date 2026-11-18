@@ -26,15 +26,15 @@ generator client {
 In `prisma.config.ts`:
 
 ```typescript
-import 'dotenv/config'
-import { defineConfig, env } from 'prisma/config'
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  datasource: {
-    url: env('DATABASE_URL'),
-  },
-})
+	schema: "prisma/schema.prisma",
+	datasource: {
+		url: env("DATABASE_URL"),
+	},
+});
 ```
 
 ## 3. Environment Variable
@@ -58,11 +58,13 @@ file:PATH
 Use a driver adapter for the standard SQL workflow.
 
 1. Install adapter and driver:
+
    ```bash
    npm install @prisma/adapter-better-sqlite3@7 better-sqlite3
    ```
 
 2. Instantiate Prisma Client with the adapter:
+
    ```typescript
    import 'dotenv/config'
    import { PrismaClient } from '../generated/client'
@@ -80,11 +82,13 @@ Use a driver adapter for the standard SQL workflow.
 For edge compatibility or Turso:
 
 1. Install:
+
    ```bash
    npm install @prisma/adapter-libsql@7 @libsql/client
    ```
 
 2. Instantiate:
+
    ```typescript
    import 'dotenv/config'
    import { PrismaClient } from '../generated/client'

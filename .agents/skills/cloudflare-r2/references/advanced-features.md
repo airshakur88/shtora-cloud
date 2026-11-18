@@ -12,11 +12,11 @@ Storage classes optimize costs based on object access patterns. Choose the appro
 
 ### Available Storage Classes
 
-| Class | Use Case | Access Latency | Cost |
-|-------|----------|----------------|------|
-| **Standard** | Frequently accessed data | <10ms | Standard |
-| **Infrequent Access** | Rarely accessed data | <100ms | Lower storage, higher retrieval |
-| **Archive** | Long-term retention | Minutes | Lowest storage, highest retrieval |
+| Class                 | Use Case                 | Access Latency | Cost                              |
+| --------------------- | ------------------------ | -------------- | --------------------------------- |
+| **Standard**          | Frequently accessed data | <10ms          | Standard                          |
+| **Infrequent Access** | Rarely accessed data     | <100ms         | Lower storage, higher retrieval   |
+| **Archive**           | Long-term retention      | Minutes        | Lowest storage, highest retrieval |
 
 **Note**: Storage class support is currently in development. Check official docs for availability.
 
@@ -24,11 +24,11 @@ Storage classes optimize costs based on object access patterns. Choose the appro
 
 ```typescript
 // Upload with storage class (when available)
-await env.MY_BUCKET.put('archive/old-data.zip', data, {
-  storageClass: 'ARCHIVE',
-  httpMetadata: {
-    contentType: 'application/zip',
-  },
+await env.MY_BUCKET.put("archive/old-data.zip", data, {
+	storageClass: "ARCHIVE",
+	httpMetadata: {
+		contentType: "application/zip",
+	},
 });
 ```
 
@@ -39,35 +39,35 @@ Automatically transition objects between storage classes:
 ```jsonc
 // wrangler.jsonc (when available)
 {
-  "r2_buckets": [
-    {
-      "binding": "MY_BUCKET",
-      "bucket_name": "my-bucket",
-      "lifecycle_rules": [
-        {
-          "id": "archive-old-backups",
-          "prefix": "backups/",
-          "transitions": [
-            {
-              "days": 30,
-              "storage_class": "INFREQUENT_ACCESS"
-            },
-            {
-              "days": 90,
-              "storage_class": "ARCHIVE"
-            }
-          ]
-        },
-        {
-          "id": "delete-temp-files",
-          "prefix": "temp/",
-          "expiration": {
-            "days": 7
-          }
-        }
-      ]
-    }
-  ]
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET",
+			"bucket_name": "my-bucket",
+			"lifecycle_rules": [
+				{
+					"id": "archive-old-backups",
+					"prefix": "backups/",
+					"transitions": [
+						{
+							"days": 30,
+							"storage_class": "INFREQUENT_ACCESS"
+						},
+						{
+							"days": 90,
+							"storage_class": "ARCHIVE"
+						}
+					]
+				},
+				{
+					"id": "delete-temp-files",
+					"prefix": "temp/",
+					"expiration": {
+						"days": 7
+					}
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -80,17 +80,20 @@ Bucket locks prevent accidental or malicious deletion of objects, enforcing rete
 ### Object Lock Modes
 
 **Compliance Mode**:
+
 - Objects cannot be deleted or modified until retention period expires
 - Even account administrators cannot override
 - Required for regulatory compliance (FINRA, SEC, HIPAA, etc.)
 
 **Governance Mode**:
+
 - Objects protected but can be overridden with special permissions
 - Useful for internal policies without strict regulatory requirements
 
 ### Enabling Bucket Lock
 
 **Dashboard Setup**:
+
 1. Navigate to R2 → Select bucket
 2. Click "Settings" tab
 3. Scroll to "Object Lock" section
@@ -113,15 +116,17 @@ bunx wrangler r2 bucket update my-bucket \
 
 ```typescript
 // Upload with retention policy
-await env.MY_BUCKET.put('legal/document.pdf', data, {
-  httpMetadata: {
-    contentType: 'application/pdf',
-  },
-  // Object cannot be deleted for 365 days
-  objectLock: {
-    mode: 'COMPLIANCE',
-    retainUntilDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-  },
+await env.MY_BUCKET.put("legal/document.pdf", data, {
+	httpMetadata: {
+		contentType: "application/pdf",
+	},
+	// Object cannot be deleted for 365 days
+	objectLock: {
+		mode: "COMPLIANCE",
+		retainUntilDate: new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000,
+		).toISOString(),
+	},
 });
 ```
 
@@ -141,13 +146,13 @@ The tus protocol enables resumable file uploads, allowing uploads to continue af
 
 ### Why Use tus Instead of Multipart?
 
-| Feature | Multipart Upload | tus Protocol |
-|---------|------------------|--------------|
-| **Resume after failure** | No - restart from beginning | Yes - resume from last byte |
-| **Network reliability** | Requires stable connection | Handles intermittent connectivity |
-| **Client support** | Custom implementation | Standard protocol, many libraries |
-| **Progress tracking** | Manual tracking | Built-in progress |
-| **Complexity** | Medium | Low (with libraries) |
+| Feature                  | Multipart Upload            | tus Protocol                      |
+| ------------------------ | --------------------------- | --------------------------------- |
+| **Resume after failure** | No - restart from beginning | Yes - resume from last byte       |
+| **Network reliability**  | Requires stable connection  | Handles intermittent connectivity |
+| **Client support**       | Custom implementation       | Standard protocol, many libraries |
+| **Progress tracking**    | Manual tracking             | Built-in progress                 |
+| **Complexity**           | Medium                      | Low (with libraries)              |
 
 ### Enabling tus Support
 
@@ -155,13 +160,13 @@ The tus protocol enables resumable file uploads, allowing uploads to continue af
 
 ```jsonc
 {
-  "r2_buckets": [
-    {
-      "binding": "MY_BUCKET",
-      "bucket_name": "my-bucket",
-      "tus_enabled": true  // Enable tus protocol
-    }
-  ]
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET",
+			"bucket_name": "my-bucket",
+			"tus_enabled": true // Enable tus protocol
+		}
+	]
 }
 ```
 
@@ -170,98 +175,100 @@ The tus protocol enables resumable file uploads, allowing uploads to continue af
 **JavaScript Client**:
 
 ```javascript
-import * as tus from 'tus-js-client';
+import * as tus from "tus-js-client";
 
 function uploadWithTus(file, onProgress) {
-  const upload = new tus.Upload(file, {
-    // tus endpoint (served by your Worker)
-    endpoint: '/api/upload/tus',
+	const upload = new tus.Upload(file, {
+		// tus endpoint (served by your Worker)
+		endpoint: "/api/upload/tus",
 
-    // Retry on failure
-    retryDelays: [0, 1000, 3000, 5000],
+		// Retry on failure
+		retryDelays: [0, 1000, 3000, 5000],
 
-    // Custom metadata
-    metadata: {
-      filename: file.name,
-      filetype: file.type,
-      userId: currentUserId,
-    },
+		// Custom metadata
+		metadata: {
+			filename: file.name,
+			filetype: file.type,
+			userId: currentUserId,
+		},
 
-    // Progress tracking
-    onProgress: (bytesUploaded, bytesTotal) => {
-      const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
-      onProgress(percentage);
-      console.log(`Uploaded ${bytesUploaded} of ${bytesTotal} bytes (${percentage}%)`);
-    },
+		// Progress tracking
+		onProgress: (bytesUploaded, bytesTotal) => {
+			const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
+			onProgress(percentage);
+			console.log(
+				`Uploaded ${bytesUploaded} of ${bytesTotal} bytes (${percentage}%)`,
+			);
+		},
 
-    // Upload complete
-    onSuccess: () => {
-      console.log('Upload complete!');
-    },
+		// Upload complete
+		onSuccess: () => {
+			console.log("Upload complete!");
+		},
 
-    // Upload failed
-    onError: (error) => {
-      console.error('Upload failed:', error);
-    },
-  });
+		// Upload failed
+		onError: (error) => {
+			console.error("Upload failed:", error);
+		},
+	});
 
-  // Start upload
-  upload.start();
+	// Start upload
+	upload.start();
 
-  // Return upload object for controls
-  return {
-    pause: () => upload.abort(),
-    resume: () => upload.start(),
-    abort: () => upload.abort(true),
-  };
+	// Return upload object for controls
+	return {
+		pause: () => upload.abort(),
+		resume: () => upload.start(),
+		abort: () => upload.abort(true),
+	};
 }
 ```
 
 ### Worker tus Handler
 
 ```typescript
-import { Hono } from 'hono';
-import { tusMiddleware } from '@tus/server';
+import { Hono } from "hono";
+import { tusMiddleware } from "@tus/server";
 
 type Bindings = {
-  MY_BUCKET: R2Bucket;
+	MY_BUCKET: R2Bucket;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // tus upload endpoint
-app.all('/api/upload/tus/*', async (c) => {
-  const tusHandler = tusMiddleware({
-    // Store upload metadata in R2
-    datastore: new R2DataStore(c.env.MY_BUCKET),
+app.all("/api/upload/tus/*", async (c) => {
+	const tusHandler = tusMiddleware({
+		// Store upload metadata in R2
+		datastore: new R2DataStore(c.env.MY_BUCKET),
 
-    // Allow upload resume
-    namingFunction: (req) => {
-      return `${Date.now()}-${crypto.randomUUID()}`;
-    },
+		// Allow upload resume
+		namingFunction: (req) => {
+			return `${Date.now()}-${crypto.randomUUID()}`;
+		},
 
-    // Maximum upload size (5GB)
-    maxSize: 5 * 1024 * 1024 * 1024,
+		// Maximum upload size (5GB)
+		maxSize: 5 * 1024 * 1024 * 1024,
 
-    // Handle upload complete
-    onUploadComplete: async (req, upload) => {
-      console.log('Upload complete:', upload.id);
+		// Handle upload complete
+		onUploadComplete: async (req, upload) => {
+			console.log("Upload complete:", upload.id);
 
-      // Move from temp to final location
-      const finalKey = `uploads/${upload.metadata.filename}`;
-      await c.env.MY_BUCKET.put(finalKey, upload.stream, {
-        httpMetadata: {
-          contentType: upload.metadata.filetype,
-        },
-        customMetadata: {
-          uploadId: upload.id,
-          userId: upload.metadata.userId,
-        },
-      });
-    },
-  });
+			// Move from temp to final location
+			const finalKey = `uploads/${upload.metadata.filename}`;
+			await c.env.MY_BUCKET.put(finalKey, upload.stream, {
+				httpMetadata: {
+					contentType: upload.metadata.filetype,
+				},
+				customMetadata: {
+					uploadId: upload.id,
+					userId: upload.metadata.userId,
+				},
+			});
+		},
+	});
 
-  return tusHandler(c.req.raw);
+	return tusHandler(c.req.raw);
 });
 
 export default app;
@@ -293,27 +300,27 @@ SSE-C allows you to manage your own encryption keys while Cloudflare handles enc
 ### Uploading with SSE-C
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 // Generate or retrieve encryption key (32 bytes)
 const encryptionKey = crypto.randomBytes(32);
-const keyBase64 = encryptionKey.toString('base64');
-const keyMD5 = crypto.createHash('md5').update(encryptionKey).digest('base64');
+const keyBase64 = encryptionKey.toString("base64");
+const keyMD5 = crypto.createHash("md5").update(encryptionKey).digest("base64");
 
 // Upload with customer-provided encryption
-await env.MY_BUCKET.put('secure/document.pdf', data, {
-  httpMetadata: {
-    contentType: 'application/pdf',
-  },
-  encryption: {
-    algorithm: 'AES256',
-    key: keyBase64,
-    keyMD5: keyMD5,
-  },
+await env.MY_BUCKET.put("secure/document.pdf", data, {
+	httpMetadata: {
+		contentType: "application/pdf",
+	},
+	encryption: {
+		algorithm: "AES256",
+		key: keyBase64,
+		keyMD5: keyMD5,
+	},
 });
 
 // Store encryption key securely (e.g., in KV or external key management system)
-await env.ENCRYPTION_KEYS.put('document.pdf', keyBase64);
+await env.ENCRYPTION_KEYS.put("document.pdf", keyBase64);
 ```
 
 ### Downloading with SSE-C
@@ -366,30 +373,30 @@ const key = await env.ENCRYPTION_KEYS.get(`key:${objectKey}`);
 ```typescript
 // Store keys in AWS KMS, Azure Key Vault, or HashiCorp Vault
 async function getEncryptionKey(objectKey: string): Promise<string> {
-  const response = await fetch(`https://kms.example.com/keys/${objectKey}`, {
-    headers: {
-      'Authorization': `Bearer ${env.KMS_API_KEY}`,
-    },
-  });
+	const response = await fetch(`https://kms.example.com/keys/${objectKey}`, {
+		headers: {
+			Authorization: `Bearer ${env.KMS_API_KEY}`,
+		},
+	});
 
-  const data = await response.json();
-  return data.encryptionKey;
+	const data = await response.json();
+	return data.encryptionKey;
 }
 ```
 
 **Option 3: Derived Keys (Password-Based)**
 
 ```typescript
-import { pbkdf2 } from 'crypto';
+import { pbkdf2 } from "crypto";
 
 // Derive encryption key from user password
 function deriveEncryptionKey(password: string, salt: string): string {
-  return pbkdf2(password, salt, 100000, 32, 'sha256').toString('base64');
+	return pbkdf2(password, salt, 100000, 32, "sha256").toString("base64");
 }
 
 // Use derived key for encryption
-const userPassword = 'user-secret-password';
-const salt = 'unique-salt-per-user';
+const userPassword = "user-secret-password";
+const salt = "unique-salt-per-user";
 const encryptionKey = deriveEncryptionKey(userPassword, salt);
 ```
 
@@ -419,45 +426,44 @@ const encryptionKey = deriveEncryptionKey(userPassword, salt);
 
 ```typescript
 // Upload sensitive document with all protections
-async function uploadSecureDocument(
-  file: File,
-  env: Bindings,
-  userId: string
-) {
-  // Generate encryption key
-  const encryptionKey = crypto.randomBytes(32);
-  const keyBase64 = encryptionKey.toString('base64');
-  const keyMD5 = crypto.createHash('md5').update(encryptionKey).digest('base64');
+async function uploadSecureDocument(file: File, env: Bindings, userId: string) {
+	// Generate encryption key
+	const encryptionKey = crypto.randomBytes(32);
+	const keyBase64 = encryptionKey.toString("base64");
+	const keyMD5 = crypto
+		.createHash("md5")
+		.update(encryptionKey)
+		.digest("base64");
 
-  // Upload with tus (resumable), SSE-C (encrypted), and object lock (immutable)
-  const upload = new tus.Upload(file, {
-    endpoint: '/api/upload/tus',
-    metadata: {
-      filename: file.name,
-      filetype: file.type,
-      userId: userId,
-      encrypted: 'true',
-      locked: 'true',
-    },
-    headers: {
-      // SSE-C headers
-      'x-amz-server-side-encryption-customer-algorithm': 'AES256',
-      'x-amz-server-side-encryption-customer-key': keyBase64,
-      'x-amz-server-side-encryption-customer-key-md5': keyMD5,
-      // Object lock headers
-      'x-amz-object-lock-mode': 'COMPLIANCE',
-      'x-amz-object-lock-retain-until-date': new Date(
-        Date.now() + 365 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-    },
-    onSuccess: async () => {
-      // Store encryption key securely
-      await env.ENCRYPTION_KEYS.put(`user:${userId}:${file.name}`, keyBase64);
-      console.log('Secure upload complete!');
-    },
-  });
+	// Upload with tus (resumable), SSE-C (encrypted), and object lock (immutable)
+	const upload = new tus.Upload(file, {
+		endpoint: "/api/upload/tus",
+		metadata: {
+			filename: file.name,
+			filetype: file.type,
+			userId: userId,
+			encrypted: "true",
+			locked: "true",
+		},
+		headers: {
+			// SSE-C headers
+			"x-amz-server-side-encryption-customer-algorithm": "AES256",
+			"x-amz-server-side-encryption-customer-key": keyBase64,
+			"x-amz-server-side-encryption-customer-key-md5": keyMD5,
+			// Object lock headers
+			"x-amz-object-lock-mode": "COMPLIANCE",
+			"x-amz-object-lock-retain-until-date": new Date(
+				Date.now() + 365 * 24 * 60 * 60 * 1000,
+			).toISOString(),
+		},
+		onSuccess: async () => {
+			// Store encryption key securely
+			await env.ENCRYPTION_KEYS.put(`user:${userId}:${file.name}`, keyBase64);
+			console.log("Secure upload complete!");
+		},
+	});
 
-  upload.start();
+	upload.start();
 }
 ```
 

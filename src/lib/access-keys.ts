@@ -87,10 +87,11 @@ export async function createAccessKey(
 		.bind(userId, input.name, keyHash, keyPrefix, now, now, expiresAt)
 		.all<{ id: number }>();
 
-	const id = result.results[0]?.id ?? 0;
+	const row = result.results[0];
+	if (!row) throw new Error("Created access key unavailable");
 
 	return {
-		id,
+		id: row.id,
 		name: input.name,
 		enabled: true,
 		createdAt: now,

@@ -2,12 +2,12 @@
 
 ## 1. Source hierarchy and semantic validation
 
-| Evidence type | Representative source | What it warrants |
-| --- | --- | --- |
-| Observed | Executed query, repository config, API response, contract, measured workload | The inspected artifact said or did X at that time |
-| Derived | Reproducible arithmetic from observed inputs | The result follows if the input definitions and computation are correct |
-| Inferred | Domain reasoning, projected workload, untested architecture assumption | A hypothesis to test, not a measured fact |
-| Unavailable | No permission, missing API, network failure, missing dataset | Uncertainty; never infer nonexistence |
+| Evidence type | Representative source                                                        | What it warrants                                                        |
+| ------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Observed      | Executed query, repository config, API response, contract, measured workload | The inspected artifact said or did X at that time                       |
+| Derived       | Reproducible arithmetic from observed inputs                                 | The result follows if the input definitions and computation are correct |
+| Inferred      | Domain reasoning, projected workload, untested architecture assumption       | A hypothesis to test, not a measured fact                               |
+| Unavailable   | No permission, missing API, network failure, missing dataset                 | Uncertainty; never infer nonexistence                                   |
 
 For a supposedly direct field, check event semantics, filters, units, population, attribution, clock, refund/reversal behavior, freshness, tenant boundaries and provenance. A field name is not enough. If the user asks for a total and the API exposes a gross total, it may still require adjustment. Record the smallest proof that disambiguates them.
 
@@ -21,13 +21,13 @@ Search candidate approaches based on constraints, not token familiarity. Include
 
 ## 3. Architectural independence
 
-| Axis | Ask | Common trap |
-| --- | --- | --- |
-| Rendering | Which routes need SSR, metadata, static generation or only client rendering? | Treating a login wall as proof that every SSR need vanishes |
-| Runtime | Are workloads requests, streams, queues, cron or long jobs? | Picking request-limited compute for long jobs without checking limits |
-| Hosting | Who handles deploys, patching, observability, incidents, downtime? | Comparing only list price, ignoring personnel and failure cost |
-| Persistence | Required transactions, locality, recovery point, restore time, isolation? | Treating a colocated DB as an automatic long-term saving |
-| Auth | Managed auth vs self-owned identity, audit and migration boundary? | Underestimating coupling or inventing compliance guarantees |
+| Axis        | Ask                                                                          | Common trap                                                           |
+| ----------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Rendering   | Which routes need SSR, metadata, static generation or only client rendering? | Treating a login wall as proof that every SSR need vanishes           |
+| Runtime     | Are workloads requests, streams, queues, cron or long jobs?                  | Picking request-limited compute for long jobs without checking limits |
+| Hosting     | Who handles deploys, patching, observability, incidents, downtime?           | Comparing only list price, ignoring personnel and failure cost        |
+| Persistence | Required transactions, locality, recovery point, restore time, isolation?    | Treating a colocated DB as an automatic long-term saving              |
+| Auth        | Managed auth vs self-owned identity, audit and migration boundary?           | Underestimating coupling or inventing compliance guarantees           |
 
 Framework, host and database can have different providers. Inspect each real dependency and its documented deployment contracts before asserting a lock-in. A well-known stack can be the right choice when its hosting, maintenance and failure characteristics match the actual organization. A self-managed design is not preferable merely because bills appear predictable.
 

@@ -19,6 +19,7 @@ uv run <skill-dir>/scripts/generate.py partition discover
 It writes balanced `.opentaint/tracking/rules/plans/lib-NNN.yaml` plans, one disjoint slice per leaf. Fan out discover-attack-surface, one per plan.
 
 Inputs each:
+
 - `language`
 - `plan`
 
@@ -39,6 +40,7 @@ For each source unit `get_status.py` lists as not passing, run this two-step pip
 ### 1. Dispatch create-test-project
 
 Inputs:
+
 - `language`
 - `type: rule-source`
 - `unit`
@@ -48,6 +50,7 @@ Expect back — `stages.test_project: done` on the unit.
 ### 2. Dispatch create-rule
 
 Inputs:
+
 - `language`
 - `side: sources`
 - `unit`
@@ -60,6 +63,7 @@ Expect back — each source's `rule_id` set and `stages.tests_passing: done`.
 Once no source unit is pending, status names unwired created sources. Dispatch assemble-lib-rules.
 
 Inputs:
+
 - `language`
 
 Expect back — the joins tally written: one join per built-in sink, each refing all created sources for that vulnerability class. Then delete the source units' `test-compiled/` models.

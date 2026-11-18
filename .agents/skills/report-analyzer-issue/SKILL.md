@@ -1,10 +1,11 @@
 ---
+
 name: report-analyzer-issue
 description: Write a self-contained OpenTaint engine-issue report from an analysis diagnosis or a full-scan failure. Use when an engine-side issue needs a report
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Report Analyzer Issue

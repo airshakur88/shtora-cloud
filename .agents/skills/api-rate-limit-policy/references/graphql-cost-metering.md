@@ -23,13 +23,13 @@ Official source: `shopify.dev/docs/api/usage/limits`. Calculated query cost spen
 
 ```json
 {
-  "requestedQueryCost": 101,
-  "actualQueryCost": 46,
-  "throttleStatus": {
-    "maximumAvailable": 1000,
-    "currentlyAvailable": 954,
-    "restoreRate": 50
-  }
+	"requestedQueryCost": 101,
+	"actualQueryCost": 46,
+	"throttleStatus": {
+		"maximumAvailable": 1000,
+		"currentlyAvailable": 954,
+		"restoreRate": 50
+	}
 }
 ```
 

@@ -33,6 +33,7 @@ If no unverified findings remain (and no work_item was provided), output exactly
 ### Step 3: Verify the vulnerable code exists
 
 Read the file at the reported location. Confirm:
+
 - The file exists and contains the reported vulnerable code
 - The line number is accurate (within ~5 lines tolerance)
 - The function/method name matches
@@ -40,6 +41,7 @@ Read the file at the reported location. Confirm:
 ### Step 4: Validate each criterion
 
 For each criterion in the criteria list:
+
 - Review the analyzer's evidence from the Validation Evidence table
 - If evidence is convincing and specific, accept it
 - If evidence is vague or questionable, do your own targeted check (read the specific code, grep for a specific pattern)
@@ -50,12 +52,14 @@ For each criterion in the criteria list:
 Do targeted checks for common mitigations:
 
 **Application projects (backend, frontend, mobile):**
+
 - Framework-level protections (ORM auto-parameterization, template auto-escaping, CSRF middleware)
 - Middleware or decorators applied at the route level
 - Validation libraries or input sanitization in the request pipeline
 - Configuration that enables/disables security features
 
 **Library projects:**
+
 - Input validation or type checking within the vulnerable function or its call chain
 - Key filtering or sanitization (e.g., blocking `__proto__`, `constructor`, `prototype` keys)
 - Safe API defaults (e.g., safe YAML loader, disabled external entities)
@@ -67,6 +71,7 @@ Limit yourself to 2-3 targeted tool calls for this step. You are NOT re-doing th
 ### Step 6: Render verdict
 
 Based on steps 2-4, decide:
+
 - **verified**: ALL criteria confirmed AND no unaccounted mitigations found
 - **rejected**: ANY criterion fails OR a mitigation renders the vulnerability unexploitable
 
@@ -77,6 +82,7 @@ Do NOT reject findings merely because exploitation is complex or requires chaini
 ### Step 7: Update finding file
 
 If **verified**:
+
 - Set `**Status**`: `verified`
 - Set your assessed `**Severity**` (may differ from analyzer's)
 - Fill `## Verification`:
@@ -87,6 +93,7 @@ If **verified**:
   - **Criteria Confirmed**: x/y (confirmed count / total criteria)
 
 If **rejected**:
+
 - Set `**Status**`: `rejected`
 - Fill `## Verification`:
   - **Verdict**: rejected
@@ -100,6 +107,6 @@ If **rejected**:
 Output a short summary with no commentary. Format: `<file> | <agent>/<vector> — <verdict>`
 
 Examples:
+
 - `handlers/transfers.go | authz/bola — verified`
 - `handlers/accounts.go | injection/sql-injection — rejected (mitigated)`
-

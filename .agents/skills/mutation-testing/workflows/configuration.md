@@ -17,6 +17,7 @@ Configure mewt so the user can run `mewt run` with optimal settings that balance
 **Actions:**
 
 1. **Initialize mewt:**
+
    ```bash
    mewt init  # Creates mewt.toml and mewt.sqlite
    ```
@@ -26,6 +27,7 @@ Configure mewt so the user can run `mewt run` with optimal settings that balance
    Examples use mewt 4.x. Check the installed tool's `--help` before using unfamiliar flags. For muton, use its command name and configuration filename.
 
 2. **Review auto-generated configuration:**
+
    ```bash
    mewt print config
    ```
@@ -36,6 +38,7 @@ Configure mewt so the user can run `mewt run` with optimal settings that balance
    - Note: Ignore patterns use substring matching (e.g., `"test"` matches `tests/`, `test_utils.rs`)
 
 4. **Edit `mewt.toml` if needed** to fix target patterns:
+
    ```toml
    [targets]
    include = ["src/**/*.rs"]      # Specific source directories only
@@ -53,21 +56,26 @@ Configure mewt so the user can run `mewt run` with optimal settings that balance
 **Actions:**
 
 1. **Generate mutants:**
+
    ```bash
    mewt mutate src/
    ```
+
    Note: Output shows per-target summaries with severity breakdown (high/medium/low). Use `--verbose` to see individual mutants.
 
 2. **Check mutant count and distribution:**
+
    ```bash
    mewt status           # View total mutant count
    mewt print targets    # Pretty table showing which files were mutated
    ```
 
 3. **Time the test command:**
+
    ```bash
    time <test-command-from-config>  # e.g., time cargo test
    ```
+
    Note the baseline test duration.
 
 4. **Calculate worst-case campaign duration:**
@@ -103,6 +111,7 @@ Estimated campaign duration?
 **Actions (if optimization needed):**
 
 Read `references/optimization-strategies.md` for detailed strategies and examples. Then:
+
 1. Verify target selection (most common issue — check `mewt print targets` for unintended files)
 2. Analyze project structure (`mewt print mutants --target 'src/component/**'` per component)
 3. Present options to user with time estimates (full campaign / target critical components / high-severity only / two-phase)
@@ -110,17 +119,20 @@ Read `references/optimization-strategies.md` for detailed strategies and example
 5. **If `[targets]` or `[run].mutations` changed**, update the database and recalculate duration:
    Purging deletes saved mutants and outcomes. Preserve results that need to be retained and confirm that discarding the affected campaign data is authorized before purging.
    - **Target scope narrowed** (Option B): purge removed targets, then mutate any newly included files:
+
      ```bash
      mewt purge           # removes targets no longer in [targets].include/ignore
      mewt mutate src/     # adds mutants for any newly included files
      mewt status          # verify reduced mutant count
      ```
    - **Mutation types restricted** (Option C): full regeneration required since existing mutants may no longer be valid:
+
      ```bash
      mewt purge --all
      mewt mutate src/
      mewt status          # verify reduced mutant count
      ```
+
    Update the duration estimate before proceeding to Phase 4.
 
 **Exit:** Either campaign duration is acceptable, or `mewt.toml` has been optimized, the database updated, and the new duration estimate confirmed.
@@ -134,9 +146,11 @@ Read `references/optimization-strategies.md` for detailed strategies and example
 **Actions:**
 
 1. **If test configuration was modified in Phase 3,** verify it works:
+
    ```bash
    <test-command-from-config>  # Should succeed without errors
    ```
+
    Skip this step if Phase 2's timing already validated the unmodified command.
 
 2. **Check if timeout adjustment needed:**
@@ -159,6 +173,7 @@ Read `references/optimization-strategies.md` for detailed strategies and example
    ```
 
    If recompilation time >> test time:
+
    ```toml
    [test]
    cmd = "forge test"
@@ -275,11 +290,13 @@ timeout = 11  # Based on: touch file, time test (5.2s), × 2
 ### No Mutants Generated
 
 **Check language support:**
+
 ```bash
 mewt print mutations --language rust
 ```
 
 **Verify patterns:**
+
 ```bash
 mewt print config
 find src -name '*.rs' | head  # Do source files exist where include points?
@@ -288,6 +305,7 @@ find src -name '*.rs' | head  # Do source files exist where include points?
 `find`, not `ls src/**/*.rs`. Whether `**` recurses depends on the shell: zsh expands it, bash does not unless `globstar` is set, and the bash 3.2 that macOS ships has no `globstar` option to set. So the `ls` form degrades to `src/*/*.rs` under bash — given `src/top.rs`, `src/a/one.rs`, and `src/a/b/two.rs` it lists only `src/a/one.rs` — while the same line is correct under zsh. A diagnostic that under-reports on some machines and not others is worse than none: the files it drops read as "the include pattern doesn't match," sending you to edit a pattern that was already right. `find` behaves identically in every shell and exits 0 when nothing matches, instead of erroring. Keep the `**` in `mewt.toml`, where mewt expands it rather than the shell.
 
 **Common causes:**
+
 - Include pattern doesn't match files
 - Ignore pattern too broad (e.g., `"test"` matches `test_utils.rs`)
 - Unsupported language
@@ -297,11 +315,13 @@ find src -name '*.rs' | head  # Do source files exist where include points?
 ### Test Command Fails
 
 **Run command manually:**
+
 ```bash
 pytest  # Should work from project directory without errors
 ```
 
 **Find correct command:**
+
 - Check: `Makefile`, `justfile`, `package.json`, `README.md`
 - In monorepos, may need to run from workspace subdirectory
 

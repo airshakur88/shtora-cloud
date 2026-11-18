@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| latest (main) | ✅ Yes |
+| Version        | Supported              |
+| -------------- | ---------------------- |
+| latest (main)  | ✅ Yes                 |
 | older releases | ❌ No — please upgrade |
 
 ## Scope
@@ -12,12 +12,14 @@
 This repository contains a **security scanning skill** — static analysis patterns, scripts, and AI agent instructions. The scope of this policy covers:
 
 **In scope:**
+
 - Vulnerabilities in the Python scripts (`scripts/`) that could allow code execution, path traversal, or information disclosure when scanning untrusted codebases
 - False negatives in critical vulnerability patterns (e.g. SQLi, CMDi) that would cause dangerous code to be classified as safe
 - Supply-chain risks in `requirements.txt` dependencies
 - Install scripts (`install.sh`, `install.ps1`) that write to unintended locations
 
 **Out of scope:**
+
 - Intentionally vulnerable test fixtures in `tests/fixtures/` — these contain real vulnerability patterns by design
 - False positives (missed detections are tracked in `docs/tasks.md`, not as security issues)
 - Vulnerabilities in IDEs or AI assistants that consume this skill
@@ -29,6 +31,7 @@ This repository contains a **security scanning skill** — static analysis patte
 Report privately to: **bhanu.chintalapudi@newfold.com**
 
 Please include:
+
 1. A description of the vulnerability and its potential impact
 2. Steps to reproduce (proof-of-concept script or command sequence)
 3. Affected files and line numbers
@@ -36,12 +39,12 @@ Please include:
 
 ### What to expect
 
-| Timeframe | Action |
-|-----------|--------|
-| 48 hours | Acknowledgement of your report |
-| 7 days | Initial triage and severity assessment |
-| 30 days | Fix published (critical/high severity) |
-| 90 days | Fix published (medium/low severity) |
+| Timeframe | Action                                 |
+| --------- | -------------------------------------- |
+| 48 hours  | Acknowledgement of your report         |
+| 7 days    | Initial triage and severity assessment |
+| 30 days   | Fix published (critical/high severity) |
+| 90 days   | Fix published (medium/low severity)    |
 
 After a fix is released, you will be credited in the release notes unless you prefer to remain anonymous.
 

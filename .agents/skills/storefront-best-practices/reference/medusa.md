@@ -17,6 +17,7 @@
 Guide for connecting your storefront to Medusa backend using the [Medusa JS SDK](https://docs.medusajs.com/resources/js-sdk).
 
 **When to use this guide:**
+
 - Building a storefront with Medusa backend
 - Need to integrate Medusa SDK properly
 - Working with multi-region stores
@@ -57,13 +58,14 @@ Both required: SDK provides functionality, types provide TypeScript support.
 ## SDK Setup
 
 ```typescript
-import Medusa from "@medusajs/js-sdk"
+import Medusa from "@medusajs/js-sdk";
 
 export const sdk = new Medusa({
-  baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000",
-  debug: process.env.NODE_ENV === "development",
-  publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
-})
+	baseUrl:
+		process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000",
+	debug: process.env.NODE_ENV === "development",
+	publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+});
 ```
 
 **CRITICAL: Always set publishableKey.**
@@ -78,6 +80,7 @@ export const sdk = new Medusa({
 - **Run storefront at port 8000** to avoid CORS errors
 - Medusa backend's default CORS configuration expects storefront at `http://localhost:8000`
 - If using different port, configure CORS in Medusa backend's `medusa-config.ts`:
+
   ```typescript
   store_cors: process.env.STORE_CORS || "http://localhost:YOUR_PORT"
   ```
@@ -95,14 +98,15 @@ Add this to your `vite.config.ts`:
 
 ```typescript
 export default defineConfig({
-  // ... other config
-  ssr: {
-    noExternal: ['@medusajs/js-sdk'],
-  },
-})
+	// ... other config
+	ssr: {
+		noExternal: ["@medusajs/js-sdk"],
+	},
+});
 ```
 
 **Why this is needed:**
+
 - Medusa JS SDK must be processed by Vite during SSR
 - Without this config, SDK calls will fail during server-side rendering
 - Applies to TanStack Start, vanilla Vite, and other Vite-based frameworks
@@ -113,17 +117,18 @@ export default defineConfig({
 
 ```typescript
 import type {
-  StoreProduct,
-  StoreCart,
-  StoreCartLineItem,
-  StoreRegion,
-  StoreProductCategory,
-  StoreCustomer,
-  StoreOrder
-} from "@medusajs/types"
+	StoreProduct,
+	StoreCart,
+	StoreCartLineItem,
+	StoreRegion,
+	StoreProductCategory,
+	StoreCustomer,
+	StoreOrder,
+} from "@medusajs/types";
 ```
 
 **Why use official types:**
+
 - Complete and accurate type definitions
 - Updated with each Medusa release
 - Includes all entity relationships and fields
@@ -144,16 +149,18 @@ Unlike Stripe (where amounts are in cents), Medusa stores prices in their displa
 ```
 
 **Correct price formatting:**
+
 ```typescript
 const formatPrice = (amount: number, currencyCode: string) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyCode,
-  }).format(amount)
-}
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: currencyCode,
+	}).format(amount);
+};
 ```
 
 **Price fields to use:**
+
 - `variant.calculated_price.calculated_amount` - Final price including promotions
 - `variant.calculated_price.original_amount` - Original price before discounts
 - Both are already in display format - no conversion needed
@@ -161,6 +168,7 @@ const formatPrice = (amount: number, currencyCode: string) => {
 ## SDK Organization
 
 The Medusa SDK is organized by resources:
+
 - `sdk.store.product.*` - Product operations
 - `sdk.store.cart.*` - Cart operations
 - `sdk.store.category.*` - Category operations
@@ -189,11 +197,13 @@ The Medusa SDK is organized by resources:
 **Pattern**: Line items have dedicated methods (create, update, delete). Other cart properties use a generic update method.
 
 **Line item operations** (verify exact method names with MCP/docs):
+
 - Add item to cart
 - Update item quantity
 - Remove item from cart
 
 **Other cart updates** (email, addresses, region, promo codes):
+
 - Use cart's generic update method
 
 **To implement**: Query MCP server or documentation for exact cart method signatures:
@@ -202,6 +212,7 @@ https://docs.medusajs.com/resources/references/js-sdk/store/cart
 ### 3. Payment Flow Pattern
 
 **High-level workflow:**
+
 1. Query available payment providers for the cart's region
 2. User selects payment method
 3. Initialize payment session for selected provider
@@ -209,11 +220,13 @@ https://docs.medusajs.com/resources/references/js-sdk/store/cart
 5. Complete payment through provider
 
 **To implement**: Query MCP/docs for:
+
 - Payment provider listing method
 - Payment session initialization method
 - Payment completion method
 
 **Resources**:
+
 - MCP server (if installed)
 - Medusa payment docs: https://docs.medusajs.com/resources/references/js-sdk/store/payment
 - `reference/layouts/checkout.md` for checkout flow
@@ -221,6 +234,7 @@ https://docs.medusajs.com/resources/references/js-sdk/store/cart
 ### 4. Checkout Flow Pattern
 
 **High-level workflow:**
+
 1. Collect shipping address
 2. Query available shipping options for cart
 3. User selects shipping method
@@ -243,6 +257,7 @@ https://docs.medusajs.com/resources/references/js-sdk/store/cart
 ### Why Region Context Matters
 
 Medusa requires region for:
+
 - Creating carts (must pass `region_id`)
 - Retrieving products with correct prices
 - Determining currency and tax calculations
@@ -251,6 +266,7 @@ Medusa requires region for:
 ### Implementation Approach
 
 **High-level workflow:**
+
 1. Fetch available regions on app load (query MCP/docs for region listing method)
 2. Detect user's country (IP, browser locale, or user selection)
 3. Find region containing that country
@@ -258,6 +274,7 @@ Medusa requires region for:
 5. Use `selectedRegion.id` for all cart and product operations
 
 **When user changes country:**
+
 - Find new region containing the country
 - Update cart with new region_id (query MCP/docs for cart update method)
 - Store selection in localStorage for persistence
@@ -265,6 +282,7 @@ Medusa requires region for:
 **To implement**: Query MCP server or docs for exact region and cart methods. Don't copy example code without verification.
 
 **For detailed region implementation with code examples**, see:
+
 - `reference/components/country-selector.md`
 - Docs MCP server (if installed)
 - Medusa docs: https://docs.medusajs.com/resources/storefront-development/regions/context
@@ -272,18 +290,19 @@ Medusa requires region for:
 ## Error Handling
 
 SDK throws `FetchError` with:
+
 - `status`: HTTP status code
 - `statusText`: Error code
 - `message`: Descriptive message
 
 ```typescript
 try {
-  const data = await sdk.store.customer.retrieve()
+	const data = await sdk.store.customer.retrieve();
 } catch (error) {
-  const fetchError = error as FetchError
-  if (fetchError.statusText === "Unauthorized") {
-    redirect('/login')
-  }
+	const fetchError = error as FetchError;
+	if (fetchError.statusText === "Unauthorized") {
+		redirect("/login");
+	}
 }
 ```
 
@@ -293,9 +312,11 @@ For custom API routes:
 
 ```typescript
 const data = await sdk.client.fetch(`/custom/endpoint`, {
-  method: "POST",
-  body: { /* ... */ },
-})
+	method: "POST",
+	body: {
+		/* ... */
+	},
+});
 ```
 
 ## Resources

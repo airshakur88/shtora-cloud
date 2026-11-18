@@ -4,7 +4,7 @@ Annual roadmap planning at **Northfield Automation** for the NFA-500 control pla
 
 **Why hardware changes roadmapping:** tooling has lead times measured in months, certification
 windows are fixed by a third party, channel partners commit inventory a year out, and the previous
-generation is still under service contract. The roadmap has to carry the *old* product's wind-down
+generation is still under service contract. The roadmap has to carry the _old_ product's wind-down
 alongside the new one's growth.
 
 ---
@@ -54,12 +54,12 @@ resell both.
 
 **Phase 4 — Sequence**
 
-| Quarter | Committed | Notes |
-|---|---|---|
-| Q1 | E4 (partner last-time-buy, EOS comms) · E2 (fault isolation) | E4 is date-driven; E2 is the validated customer win |
-| Q2 | E3 tooling decision + order · E2 ships | Tooling ordered by June or E3 slips to next year |
-| Q3 | E1 (if UL clears) · E5 | E1 reserved, not committed |
-| Q4 | E3 module launch · E4 (EOS execution) | Tooling arrives ~14 weeks post-order |
+| Quarter | Committed                                                    | Notes                                               |
+| ------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| Q1      | E4 (partner last-time-buy, EOS comms) · E2 (fault isolation) | E4 is date-driven; E2 is the validated customer win |
+| Q2      | E3 tooling decision + order · E2 ships                       | Tooling ordered by June or E3 slips to next year    |
+| Q3      | E1 (if UL clears) · E5                                       | E1 reserved, not committed                          |
+| Q4      | E3 module launch · E4 (EOS execution)                        | Tooling arrives ~14 weeks post-order                |
 
 - **E1 is shown as reserved, not committed.** Sales was explicitly told "reserved" means it may not
   happen this year
@@ -68,7 +68,7 @@ resell both.
 
 **Phase 5 — Communicate**
 
-- **Internal:** the constraint logic, not just the sequence. Engineering needed to know *why* the
+- **Internal:** the constraint logic, not just the sequence. Engineering needed to know _why_ the
   tooling decision outranks a higher-scoring epic
 - **Channel partners:** E4 dates and last-time-buy windows, 25 days before public notice. They plan
   inventory on this
@@ -83,7 +83,7 @@ resell both.
 
 - **A scoring framework was tried and abandoned, on the record.** RICE ranked E3 highly while blind
   to the fact that a June decision date controls a Q4 delivery. When external lead times dominate,
-  constraint-first sequencing beats scoring — and knowing *when* to drop the framework is the skill.
+  constraint-first sequencing beats scoring — and knowing _when_ to drop the framework is the skill.
 - **Some items can be reserved but not committed.** E1 depends on a regulatory answer nobody at
   Northfield controls. Putting it on the roadmap as committed would be fiction; leaving it off would
   hide real planned capacity.

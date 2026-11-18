@@ -7,6 +7,7 @@ Read this when performing taint-flow analysis on a codebase or individual file.
 Trace user-controlled data from its entry point (source) to a dangerous operation (sink), confirming whether effective sanitization exists on every path between them.
 
 A taint path is **confirmed exploitable** only when all three are true:
+
 1. The source is genuinely user-controlled (not hardcoded or trusted-internal).
 2. The data reaches the sink without being neutralized by appropriate sanitization.
 3. The code path is actually reachable (not dead code, not behind an impossible condition).
@@ -18,6 +19,7 @@ A taint path is **confirmed exploitable** only when all three are true:
 A source is any value that an external, untrusted party can influence. This includes:
 
 **Direct HTTP input:**
+
 - Python/Flask: `request.args`, `request.form`, `request.json`, `request.data`, `request.files`, `request.cookies`, `request.headers`, `request.values`, `request.get_json()`
 - Python/Django: `request.GET`, `request.POST`, `request.FILES`, `request.COOKIES`, `request.META`, `request.body`, form `cleaned_data` (before validation)
 - Python/FastAPI: function parameters annotated with `Query()`, `Body()`, `Form()`, `File()`, `Cookie()`, `Header()`, `Path()`
@@ -31,12 +33,14 @@ A source is any value that an external, untrusted party can influence. This incl
 - Rust web: Actix/Axum/Warp/Rocket `Path`, `Query`, `Json`, `Form`, headers/cookies, body/data extractors, and route parameters
 
 **System-level input:**
+
 - `sys.argv`, `os.environ`, `os.getenv()`
 - `input()`, `stdin.read()`
 - Files read from user-controlled paths
 - Environment variable expansions
 
 **Second-order sources (high priority):**
+
 - Database columns that store user-supplied data (e.g., a stored comment, username, uploaded filename) later read back and used without re-sanitization
 - Message queue payloads
 - Webhook request bodies
@@ -45,12 +49,14 @@ A source is any value that an external, untrusted party can influence. This incl
 ### Source tracing rules
 
 When you find a source assignment, record:
+
 - Variable name
 - Function/method where it appears
 - Line number
 - Source type (HTTP param, env var, file read, etc.)
 
 Track the variable as it flows through:
+
 - Direct assignments: `user_input = request.args.get('q')`
 - Returned values: `def get_query(): return request.args.get('q')`
 - Data structure membership: `data = {'name': request.form['name']}`
@@ -63,6 +69,7 @@ Track the variable as it flows through:
 ### Sink types and their dangerous patterns
 
 **SQL Injection sinks:**
+
 - Python: `cursor.execute(f"...")`, `cursor.execute("..." + var)`, `cursor.execute("..." % var)`, `.raw(query_string)`, `extra(where=[...])`, `RawSQL()`
 - JavaScript: `db.query("..." + var)`, `connection.query(\`...\`)`, `sequelize.query("..." + var)`, `mongoose.find({$where: ...})`
 - Java: `statement.execute(query)`, `createNativeQuery(query)`, `session.createSQLQuery(query)`, JDBC string concatenation
@@ -73,6 +80,7 @@ Track the variable as it flows through:
 - Rust: dynamically constructed SQL passed to `sqlx::query`, `query_as`, Diesel `sql_query`, or raw database execution
 
 **Command injection sinks:**
+
 - Python: `os.system(cmd)`, `os.popen(cmd)`, `subprocess.run(cmd, shell=True)`, `subprocess.call(cmd, shell=True)`, `subprocess.Popen(cmd, shell=True)`, `eval(code)`, `exec(code)`
 - JavaScript: `child_process.exec(cmd)`, `child_process.execSync(cmd)`, `eval(code)`, `Function(code)()`
 - PHP: `system($cmd)`, `exec($cmd)`, `shell_exec($cmd)`, `passthru($cmd)`, `popen($cmd)`, `preg_replace('/.../e', ...)`, backtick operator
@@ -83,6 +91,7 @@ Track the variable as it flows through:
 - Rust: `std::process::Command` or shell `-c` strings built from extractor values
 
 **Path traversal sinks:**
+
 - Python: `open(user_path)`, `os.path.join(base, user_input)` without validation, `send_file(user_path)`, `send_from_directory(base, user_input)`
 - JavaScript: `fs.readFile(path)`, `fs.createReadStream(path)`, `path.join(base, userInput)` without restriction
 - PHP: `include($path)`, `require($path)`, `file_get_contents($path)`, `fopen($path)`, `readfile($path)`
@@ -91,6 +100,7 @@ Track the variable as it flows through:
 - Rust: `std::fs::read/write/File::open`, `tokio::fs`, `NamedFile`, and archive entry extraction
 
 **XSS sinks:**
+
 - JavaScript/Browser: `.innerHTML = data`, `.outerHTML = data`, `document.write(data)`, `insertAdjacentHTML('...', data)`, `location.href = data`
 - Server-side templates: Jinja2 `{{ var|safe }}` or `Markup(var)`, EJS `<%- var %>`, Handlebars `{{{ var }}}`, JSP `<%= var %>`, Thymeleaf `th:utext`
 - Python: `render_template_string(f"..{user_input}..")`, `jinja2.Template(user_input).render()`
@@ -100,6 +110,7 @@ Track the variable as it flows through:
 - Rust: raw template/HTML construction or response bodies with attacker-controlled markup and HTML content type
 
 **SSRF sinks:**
+
 - Python: `requests.get(url)`, `requests.post(url)`, `urllib.request.urlopen(url)`, `httpx.get(url)`, `aiohttp.ClientSession().get(url)`
 - JavaScript: `fetch(url)`, `axios.get(url)`, `http.get(url)`, `request(url)`
 - Java: `new URL(url).openConnection()`, `RestTemplate.getForObject(url)`, `WebClient.get().uri(url)`
@@ -109,6 +120,7 @@ Track the variable as it flows through:
 - Rust: reqwest/hyper clients with extractor-controlled URLs
 
 **Deserialization sinks:**
+
 - Python: `pickle.loads(data)`, `pickle.load(f)`, `yaml.load(data)` (without Loader=yaml.SafeLoader), `marshal.loads(data)`
 - Java: `ObjectInputStream.readObject()`, `XMLDecoder.readObject()`, `XStream.fromXML()`, `JsonTypeInfo.As.WRAPPER_ARRAY`
 - PHP: `unserialize($data)`, YAML parsing of untrusted input
@@ -117,6 +129,7 @@ Track the variable as it flows through:
 - Rust: serde or binary codecs are data parsers rather than code-execution sinks by default; report only unsafe custom hooks, unbounded resource consumption, trusted-state confusion, or native/FFI consequences with a verified path
 
 **Template Injection sinks:**
+
 - Python: `render_template_string(user_input)`, `jinja2.Environment().from_string(user_input)`
 - JavaScript: EJS/Pug/Handlebars template compilation with user-controlled template strings
 - Java: Velocity/Freemarker template compilation from user input
@@ -140,6 +153,7 @@ For each source variable, trace forward through the code:
 Do not stop tracing at function call boundaries. When a tainted variable is passed to a function, read that function and continue tracing within it. Mark the finding as interprocedural.
 
 Common interprocedural patterns:
+
 - Helper functions that build SQL queries from parameters
 - Utility functions that execute system commands
 - Wrapper functions around file operations
@@ -148,16 +162,16 @@ Common interprocedural patterns:
 
 A taint path is broken **only if** the sanitization is appropriate for the specific sink type. Mismatched sanitization does not break the path.
 
-| Sink type | Effective sanitization |
-|-----------|----------------------|
-| SQL | Parameterized queries (`%s`/`?`/`:name` placeholders), ORM query builders (not `.raw()`) |
-| Command | `shlex.quote()` (Python), `shell=False` with list args (Python), argument arrays without `shell:true` (Node) |
-| Path traversal | `os.path.realpath()` + prefix check, `werkzeug.utils.secure_filename()` + base dir enforcement |
-| XSS | `html.escape()`, `markupsafe.escape()`, auto-escaping templates (Jinja2 default, React JSX), `bleach.clean()` |
-| SSRF | URL scheme allowlist + hostname allowlist, internal IP block |
-| Deserialization | Using safe alternatives: `json.loads()` instead of `pickle`, `yaml.safe_load()` instead of `yaml.load()` |
-| SSTI | Not rendering user input as a template; escaping before template insertion |
-| Redirect | Normalized local-path or trusted-origin allowlist; framework helper alone is not validation |
+| Sink type       | Effective sanitization                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| SQL             | Parameterized queries (`%s`/`?`/`:name` placeholders), ORM query builders (not `.raw()`)                      |
+| Command         | `shlex.quote()` (Python), `shell=False` with list args (Python), argument arrays without `shell:true` (Node)  |
+| Path traversal  | `os.path.realpath()` + prefix check, `werkzeug.utils.secure_filename()` + base dir enforcement                |
+| XSS             | `html.escape()`, `markupsafe.escape()`, auto-escaping templates (Jinja2 default, React JSX), `bleach.clean()` |
+| SSRF            | URL scheme allowlist + hostname allowlist, internal IP block                                                  |
+| Deserialization | Using safe alternatives: `json.loads()` instead of `pickle`, `yaml.safe_load()` instead of `yaml.load()`      |
+| SSTI            | Not rendering user input as a template; escaping before template insertion                                    |
+| Redirect        | Normalized local-path or trusted-origin allowlist; framework helper alone is not validation                   |
 
 ### Sanitization bypasses to verify
 
@@ -175,12 +189,12 @@ Even when sanitization is present, verify it cannot be bypassed:
 
 Assign confidence based on completeness of the verified trace:
 
-| Confidence | Criteria |
-|------------|---------|
+| Confidence    | Criteria                                                                                |
+| ------------- | --------------------------------------------------------------------------------------- |
 | **Confirmed** | Source found, sink found, complete taint path traced, no effective sanitization present |
-| **Likely** | Source and sink identified, path strongly implied but one function not read in full |
-| **Possible** | Pattern match with partial context — source or sink inferred, not directly read |
-| **Unlikely** | Pattern match only, no supporting context — do not report |
+| **Likely**    | Source and sink identified, path strongly implied but one function not read in full     |
+| **Possible**  | Pattern match with partial context — source or sink inferred, not directly read         |
+| **Unlikely**  | Pattern match only, no supporting context — do not report                               |
 
 Only `Confirmed` and `Likely` findings should appear in the final report.
 
@@ -190,28 +204,28 @@ For every confirmed or likely finding, record:
 
 ```json
 {
-  "file": "app/routes/user.py",
-  "line_start": 42,
-  "line_end": 45,
-  "language": "python",
-  "vuln_type": "sqli",
-  "confidence": "confirmed",
-  "title": "SQL Injection via unsanitized username parameter",
-  "description": "The 'username' parameter from request.args is interpolated directly into a SQL query string without parameterization.",
-  "code_snippet": "query = f\"SELECT * FROM users WHERE name = '{username}'\"",
-  "taint_source": "request.args.get('username') at line 40",
-  "taint_sink": "cursor.execute(query) at line 45",
-  "taint_path": [
-    "line 40: username = request.args.get('username')  [SOURCE]",
-    "line 42: query = f\"SELECT * FROM users WHERE name = '{username}'\"  [TAINT PROPAGATES]",
-    "line 45: cursor.execute(query)  [SINK]"
-  ],
-  "sanitization_present": false,
-  "sanitization_note": "No parameterization. Direct f-string interpolation.",
-  "cwe": "CWE-89",
-  "owasp": "A03:2021 - Injection",
-  "severity": "critical",
-  "remediation": "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE name = %s', (username,))"
+	"file": "app/routes/user.py",
+	"line_start": 42,
+	"line_end": 45,
+	"language": "python",
+	"vuln_type": "sqli",
+	"confidence": "confirmed",
+	"title": "SQL Injection via unsanitized username parameter",
+	"description": "The 'username' parameter from request.args is interpolated directly into a SQL query string without parameterization.",
+	"code_snippet": "query = f\"SELECT * FROM users WHERE name = '{username}'\"",
+	"taint_source": "request.args.get('username') at line 40",
+	"taint_sink": "cursor.execute(query) at line 45",
+	"taint_path": [
+		"line 40: username = request.args.get('username')  [SOURCE]",
+		"line 42: query = f\"SELECT * FROM users WHERE name = '{username}'\"  [TAINT PROPAGATES]",
+		"line 45: cursor.execute(query)  [SINK]"
+	],
+	"sanitization_present": false,
+	"sanitization_note": "No parameterization. Direct f-string interpolation.",
+	"cwe": "CWE-89",
+	"owasp": "A03:2021 - Injection",
+	"severity": "critical",
+	"remediation": "Use parameterized queries: cursor.execute('SELECT * FROM users WHERE name = %s', (username,))"
 }
 ```
 

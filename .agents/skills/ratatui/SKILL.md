@@ -1,18 +1,11 @@
 ---
+
 name: ratatui
 description: "Use when building terminal user interfaces in Rust with the ratatui crate - layout system, widget usage, input/event handling, app state architecture, TUI testing, or migrating between ratatui 0.29 and 0.30"
 metadata:
-  author: mte90
-  version: "2.0.0"
-  tags:
-    - rust
-    - tui
-    - terminal
-    - cli
-    - ratatui
-    - tachyonfx
-    - mousefood
-    - ratzilla
+author: mte90
+version: "2.0.0"
+tags: - rust - tui - terminal - cli - ratatui - tachyonfx - mousefood - ratzilla
 ---
 
 > **Objective:** Use this skill to prevent TUI layout bugs, input handling failures, and state management issues by enforcing layout discipline, event handling patterns, and MVU architecture below.
@@ -26,6 +19,7 @@ Rust terminal UI framework for building interactive command-line applications.
 Ratatui provides widgets, layout systems, event handling, and rendering for TUI apps.
 
 **Key Features:**
+
 - Multiple layout systems (blocks, flex, horizontal, vertical)
 - Built-in widgets (buttons, checkboxes, tables, charts)
 - Event-driven input handling with keyboard and mouse support
@@ -95,11 +89,12 @@ fn main() -> io::Result<()> {
 ## Layout System
 
 ### Constraint Types
+
 ### Constraint Types
 
 **Do choose constraints based on layout needs:**
 
-```rust
+````rust
 use ratatui::layout::{Constraint, Direction, Layout};
 
 let chunks = Layout::default()
@@ -134,12 +129,13 @@ let chunks = Layout::default()
     .flex(Flex::SpaceAround)
     .constraints([Constraint::Length(20), Constraint::Length(20)])
     .split(area);
-```
+````
 let chunks = Layout::default()
-    .flex(Flex::SpaceAround)
-    .constraints([Constraint::Length(20), Constraint::Length(20)])
-    .split(area);
-```
+.flex(Flex::SpaceAround)
+.constraints([Constraint::Length(20), Constraint::Length(20)])
+.split(area);
+
+````
 
 ### Overlapping Layouts
 
@@ -151,7 +147,7 @@ let chunks = Layout::default()
     .spacing(Spacing::Overlap)
     .constraints([Constraint::Length(3), Constraint::Length(3)])
     .split(area);
-```
+````
 
 ### Ergonomic Rect Methods (v0.30+)
 
@@ -185,20 +181,20 @@ let sub_chunks = Layout::default()
 
 See [references/widgets.md](references/widgets.md) for detailed widget recipes.
 
-| Widget | When to Use | Reference |
-|--------|-------------|-----------|
-| Paragraph | Text display with styling/wrapping | [widgets.md#paragraph](references/widgets.md#paragraph) |
-| Block | Framing and titling other widgets | [widgets.md#block](references/widgets.md#block) |
-| Button | Clickable buttons with pressed state | [widgets.md#button](references/widgets.md#button) |
-| Checkbox | Boolean toggle with custom symbols | [widgets.md#checkbox](references/widgets.md#checkbox) |
-| List | Selectable item lists | [widgets.md#list](references/widgets.md#list) |
-| Table | Tabular data with column selection | [widgets.md#table](references/widgets.md#table) |
-| Gauge | Progress percentage display | [widgets.md#gauge](references/widgets.md#gauge) |
-| Sparkline | Compact data visualization | [widgets.md#sparkline](references/widgets.md#sparkline) |
-| Chart | Multi-dataset plots with axes | [widgets.md#chart](references/widgets.md#chart) |
-| Canvas | Custom drawing with markers | [widgets.md#canvas](references/widgets.md#canvas) |
-| Calendar | Date display with Chrono | [widgets.md#calendar](references/widgets.md#calendar) |
-| Fill | Paint area with symbol | [widgets.md#fill](references/widgets.md#fill) |
+| Widget    | When to Use                          | Reference                                               |
+| --------- | ------------------------------------ | ------------------------------------------------------- |
+| Paragraph | Text display with styling/wrapping   | [widgets.md#paragraph](references/widgets.md#paragraph) |
+| Block     | Framing and titling other widgets    | [widgets.md#block](references/widgets.md#block)         |
+| Button    | Clickable buttons with pressed state | [widgets.md#button](references/widgets.md#button)       |
+| Checkbox  | Boolean toggle with custom symbols   | [widgets.md#checkbox](references/widgets.md#checkbox)   |
+| List      | Selectable item lists                | [widgets.md#list](references/widgets.md#list)           |
+| Table     | Tabular data with column selection   | [widgets.md#table](references/widgets.md#table)         |
+| Gauge     | Progress percentage display          | [widgets.md#gauge](references/widgets.md#gauge)         |
+| Sparkline | Compact data visualization           | [widgets.md#sparkline](references/widgets.md#sparkline) |
+| Chart     | Multi-dataset plots with axes        | [widgets.md#chart](references/widgets.md#chart)         |
+| Canvas    | Custom drawing with markers          | [widgets.md#canvas](references/widgets.md#canvas)       |
+| Calendar  | Date display with Chrono             | [widgets.md#calendar](references/widgets.md#calendar)   |
+| Fill      | Paint area with symbol               | [widgets.md#fill](references/widgets.md#fill)           |
 
 ## Input Handling
 
@@ -338,15 +334,15 @@ std::panic::set_hook(Box::new(|_| {
 
 ## Breaking Changes: v0.29 → v0.30
 
-| Change | Migration |
-|--------|-----------|
-| `Block::title()` removed | Use `Block::new().title(Line::from("foo"))` |
-| `block::Title` deprecated | Use `Line` directly (removal in v0.31) |
+| Change                                | Migration                                            |
+| ------------------------------------- | ---------------------------------------------------- |
+| `Block::title()` removed              | Use `Block::new().title(Line::from("foo"))`          |
+| `block::Title` deprecated             | Use `Line` directly (removal in v0.31)               |
 | `Style` no longer implements `Styled` | Use `Style::new().blue()` then `widget.style(style)` |
-| `Table::highlight_style()` deprecated | Use `table.row_highlight_style(...)` |
-| `Marker` is `#[non_exhaustive]` | Use `Marker::Custom('x')` for custom markers |
-| Backend requires `Error` type | Add associated `Error` type to your backend |
-| `Rect::area()` returns `u32` | Update type expectations |
+| `Table::highlight_style()` deprecated | Use `table.row_highlight_style(...)`                 |
+| `Marker` is `#[non_exhaustive]`       | Use `Marker::Custom('x')` for custom markers         |
+| Backend requires `Error` type         | Add associated `Error` type to your backend          |
+| `Rect::area()` returns `u32`          | Update type expectations                             |
 
 ### Migration Example
 

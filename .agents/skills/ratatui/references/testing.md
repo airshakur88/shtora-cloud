@@ -27,6 +27,7 @@ fn test_render_app() {
 ```
 
 Run tests and accept snapshots:
+
 ```bash
 cargo test
 cargo insta review  # Review and accept changes

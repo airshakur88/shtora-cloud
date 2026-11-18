@@ -47,6 +47,7 @@ Concrete tier assignments for common on-chain constructs, using the same four ti
 ### Tier 1: Critical — Security-Sensitive
 
 **Solidity:**
+
 - `require(msg.sender == owner)` — ownership check
 - `onlyRole(ADMIN_ROLE)` — role-based access control modifier
 - `nonReentrant` modifier — reentrancy guard
@@ -54,15 +55,18 @@ Concrete tier assignments for common on-chain constructs, using the same four ti
 - `require(deadline >= block.timestamp)` — time-based access control
 
 **FunC/Tolk:**
+
 - `throw_unless(ERR_UNAUTHORIZED, equal_slices(sender, owner))` — ownership check
 - Bounce handler validation — message authentication
 
 **Solana Rust:**
+
 - `if !ctx.accounts.authority.is_signer` — signer check
 
 ### Tier 2: High — Financial/State Integrity
 
 **Solidity:**
+
 - `balances[to] += amount` — balance update
 - `fee = amount * feeRate / DENOMINATOR` — fee calculation
 - `require(ratio > MIN_COLLATERAL_RATIO)` — liquidation threshold
@@ -70,16 +74,19 @@ Concrete tier assignments for common on-chain constructs, using the same four ti
 - `require(amountOut >= minAmountOut)` — slippage check
 
 **FunC/Tolk:**
+
 - `send_raw_message(msg, mode)` — value transfer via message
 - Jetton transfer handler — token movement logic
 
 **Solana Rust:**
+
 - `account.lamports -= amount` — lamport transfer
 - `pool.total_shares += new_shares` — share accounting
 
 ### Tier 3: Medium — Business Logic
 
 **Solidity:**
+
 - `require(proposalId < proposals.length)` — bounds check in governance
 - `rewards[user] += calculateReward(...)` — non-critical reward distribution
 - `if (queue.length > MAX_QUEUE_SIZE) revert()` — queue management
@@ -87,6 +94,7 @@ Concrete tier assignments for common on-chain constructs, using the same four ti
 ### Tier 4: Low — Observability
 
 **Solidity:**
+
 - `emit Transfer(from, to, amount)` — event emission
 - `function balanceOf(...) view returns (uint256)` — view getter
 - Error message string in `require(cond, "message")`

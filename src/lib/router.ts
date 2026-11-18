@@ -108,7 +108,7 @@ const STRATEGY_WEIGHTS: Record<
 		intelligence: 0.25,
 		budget: 0.25,
 	},
-	smartest: { reliability: 0.7, speed: 0.1, intelligence: 0.1, budget: 0.1 },
+	smartest: { reliability: 0.1, speed: 0.1, intelligence: 0.7, budget: 0.1 },
 	fastest: { reliability: 0.1, speed: 0.7, intelligence: 0.1, budget: 0.1 },
 	reliable: { reliability: 0.7, speed: 0.1, intelligence: 0.1, budget: 0.1 },
 };

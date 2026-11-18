@@ -1,4 +1,5 @@
 ---
+
 title: Provide --dry-run for Every Destructive Command
 impact: HIGH
 impactDescription: prevents irreversible mistakes during agent exploration
@@ -64,11 +65,13 @@ echo "Removed ${#orphans[@]} orphaned images."
 ```
 
 **Benefits:**
+
 - Agents preview cleanup before committing — no irreversible surprises
 - Same code path for dry-run and real run, reducing divergence bugs
 - `--dry-run` output is the audit trail of what the real run will do
 
 **When NOT to use this pattern:**
+
 - Commands whose action IS the preview — linters, validators, `terraform plan` (the whole command is already a dry-run)
 - Read-only commands (list, show, get) — there is nothing destructive to preview
 - Commands where "what would change" cannot be computed without actually doing the work (e.g., stream transformers that read stdin byte-by-byte)

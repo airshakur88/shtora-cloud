@@ -1,4 +1,5 @@
 ---
+
 name: property-based-testing
 effort: low
 description: "Writes, reviews, and debugs property-based tests — Hypothesis, fast-check, proptest, jqwik, rapid, and Echidna or Medusa for Solidity invariants. Use whenever tests should cover a whole input domain instead of a hand-picked list of examples: encode/decode and serialize/deserialize pairs, parsers, canonicalizers and normalizers, validators, numeric and Decimal types, comparators and sort order, data structures, and smart-contract state invariants. Also use when adding cases to an existing @given, fast-check, or proptest suite, when judging whether existing property tests assert anything real, and when a generator has shrunk a counterexample and you need to tell a wrong property from a genuine bug. Not for coverage-guided binary fuzzing (libFuzzer, AFL), mutation-testing campaigns, static analysis, benchmarking, or end-to-end UI tests."
@@ -18,17 +19,17 @@ concluding there is nothing to assert.
 
 ## Property catalog
 
-| Property | Formula | Where it applies |
-|---|---|---|
-| Roundtrip | `decode(encode(x)) == x` | Serialization, conversion pairs |
-| Inverse | `f(g(x)) == x` | encrypt/decrypt, compress/decompress |
-| Oracle | `new(x) == reference(x)` | Optimization, refactoring, reimplementation |
-| Idempotence | `f(f(x)) == f(x)` | Normalization, formatting, sorting |
-| Invariant | Holds before and after | Any transformation, contract state |
-| Easy to verify | `is_sorted(sort(x))` | Complex algorithms with cheap checkers |
-| Commutativity | `f(a, b) == f(b, a)` | Binary and set operations |
-| Associativity | `f(f(a,b), c) == f(a, f(b,c))` | Combining operations |
-| Identity | `f(x, e) == x` | Operations with a neutral element |
+| Property       | Formula                        | Where it applies                            |
+| -------------- | ------------------------------ | ------------------------------------------- |
+| Roundtrip      | `decode(encode(x)) == x`       | Serialization, conversion pairs             |
+| Inverse        | `f(g(x)) == x`                 | encrypt/decrypt, compress/decompress        |
+| Oracle         | `new(x) == reference(x)`       | Optimization, refactoring, reimplementation |
+| Idempotence    | `f(f(x)) == f(x)`              | Normalization, formatting, sorting          |
+| Invariant      | Holds before and after         | Any transformation, contract state          |
+| Easy to verify | `is_sorted(sort(x))`           | Complex algorithms with cheap checkers      |
+| Commutativity  | `f(a, b) == f(b, a)`           | Binary and set operations                   |
+| Associativity  | `f(f(a,b), c) == f(a, f(b,c))` | Combining operations                        |
+| Identity       | `f(x, e) == x`                 | Operations with a neutral element           |
 
 Strength ordering, weakest to strongest:
 `no crash → type preservation → invariant → idempotence → roundtrip / oracle`.
@@ -53,13 +54,13 @@ first before settling for the second.
 
 Load the one that matches the task in front of you:
 
-| Task | File |
-|---|---|
-| Writing new tests, designing strategies | [references/generating.md](references/generating.md) |
-| The code has no property to assert yet | [references/refactoring.md](references/refactoring.md) |
-| Reviewing existing property tests | [references/reviewing.md](references/reviewing.md) |
-| A property test just failed | [references/interpreting-failures.md](references/interpreting-failures.md) |
-| Library choice, Echidna and Medusa | [references/libraries.md](references/libraries.md) |
+| Task                                    | File                                                                       |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| Writing new tests, designing strategies | [references/generating.md](references/generating.md)                       |
+| The code has no property to assert yet  | [references/refactoring.md](references/refactoring.md)                     |
+| Reviewing existing property tests       | [references/reviewing.md](references/reviewing.md)                         |
+| A property test just failed             | [references/interpreting-failures.md](references/interpreting-failures.md) |
+| Library choice, Echidna and Medusa      | [references/libraries.md](references/libraries.md)                         |
 
 ## Introducing PBT to a project that lacks it
 

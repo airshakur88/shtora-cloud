@@ -12,16 +12,16 @@ Set `usesStandbyMode: true` in `.actor/actor.json`:
 
 ```json
 {
-    "actorSpecification": 1,
-    "name": "my-api-actor",
-    "title": "My API Actor",
-    "version": "0.0",
-    "usesStandbyMode": true,
-    "webServerSchema": "./openapi.json",
-    "meta": {
-        "generatedBy": "<FILL-IN-TOOL-AND-MODEL>"
-    },
-    "dockerfile": "../Dockerfile"
+	"actorSpecification": 1,
+	"name": "my-api-actor",
+	"title": "My API Actor",
+	"version": "0.0",
+	"usesStandbyMode": true,
+	"webServerSchema": "./openapi.json",
+	"meta": {
+		"generatedBy": "<FILL-IN-TOOL-AND-MODEL>"
+	},
+	"dockerfile": "../Dockerfile"
 }
 ```
 
@@ -35,11 +35,11 @@ The presence of `webServerSchema` also counts as a quality metric for Actor publ
 
 ### Environment variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable                | Description                                                                                                                                                             |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ACTOR_WEB_SERVER_PORT` | Port the HTTP server must listen on. Access via SDK: JS `Actor.config.get('containerPort')`, Python `Actor.configuration.web_server_port`. Both default to 4321 locally |
-| `ACTOR_STANDBY_URL` | The public Standby URL (stable across runs, format: `https://<username>--<actor-name>.apify.actor`) |
-| `APIFY_META_ORIGIN` | Set to `STANDBY` when the Actor was launched in Standby mode |
+| `ACTOR_STANDBY_URL`     | The public Standby URL (stable across runs, format: `https://<username>--<actor-name>.apify.actor`)                                                                     |
+| `APIFY_META_ORIGIN`     | Set to `STANDBY` when the Actor was launched in Standby mode                                                                                                            |
 
 ## Readiness probe
 
@@ -48,6 +48,7 @@ The platform sends `GET /` requests with the header `x-apify-container-server-re
 ## Authentication
 
 Callers authenticate to Standby URLs via:
+
 - **Bearer token** (recommended): `Authorization: Bearer <APIFY_TOKEN>`
 - **Query parameter** (fallback): `?token=<APIFY_TOKEN>`
 
@@ -60,29 +61,29 @@ Standby Actors receive per-request input via HTTP query parameters or request bo
 ### JavaScript / TypeScript (Express)
 
 ```javascript
-import { Actor, log } from 'apify';
-import express from 'express';
+import { Actor, log } from "apify";
+import express from "express";
 
 await Actor.init();
 
 const app = express();
 app.use(express.json());
-const port = Actor.config.get('containerPort');
+const port = Actor.config.get("containerPort");
 
 // Readiness probe
-app.get('/', (req, res) => {
-    if (req.headers['x-apify-container-server-readiness-probe']) {
-        return res.send('OK');
-    }
-    res.json({ status: 'Actor is running in Standby mode' });
+app.get("/", (req, res) => {
+	if (req.headers["x-apify-container-server-readiness-probe"]) {
+		return res.send("OK");
+	}
+	res.json({ status: "Actor is running in Standby mode" });
 });
 
 // Example endpoint
-app.get('/search', (req, res) => {
-    const { query } = req.query;
-    log.info('Handling search request', { query });
-    // ... handle request ...
-    res.json({ results: [] });
+app.get("/search", (req, res) => {
+	const { query } = req.query;
+	log.info("Handling search request", { query });
+	// ... handle request ...
+	res.json({ results: [] });
 });
 
 app.listen(port, () => log.info(`Listening on port ${port}`));
@@ -139,6 +140,7 @@ Start the server with `apify run`, as for any Actor. It sets up the Apify enviro
 ## Standby vs. container web server
 
 Do not confuse these:
+
 - **Container web server** (`ACTOR_WEB_SERVER_URL`): per-run unique URL, no load balancing, no auto-scaling. Useful for live view UIs during a run.
 - **Standby mode** (`ACTOR_STANDBY_URL`): stable hostname, load-balanced across runs, auto-scaled based on traffic. Use this for production APIs.
 

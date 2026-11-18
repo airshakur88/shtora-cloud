@@ -79,6 +79,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### Compute
 
 **Virtual Machines**
+
 - VM sizes: General (D-series), Compute (F-series), Memory (E-series), GPU (N-series)
 - Availability Sets (99.95% SLA)
 - Availability Zones (99.99% SLA)
@@ -86,6 +87,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Use managed disks, enable accelerated networking, use proximity placement groups
 
 **App Service**
+
 - Web Apps, API Apps, Mobile Apps
 - Deployment slots for staging
 - Auto-scaling based on metrics or schedule
@@ -93,6 +95,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Use deployment slots, enable auto-scaling, use App Service Plan efficiently
 
 **Azure Functions**
+
 - Consumption Plan (serverless)
 - Premium Plan (VNet integration, no cold start)
 - Dedicated Plan (App Service Plan)
@@ -100,6 +103,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Keep functions small, use Premium for production, implement retry policies
 
 **Azure Kubernetes Service (AKS)**
+
 - Managed Kubernetes control plane
 - Azure CNI or kubenet networking
 - Azure AD integration
@@ -107,11 +111,13 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Use system node pools, enable autoscaling, implement network policies
 
 **Container Instances**
+
 - Serverless containers
 - Fast startup without infrastructure management
 - Best for batch jobs and burstable workloads
 
 **Azure Batch**
+
 - Large-scale parallel and HPC workloads
 - Auto-scaling compute nodes
 - Task scheduling and dependencies
@@ -119,6 +125,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### Storage
 
 **Blob Storage**
+
 - Storage tiers: Hot, Cool, Archive
 - Access tiers: Premium, Standard
 - Lifecycle management policies
@@ -126,24 +133,28 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Use lifecycle policies, enable soft delete, implement versioning
 
 **Azure Files**
+
 - SMB and NFS file shares
 - Integration with Azure File Sync
 - Premium tier for high performance
 - Best practices: Use Premium for databases, implement snapshots
 
 **Disk Storage**
+
 - Managed Disks: Premium SSD, Standard SSD, Standard HDD, Ultra Disk
 - Disk encryption with Azure Disk Encryption
 - Snapshots and incremental backups
 - Best practices: Use Premium SSD for production, enable encryption
 
 **Data Lake Storage Gen2**
+
 - Hierarchical namespace for big data
 - Built on Blob Storage
 - Integration with Azure Synapse and Databricks
 - Best practices: Enable hierarchical namespace, use lifecycle policies
 
 **Azure NetApp Files**
+
 - Enterprise-grade NFS and SMB shares
 - High performance and low latency
 - Snapshots and data protection
@@ -151,6 +162,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### Database
 
 **Azure SQL Database**
+
 - Serverless and provisioned compute
 - Hyperscale for up to 100TB
 - Elastic pools for multiple databases
@@ -158,12 +170,14 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Use serverless for dev/test, enable geo-replication
 
 **Azure SQL Managed Instance**
+
 - Near 100% compatibility with SQL Server
 - VNet integration for isolation
 - Native virtual network implementation
 - Best practices: Use for lift-and-shift migrations
 
 **Cosmos DB**
+
 - Multi-model NoSQL database
 - Global distribution with multi-master
 - Consistency levels: Strong, Bounded staleness, Session, Consistent prefix, Eventual
@@ -171,12 +185,14 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Choose appropriate consistency, partition key design critical
 
 **Azure Database for PostgreSQL/MySQL/MariaDB**
+
 - Flexible Server (newer) vs Single Server (legacy)
 - High availability with zone redundancy
 - Read replicas for scaling
 - Best practices: Use Flexible Server, enable HA, implement connection pooling
 
 **Azure Cache for Redis**
+
 - In-memory caching
 - Clustering for scalability
 - Geo-replication for disaster recovery
@@ -185,6 +201,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### Networking
 
 **Virtual Network (VNet)**
+
 - CIDR planning (avoid overlaps)
 - Subnets with Network Security Groups
 - Service endpoints and Private Link
@@ -192,36 +209,42 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Plan IP address space, use NSGs, implement Private Link
 
 **Azure Load Balancer**
+
 - Layer 4 load balancing
 - Standard SKU (zone-redundant, SLA)
 - Health probes and distribution algorithms
 - Best practices: Use Standard SKU, configure health probes
 
 **Application Gateway**
+
 - Layer 7 load balancing
 - WAF (Web Application Firewall)
 - URL-based routing and SSL termination
 - Best practices: Enable WAF, use autoscaling
 
 **Azure Front Door**
+
 - Global load balancing and CDN
 - WAF at edge
 - Anycast for low latency
 - Best practices: Use for global applications, enable caching
 
 **VPN Gateway and ExpressRoute**
+
 - Site-to-Site VPN for encrypted connectivity
 - ExpressRoute for private, dedicated connection
 - Virtual WAN for global transit network
 - Best practices: Use ExpressRoute for production, implement redundancy
 
 **Azure Firewall**
+
 - Managed firewall service
 - Application and network rules
 - Threat intelligence
 - Best practices: Use in hub-spoke topology, enable DNS proxy
 
 **Azure Private Link**
+
 - Private connectivity to Azure services
 - No public internet exposure
 - Available for PaaS services
@@ -230,6 +253,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### Security and Identity
 
 **Azure Active Directory (Microsoft Entra ID)**
+
 - Identity and access management
 - Conditional Access policies
 - Multi-factor authentication
@@ -237,12 +261,14 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Enable MFA, use Conditional Access, implement PIM
 
 **Azure Key Vault**
+
 - Secrets, keys, and certificates management
 - Hardware Security Module (HSM) backed
 - Soft delete and purge protection
 - Best practices: Enable soft delete, use RBAC, implement Private Link
 
 **Microsoft Defender for Cloud**
+
 - Security posture management
 - Threat protection for hybrid workloads
 - Regulatory compliance dashboard
@@ -250,12 +276,14 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 - Best practices: Enable enhanced security, implement recommendations
 
 **Azure Policy**
+
 - Governance and compliance at scale
 - Built-in and custom policies
 - Deny, audit, append effects
 - Best practices: Assign at management group level, test before enforce
 
 **Azure Sentinel**
+
 - Cloud-native SIEM and SOAR
 - AI-powered threat detection
 - Integration with Microsoft 365, third-party tools
@@ -266,6 +294,7 @@ Comprehensive guide for Azure services, patterns, and Cloud Adoption Framework i
 ### High Availability
 
 **Zone-Redundant Pattern**
+
 ```
 Azure Front Door (global)
     |
@@ -280,6 +309,7 @@ Azure SQL Database (zone-redundant)
 ```
 
 **Multi-Region Pattern**
+
 ```
 Azure Traffic Manager (DNS-based routing)
     |
@@ -303,6 +333,7 @@ Hub VNet
 ### Serverless Architecture
 
 **Event-Driven Pattern**
+
 ```
 Event Grid -> Azure Functions -> Cosmos DB
                     |
@@ -311,6 +342,7 @@ Event Grid -> Azure Functions -> Cosmos DB
 ```
 
 **API-First Pattern**
+
 ```
 API Management
     |
@@ -322,6 +354,7 @@ API Management
 ### Microservices on Azure
 
 **AKS-Based**
+
 ```
 Azure Front Door
     |
@@ -337,6 +370,7 @@ AKS (multiple microservices)
 ```
 
 **Container Apps Pattern**
+
 ```
 Azure Container Apps
 ├── Dapr for state management
@@ -370,6 +404,7 @@ Power BI (visualization)
 ### Enterprise-Scale Landing Zone
 
 **Management Group Hierarchy**
+
 ```
 Tenant Root Group
 ├── Platform
@@ -382,6 +417,7 @@ Tenant Root Group
 ```
 
 **Network Topology**
+
 ```
 Hub VNet (Connectivity subscription)
 ├── Azure Firewall
@@ -396,6 +432,7 @@ Spoke VNets (Workload subscriptions)
 ```
 
 **Governance**
+
 - Azure Policy for compliance
 - Management groups for hierarchy
 - RBAC assignments at appropriate scope
@@ -433,6 +470,7 @@ Spoke VNets (Workload subscriptions)
 ## Cost Optimization
 
 ### Compute Savings
+
 - Azure Reserved Instances (1-year or 3-year, up to 72% savings)
 - Azure Savings Plans for Compute (up to 65% savings)
 - Spot VMs for fault-tolerant workloads (up to 90% savings)
@@ -440,18 +478,21 @@ Spoke VNets (Workload subscriptions)
 - Auto-shutdown for dev/test VMs
 
 ### Storage Savings
+
 - Blob Storage lifecycle policies (Hot -> Cool -> Archive)
 - Azure Files: Standard tier for general use
 - Managed Disks: Standard SSD instead of Premium if possible
 - Delete unused snapshots and disks
 
 ### Database Savings
+
 - Serverless tier for Azure SQL Database
 - Reserved capacity for Cosmos DB
 - DTU model vs vCore (choose based on workload)
 - Pause Azure Synapse when not in use
 
 ### Monitoring
+
 - Azure Cost Management + Billing
 - Cost alerts and budgets
 - Azure Advisor recommendations
@@ -462,12 +503,14 @@ Spoke VNets (Workload subscriptions)
 ### Azure Site Recovery
 
 **VM Replication**
+
 - Azure to Azure replication
 - On-premises to Azure (VMware, Hyper-V, physical)
 - RPO: 30 seconds to a few minutes
 - Automated failover and failback
 
 **Recovery Plans**
+
 - Multi-tier application recovery
 - Customizable scripts and manual actions
 - Integration with Azure Automation
@@ -475,12 +518,14 @@ Spoke VNets (Workload subscriptions)
 ### Backup Strategies
 
 **Azure Backup**
+
 - VM backups (application-consistent)
 - SQL Server and SAP HANA in Azure VMs
 - Azure Files backup
 - Cross-region restore
 
 **Database Backup**
+
 - SQL Database: Automated backups (7-35 days)
 - Cosmos DB: Continuous backup (30 days)
 - Long-term retention policies
@@ -488,6 +533,7 @@ Spoke VNets (Workload subscriptions)
 ### High Availability
 
 **RTO/RPO Targets**
+
 - Active-Active: Multi-region with Traffic Manager (near-zero)
 - Active-Passive: Geo-replication with failover (minutes)
 - Backup and Restore: Azure Backup (hours)
@@ -497,12 +543,14 @@ Spoke VNets (Workload subscriptions)
 ### Azure Monitor
 
 **Components**
+
 - Metrics: Time-series data (1-minute resolution)
 - Logs: Log Analytics workspace for queries (KQL)
 - Alerts: Metric, log, and activity log alerts
 - Dashboards: Custom visualizations
 
 **Application Insights**
+
 - APM for web applications
 - Distributed tracing
 - Live Metrics Stream
@@ -512,6 +560,7 @@ Spoke VNets (Workload subscriptions)
 ### Log Analytics
 
 **KQL Queries**
+
 ```kusto
 // Performance analysis
 Perf
@@ -526,6 +575,7 @@ requests
 ```
 
 **Workbooks**
+
 - Interactive reports
 - Parameterized queries
 - Combining metrics and logs
@@ -543,12 +593,14 @@ requests
 ### RBAC Design
 
 **Built-in Roles**
+
 - Owner: Full access including RBAC
 - Contributor: Full access except RBAC
 - Reader: Read-only access
 - Custom roles for specific needs
 
 **Scope Hierarchy**
+
 ```
 Management Group (highest)
     |

@@ -19,7 +19,7 @@
 9. **Reddit r/ExperiencedDevs**: https://www.reddit.com/r/ExperiencedDevs/comments/1rqwfjj/workflow_setup_to_make_your_coding_agent_ship/. Discussion about mixing changes across layers into oversized AI PRs, duplication and review burden. Community comments disagree about best decomposition patterns.
 10. **Reddit r/dataengineering**: https://www.reddit.com/r/dataengineering/comments/1vg6k87/how_do_you_deal_with_ai_slop_prs_from_team_members/. Practitioners debate responsibility and the ability to explain AI-authored diffs.
 11. **X: Saoud Rizwan referencing SlopCodeBench**: https://x.com/sdrzn/status/2077121290440454467. Public discussion of empirical benchmark, not an independent study.
-12. **X: Ray Fernando on low-signal unit tests**: https://x.com/RayFernando1337/status/2102927565778522610. Practitioner experience; a quoted preference for E2E-only testing is explicitly *not* adopted as a universal rule here.
+12. **X: Ray Fernando on low-signal unit tests**: https://x.com/RayFernando1337/status/2102927565778522610. Practitioner experience; a quoted preference for E2E-only testing is explicitly _not_ adopted as a universal rule here.
 
 ## Provenance policy
 

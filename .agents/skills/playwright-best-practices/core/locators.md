@@ -93,7 +93,7 @@ Configure custom test ID attribute in `playwright.config.ts`:
 
 ```typescript
 use: {
-  testIdAttribute: "data-testid"; // default
+	testIdAttribute: "data-testid"; // default
 }
 ```
 
@@ -119,14 +119,14 @@ page.getByRole("listitem").filter({ hasNotText: "Out of stock" });
 
 // Filter by child locator
 page.getByRole("listitem").filter({
-  has: page.getByRole("button", { name: "Buy" }),
+	has: page.getByRole("button", { name: "Buy" }),
 });
 
 // Combine filters
 page
-  .getByRole("listitem")
-  .filter({ hasText: "Product" })
-  .filter({ has: page.getByText("$9.99") });
+	.getByRole("listitem")
+	.filter({ hasText: "Product" })
+	.filter({ has: page.getByText("$9.99") });
 ```
 
 ### Chaining
@@ -170,7 +170,7 @@ await expect(page.getByRole("listitem")).toHaveCount(5);
 // Get all matching elements
 const items = await page.getByRole("listitem").all();
 for (const item of items) {
-  await expect(item).toBeVisible();
+	await expect(item).toBeVisible();
 }
 ```
 

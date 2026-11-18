@@ -8,7 +8,7 @@ gate, not a task. And "we'll fix it in the next release" doesn't exist when the 
 physical unit already bolted into a customer's panel.
 
 That pushes rigor forward. The assumptions and open questions that a SaaS PRD can resolve during
-build have to be resolved *before* it.
+build have to be resolved _before_ it.
 
 ---
 
@@ -39,11 +39,13 @@ against actual order rates]`. The manual-update model does not scale to that bas
 ### Section 3 — Goals and Non-Goals
 
 **Goals**
+
 1. Apply a firmware update to an enrolled unit without an on-site visit
 2. Reduce median firmware lag from 2+ revisions to under 1
 3. Preserve the safety property that a failed update never leaves a line un-runnable
 
 **Non-Goals**
+
 - Automatic or unattended updates. Every update is operator-initiated. `[DECISION: plants must
   control when their line's controller changes state — automatic updates were rejected in review]`
 - Updates to units not enrolled in remote management
@@ -82,12 +84,12 @@ validation against the site survey]`
 
 ### Section 8 — Dependencies and Gates
 
-| Gate | Owner | Status | Blocks |
-|---|---|---|---|
-| UL 508A impact assessment | Regulatory | **Open** | All firmware work |
-| Bootloader rollback support | Firmware Eng | In progress | R2 |
-| Console enrollment flow | Platform | Not started | R1 |
-| Site connectivity survey | Field Service | In progress | R4 assumption |
+| Gate                        | Owner         | Status      | Blocks            |
+| --------------------------- | ------------- | ----------- | ----------------- |
+| UL 508A impact assessment   | Regulatory    | **Open**    | All firmware work |
+| Bootloader rollback support | Firmware Eng  | In progress | R2                |
+| Console enrollment flow     | Platform      | Not started | R1                |
+| Site connectivity survey    | Field Service | In progress | R4 assumption     |
 
 **Hard sequencing note:** the UL assessment gates everything. If remote update alters the listing,
 the design changes materially and the schedule resets. **No engineering beyond the bootloader
@@ -109,7 +111,7 @@ spike until that assessment returns.**
 - **A regulatory gate can stop all work, and the PRD says so in bold.** The UL assessment isn't a
   task in a backlog — it's a condition that determines whether the feature is legal to ship. Burying
   it in a dependency list would have let engineering start and waste the spend.
-- **The rollback requirement carries a rationale in-line.** R2 explains *why* it's non-negotiable,
+- **The rollback requirement carries a rationale in-line.** R2 explains _why_ it's non-negotiable,
   because a reviewer skimming requirements would otherwise read it as ordinary error handling.
 - **A non-goal encodes a rejected decision, with the reason.** "Automatic updates were rejected in
   review" prevents the idea returning every quarter as a fresh suggestion.

@@ -1,4 +1,5 @@
 ---
+
 name: storefront-best-practices
 description: ALWAYS use this skill when working on ecommerce storefronts, online stores, shopping sites. Use for ANY storefront component including checkout pages, cart, payment flows, product pages, product listings, navigation, homepage, or ANY page/component in a storefront. CRITICAL for adding checkout, implementing cart, integrating Medusa backend, making a store agent-friendly for AI shopping agents, or building any ecommerce functionality. Framework-agnostic (Next.js, SvelteKit, TanStack Start, React, Vue). Provides patterns, decision frameworks, backend integration guidance.
 ---
@@ -24,6 +25,7 @@ Comprehensive guidance for building modern, high-converting ecommerce storefront
 - Making a storefront agent-friendly (AI shopping agents, AI search, agentic commerce)
 
 **Example prompts that should trigger this skill:**
+
 - "Add a checkout page"
 - "Implement shopping cart"
 - "Create product listing page"
@@ -35,6 +37,7 @@ Comprehensive guidance for building modern, high-converting ecommerce storefront
 ## CRITICAL: Load Reference Files When Needed
 
 **⚠️ ALWAYS load `reference/design.md` BEFORE creating ANY UI component**
+
 - Discovers existing design tokens (colors, fonts, spacing, patterns)
 - Prevents introducing inconsistent styles
 - Provides guardrails for maintaining brand consistency
@@ -61,6 +64,7 @@ Comprehensive guidance for building modern, high-converting ecommerce storefront
 **IMPORTANT: If you create a plan for implementing storefront features, include the following in your plan:**
 
 When implementing each component, page, layout, or feature in the plan:
+
 1. **Refer back to this skill** before starting implementation
 2. **Load relevant reference files** listed above for the specific component/page you're building
 3. **Follow the patterns and guidance** in the reference files
@@ -88,6 +92,7 @@ Task 3: Implement Checkout Flow
 ```
 
 **Why this matters:**
+
 - Plans provide high-level strategy
 - Reference files provide detailed implementation patterns
 - Skill file contains critical mistakes to avoid
@@ -96,29 +101,36 @@ Task 3: Implement Checkout Flow
 ## Critical Ecommerce-Specific Patterns
 
 ### Accessibility
+
 - **CRITICAL: Cart count updates require `aria-live="polite"`** - Screen readers won't announce without it
 - Ensure keyboard navigation for all cart/checkout interactions
 
 ### Mobile
+
 - **Sticky bottom elements MUST use `env(safe-area-inset-bottom)`** - iOS home indicator will cut off purchase buttons otherwise
 - 44px minimum touch targets for cart actions, variant selectors, quantity buttons
 
 ### Performance
+
 - **ALWAYS add `loading="lazy"` to product images below fold** - Don't rely on browser defaults
 - Optimize product images for mobile (<500KB) - Most ecommerce traffic is mobile
 
 ### Conversion Optimization
+
 - Clear CTAs throughout shopping flow
 - Minimal friction in checkout (guest checkout if supported)
 - Trust signals (reviews, security badges, return policy) near purchase buttons
 - Clear pricing and shipping information upfront
 
 ### SEO
+
 - **Product schema (JSON-LD) required** - Critical for Google Shopping and rich snippets
 - Use [PageSpeed Insights](https://pagespeed.web.dev/) to measure Core Web Vitals
 
 ### Agent-Friendliness
+
 AI agents (ChatGPT, Claude, Perplexity, browser agents) shop on behalf of users. Most don't run JavaScript. Load `reference/agent-friendly.md` for full guidance. Top rules:
+
 - **Product name, visible price with currency and stock status MUST be in the server HTML** - verify with `curl`
 - **Add-to-cart MUST be a named `<button type="submit">` inside a `<form method="post" action="...">`**; variant selectors MUST be native radios/`<select>` inside that form
 - **Search MUST work at a GET URL** (`/search?q=`) with server-rendered results
@@ -126,9 +138,11 @@ AI agents (ChatGPT, Claude, Perplexity, browser agents) shop on behalf of users.
 - Unknown product handles MUST return 404, not 200 or a homepage redirect
 
 ### Visual Design
+
 - **NEVER use emojis** in storefront UI - Use icons or images instead (unprofessional, accessibility issues)
 
 ### Backend Integration
+
 - **Backend detection**: If in monorepo, check for backend directory. If unsure, ask user which backend is used.
 - **NEVER hardcode dynamic content**: Always fetch categories, regions, products, shipping options, etc. from backend - they change frequently
 - Never assume API structure - verify endpoints and data formats
@@ -138,24 +152,29 @@ AI agents (ChatGPT, Claude, Perplexity, browser agents) shop on behalf of users.
 **YOU MUST FOLLOW THIS EXACT WORKFLOW BEFORE WRITING CODE THAT CONNECTS TO BACKEND:**
 
 **Step 1: PAUSE - Do NOT write code yet**
+
 - You are about to write code that calls a backend API or SDK method (e.g., Medusa SDK, REST API, GraphQL)
 - **STOP** - Do not proceed to code without verification
 
 **Step 2: QUERY the documentation or MCP server**
+
 - **If MCP server available**: Query it for the exact method (for example, medusa MCP)
 - **If no MCP server**: Search official documentation
 - **Find**: Exact method name, parameters, return type
 
 **Step 3: VERIFY what you found**
+
 - State out loud to the user: "I need to verify the correct method for [operation]. Let me check [MCP server/documentation]."
 - Show the user what you found: "According to [source], the method is `sdk.store.cart.methodName(params)`"
 - Confirm the method signature and parameters
 
 **Step 4: ONLY THEN write the code**
+
 - Now you can write code using the verified method
 - Use the exact signature you found
 
 **Step 5: CHECK for TypeScript errors**
+
 - After writing the code, check for any TypeScript/type errors related to the SDK
 - If you see type errors on SDK methods, it means you used an incorrect method name or wrong parameters
 - **Type errors are a sign you didn't verify correctly** - Go back to Step 2
@@ -163,6 +182,7 @@ AI agents (ChatGPT, Claude, Perplexity, browser agents) shop on behalf of users.
 **THIS IS NOT OPTIONAL - THIS IS MANDATORY ERROR PREVENTION**
 
 **It is a CRITICAL ERROR to:**
+
 - ❌ Write code that calls backend APIs/SDKs without explicitly querying docs/MCP first
 - ❌ Guess method names or parameters
 - ❌ Ignore TypeScript errors on SDK methods (errors indicate incorrect method usage)
@@ -170,11 +190,13 @@ AI agents (ChatGPT, Claude, Perplexity, browser agents) shop on behalf of users.
 - ❌ Assume SDK methods match REST API endpoints
 
 **For Medusa specifically:**
+
 - **Medusa pricing**: Display prices as-is - DO NOT divide by 100 (unlike Stripe, Medusa stores prices in display format)
 - **Docs MCP server**: https://docs.medusajs.com/mcp - Recommend setup if not installed
 - Load `reference/medusa.md` for Medusa-specific patterns (regions, pricing, etc.)
 
 ### Routing Patterns
+
 - **ALWAYS use dynamic routes** for products and categories - NEVER create static pages for individual items
 - Product pages: Use dynamic routes like `/products/[handle]` or `/products/$handle`, NOT `/products/shirt.tsx`
 - Category pages: Use dynamic routes like `/categories/[handle]` or `/categories/$handle`, NOT `/categories/women.tsx`
@@ -328,6 +350,7 @@ All guidance is framework-agnostic. Examples use React/TypeScript where code dem
 ## Minimum Viable Features
 
 **Mandatory for launch (core shopping flow):**
+
 - Navbar with cart, categories, search
 - Product listing with filtering and pagination
 - Product details with variant selection
@@ -337,6 +360,7 @@ All guidance is framework-agnostic. Examples use React/TypeScript where code dem
 - Order confirmation page
 
 **Nice-to-have (add if time permits):**
+
 - Related products recommendations
 - Product reviews and ratings
 - Wishlist functionality
@@ -348,6 +372,7 @@ All guidance is framework-agnostic. Examples use React/TypeScript where code dem
 - Quick view modals
 
 **User-dependent (ask before implementing):**
+
 - Guest checkout vs login-required
 - Account dashboard features
 - Multi-language support
@@ -360,6 +385,7 @@ All guidance is framework-agnostic. Examples use React/TypeScript where code dem
 Before implementing, watch out for these common ecommerce-specific pitfalls:
 
 **1. Cart and Navigation Mistakes**
+
 - ❌ Hiding cart indicator in mobile hamburger menu (keep always visible)
 - ❌ Not showing real-time cart count updates
 - ❌ **CRITICAL: Missing `aria-live="polite"` on cart count** - Screen readers won't announce cart updates without it
@@ -373,6 +399,7 @@ Before implementing, watch out for these common ecommerce-specific pitfalls:
 - ❌ No clear indication of current page in category navigation
 
 **2. Product Browsing Mistakes**
+
 - ❌ Creating static routes for products/categories (use dynamic routes like `/products/[handle]` instead of `/products/shirt.tsx`)
 - ❌ Missing "no products found" empty state with helpful suggestions
 - ❌ No loading indicators while fetching products
@@ -380,12 +407,14 @@ Before implementing, watch out for these common ecommerce-specific pitfalls:
 - ❌ Filter selections that don't persist on page reload
 
 **3. Product Details Mistakes**
+
 - ❌ Enabling "Add to Cart" before variant selection (size, color, etc.)
 - ❌ Missing product images optimization (large uncompressed images)
 - ❌ Navigating away from product page after adding to cart (stay on page)
 - ❌ Using emojis in UI instead of icons or images (unprofessional, accessibility issues)
 
 **4. Design and Consistency Mistakes**
+
 - ❌ **CRITICAL: Not loading `reference/design.md` before creating ANY UI component** - Leads to inconsistent colors, fonts, and styles
 - ❌ Introducing new colors without checking existing theme first
 - ❌ Adding new fonts without verifying what's already used
@@ -393,6 +422,7 @@ Before implementing, watch out for these common ecommerce-specific pitfalls:
 - ❌ Not detecting Tailwind version (v3 vs v4) - Causes syntax errors
 
 **5. Checkout and Conversion Mistakes**
+
 - ❌ Requiring account creation to checkout (offer guest checkout if backend supports it)
 - ❌ Not fetching payment methods from backend - assuming available payment options or skipping payment method selection
 - ❌ Overly complex multi-step checkout (4+ steps kills conversion) - Optimal is 3 steps: Shipping Info, Delivery Method + Payment, Review
@@ -400,18 +430,21 @@ Before implementing, watch out for these common ecommerce-specific pitfalls:
 - ❌ Not handling out-of-stock errors gracefully during checkout
 
 **6. Mobile Experience Mistakes**
+
 - ❌ Touch targets smaller than 44x44px (buttons, links, form fields)
 - ❌ Desktop-style hover menus on mobile (use tap/click instead)
 - ❌ Not optimizing images for mobile (loading huge desktop images)
 - ❌ Missing mobile-specific patterns (bottom nav, drawer filters)
 
 **7. Performance and SEO Mistakes**
+
 - ❌ Missing structured data (Product schema) for SEO
 - ❌ No explicit image lazy loading (don't assume browser defaults) - Always add `loading="lazy"` to images below the fold
 - ❌ Missing meta tags and Open Graph for social sharing
 - ❌ Not optimizing Core Web Vitals (LCP, FID, CLS) - Use [PageSpeed Insights](https://pagespeed.web.dev/) or Lighthouse to measure
 
 **8. Agent-Friendliness Mistakes** (see `reference/agent-friendly.md`)
+
 - ❌ Fetching product data or price in a client component (agents see an empty shell)
 - ❌ Add-to-cart as a `<div onClick>` or a `<button>` with no surrounding `<form action>`
 - ❌ Variant swatches as bare `<div>`/`<span>` without native inputs or ARIA state
@@ -422,6 +455,7 @@ Before implementing, watch out for these common ecommerce-specific pitfalls:
 - ❌ Unknown product URLs returning 200 or redirecting home (soft 404)
 
 **9. Backend Integration Mistakes**
+
 - ❌ **ERROR: Writing code that calls backend APIs/SDKs without following the 5-step verification workflow** - You MUST: 1) PAUSE, 2) QUERY docs/MCP, 3) VERIFY with user, 4) Write code, 5) CHECK for type errors
 - ❌ **ERROR: Ignoring TypeScript errors on SDK methods** - Type errors mean you used wrong method names or parameters. Go back and verify with docs/MCP
 - ❌ **ERROR: Guessing API method names, SDK methods, or parameters** - Always verify exact method signatures before use

@@ -85,130 +85,127 @@ httpServer.listen(4000);
 
 ```typescript
 // pubsub.ts
-import { RedisPubSub } from 'graphql-redis-subscriptions';
-import Redis from 'ioredis';
+import { RedisPubSub } from "graphql-redis-subscriptions";
+import Redis from "ioredis";
 
 // In-memory (development only)
-import { PubSub } from 'graphql-subscriptions';
+import { PubSub } from "graphql-subscriptions";
 export const pubsub = new PubSub();
 
 // Redis (production)
 const options = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+	host: process.env.REDIS_HOST || "localhost",
+	port: parseInt(process.env.REDIS_PORT || "6379"),
+	retryStrategy: (times: number) => Math.min(times * 50, 2000),
 };
 
 export const pubsub = new RedisPubSub({
-  publisher: new Redis(options),
-  subscriber: new Redis(options),
+	publisher: new Redis(options),
+	subscriber: new Redis(options),
 });
 
 // Strongly typed event names
 export const EVENTS = {
-  POST_CREATED: 'POST_CREATED',
-  POST_UPDATED: 'POST_UPDATED',
-  COMMENT_ADDED: 'COMMENT_ADDED',
-  USER_ONLINE: 'USER_ONLINE',
+	POST_CREATED: "POST_CREATED",
+	POST_UPDATED: "POST_UPDATED",
+	COMMENT_ADDED: "COMMENT_ADDED",
+	USER_ONLINE: "USER_ONLINE",
 } as const;
 ```
 
 ## Subscription Resolvers
 
 ```typescript
-import { withFilter } from 'graphql-subscriptions';
-import { pubsub, EVENTS } from './pubsub';
+import { withFilter } from "graphql-subscriptions";
+import { pubsub, EVENTS } from "./pubsub";
 
 const resolvers = {
-  Subscription: {
-    // Simple subscription
-    postCreated: {
-      subscribe: () => pubsub.asyncIterator([EVENTS.POST_CREATED]),
-    },
+	Subscription: {
+		// Simple subscription
+		postCreated: {
+			subscribe: () => pubsub.asyncIterator([EVENTS.POST_CREATED]),
+		},
 
-    // Filtered subscription
-    postUpdated: {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator([EVENTS.POST_UPDATED]),
-        (payload, variables) => {
-          // Only send updates for specific post
-          return payload.postUpdated.id === variables.id;
-        }
-      ),
-    },
+		// Filtered subscription
+		postUpdated: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator([EVENTS.POST_UPDATED]),
+				(payload, variables) => {
+					// Only send updates for specific post
+					return payload.postUpdated.id === variables.id;
+				},
+			),
+		},
 
-    // Filtered with authorization
-    commentAdded: {
-      subscribe: withFilter(
-        (parent, args, context) => {
-          // Check auth before subscribing
-          if (!context.user) {
-            throw new Error('Unauthorized');
-          }
-          return pubsub.asyncIterator([EVENTS.COMMENT_ADDED]);
-        },
-        async (payload, variables, context) => {
-          // Filter by post and check permissions
-          if (payload.commentAdded.postId !== variables.postId) {
-            return false;
-          }
+		// Filtered with authorization
+		commentAdded: {
+			subscribe: withFilter(
+				(parent, args, context) => {
+					// Check auth before subscribing
+					if (!context.user) {
+						throw new Error("Unauthorized");
+					}
+					return pubsub.asyncIterator([EVENTS.COMMENT_ADDED]);
+				},
+				async (payload, variables, context) => {
+					// Filter by post and check permissions
+					if (payload.commentAdded.postId !== variables.postId) {
+						return false;
+					}
 
-          // Check if user has access to post
-          const post = await context.dataSources.posts.findById(
-            variables.postId
-          );
-          return post && post.isPublic || post.authorId === context.user.id;
-        }
-      ),
-    },
+					// Check if user has access to post
+					const post = await context.dataSources.posts.findById(
+						variables.postId,
+					);
+					return (post && post.isPublic) || post.authorId === context.user.id;
+				},
+			),
+		},
 
-    // Complex subscription with multiple filters
-    userOnline: {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator([EVENTS.USER_ONLINE]),
-        (payload, variables, context) => {
-          // Only notify friends
-          return context.user.friends.includes(payload.userOnline.id);
-        }
-      ),
-    },
-  },
+		// Complex subscription with multiple filters
+		userOnline: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator([EVENTS.USER_ONLINE]),
+				(payload, variables, context) => {
+					// Only notify friends
+					return context.user.friends.includes(payload.userOnline.id);
+				},
+			),
+		},
+	},
 
-  Mutation: {
-    createPost: async (parent, args, context) => {
-      const post = await context.dataSources.posts.create(args.input);
+	Mutation: {
+		createPost: async (parent, args, context) => {
+			const post = await context.dataSources.posts.create(args.input);
 
-      // Publish event
-      await pubsub.publish(EVENTS.POST_CREATED, {
-        postCreated: post,
-      });
+			// Publish event
+			await pubsub.publish(EVENTS.POST_CREATED, {
+				postCreated: post,
+			});
 
-      return post;
-    },
+			return post;
+		},
 
-    updatePost: async (parent, args: { id: string; input: any }, context) => {
-      const post = await context.dataSources.posts.update(
-        args.id,
-        args.input
-      );
+		updatePost: async (parent, args: { id: string; input: any }, context) => {
+			const post = await context.dataSources.posts.update(args.id, args.input);
 
-      await pubsub.publish(EVENTS.POST_UPDATED, {
-        postUpdated: post,
-      });
+			await pubsub.publish(EVENTS.POST_UPDATED, {
+				postUpdated: post,
+			});
 
-      return post;
-    },
+			return post;
+		},
 
-    addComment: async (parent, args, context) => {
-      const comment = await context.dataSources.comments.create(args.input);
+		addComment: async (parent, args, context) => {
+			const comment = await context.dataSources.comments.create(args.input);
 
-      await pubsub.publish(EVENTS.COMMENT_ADDED, {
-        commentAdded: comment,
-      });
+			await pubsub.publish(EVENTS.COMMENT_ADDED, {
+				commentAdded: comment,
+			});
 
-      return comment;
-    },
-  },
+			return comment;
+		},
+	},
 };
 ```
 
@@ -217,113 +214,113 @@ const resolvers = {
 ```typescript
 // Type-safe payload
 interface PostCreatedPayload {
-  postCreated: Post;
-  tags: string[];
-  isPublic: boolean;
+	postCreated: Post;
+	tags: string[];
+	isPublic: boolean;
 }
 
 const resolvers = {
-  Subscription: {
-    postCreated: {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator([EVENTS.POST_CREATED]),
-        async (
-          payload: PostCreatedPayload,
-          variables: { tags?: string[]; authorId?: string },
-          context: Context
-        ) => {
-          // Filter by tags
-          if (variables.tags && variables.tags.length > 0) {
-            const hasMatchingTag = payload.tags.some(tag =>
-              variables.tags!.includes(tag)
-            );
-            if (!hasMatchingTag) return false;
-          }
+	Subscription: {
+		postCreated: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator([EVENTS.POST_CREATED]),
+				async (
+					payload: PostCreatedPayload,
+					variables: { tags?: string[]; authorId?: string },
+					context: Context,
+				) => {
+					// Filter by tags
+					if (variables.tags && variables.tags.length > 0) {
+						const hasMatchingTag = payload.tags.some((tag) =>
+							variables.tags!.includes(tag),
+						);
+						if (!hasMatchingTag) return false;
+					}
 
-          // Filter by author
-          if (variables.authorId) {
-            if (payload.postCreated.authorId !== variables.authorId) {
-              return false;
-            }
-          }
+					// Filter by author
+					if (variables.authorId) {
+						if (payload.postCreated.authorId !== variables.authorId) {
+							return false;
+						}
+					}
 
-          // Check permissions
-          if (!payload.isPublic) {
-            return (
-              context.user?.id === payload.postCreated.authorId ||
-              context.user?.isAdmin
-            );
-          }
+					// Check permissions
+					if (!payload.isPublic) {
+						return (
+							context.user?.id === payload.postCreated.authorId ||
+							context.user?.isAdmin
+						);
+					}
 
-          return true;
-        }
-      ),
-    },
-  },
+					return true;
+				},
+			),
+		},
+	},
 };
 ```
 
 ## Connection Management
 
 ```typescript
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from "graphql-ws/lib/use/ws";
 
 const wsServer = useServer(
-  {
-    schema,
+	{
+		schema,
 
-    // Connection lifecycle
-    onConnect: async (ctx) => {
-      console.log('Client connected');
-      const token = ctx.connectionParams?.authorization;
+		// Connection lifecycle
+		onConnect: async (ctx) => {
+			console.log("Client connected");
+			const token = ctx.connectionParams?.authorization;
 
-      if (!token) {
-        throw new Error('Missing auth token');
-      }
+			if (!token) {
+				throw new Error("Missing auth token");
+			}
 
-      const user = await verifyToken(token);
-      if (!user) {
-        throw new Error('Invalid token');
-      }
+			const user = await verifyToken(token);
+			if (!user) {
+				throw new Error("Invalid token");
+			}
 
-      return { user };
-    },
+			return { user };
+		},
 
-    onDisconnect: (ctx, code, reason) => {
-      console.log('Client disconnected', code, reason);
-    },
+		onDisconnect: (ctx, code, reason) => {
+			console.log("Client disconnected", code, reason);
+		},
 
-    // Subscription lifecycle
-    onSubscribe: async (ctx, msg) => {
-      console.log('Client subscribed', msg.payload.operationName);
+		// Subscription lifecycle
+		onSubscribe: async (ctx, msg) => {
+			console.log("Client subscribed", msg.payload.operationName);
 
-      // Rate limiting
-      const subscriptionCount = getUserSubscriptionCount(ctx.user.id);
-      if (subscriptionCount >= 10) {
-        throw new Error('Too many subscriptions');
-      }
+			// Rate limiting
+			const subscriptionCount = getUserSubscriptionCount(ctx.user.id);
+			if (subscriptionCount >= 10) {
+				throw new Error("Too many subscriptions");
+			}
 
-      return { ctx, msg };
-    },
+			return { ctx, msg };
+		},
 
-    onComplete: (ctx, msg) => {
-      console.log('Subscription completed', msg.id);
-    },
+		onComplete: (ctx, msg) => {
+			console.log("Subscription completed", msg.id);
+		},
 
-    // Keep-alive
-    connectionInitWaitTimeout: 10000,
+		// Keep-alive
+		connectionInitWaitTimeout: 10000,
 
-    // Context per subscription
-    context: async (ctx, msg, args) => {
-      const user = ctx.extra.user;
-      return {
-        user,
-        dataSources: createDataSources(),
-        subscriptionId: msg.id,
-      };
-    },
-  },
-  wsServer
+		// Context per subscription
+		context: async (ctx, msg, args) => {
+			const user = ctx.extra.user;
+			return {
+				user,
+				dataSources: createDataSources(),
+				subscriptionId: msg.id,
+			};
+		},
+	},
+	wsServer,
 );
 ```
 
@@ -372,40 +369,40 @@ const resolvers = {
 
 ```typescript
 const resolvers = {
-  Subscription: {
-    postCreated: {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator([EVENTS.POST_CREATED]),
-        async (payload, variables, context) => {
-          try {
-            // Check permissions
-            if (!context.user) {
-              throw new GraphQLError('Unauthorized', {
-                extensions: { code: 'UNAUTHENTICATED' },
-              });
-            }
+	Subscription: {
+		postCreated: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator([EVENTS.POST_CREATED]),
+				async (payload, variables, context) => {
+					try {
+						// Check permissions
+						if (!context.user) {
+							throw new GraphQLError("Unauthorized", {
+								extensions: { code: "UNAUTHENTICATED" },
+							});
+						}
 
-            return true;
-          } catch (error) {
-            // Log error but don't propagate to client
-            console.error('Subscription filter error:', error);
-            return false;
-          }
-        }
-      ),
+						return true;
+					} catch (error) {
+						// Log error but don't propagate to client
+						console.error("Subscription filter error:", error);
+						return false;
+					}
+				},
+			),
 
-      // Resolve subscription payload
-      resolve: (payload) => {
-        try {
-          return payload.postCreated;
-        } catch (error) {
-          throw new GraphQLError('Failed to resolve subscription', {
-            extensions: { code: 'SUBSCRIPTION_RESOLVE_ERROR' },
-          });
-        }
-      },
-    },
-  },
+			// Resolve subscription payload
+			resolve: (payload) => {
+				try {
+					return payload.postCreated;
+				} catch (error) {
+					throw new GraphQLError("Failed to resolve subscription", {
+						extensions: { code: "SUBSCRIPTION_RESOLVE_ERROR" },
+					});
+				}
+			},
+		},
+	},
 };
 ```
 
@@ -413,45 +410,45 @@ const resolvers = {
 
 ```typescript
 // Apollo Client setup
-import { ApolloClient, InMemoryCache, split, HttpLink } from '@apollo/client';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { createClient } from 'graphql-ws';
+import { ApolloClient, InMemoryCache, split, HttpLink } from "@apollo/client";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { createClient } from "graphql-ws";
 
 const httpLink = new HttpLink({
-  uri: 'http://localhost:4000/graphql',
+	uri: "http://localhost:4000/graphql",
 });
 
 const wsLink = new GraphQLWsLink(
-  createClient({
-    url: 'ws://localhost:4000/graphql',
-    connectionParams: {
-      authorization: `Bearer ${token}`,
-    },
-  })
+	createClient({
+		url: "ws://localhost:4000/graphql",
+		connectionParams: {
+			authorization: `Bearer ${token}`,
+		},
+	}),
 );
 
 const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-  },
-  wsLink,
-  httpLink
+	({ query }) => {
+		const definition = getMainDefinition(query);
+		return (
+			definition.kind === "OperationDefinition" &&
+			definition.operation === "subscription"
+		);
+	},
+	wsLink,
+	httpLink,
 );
 
 const client = new ApolloClient({
-  link: splitLink,
-  cache: new InMemoryCache(),
+	link: splitLink,
+	cache: new InMemoryCache(),
 });
 
 // Subscribe to events
 const subscription = client
-  .subscribe({
-    query: gql`
+	.subscribe({
+		query: gql`
       subscription OnPostCreated {
         postCreated {
           id
@@ -462,12 +459,12 @@ const subscription = client
         }
       }
     `,
-  })
-  .subscribe({
-    next: (data) => console.log('New post:', data),
-    error: (err) => console.error('Subscription error:', err),
-    complete: () => console.log('Subscription completed'),
-  });
+	})
+	.subscribe({
+		next: (data) => console.log("New post:", data),
+		error: (err) => console.error("Subscription error:", err),
+		complete: () => console.log("Subscription completed"),
+	});
 
 // Unsubscribe
 subscription.unsubscribe();
@@ -477,15 +474,15 @@ subscription.unsubscribe();
 
 ```typescript
 // Use Redis for multi-instance deployments
-import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { RedisPubSub } from "graphql-redis-subscriptions";
 
 // Horizontal scaling pattern
 const pubsub = new RedisPubSub({
-  publisher: new Redis(redisConfig),
-  subscriber: new Redis(redisConfig),
-  // Channel prefix for isolation
-  publisherPrefix: 'graphql:pub:',
-  subscriberPrefix: 'graphql:sub:',
+	publisher: new Redis(redisConfig),
+	subscriber: new Redis(redisConfig),
+	// Channel prefix for isolation
+	publisherPrefix: "graphql:pub:",
+	subscriberPrefix: "graphql:sub:",
 });
 
 // Connection limit per instance

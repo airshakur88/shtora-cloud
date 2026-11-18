@@ -3,6 +3,7 @@
 ## Problem Statement
 
 AI coding agents often introduce subtle, systemic reliability hazards:
+
 1. **Accidental Complexity (KISS failure):** Creating deeply nested control structures, monolithic functions (>80 lines), and superfluous pass-through wrapper chains that obscure failure semantics.
 2. **Duplicated Invariants (DRY failure):** Copy-pasting validation checks, regular expressions, or error schemas across multiple endpoints, leading to divergent bug fixes and silent edge-case regressions.
 3. **Speculative Over-Engineering (YAGNI failure):** Generating unused configuration knobs, dead parameter patterns (`_unused_param`, `future_kwargs`), placeholder comments (`TODO(future)`), and dead branches (`if False:`).

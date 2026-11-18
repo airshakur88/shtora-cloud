@@ -1,22 +1,24 @@
 ---
+
 name: golang-code-style
 description: "Golang code style conventions — line length and breaking, variable declarations, control flow clarity, when comments help vs hurt. Use when writing or reviewing Go code, asking about style or clarity, or establishing project coding standards. Not for naming conventions (→ See `samber/cc-skills-golang@golang-naming` skill), linter configuration (→ See `samber/cc-skills-golang@golang-lint` skill), or doc comments (→ See `samber/cc-skills-golang@golang-documentation` skill)."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "1.3.0"
-  openclaw:
-    emoji: "🎨"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-    install: []
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent
+author: samber
+version: "1.3.0"
+openclaw:
+emoji: "🎨"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go
+install: []
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:*) Agent
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Orchestration mode:** Fan out the sub-agents described in the "Parallelizing Code Style Reviews" section, each covering an independent style concern, when reviewing code style across a large codebase, and merge their findings. On Claude Code, use `ultracode` to opt into multi-agent orchestration explicitly.

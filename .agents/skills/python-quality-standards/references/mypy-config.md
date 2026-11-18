@@ -106,22 +106,22 @@ ignore_missing_imports = true
 
 When you set `strict = true`, mypy enables all of these:
 
-| Flag | What it does |
-|------|-------------|
-| `warn_unused_configs` | Catch unused `[mypy-*]` config sections |
-| `disallow_any_generics` | Forbid bare `list`, `dict` — require `list[int]`, `dict[str, Any]` |
-| `disallow_subclassing_any` | Prevent subclassing untyped classes |
-| `disallow_untyped_calls` | Forbid calling untyped functions from typed ones |
-| `disallow_untyped_defs` | Require type hints on all function signatures |
-| `disallow_incomplete_defs` | Forbid partially typed function signatures |
-| `check_untyped_defs` | Check function bodies even without hints |
-| `disallow_untyped_decorators` | Flag decorators without type information |
-| `no_implicit_optional` | Require explicit `Optional[X]` or `X | None` |
-| `warn_redundant_casts` | Flag unnecessary `cast()` calls |
-| `warn_unused_ignores` | Flag stale `# type: ignore` comments |
-| `warn_return_any` | Flag `Any` returns from typed functions |
-| `no_implicit_reexport` | Require explicit `__all__` for re-exports |
-| `strict_equality` | Flag nonsensical equality comparisons |
+| Flag                          | What it does                                                       |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `warn_unused_configs`         | Catch unused `[mypy-*]` config sections                            |
+| `disallow_any_generics`       | Forbid bare `list`, `dict` — require `list[int]`, `dict[str, Any]` |
+| `disallow_subclassing_any`    | Prevent subclassing untyped classes                                |
+| `disallow_untyped_calls`      | Forbid calling untyped functions from typed ones                   |
+| `disallow_untyped_defs`       | Require type hints on all function signatures                      |
+| `disallow_incomplete_defs`    | Forbid partially typed function signatures                         |
+| `check_untyped_defs`          | Check function bodies even without hints                           |
+| `disallow_untyped_decorators` | Flag decorators without type information                           |
+| `no_implicit_optional`        | Require explicit `Optional[X]` or `X                               | None` |
+| `warn_redundant_casts`        | Flag unnecessary `cast()` calls                                    |
+| `warn_unused_ignores`         | Flag stale `# type: ignore` comments                               |
+| `warn_return_any`             | Flag `Any` returns from typed functions                            |
+| `no_implicit_reexport`        | Require explicit `__all__` for re-exports                          |
+| `strict_equality`             | Flag nonsensical equality comparisons                              |
 
 ## Best Practices
 
@@ -157,6 +157,7 @@ types-Pillow       # for Pillow
 ```
 
 Install as dev dependencies:
+
 ```bash
 uv add --dev types-requests django-stubs  # etc.
 ```

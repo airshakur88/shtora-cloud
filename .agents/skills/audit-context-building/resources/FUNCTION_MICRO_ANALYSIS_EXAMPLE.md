@@ -27,6 +27,7 @@ the session is not freed underneath it. Every caller that later calls `session_r
 function; the refcount discipline of the whole session table rests on that pairing.
 
 **Inputs & Assumptions:**
+
 - `id` (uint32_t): session identifier. Trust: **untrusted** — reaches this from the request parser at
   `src/proto.c:L88` without validation.
 - `out` (struct session **): caller-provided storage for the result. Trust: trusted (internal callers only,
@@ -37,6 +38,7 @@ function; the refcount discipline of the whole session table rests on that pairi
 - Precondition: the caller holds `g_session_lock`. Established by the callers, not here — see Open Questions.
 
 **Outputs & Effects:**
+
 - Returns `0` on success, `-ENOENT` when no session matches.
 - State write: increments `s->refcount` (L116).
 - State write: `*out` on the success path only. **On the error path `*out` is left untouched** (L114), so a
@@ -51,6 +53,7 @@ function; the refcount discipline of the whole session table rests on that pairi
 // L113
 struct session *s = session_lookup(id);
 ```
+
 - **What:** Resolves the untrusted `id` to a session pointer.
 - **Why here:** Nothing can proceed without the lookup, and it is the only place `id` is consumed.
 - **Assumes:** `session_lookup` returns NULL rather than a stale pointer for an expired session.
@@ -62,6 +65,7 @@ struct session *s = session_lookup(id);
 if (!s)
     return -ENOENT;
 ```
+
 - **What:** Rejects a lookup miss.
 - **Why here:** Guards the dereference at L116.
 - **Assumes:** NULL is the only failure representation `session_lookup` uses.
@@ -73,6 +77,7 @@ if (!s)
 s->refcount++;
 *out = s;
 ```
+
 - **What:** Records the borrow and publishes the pointer.
 - **Why here:** After the NULL guard; the increment precedes publication so the caller never holds a pointer
   that has not been counted.
@@ -101,6 +106,7 @@ s->refcount++;
   outstanding borrows — holds only if every acquire is under the lock. One of the two callers breaks that.
 
 **Open Questions:**
+
 - unclear; need to inspect whether `g_session_lock` is documented as a caller precondition anywhere. Nothing
   in `session.h` states it, and only one of two callers honors it.
 - unclear; need to inspect `session_reap` (`src/reap.c`) to know whether it can free an entry whose refcount
@@ -118,7 +124,7 @@ Both are recorded as unenforced assumptions with the line that should have enfor
 use-after-free or a race condition, neither gets a severity, and no fix is proposed — the hunting phase makes
 those calls with the whole system model in front of it.
 
-Note also what the record does *not* do: there is no invariant invented to reach a count, and blocks that do
+Note also what the record does _not_ do: there is no invariant invented to reach a count, and blocks that do
 one thing get one line each.
 
 ---
@@ -139,24 +145,28 @@ function withdraw(uint256 amount) external {
 ```
 
 **Inputs & Assumptions:**
+
 - `amount` (uint256): user-specified. Trust: **untrusted**.
 - Implicit: `msg.sender`, `balanceOf[msg.sender]` (L12), `hasCreditLine[msg.sender]` (L13).
 - Precondition: the caller's balance covers `amount`. **Established by `_debit`, and only on one of its two
   paths** — see below.
 
 **Outputs & Effects:**
+
 - Storage writes: `balanceOf[msg.sender]` inside `_debit` (L48, L52); `totalDeposits` at L65.
 - External interaction: `msg.sender.call{value: amount}` (L63) — value transfer to an arbitrary address.
 - No event emitted on withdrawal. Off-chain accounting cannot observe this path.
 
 **Block-by-Block (L62-L65):**
+
 - **What:** debits the balance, sends the ether, then decrements the running total.
 - **Why here:** the debit precedes the transfer, which reads as checks-effects-interactions.
 - **Assumes:** `_debit` returning true means the balance covered the amount.
-- **Establishes:** nothing the later lines can rely on — `totalDeposits` at L65 lands *after* the external
+- **Establishes:** nothing the later lines can rely on — `totalDeposits` at L65 lands _after_ the external
   call at L63, so it is not in effect during re-entry.
 
 **Cross-Function Dependencies:**
+
 - **Callee `_debit` (internal, L44-L54):** read in full. Two paths, and they do not agree.
   - Default path (L50-L52): `if (balanceOf[account] < amount) return false;` then subtracts. The bound holds.
   - Credit-line path (L46-L49): when `hasCreditLine[account]` is set, it subtracts inside an `unchecked`
@@ -166,9 +176,10 @@ function withdraw(uint256 amount) external {
   maintained on the default path and not on the credit-line path.
 
 **Open Questions:**
+
 - unclear; need to inspect who can set `hasCreditLine` and whether it is ever cleared (`L13` declares it;
   no setter appears in this file).
 
-Note what the record does *not* say: it does not call L63 a reentrancy vulnerability or the `unchecked` block
+Note what the record does _not_ say: it does not call L63 a reentrancy vulnerability or the `unchecked` block
 an integer underflow, and it proposes no fix. It says where each precondition is established, and names the
 one that is established nowhere. The hunting phase takes it from there.

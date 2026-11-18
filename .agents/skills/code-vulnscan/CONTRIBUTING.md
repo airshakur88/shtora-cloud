@@ -12,15 +12,15 @@ Pattern files live in `resources/patterns/<language>_patterns.json`. Each file i
 
 ```json
 {
-  "id": "py_sqli_001",
-  "regex": "execute\\s*\\(\\s*f[\"']",
-  "vuln_type": "sqli",
-  "severity": "high",
-  "title": "SQL injection via f-string",
-  "description": "User-controlled data in a format string passed to execute() allows SQLi.",
-  "remediation": "Use parameterized queries: cursor.execute(sql, (param,))",
-  "references": ["CWE-89", "OWASP-A03"],
-  "false_positive_risk": "low"
+	"id": "py_sqli_001",
+	"regex": "execute\\s*\\(\\s*f[\"']",
+	"vuln_type": "sqli",
+	"severity": "high",
+	"title": "SQL injection via f-string",
+	"description": "User-controlled data in a format string passed to execute() allows SQLi.",
+	"remediation": "Use parameterized queries: cursor.execute(sql, (param,))",
+	"references": ["CWE-89", "OWASP-A03"],
+	"false_positive_risk": "low"
 }
 ```
 
@@ -56,7 +56,7 @@ Sub-skills live in `sub-skills/<name>.md`. They are specialist analysis agents i
 
 ### Template
 
-```markdown
+````markdown
 # <Sub-Skill Name>
 
 **Role**: One-sentence description of what this agent does.
@@ -68,27 +68,30 @@ Sub-skills live in `sub-skills/<name>.md`. They are specialist analysis agents i
 ## Detection Checklist
 
 ### <Category>
+
 - [ ] Check 1 — what to look for, what makes it exploitable
 - [ ] Check 2
 
 ## Severity Classification
 
 | Finding | CVSS Range | Notes |
-|---------|-----------|-------|
-| ...     | ...       | ...   |
+| ------- | ---------- | ----- |
+| ...     | ...        | ...   |
 
 ## Remediation Patterns
 
 ### <Vuln Type>
+
 **Vulnerable**:
-```code example```
+`code example`
 **Safe**:
-```code example```
+`code example`
 
 ## References
+
 - CWE-XXX
 - OWASP category
-```
+````
 
 ### Steps
 

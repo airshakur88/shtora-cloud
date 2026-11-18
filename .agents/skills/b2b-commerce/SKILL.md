@@ -1,4 +1,5 @@
 ---
+
 name: b2b-commerce
 description: "Enable wholesale and B2B sales with company accounts, custom catalogs, quote workflows, purchase orders, and net payment terms"
 category: business-operations
@@ -30,13 +31,13 @@ B2B commerce adds wholesale capabilities to your store: company accounts where m
 
 ### Step 1: Determine your platform and choose the right B2B tool
 
-| Platform | Recommended Tool | Why |
-|----------|-----------------|-----|
-| **Shopify Plus** | Shopify B2B (built-in) | Shopify Plus includes Company accounts, custom catalogs, payment terms, and a dedicated B2B checkout — no extra app needed |
-| **Shopify (non-Plus)** | Wholesale Club or Wholesale Gorilla | Both apps add customer-tag-based wholesale pricing, minimum order quantities, and hidden wholesale sections without requiring Plus |
-| **WooCommerce** | WooCommerce B2B (WooCommerce.com extension) or B2BWoo | WooCommerce B2B handles company registration, role-based pricing, and net terms; B2BWoo is a premium alternative |
-| **BigCommerce** | BigCommerce B2B Edition or the built-in Customer Groups | BigCommerce B2B Edition adds company accounts and quotes; Customer Groups (all plans) handle tiered wholesale pricing |
-| **Custom / Headless** | Build company accounts, custom catalogs, and a quote workflow from scratch | Full control over credit limits, approval workflows, and invoice generation |
+| Platform               | Recommended Tool                                                           | Why                                                                                                                                |
+| ---------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Shopify Plus**       | Shopify B2B (built-in)                                                     | Shopify Plus includes Company accounts, custom catalogs, payment terms, and a dedicated B2B checkout — no extra app needed         |
+| **Shopify (non-Plus)** | Wholesale Club or Wholesale Gorilla                                        | Both apps add customer-tag-based wholesale pricing, minimum order quantities, and hidden wholesale sections without requiring Plus |
+| **WooCommerce**        | WooCommerce B2B (WooCommerce.com extension) or B2BWoo                      | WooCommerce B2B handles company registration, role-based pricing, and net terms; B2BWoo is a premium alternative                   |
+| **BigCommerce**        | BigCommerce B2B Edition or the built-in Customer Groups                    | BigCommerce B2B Edition adds company accounts and quotes; Customer Groups (all plans) handle tiered wholesale pricing              |
+| **Custom / Headless**  | Build company accounts, custom catalogs, and a quote workflow from scratch | Full control over credit limits, approval workflows, and invoice generation                                                        |
 
 ### Step 2: Set up company accounts and wholesale pricing
 
@@ -50,6 +51,7 @@ B2B commerce adds wholesale capabilities to your store: company accounts where m
 6. Company buyers see a B2B-specific checkout with net terms payment options and a PO number field
 
 **Quote workflow on Shopify Plus:**
+
 - Shopify's built-in B2B includes a **Draft Orders** feature — sales reps create draft orders for buyers, the buyer reviews and approves, then the draft converts to an order
 - Go to **Orders → Create order** to create a draft; share the link with the buyer for approval
 
@@ -65,6 +67,7 @@ B2B commerce adds wholesale capabilities to your store: company accounts where m
 #### WooCommerce
 
 **WooCommerce B2B (official extension):**
+
 1. Install from WooCommerce.com
 2. Go to **WooCommerce → B2B → Registration** to create a wholesale account registration form with business details (company name, tax ID, etc.)
 3. Manually approve wholesale registrations in WooCommerce → B2B → Customers
@@ -72,18 +75,21 @@ B2B commerce adds wholesale capabilities to your store: company accounts where m
 5. For net terms: WooCommerce B2B adds a "Pay by Invoice" payment gateway — orders placed with net terms generate an invoice PDF and allow deferred payment
 
 **Alternative — WooCommerce Role-Based Pricing:**
+
 - Create a "Wholesale" user role (using the **User Role Editor** plugin)
 - Use the **WooCommerce Role-Based Pricing** plugin to set per-role prices per product or per category
 
 #### BigCommerce
 
 **Customer Groups (available on all plans):**
+
 1. Go to **Customers → Customer Groups → Add**
 2. Create a "Wholesale" group with a percentage discount on all products or category-specific discounts
 3. Assign wholesale customers to this group manually or via registration form rules
 4. Customers in the Wholesale group see group-specific pricing at checkout
 
 **BigCommerce B2B Edition (add-on for growing wholesale operations):**
+
 1. Contact BigCommerce sales to add B2B Edition to your plan
 2. B2B Edition adds: company accounts with multiple buyers, quote requests, corporate payment methods, and a buyer portal
 3. The buyer portal lets company admins manage users, view order history, and request quotes from a self-service interface
@@ -125,6 +131,7 @@ Net terms let B2B buyers pay after receiving goods (Net 30 = pay within 30 days 
 4. Send payment reminders: Shopify automatically emails buyers when invoices are due (configure in Settings → Notifications)
 
 **Accounting integration for net terms:**
+
 - Connect Shopify to **QuickBooks Online** or **Xero** via their Shopify connectors
 - Net terms orders sync as unpaid invoices in QuickBooks/Xero
 - Your accounting team manages the payment collection follow-up from QuickBooks/Xero
@@ -145,44 +152,47 @@ Net terms let B2B buyers pay after receiving goods (Net 30 = pay within 30 days 
 ```typescript
 // Company account with credit management
 interface Company {
-  id: string;
-  name: string;
-  taxId?: string;             // EIN, VAT number
-  billingAddress: Address;
-  paymentTerms: 'prepay' | 'net15' | 'net30' | 'net60' | 'net90';
-  creditLimitCents: number | null;  // null = no limit
-  creditUsedCents: number;
-  status: 'pending' | 'approved' | 'suspended';
+	id: string;
+	name: string;
+	taxId?: string; // EIN, VAT number
+	billingAddress: Address;
+	paymentTerms: "prepay" | "net15" | "net30" | "net60" | "net90";
+	creditLimitCents: number | null; // null = no limit
+	creditUsedCents: number;
+	status: "pending" | "approved" | "suspended";
 }
 
 // Check credit before placing an order
 async function checkCreditAvailability(
-  companyId: string,
-  orderTotalCents: number
+	companyId: string,
+	orderTotalCents: number,
 ): Promise<{ approved: boolean; reason?: string }> {
-  const company = await db.companies.findById(companyId);
-  if (company.status !== 'approved') {
-    return { approved: false, reason: 'Company account not approved' };
-  }
-  if (company.creditLimitCents !== null) {
-    const availableCredit = company.creditLimitCents - company.creditUsedCents;
-    if (orderTotalCents > availableCredit) {
-      return {
-        approved: false,
-        reason: `Order exceeds available credit. Available: $${(availableCredit / 100).toFixed(2)}`,
-      };
-    }
-  }
-  return { approved: true };
+	const company = await db.companies.findById(companyId);
+	if (company.status !== "approved") {
+		return { approved: false, reason: "Company account not approved" };
+	}
+	if (company.creditLimitCents !== null) {
+		const availableCredit = company.creditLimitCents - company.creditUsedCents;
+		if (orderTotalCents > availableCredit) {
+			return {
+				approved: false,
+				reason: `Order exceeds available credit. Available: $${(availableCredit / 100).toFixed(2)}`,
+			};
+		}
+	}
+	return { approved: true };
 }
 
 // Record credit usage when order is placed (in same DB transaction as order creation)
-async function consumeCredit(companyId: string, amountCents: number): Promise<void> {
-  // Atomic update prevents race condition when multiple buyers order simultaneously
-  await db.raw(
-    'UPDATE companies SET credit_used_cents = credit_used_cents + ? WHERE id = ? AND credit_used_cents + ? <= COALESCE(credit_limit_cents, 2147483647)',
-    [amountCents, companyId, amountCents]
-  );
+async function consumeCredit(
+	companyId: string,
+	amountCents: number,
+): Promise<void> {
+	// Atomic update prevents race condition when multiple buyers order simultaneously
+	await db.raw(
+		"UPDATE companies SET credit_used_cents = credit_used_cents + ? WHERE id = ? AND credit_used_cents + ? <= COALESCE(credit_limit_cents, 2147483647)",
+		[amountCents, companyId, amountCents],
+	);
 }
 ```
 
@@ -197,11 +207,11 @@ async function consumeCredit(companyId: string, amountCents: number): Promise<vo
 
 ## Common Pitfalls
 
-| Problem | Solution |
-|---------|----------|
-| Individual buyer sees another company's pricing | Scope all catalog and pricing queries strictly by company ID; test by logging in as buyers from different companies |
-| Credit limit exceeded due to concurrent orders | Use atomic SQL update with a WHERE clause checking credit headroom; Shopify Plus's built-in B2B handles this automatically |
-| B2B checkout bypasses the approval flow | Enforce approval checks server-side in your order creation logic, not just in the UI |
+| Problem                                          | Solution                                                                                                                       |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Individual buyer sees another company's pricing  | Scope all catalog and pricing queries strictly by company ID; test by logging in as buyers from different companies            |
+| Credit limit exceeded due to concurrent orders   | Use atomic SQL update with a WHERE clause checking credit headroom; Shopify Plus's built-in B2B handles this automatically     |
+| B2B checkout bypasses the approval flow          | Enforce approval checks server-side in your order creation logic, not just in the UI                                           |
 | Wholesale prices show to non-wholesale customers | Customer tags on Shopify and user roles in WooCommerce must be verified server-side; never trust client-side state for pricing |
 
 ## Related Skills

@@ -35,56 +35,56 @@ docker pull nerdfonts/patcher
 
 ### Glyph sets
 
-| Option | Adds |
-|--------|------|
+| Option             | Adds                                    |
+| ------------------ | --------------------------------------- |
 | `--complete`, `-c` | every set below (usually what you want) |
-| `--codicons` | Codicons |
-| `--fontawesome` | Font Awesome |
-| `--fontawesomeext` | Font Awesome Extension |
-| `--fontlogos` | Font Logos |
-| `--material` | Material Design Icons |
-| `--octicons` | Octicons |
-| `--pomicons` | Pomicons |
-| `--powerline` | Powerline symbols |
-| `--powerlineextra` | Powerline Extra symbols |
-| `--powersymbols` | IEC Power Symbols |
-| `--weather` | Weather Icons |
+| `--codicons`       | Codicons                                |
+| `--fontawesome`    | Font Awesome                            |
+| `--fontawesomeext` | Font Awesome Extension                  |
+| `--fontlogos`      | Font Logos                              |
+| `--material`       | Material Design Icons                   |
+| `--octicons`       | Octicons                                |
+| `--pomicons`       | Pomicons                                |
+| `--powerline`      | Powerline symbols                       |
+| `--powerlineextra` | Powerline Extra symbols                 |
+| `--powersymbols`   | IEC Power Symbols                       |
+| `--weather`        | Weather Icons                           |
 
 Without a set flag the patcher adds only Seti-UI + Custom and Devicons.
 
 ### Width
 
-| Option | Effect |
-|--------|--------|
-| `--mono`, `-s` | single-width icons (the Mono variant) |
-| `--variable-width-glyphs` | proportional icons without overhang (the Propo variant) |
-| `--single-width-glyphs` | single-width icons without forcing the font to monospace |
-| `--adjust-line-height`, `-l` | make odd cell heights even |
+| Option                       | Effect                                                   |
+| ---------------------------- | -------------------------------------------------------- |
+| `--mono`, `-s`               | single-width icons (the Mono variant)                    |
+| `--variable-width-glyphs`    | proportional icons without overhang (the Propo variant)  |
+| `--single-width-glyphs`      | single-width icons without forcing the font to monospace |
+| `--adjust-line-height`, `-l` | make odd cell heights even                               |
 
 ### Naming and output
 
-| Option | Effect |
-|--------|--------|
-| `--outputdir DIR`, `-out DIR` | output directory |
-| `--extension EXT`, `-ext EXT` | output format, `ttf` or `otf` |
-| `--name MODE` | naming source: `full`, `postscript`, `filename`, or a custom string |
-| `--makegroups [N]` | family naming strategy, level 0 to 6 |
-| `--careful` | keep glyphs the font already has |
+| Option                        | Effect                                                              |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `--outputdir DIR`, `-out DIR` | output directory                                                    |
+| `--extension EXT`, `-ext EXT` | output format, `ttf` or `otf`                                       |
+| `--name MODE`                 | naming source: `full`, `postscript`, `filename`, or a custom string |
+| `--makegroups [N]`            | family naming strategy, level 0 to 6                                |
+| `--careful`                   | keep glyphs the font already has                                    |
 
 ### Advanced
 
-| Option | Effect |
-|--------|--------|
-| `--configfile FILE` | JSON configuration for special cases |
-| `--custom FONT` | add glyphs from your own symbol font |
-| `--removeligs` | strip ligature tables (needs a config file) |
-| `--xavgcharwidth [N]` | keep or set `xAvgCharWidth` |
-| `--boxdrawing` | replace box drawing glyphs |
-| `--cell OPT` | set or query cell dimensions |
-| `--postprocess SCRIPT` | run a script after patching |
-| `--has-no-italic` | mark the font as Oblique instead of Italic |
-| `--metrics HHEA`, `--metrics TYPO`, `--metrics WIN` | vertical metrics source |
-| `--quiet`, `-q`; `--debug [N]`; `--dry`; `--progressbars`, `--no-progressbars` | logging and dry run |
+| Option                                                                         | Effect                                      |
+| ------------------------------------------------------------------------------ | ------------------------------------------- |
+| `--configfile FILE`                                                            | JSON configuration for special cases        |
+| `--custom FONT`                                                                | add glyphs from your own symbol font        |
+| `--removeligs`                                                                 | strip ligature tables (needs a config file) |
+| `--xavgcharwidth [N]`                                                          | keep or set `xAvgCharWidth`                 |
+| `--boxdrawing`                                                                 | replace box drawing glyphs                  |
+| `--cell OPT`                                                                   | set or query cell dimensions                |
+| `--postprocess SCRIPT`                                                         | run a script after patching                 |
+| `--has-no-italic`                                                              | mark the font as Oblique instead of Italic  |
+| `--metrics HHEA`, `--metrics TYPO`, `--metrics WIN`                            | vertical metrics source                     |
+| `--quiet`, `-q`; `--debug [N]`; `--dry`; `--progressbars`, `--no-progressbars` | logging and dry run                         |
 
 ## Examples from the upstream README
 

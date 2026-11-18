@@ -91,10 +91,10 @@ The same shape fits a pipeline of different specialists: a fast document extract
 
 - **Good fits:** parallel research across sources; reading large amounts of material without filling the coordinator's context; specialists with narrow prompts and tool sets rather than one agent carrying every tool. **Poor fit:** a small single-step task - every delegation costs a round-trip and a re-briefing.
 - **Write `name` and `description` for the coordinator to read.** The coordinator chooses whom to spawn from each roster entry's name and description (the `self` entry is listed under the coordinator's own name), so say what each agent is good at and what to hand it. Names must be unique across the roster; don't name an agent `self`.
-- **Say how to delegate in the coordinator's `system` prompt** - what to hand off and to whom, how many at once, what to keep for itself, and what is too small to be worth delegating (the *Delegating to subagents* sample prompt in `shared/model-migration.md` is a starting point). Subagents see none of the coordinator's conversation, so each task must carry the paths, constraints, and report format it needs. Spawning returns immediately; the subagent's report arrives in a later coordinator turn.
+- **Say how to delegate in the coordinator's `system` prompt** - what to hand off and to whom, how many at once, what to keep for itself, and what is too small to be worth delegating (the _Delegating to subagents_ sample prompt in `shared/model-migration.md` is a starting point). Subagents see none of the coordinator's conversation, so each task must carry the paths, constraints, and report format it needs. Spawning returns immediately; the subagent's report arrives in a later coordinator turn.
 - **Web tool domain lists layer, never widen.** A roster agent's `web_search` / `web_fetch` calls are bound by its own `allowed_domains` / `blocked_domains`, by those of every agent that called it, and by the coordinator's current lists (allow-lists intersect, block-lists union). Keep each roster agent's allow-list inside the coordinator's - disjoint lists leave the tool present but every call fails `url_not_allowed`. See `shared/managed-agents-tools.md` § Web search & web fetch settings.
 - **Too big to hand out one task at a time?** For work like reviewing hundreds of documents, cross-checking many sources, or repeating the same step across many items, turn on dynamic workflows (with or without a roster) - see § Dynamic workflows below.
-- **Limits:** 1-20 roster entries (at most one `self`; each rostered agent can be spawned many times), one level of delegation (a roster member must not have its own `multiagent`), and at most 25 child threads per session, idle ones included - archive finished threads if a long session needs more (see *Interrupting and archiving threads* below).
+- **Limits:** 1-20 roster entries (at most one `self`; each rostered agent can be spawned many times), one level of delegation (a roster member must not have its own `multiagent`), and at most 25 child threads per session, idle ones included - archive finished threads if a long session needs more (see _Interrupting and archiving threads_ below).
 
 The sections below are the reference for rosters, threads, events, and client-side handling; the platform guide is `https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration.md`.
 
@@ -125,12 +125,12 @@ orchestrator = client.beta.agents.create(
 session = client.beta.sessions.create(agent=orchestrator.id, environment_id=env.id)
 ```
 
-| Roster entry | Shape | Notes |
-|---|---|---|
-| String shorthand | `"agent_abc123"` | References the latest version of a stored agent. |
-| Agent reference | `{type: "agent", id, version?}` | Omit `version` to pin the latest at coordinator save time. |
-| Self | `{type: "self"}` | The coordinator can spawn copies of itself. |
-| Advisor | `{type: "advisor", model}` | A model the session's primary thread can consult mid-turn. At most one per roster. See § Advisor below. |
+| Roster entry     | Shape                           | Notes                                                                                                   |
+| ---------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| String shorthand | `"agent_abc123"`                | References the latest version of a stored agent.                                                        |
+| Agent reference  | `{type: "agent", id, version?}` | Omit `version` to pin the latest at coordinator save time.                                              |
+| Self             | `{type: "self"}`                | The coordinator can spawn copies of itself.                                                             |
+| Advisor          | `{type: "advisor", model}`      | A model the session's primary thread can consult mid-turn. At most one per roster. See § Advisor below. |
 
 If the session was created with `agent_with_overrides` (see `shared/managed-agents-core.md` -> Override agent configuration for a session), those overrides apply to the **coordinator and its `self` copies**. Roster agents referenced by ID always use their own as-created configuration - overrides do not propagate to them.
 
@@ -149,6 +149,7 @@ When the agent's job is too big to hand out one task at a time - reviewing hundr
 **What to tell the user.** When you turn dynamic workflows on, say in your closing reply that they are on, what they do for this job (many agents work through its pieces in phases, in the background, where a roster would have to run them in batches), that every agent in a run uses tokens, so the session needs a budget, and how to turn them off (`workflows: {"type": "disabled"}`, or the `coordinator` type for a roster only).
 
 **An agent can run dynamic workflows with or without a roster and an advisor.** A run's plan can use the agents you list in `workflows.predefined_agents` and define agents of its own; it doesn't use the roster.
+
 - **Roster** (`{"type": "coordinator", "agents": [...]}`, above): the work has several well-scoped tasks, or needs cheaper workers or specialists with their own system prompts and tools. Each agent works in its own session thread, which you can list and stream, and the roster can include an advisor.
 - **Dynamic workflows** (`{"type": "multiagent_20261001", "workflows": {"type": "enabled"}}`): the work is too big to hand out one task at a time, with more pieces than a session's 25 child threads can hold at once. Count the pieces in the whole job: if a roster would have to run them in batches to stay under the 25-child-thread limit, use dynamic workflows. The plan can run the agents listed in `workflows.predefined_agents` and agents it defines (see "What a run's agents get", below). You follow the run by its phases and can read each of its threads. The same agent can also have a roster (`subagents`) and an advisor (`advisor`).
 - **Neither:** simple or single-step agents, and agents that answer one question at a time when answering needs no fan-out. Every agent in a run uses tokens, so set a session budget when they are on (below).
@@ -169,11 +170,12 @@ In TypeScript:
 
 ```typescript
 const agent = await client.beta.agents.create({
-  name: "Contract Reviewer",
-  model: "claude-opus-5-5",
-  system: "You review contracts. When you're asked to review more than a few contracts, start a workflow run that reads them in parallel and combines the findings. Review one or two contracts yourself, without a run.",
-  tools: [{ type: "agent_toolset_20260401" }],
-  multiagent: { type: "multiagent_20261001", workflows: { type: "enabled" } },
+	name: "Contract Reviewer",
+	model: "claude-opus-5-5",
+	system:
+		"You review contracts. When you're asked to review more than a few contracts, start a workflow run that reads them in parallel and combines the findings. Review one or two contracts yourself, without a run.",
+	tools: [{ type: "agent_toolset_20260401" }],
+	multiagent: { type: "multiagent_20261001", workflows: { type: "enabled" } },
 });
 ```
 
@@ -190,6 +192,7 @@ You review contracts. When you're asked to review more than a few contracts, sta
 To adapt it, name the kinds of tasks in the agent's domain that call for a run, such as scanning a whole repository or checking many sources, and the small tasks the agent should do itself. Keep runs to the tasks that need them - never "always use a workflow run" - because every agent in a run uses tokens. A user can also ask for a run in a `user.message`.
 
 **The system prompt can also shape how a run does the work.** The agent writes the plan from what its prompt says, so add lines like these when the job calls for them, worded for the agent's domain:
+
 - **A second look, when a miss is costly** (the user stresses accuracy or completeness, or the job is a review, an audit or research): "In a run, use one agent per contract. Then have a second agent review every contract, not only the flagged ones, and look for what the first one missed. Anything that fails review is redone and reviewed again." Reading in parallel and combining gives speed and coverage; the review of every item is what raises quality. It also adds about one more agent per item: say so in your closing reply, and past about 500 items have each agent take several, so that the run stays under its limit of 1,000 (§ Limits). Leave it out when the user wants the job cheap or fast. This is about the items of a run: it doesn't change "Not for one question at a time" (above).
 - **When an agent fails:** "One agent failing must not fail the run. List a contract whose agent failed as not covered."
 - **The date and time:** a run's agents don't know them. "Take the current time inside the workflow and give the date and time to every agent." Today the plan can read the clock (in UTC; the API doesn't promise it), so this works for an agent that has no `bash`.
@@ -200,6 +203,7 @@ To adapt it, name the kinds of tasks in the agent's domain that call for a run, 
 **What a run's agents get.** Each of a run's threads runs an agent listed in `workflows.predefined_agents` or an agent the plan defines. A listed agent runs with its own configuration, as a roster agent does when the coordinator delegates to it. An agent the plan defines gets its system prompt from the plan and runs on the session agent's model. It gets the session agent's `tools`, `mcp_servers`, and skills (all of them today; the API doesn't promise that), and its tools keep their permission policies. With no list, the plan defines every agent it runs. The server creates session threads for the run as its plan needs them (§ Following a run, below).
 
 **Rules:**
+
 - **Updating:** an `agents.update()` that sends the `multiagent_20261001` type to an agent that already has it is merged into the stored block, level by level. Every object you send needs its `type`. A key you omit keeps its stored value. A key you send as `null` goes back to its default, and so does every key inside it. A `predefined_agents` list you send replaces the stored list. A member you send with a `type` other than the stored one (`disabled` to `enabled`, say) is replaced whole, so send its `inline_agents` and `predefined_agents` with it. An update that leaves `multiagent` out keeps it all. Sent to an agent that has the `coordinator` type, the update replaces the whole block, so send the roster again as `subagents.predefined_agents` and the advisor as `advisor`.
 - **Turning it off:** send `workflows: {"type": "disabled"}` in an `agents.update()`; it stays off until an update turns it on again. Don't send `workflows: null`: `null` puts a member back to its default, and the default for `workflows` is enabled. For a roster only, switch to the `coordinator` type: a change of type replaces the whole block, so send the roster as `agents`, with any advisor as an entry in it.
 - **Existing sessions** copy the setting at create; changing the agent later doesn't change them.
@@ -209,19 +213,19 @@ To adapt it, name the kinds of tasks in the agent's domain that call for a run, 
 
 **Following a run.** You follow a run through its events; you don't see the plan itself or the agent's calls that start and manage runs. These events appear on the primary thread's stream, and listing the session's events returns them too. They have no webhooks.
 
-| Event | Payload highlights |
-|---|---|
-| `workflow_run.created` | `workflow_run_id` (starts with `wrun_`), the run's `name` (written by the model, or assigned by the server) and `description` (`null` when the plan gives none), `phases` (the plan's declared phases, each with an `id`, a `name` and a `description`); a status event follows |
-| `workflow_run.status_running` | `workflow_run_id` - the run is running; sent when the run starts to execute, which can be a while after `created`, and again on each resume after a pause at the budget (a resume after an interrupt might not send it; a run that is idle from the start might get `workflow_run.status_idle` first) |
-| `workflow_run.status_idle` | `workflow_run_id` - the run was paused, for example at the session budget (the state's name is `idle`); the event doesn't say why, and a pause after an interrupt might not send it |
-| `workflow_run.status_ended` | `workflow_run_id`, `result` (a union on `type`: `{"type": "completed"}`, `{"type": "error", "error": {"type": ..., "message": ...}}`, or `{"type": "stopped"}`) - always the run's last status event |
-| `workflow_run.error` | `workflow_run_id` (`null` when no run was created), `error` (`type` and `message`, the same fields as `result.error`) - reports a run's error, or a start the server refused. A start at the limit of open runs (10 by default) is refused with `error.type` `max_workflow_runs_error`, which appears only on this event, with `workflow_run_id` `null`. A run that ends with `result.type: "error"` sends this event first, with the same error, and then `workflow_run.status_ended`; keep tracking the run until `status_ended` arrives |
-| `workflow_run.phase_started` | `workflow_run_id`, `workflow_run_phase_id` (today always a phase's `id` in `phases`; the event has no name, so look it up there, and fall back to the id) |
-| `workflow_run.phase_ended` | `workflow_run_id`, `workflow_run_phase_id`, `phase_started_id` |
+| Event                         | Payload highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `workflow_run.created`        | `workflow_run_id` (starts with `wrun_`), the run's `name` (written by the model, or assigned by the server) and `description` (`null` when the plan gives none), `phases` (the plan's declared phases, each with an `id`, a `name` and a `description`); a status event follows                                                                                                                                                                                                                                                            |
+| `workflow_run.status_running` | `workflow_run_id` - the run is running; sent when the run starts to execute, which can be a while after `created`, and again on each resume after a pause at the budget (a resume after an interrupt might not send it; a run that is idle from the start might get `workflow_run.status_idle` first)                                                                                                                                                                                                                                      |
+| `workflow_run.status_idle`    | `workflow_run_id` - the run was paused, for example at the session budget (the state's name is `idle`); the event doesn't say why, and a pause after an interrupt might not send it                                                                                                                                                                                                                                                                                                                                                        |
+| `workflow_run.status_ended`   | `workflow_run_id`, `result` (a union on `type`: `{"type": "completed"}`, `{"type": "error", "error": {"type": ..., "message": ...}}`, or `{"type": "stopped"}`) - always the run's last status event                                                                                                                                                                                                                                                                                                                                       |
+| `workflow_run.error`          | `workflow_run_id` (`null` when no run was created), `error` (`type` and `message`, the same fields as `result.error`) - reports a run's error, or a start the server refused. A start at the limit of open runs (10 by default) is refused with `error.type` `max_workflow_runs_error`, which appears only on this event, with `workflow_run_id` `null`. A run that ends with `result.type: "error"` sends this event first, with the same error, and then `workflow_run.status_ended`; keep tracking the run until `status_ended` arrives |
+| `workflow_run.phase_started`  | `workflow_run_id`, `workflow_run_phase_id` (today always a phase's `id` in `phases`; the event has no name, so look it up there, and fall back to the id)                                                                                                                                                                                                                                                                                                                                                                                  |
+| `workflow_run.phase_ended`    | `workflow_run_id`, `workflow_run_phase_id`, `phase_started_id`                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 - **Switch on `result.type` first:** `result.type` is `completed` when the plan finished (not a sign the work passed), `stopped` when the agent stopped the run or the session was archived (the event doesn't say which), and `error` when the run couldn't finish. The set of `result.type` values can grow, so treat an unknown one as a run that ended some other way. Only an `error` result has `result.error`, with a `type` and a `message` (a short server-written sentence with no content from the run, safe to log); `status_ended` has no top-level `error` field. `result.error.type` is `timeout_error` when the run's lifetime passed, `program_error` when the plan failed (its code failed, it let a failure on one of its threads (or in creating one) end the run, or it broke a rule for plans other than a limit), `thread_limit_error` when the run went over its thread limit (§ Limits), and `unknown_error` when the server couldn't continue the run, the run went over one of the server's further limits on a plan, or the session terminated on an unrecoverable error; it can gain new values, so treat an unrecognized one as a generic failure (`result.type` is still `"error"`). A failure of something the session depends on (the model, an MCP server, credentials) comes as `session.error` on the failing thread's stream and doesn't end a run by itself; but if it makes one of the run's threads fail and the plan lets that end the run, the run ends with `program_error`, so `program_error` doesn't say whether the plan's own code or a dependency failed.
 - **Phases:** `phases` lists the phases the plan declares, and is empty when it declares none. Today the list has all of a run's phases and they run one at a time, in the list's order, each at most once - but the API doesn't promise that, so match a phase's end to its start by `phase_started_id`, not by position, and accept more than one open phase, a started phase that isn't in the list, and listed phases that never start, even in a run that completes (nothing is sent for those). What is promised: every phase that starts also ends, and a phase still open when the run ends gets its `phase_ended` before the run's `workflow_run.status_ended` (after an archive, both are on the event list only). Tell phases apart by `id`, not `name` - names aren't guaranteed unique. Phase events say which phase is open, not whether its work finished; the run's end event says how the run ended.
-- **The run's end reaches the agent off the stream.** After `workflow_run.status_ended`, the server sends the agent an *ending notice* and the agent takes a turn on it; that notice is not an event on any stream, so don't wait for an `agent.thread_message_received` from the run.
+- **The run's end reaches the agent off the stream.** After `workflow_run.status_ended`, the server sends the agent an _ending notice_ and the agent takes a turn on it; that notice is not an event on any stream, so don't wait for an `agent.thread_message_received` from the run.
 - **A run's threads:** the server creates session threads for the run as its plan needs them; you can list, read, and stream each one like any child thread (§ Threads) but can't send input to it or interrupt it by its ID (to stop a run's threads, ask the agent to stop the run - § Interrupting with runs open). Its `type` is the ordinary `session_thread`. It carries the run's `workflow_run_id`, as does the `session.thread_created` that announces it, so you can group a run's threads. On every other thread, and on the `session.thread_created` that announces it, `workflow_run_id` is `null`. For an agent listed in `workflows.predefined_agents`, its `agent` is that agent's snapshot, as on a roster agent's thread, so only `workflow_run_id` tells it from a delegated thread. For an agent the plan defines (an inline agent), its `agent` has `type: "inline"` and shows the `name`, `description`, and `system` the plan gave it; its other fields are what that agent runs with (see "What a run's agents get", above); it has no `id`, `version`, or `multiagent`. No event records the thread's result to the plan; its `session.thread_status_terminated`, on the primary stream, tells you the thread is done (not whether it returned a result; a run's thread whose status is `idle` can still continue). Its lifecycle events (`session.thread_created` and the `session.thread_status_*` events, but not the message events) are cross-posted to the primary thread and its thread webhooks are sent, as for any child thread - so tell a run thread's status events from the primary thread's by `session_thread_id` - but a run's threads don't count toward the 25-child-thread limit. The server archives each thread no later than the end of its run, and can archive it as soon as it returns its result or the run finishes with it; if a thread is still running or waiting on your client when the server archives it (at the run's end or earlier), the server first stops it, and a call of that thread that still waits on you is void (§ While a run is open). An archived thread has status `terminated`; no need to archive a run's threads yourself, and while its run is open you can't (400 with `error.details.error_code: "workflow_run_open"`, unless the server has already archived the thread).
 - **No endpoint lists runs.** After a reconnect, list the session's events with `types[]` set to `workflow_run.created` and `workflow_run.status_ended` to find the open ones; add `workflow_run.status_running` and `workflow_run.status_idle` to see which are idle (an open run's newest status event, once it has one, says running or idle; `status_running` doesn't mean a thread is at work, and a run paused after an interrupt might still show as running).
 
@@ -270,42 +274,45 @@ with client.beta.sessions.events.stream(session.id) as stream:
 const openRuns = new Set<string>();
 const stream = await client.beta.sessions.events.stream(session.id);
 await client.beta.sessions.events.send(session.id, {
-  events: [{ type: "user.message", content: [{ type: "text", text: task }] }],
+	events: [{ type: "user.message", content: [{ type: "text", text: task }] }],
 });
 loop: for await (const event of stream) {
-  switch (event.type) {
-    case "workflow_run.created":
-      openRuns.add(event.workflow_run_id);
-      break;
-    case "workflow_run.status_ended":
-      openRuns.delete(event.workflow_run_id);
-      console.log(`Run ${event.workflow_run_id} ended: ${event.result.type}`);
-      break;
-    case "agent.custom_tool_use": {
-      // you write callTool(): run the tool and return its result as text
-      const result = await callTool(event.name, event.input);
-      try {
-        await client.beta.sessions.events.send(session.id, {
-          events: [{
-            type: "user.custom_tool_result",
-            custom_tool_use_id: event.id,
-            content: [{ type: "text", text: result }],
-          }],
-        });
-      } catch (error) {
-        if (!(error instanceof Anthropic.BadRequestError)) throw error;
-        // The server can refuse an answer that comes after it archived the call's thread.
-        console.log(`Answer to ${event.name} refused: ${error.message}`);
-      }
-      break;
-    }
-    case "session.status_idle":
-      if (openRuns.size === 0 && event.stop_reason.type === "end_turn") break loop;
-      // Any other idle: still waiting. Handle budget_reached and retries_exhausted here.
-      break;
-    case "session.status_terminated":
-      break loop;
-  }
+	switch (event.type) {
+		case "workflow_run.created":
+			openRuns.add(event.workflow_run_id);
+			break;
+		case "workflow_run.status_ended":
+			openRuns.delete(event.workflow_run_id);
+			console.log(`Run ${event.workflow_run_id} ended: ${event.result.type}`);
+			break;
+		case "agent.custom_tool_use": {
+			// you write callTool(): run the tool and return its result as text
+			const result = await callTool(event.name, event.input);
+			try {
+				await client.beta.sessions.events.send(session.id, {
+					events: [
+						{
+							type: "user.custom_tool_result",
+							custom_tool_use_id: event.id,
+							content: [{ type: "text", text: result }],
+						},
+					],
+				});
+			} catch (error) {
+				if (!(error instanceof Anthropic.BadRequestError)) throw error;
+				// The server can refuse an answer that comes after it archived the call's thread.
+				console.log(`Answer to ${event.name} refused: ${error.message}`);
+			}
+			break;
+		}
+		case "session.status_idle":
+			if (openRuns.size === 0 && event.stop_reason.type === "end_turn")
+				break loop;
+			// Any other idle: still waiting. Handle budget_reached and retries_exhausted here.
+			break;
+		case "session.status_terminated":
+			break loop;
+	}
 }
 ```
 
@@ -322,12 +329,14 @@ The agent writes it out again from its own context, so it is the agent's copy, n
 In the plan, look for: a phase that depends on a list that can be empty; how the prompts it writes for its agents define words like "passed" or "confirmed"; values that one phase returns and no later phase uses or checks; and agents meant to judge independently whose prompts don't keep them from each other's files (a run's threads share the session's container and files). If a rule must reach every agent, have the system prompt say "state this to every agent word for word", then search the plan for the rule's words.
 
 **Interrupting with runs open.** A `user.interrupt` with no `session_thread_id`, or naming the primary thread, stops the agent's turn. It ends no run; no event you send ends a run, and naming one of a run's threads is a 400. The session's runs might pause or keep running, and their events might not show which. A paused run's lifetime might keep passing, so the run can end with `timeout_error`.
+
 - **Waiting tool calls:** after the interrupt, a run thread's tool call might still wait on your client. Answer each one. To cancel a call that asks for confirmation, deny it. To cancel a custom tool call, send a result with `is_error` set to `true` and a text in `content` that says why. While the session is `idle` with `requires_action`, a `user.message` returns 400, so answer the calls first.
 - **To stop the runs,** send a `user.message` asking the agent to stop its runs. A stopped run ends with `result.type: "stopped"`.
 - **To continue,** send a `user.message` asking the agent to continue its runs. After an interrupt, the runs might wait for this message. If the session is `idle` with `budget_reached`, raise or remove the budget first.
 - **Run results:** a run that ends after the interrupt still sends `workflow_run.status_ended`. The agent's turn on its ending notice might not come: send a `user.message`, or read `result` yourself.
 
 **While a run is open:**
+
 - **Session status:** a run that is running keeps the session `running`, even while none of its threads is working, and no `session.status_idle` arrives except one with `requires_action` (no thread working, one waiting on your client); after a run ends it usually stays `running` through the agent's turn on the notice (a `requires_action` or `retries_exhausted` idle can come first, and an interrupt or the budget can hold the notice). An idle run doesn't keep the session `running`, so with every open run idle the session can report `idle` - at the budget (`budget_reached`) or after an interrupt.
 - **Archive and delete** might end the work of a run that is still open. While a run is open, the server might refuse either with a 400 (its `error.details.error_code` can be `"workflow_run_open"`), whatever status the session reports, or might accept it and end the run. So don't send either while you still want a run's work. To archive or delete, first ask the agent to stop its runs, or wait for each run's `workflow_run.status_ended` (a paused run might not end by itself - § Interrupting with runs open); then send the request when the session is `idle`. If the server still refuses, a run is still open or the session is not yet `idle`: check both before you retry. An archive that is accepted ends each run still open with `result.type: "stopped"`; after an archive, a run's `workflow_run.status_ended`, and the `phase_ended` of a phase still open, are on the event list only. After a delete that is accepted, no `workflow_run` event reports the end of the session's runs.
 - **Updating the session's `agent`** (`sessions.update()`) returns 400 with `workflow_run_open` while any run is open, paused or not; an interrupt doesn't clear this (it ends no run), so ask the agent to stop its runs, or wait for every run's `workflow_run.status_ended` (a paused run might not end by itself).
@@ -342,13 +351,13 @@ In the plan, look for: a phase that depends on a list that can be empty; how the
 
 The session-level event stream is the **primary thread** - it shows the coordinator's trace plus a condensed view of subagent activity (thread status transitions and cross-thread messages, not every subagent tool call). Drill into a specific subagent via the per-thread endpoints:
 
-| Operation | HTTP | SDK (`client.beta.sessions.threads.*`) |
-|---|---|---|
-| List threads | `GET /v1/sessions/{sid}/threads` | `.list(session_id)` |
-| Retrieve one | `GET /v1/sessions/{sid}/threads/{tid}` | `.retrieve(thread_id, session_id=...)` |
-| Archive | `POST /v1/sessions/{sid}/threads/{tid}/archive` | `.archive(thread_id, session_id=...)` |
-| List thread events | `GET /v1/sessions/{sid}/threads/{tid}/events` | `.events.list(thread_id, session_id=...)` |
-| Stream thread events | `GET /v1/sessions/{sid}/threads/{tid}/stream` | `.events.stream(thread_id, session_id=...)` |
+| Operation            | HTTP                                            | SDK (`client.beta.sessions.threads.*`)      |
+| -------------------- | ----------------------------------------------- | ------------------------------------------- |
+| List threads         | `GET /v1/sessions/{sid}/threads`                | `.list(session_id)`                         |
+| Retrieve one         | `GET /v1/sessions/{sid}/threads/{tid}`          | `.retrieve(thread_id, session_id=...)`      |
+| Archive              | `POST /v1/sessions/{sid}/threads/{tid}/archive` | `.archive(thread_id, session_id=...)`       |
+| List thread events   | `GET /v1/sessions/{sid}/threads/{tid}/events`   | `.events.list(thread_id, session_id=...)`   |
+| Stream thread events | `GET /v1/sessions/{sid}/threads/{tid}/stream`   | `.events.stream(thread_id, session_id=...)` |
 
 Each `SessionThread` carries `id`, `status` (`running` | `idle` | `rescheduling` | `terminated`), `agent` (a resolved snapshot of the agent config - `id`, `name`, `model`, `system`, `tools`, `skills`, `mcp_servers`, `version` - except advisor threads, whose `agent` is the two-field advisor form `{"type": "advisor", "model": ...}` - see § Advisor - and the threads of agents that a workflow run's plan or the coordinator defines, whose `agent` has the `inline` form: the session agent's config without `id`, `version`, or `multiagent`, and with its own `name`, `description`, and `system`), `parent_thread_id` (null for the primary thread, which is included in the list), `workflow_run_id` (null except on a workflow run's threads - see § Dynamic workflows), `archived_at`, and optional `stats`/`usage`. Per-thread `usage.list_cost` figures do **not** sum to the session total - the session figure additionally includes session running time and each figure is rounded independently; the session-level `usage.list_cost` is authoritative. **Session status aggregates thread statuses** - if any thread is `running`, `session.status` is `running`. Max **25 child threads** per session, idle ones included until archived (advisor threads are exempt - see § Advisor - and so are a workflow run's threads - see § Dynamic workflows). When draining a per-thread stream, break on `session.thread_status_idle` (and check its `stop_reason` as you would for the session-level idle).
 
@@ -358,15 +367,15 @@ Each `SessionThread` carries `id`, `status` (`running` | `idle` | `rescheduling`
 
 ## Multiagent events (on the session stream)
 
-| Event | Payload highlights | Meaning |
-|---|---|---|
-| `session.thread_created` | `session_thread_id`, `agent_name` | A new thread was created. Carries `workflow_run_id`: the run's id for a workflow run's thread, `null` otherwise (§ Dynamic workflows). |
-| `session.thread_status_running` | `session_thread_id`, `agent_name` | Thread started activity. |
-| `session.thread_status_idle` | `session_thread_id`, `agent_name`, **`stop_reason`** | Thread is awaiting input - or paused at the session's shared budget (`stop_reason: budget_reached`). Inspect `stop_reason` (same shape as `session.status_idle.stop_reason`). |
-| `session.thread_status_rescheduled` | `session_thread_id`, `agent_name` | Thread is rescheduling after a retryable error. |
-| `session.thread_status_terminated` | `session_thread_id`, `agent_name` | Thread terminated, for example because it was archived or hit an unrecoverable error, or because it was an advisor consultation thread whose consultation ended (see § Advisor). |
-| `agent.thread_message_sent` | `to_session_thread_id`, `to_agent_name`, `content` | *This* thread sent a message to another thread. On the primary stream: the coordinator sent a task or follow-up to an agent. |
-| `agent.thread_message_received` | `from_session_thread_id`, `from_agent_name`, `content` | A message arrived on *this* thread from another. On the primary stream: an agent sent a report or question to the coordinator. |
+| Event                               | Payload highlights                                     | Meaning                                                                                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `session.thread_created`            | `session_thread_id`, `agent_name`                      | A new thread was created. Carries `workflow_run_id`: the run's id for a workflow run's thread, `null` otherwise (§ Dynamic workflows).                                           |
+| `session.thread_status_running`     | `session_thread_id`, `agent_name`                      | Thread started activity.                                                                                                                                                         |
+| `session.thread_status_idle`        | `session_thread_id`, `agent_name`, **`stop_reason`**   | Thread is awaiting input - or paused at the session's shared budget (`stop_reason: budget_reached`). Inspect `stop_reason` (same shape as `session.status_idle.stop_reason`).    |
+| `session.thread_status_rescheduled` | `session_thread_id`, `agent_name`                      | Thread is rescheduling after a retryable error.                                                                                                                                  |
+| `session.thread_status_terminated`  | `session_thread_id`, `agent_name`                      | Thread terminated, for example because it was archived or hit an unrecoverable error, or because it was an advisor consultation thread whose consultation ended (see § Advisor). |
+| `agent.thread_message_sent`         | `to_session_thread_id`, `to_agent_name`, `content`     | _This_ thread sent a message to another thread. On the primary stream: the coordinator sent a task or follow-up to an agent.                                                     |
+| `agent.thread_message_received`     | `from_session_thread_id`, `from_agent_name`, `content` | A message arrived on _this_ thread from another. On the primary stream: an agent sent a report or question to the coordinator.                                                   |
 
 > **Direction is relative to the thread whose stream carries the event**, not to the coordinator. The same delegated task is an `agent.thread_message_sent` on the primary stream and an `agent.thread_message_received` on the child's own stream. Reading `_received` as "a subagent finished" is wrong once you're reading a child stream.
 
@@ -382,7 +391,7 @@ GET /v1/sessions/{sid}/threads/{tid}/stream?event_deltas%5B%5D=agent.message
 
 **Previews are thread-scoped.** A child's previews are delivered only on that child's stream and never cross-posted to the session-level stream, whose previews stay scoped to the primary thread. So watching a subagent live means opening its thread stream - the session stream will not show it, no matter what you pass.
 
-> Warning: **Only plain assistant text previews.** A subagent's *reply to its coordinator* rides `agent.thread_message_sent` and is never previewed. A worker that does nothing but report back therefore streams no deltas at all, even with a correct opt-in on the right thread. To get a live preview out of a subagent, its prompt has to make it write the answer as a plain assistant message in its own thread first, and only then report to the coordinator. Run one accumulator per connection, and exit the read loop on `session.thread_status_idle`. Opt-in, accumulate, and reconcile details: `shared/managed-agents-events.md` -> Live previews.
+> Warning: **Only plain assistant text previews.** A subagent's _reply to its coordinator_ rides `agent.thread_message_sent` and is never previewed. A worker that does nothing but report back therefore streams no deltas at all, even with a correct opt-in on the right thread. To get a live preview out of a subagent, its prompt has to make it write the answer as a plain assistant message in its own thread first, and only then report to the coordinator. Run one accumulator per connection, and exit the read loop on `session.thread_status_idle`. Opt-in, accumulate, and reconcile details: `shared/managed-agents-events.md` -> Live previews.
 
 ---
 
@@ -402,9 +411,10 @@ agent = client.beta.agents.create(
 )
 ```
 
-(Claude Opus 5.5 is the default advisor choice. It is a redacted advisor - the agent reads its advice server-side, but the client sees `[{"type": "redacted"}]`; see *Plaintext vs redacted delivery* below. For client-readable advice, a plaintext advisor such as `claude-opus-4-8` is valid only when the agent's own model is `claude-opus-4-8` or below - agents on Claude Opus 5.5, Claude Opus 5, Claude Sonnet 5.5, Claude Fable 5.1, or Claude Mythos 5.1 can only pair with redacted advisors, so client-readable advice is not available for them (pairing table: `shared/tool-use-concepts.md`).)
+(Claude Opus 5.5 is the default advisor choice. It is a redacted advisor - the agent reads its advice server-side, but the client sees `[{"type": "redacted"}]`; see _Plaintext vs redacted delivery_ below. For client-readable advice, a plaintext advisor such as `claude-opus-4-8` is valid only when the agent's own model is `claude-opus-4-8` or below - agents on Claude Opus 5.5, Claude Opus 5, Claude Sonnet 5.5, Claude Fable 5.1, or Claude Mythos 5.1 can only pair with redacted advisors, so client-readable advice is not available for them (pairing table: `shared/tool-use-concepts.md`).)
 
 **Rules:**
+
 - **At most one advisor entry per roster.** The entry occupies the reserved roster name `anthropic.advisor` - a roster that also lists a member literally named `anthropic.advisor` is a 400. In responses, the advisor entry is echoed **last** in the roster regardless of submitted position.
 - **Pairing is validated at agent save:** the advisor model must meet a minimum capability bar, and the agent's own model must not be more capable than its advisor (equals can pair). Invalid pairing -> 400. The valid pairs mirror the Messages advisor tool's executor<->advisor table (`shared/tool-use-concepts.md`).
 - **Only the primary thread consults it.** The advisor is not a roster agent: invisible to the coordinator's `list_agents` tool, unreachable via `send_to_agent`, and roster agents cannot consult it.
@@ -454,8 +464,8 @@ The same pattern applies to `user.custom_tool_result`. A workflow run's threads 
 ## Interrupting and archiving threads
 
 - **`user.interrupt` without `session_thread_id` interrupts every non-archived thread in the session, including the primary** - it is not a primary-only stop (with dynamic workflows on, § Dynamic workflows -> Interrupting with runs open says what it does to open runs and their threads; an interrupt naming the primary thread does the same). Pass `session_thread_id` to target one thread.
-- **Against a child thread blocked on `requires_action`** (for a workflow run's thread, see § Dynamic workflows -> Interrupting with runs open), the interrupt closes each pending tool call with an *error* tool result (`"Tool execution was interrupted before completion. Please retry."`) and re-emits `session.thread_status_idle` with `stop_reason: end_turn` directly - the model is not sampled. Against a thread idle with `end_turn` or `budget_reached`, the interrupt is a no-op; naming a terminated thread is a 400. One more exception: a session on a self-hosted environment whose worker failed the claimed work item (e.g. a memory-store mount error) sits `idle`, and a `user.interrupt` re-queues that work so the next worker claim retries (`shared/managed-agents-self-hosted-sandboxes.md` § Memory stores -> Troubleshooting).
-- **Archive requires the thread to be idle, and `requires_action` counts as idle** - a thread parked on a pending tool call can be archived directly. Only a *running* thread must be interrupted first. A workflow run's thread is the exception: it can't be archived while its run is open.
+- **Against a child thread blocked on `requires_action`** (for a workflow run's thread, see § Dynamic workflows -> Interrupting with runs open), the interrupt closes each pending tool call with an _error_ tool result (`"Tool execution was interrupted before completion. Please retry."`) and re-emits `session.thread_status_idle` with `stop_reason: end_turn` directly - the model is not sampled. Against a thread idle with `end_turn` or `budget_reached`, the interrupt is a no-op; naming a terminated thread is a 400. One more exception: a session on a self-hosted environment whose worker failed the claimed work item (e.g. a memory-store mount error) sits `idle`, and a `user.interrupt` re-queues that work so the next worker claim retries (`shared/managed-agents-self-hosted-sandboxes.md` § Memory stores -> Troubleshooting).
+- **Archive requires the thread to be idle, and `requires_action` counts as idle** - a thread parked on a pending tool call can be archived directly. Only a _running_ thread must be interrupted first. A workflow run's thread is the exception: it can't be archived while its run is open.
 
 ---
 

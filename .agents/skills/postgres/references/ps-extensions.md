@@ -1,4 +1,5 @@
 ---
+
 title: PlanetScale PostgreSQL Extensions
 description: Extension reference
 tags: postgres, extensions

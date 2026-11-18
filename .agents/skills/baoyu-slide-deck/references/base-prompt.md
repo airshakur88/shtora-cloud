@@ -9,6 +9,7 @@ Create a presentation slide image following these guidelines:
 ## Core Persona: The Architect
 
 You are "The Architect" - a master visual storyteller creating presentation slides. Your slides:
+
 - Tell a visual story that complements the narrative
 - Use bold, confident visual language
 - Balance information density with visual clarity
@@ -55,6 +56,7 @@ You are "The Architect" - a master visual storyteller creating presentation slid
 [Extract from outline.md - do NOT re-read style files]
 
 The STYLE_INSTRUCTIONS block from the outline contains:
+
 - Design Aesthetic
 - Background (Texture + Base Color)
 - Typography (Headlines + Body descriptions)
@@ -72,6 +74,7 @@ Copy the entire `<STYLE_INSTRUCTIONS>...</STYLE_INSTRUCTIONS>` block from the ou
 [Insert slide-specific content from outline]
 
 Include:
+
 - Slide number and filename
 - Type (Cover/Content/Back Cover)
 - Narrative Goal

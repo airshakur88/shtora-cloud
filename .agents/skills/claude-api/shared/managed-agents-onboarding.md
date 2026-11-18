@@ -4,7 +4,7 @@
 
 Claude Managed Agents is a hosted agent: Anthropic runs the agent loop and provisions a sandboxed container per session where the agent's tools execute (or your own worker, with a `self_hosted` environment - see `shared/managed-agents-self-hosted-sandboxes.md`). You supply an **agent config** (tools, skills, model, system prompt - reusable, versioned) and an **environment config** (the sandbox - reusable across agents). Each run is a **session**.
 
-The flow is four beats - **describe -> agent -> environment -> session** - the same arc as the Console quickstart, and the same philosophy: **value before credentials**. The user goes from idea to a runnable session before any auth ask; each credential is *flagged* at the moment the design makes it relevant (§2) and *collected* once, at session setup (§4), where it binds (`sessions.create()`) and gets exercised (smoke-test). Read `shared/managed-agents-core.md` alongside this - it has full detail for each knob; this doc is the interview script.
+The flow is four beats - **describe -> agent -> environment -> session** - the same arc as the Console quickstart, and the same philosophy: **value before credentials**. The user goes from idea to a runnable session before any auth ask; each credential is _flagged_ at the moment the design makes it relevant (§2) and _collected_ once, at session setup (§4), where it binds (`sessions.create()`) and gets exercised (smoke-test). Read `shared/managed-agents-core.md` alongside this - it has full detail for each knob; this doc is the interview script.
 
 ---
 
@@ -46,11 +46,12 @@ Usually zero or one question:
 **Silent viability gate - run this yourself before emitting anything; surface only the gaps.** Walk the job clause by clause: every verb maps to an enabled tool or MCP server ("open a PR" -> GitHub MCP, not just the mount; "look it up online" -> `web_search` / `web_fetch` set to `enabled: true`); every MCP server and repo mount has its credential from the auth step; every external host is reachable under the networking choice; every file/repo/dataset the job references is mounted; "done" is checkable. If something's missing, say so and resolve it - don't emit a config you already know is under-resourced.
 
 **Kickoff - pick one, never both. Outcome is the default:**
+
 - `user.define_outcome` + rubric - the default when the job is one deliverable (§2 drafts the rubric); the harness iterates and grades until the rubric passes.
 - `user.message` - for conversational sessions, agents that answer a stream of questions or requests, and runs that change records in outside systems (tickets) rather than producing an artifact.
 - **Scheduled shape?** Skip per-session kickoff entirely - create a **deployment** (`deployments.create()` with `schedule` + `initial_events`); each firing creates the session autonomously. See `shared/managed-agents-scheduled-deployments.md`.
 
-Mechanics to bake into the runtime code: session creation resolves resources (a bad mount surfaces there, before tokens) but does not itself provision the sandbox; open the event stream *before* sending the kickoff; break on `session.status_terminated`, or `session.status_idle` with any non-`requires_action` `stop_reason` - terminal, or `budget_reached`, which is not terminal (only a budget change/removal resumes it) (`shared/managed-agents-client-patterns.md` Pattern 5); answer every `agent.tool_use` / `agent.mcp_tool_use` whose `evaluated_permission` is `ask` with `user.tool_confirmation` (Pattern 4) - a paused call waits indefinitely and blocks new messages; usage lands on `span.model_request_end`; artifacts land in `/mnt/session/outputs/` (`files.list({scope_id: session.id, ...})`).
+Mechanics to bake into the runtime code: session creation resolves resources (a bad mount surfaces there, before tokens) but does not itself provision the sandbox; open the event stream _before_ sending the kickoff; break on `session.status_terminated`, or `session.status_idle` with any non-`requires_action` `stop_reason` - terminal, or `budget_reached`, which is not terminal (only a budget change/removal resumes it) (`shared/managed-agents-client-patterns.md` Pattern 5); answer every `agent.tool_use` / `agent.mcp_tool_use` whose `evaluated_permission` is `ask` with `user.tool_confirmation` (Pattern 4) - a paused call waits indefinitely and blocks new messages; usage lands on `span.model_request_end`; artifacts land in `/mnt/session/outputs/` (`files.list({scope_id: session.id, ...})`).
 
 ## 5. Integrate - emit the code
 
@@ -63,6 +64,7 @@ Go straight from the last answer to the code - no preamble, no lecture about set
    ant apply --dry-run -v agents/<name>.md environments/<name>.yaml   # prints the full plan, every field; changes nothing
    ant apply agents/<name>.md environments/<name>.yaml                # asks, then creates; run it again after any edit to update
    ```
+
    Name the files you just wrote - never `.` or a directory, which is walked and also creates whatever else in the repo looks like a resource (a Claude Code plugin's `agents/*.md` and `skills/*/SKILL.md`, files the user never read). Without a terminal (a coding agent's shell) the second command prints the plan and exits; it applies only with `--yes`, which is the user's approval, not yours: show them the dry-run plan and add it only once they say go ahead. If the plan would create or change anything you did not write, or a file you did not write sits at a path you need, stop and ask; never add `--force` or `--prune` on your own.
 3. Keep `claude-lock.json` beside the files (commit both if this is a repo) - it holds the IDs, and without it the next `ant apply` creates duplicates. Copy the IDs Block 2 needs (agent, environment; scheduled shape: the deployment) into the app's own config or env vars once - `resources["./agents/<name>.md"].id` and so on, keyed by the path the plan printed - so the running app does not depend on the lockfile.
 

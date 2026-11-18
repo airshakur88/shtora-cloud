@@ -1,4 +1,5 @@
 ---
+
 name: python-packaging
 description: Create distributable Python packages with proper project structure, setup.py/pyproject.toml, and publishing to PyPI. Use when packaging Python libraries, creating CLI tools, or distributing Python code.
 ---
@@ -163,4 +164,3 @@ project/
 ## Detailed patterns and worked examples
 
 Detailed pattern documentation lives in `references/details.md`. Read that file when the navigation tier above is insufficient.
-

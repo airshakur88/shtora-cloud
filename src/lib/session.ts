@@ -155,19 +155,34 @@ export async function getSession(
 export async function getSessionUser(
 	request: Request,
 ): Promise<AppUser | null> {
-	const session = await getSession(request);
-	if (!session) return null;
+	const token = readCookie(request);
+	if (!token) return null;
+	const tokenHash = await hashToken(token);
+	const now = Date.now();
 	const row = await getDb()
 		.prepare(
-			"SELECT id, name, username, role, password_hash, created_at, updated_at FROM user WHERE id = ?",
+			`SELECT u.id, u.name, u.username, u.role, u.password_hash,
+			        u.created_at, u.updated_at,
+			        s.id AS session_id, s.created_at_ms, s.expires_at_ms
+			 FROM shtora_auth_sessions s
+			 JOIN user u ON u.id = s.user_id
+			 WHERE s.token_hash = ?`,
 		)
-		.bind(session.userId)
-		.first<AppUserRecord>();
-	if (!row) {
-		await getDb()
-			.prepare("DELETE FROM shtora_auth_sessions WHERE id = ?")
-			.bind(session.id)
-			.run();
+		.bind(tokenHash)
+		.first<
+			AppUserRecord & {
+				session_id: string;
+				created_at_ms: number;
+				expires_at_ms: number;
+			}
+		>();
+	if (!row || row.expires_at_ms <= now || row.created_at_ms > now) {
+		if (row) {
+			await getDb()
+				.prepare("DELETE FROM shtora_auth_sessions WHERE token_hash = ?")
+				.bind(tokenHash)
+				.run();
+		}
 		return null;
 	}
 	return toAppUser(row);
@@ -176,11 +191,5 @@ export async function getSessionUser(
 export async function requireUser(request: Request): Promise<AppUser> {
 	const user = await getSessionUser(request);
 	if (!user) throw new UnauthenticatedError();
-	return user;
-}
-
-export async function requireAdmin(request: Request): Promise<AppUser> {
-	const user = await requireUser(request);
-	if (user.role !== "admin") throw new ForbiddenError();
 	return user;
 }

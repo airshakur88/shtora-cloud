@@ -4,23 +4,23 @@
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ESNext"],
-    "strict": true,
-    "strictNullChecks": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "isolatedDeclarations": true,
-    "verbatimModuleSyntax": true
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"lib": ["ESNext"],
+		"strict": true,
+		"strictNullChecks": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"isolatedDeclarations": true,
+		"verbatimModuleSyntax": true
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "dist"]
 }
 ```
 
@@ -43,15 +43,15 @@
 
 ```json
 {
-  "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "verbatimModuleSyntax": true
-  }
+	"compilerOptions": {
+		"composite": true,
+		"declaration": true,
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"strict": true,
+		"verbatimModuleSyntax": true
+	}
 }
 ```
 
@@ -59,15 +59,13 @@
 
 ```json
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
-  },
-  "include": ["src"],
-  "references": [
-    { "path": "../utils" }
-  ]
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"include": ["src"],
+	"references": [{ "path": "../utils" }]
 }
 ```
 
@@ -77,13 +75,13 @@ For internal imports in monorepos:
 
 ```json
 {
-  "compilerOptions": {
-    "paths": {
-      "@my-lib/core": ["./packages/core/src"],
-      "@my-lib/utils": ["./packages/utils/src"],
-      "#internal/*": ["./virtual-shared/*"]
-    }
-  }
+	"compilerOptions": {
+		"paths": {
+			"@my-lib/core": ["./packages/core/src"],
+			"@my-lib/utils": ["./packages/utils/src"],
+			"#internal/*": ["./virtual-shared/*"]
+		}
+	}
 }
 ```
 
@@ -107,9 +105,9 @@ Let build tool generate declarations:
 ```typescript
 // tsdown.config.ts
 export default defineConfig({
-  dts: true,                    // Generate .d.ts
-  dts: { resolve: ['@antfu/utils'] }  // Inline specific types
-})
+	dts: true, // Generate .d.ts
+	dts: { resolve: ["@antfu/utils"] }, // Inline specific types
+});
 ```
 
 Or with unbuild:
@@ -117,9 +115,9 @@ Or with unbuild:
 ```typescript
 // build.config.ts
 export default defineBuildConfig({
-  declaration: 'node16',        // For Node.js compatibility
-  declaration: true,            // For bundler resolution
-})
+	declaration: "node16", // For Node.js compatibility
+	declaration: true, // For bundler resolution
+});
 ```
 
 ## Common Issues
@@ -136,7 +134,7 @@ Check `moduleResolution` matches your target:
 Enable `verbatimModuleSyntax` and use explicit:
 
 ```typescript
-import type { Foo } from './types'
+import type { Foo } from "./types";
 ```
 
 ### Slow type checking

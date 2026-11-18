@@ -4,29 +4,75 @@ Records capture decisions that are costly to reverse, not every code change. Sav
 
 ```json
 {
-  "goal": "Long-lived product objective",
-  "horizon": "Product generations and workload diversity, not an invented user count",
-  "scenarios": [
-    {"id": "another-engine", "stress": "A second runtime consumes programs", "basis": "credible", "source": "Product roadmap", "failure_if_unprepared": "Public language semantics are tied to one interpreter"},
-    {"id": "larger-programs", "stress": "Higher event volumes", "basis": "credible", "source": "Product scope", "failure_if_unprepared": "Memory and event scheduling assumptions become immovable"}
-  ],
-  "commitments": [
-    {"decision": "Version semantic IR", "reversibility": "high", "failure_cost": "Breaking persisted or shared programs", "exit_path": "Versioned adapters and fixture migration"}
-  ],
-  "options": [
-    {"name": "Embed semantics in the Python engine", "now_cost": "Small initial change", "future_cost": "Potential interpreter rewrite", "selected": false},
-    {"name": "Separate semantic IR from execution", "now_cost": "Boundary tests and adapter", "future_cost": "Compatibility maintenance", "selected": true}
-  ],
-  "foundations": [
-    {"boundary": "Compiler to engine", "choice_now": "Stable semantic IR", "future_capacity": "Add another backend without changing language semantics", "scenario_refs": ["another-engine"], "proof_ref": "second-backend"}
-  ],
-  "proofs": [
-    {"id": "second-backend", "method": "Run golden program with a second engine", "status": "not_run", "evidence": "Proposed test, not a result"}
-  ],
-  "deferred": [
-    {"capability": "Distributed execution", "trigger": "Verified single-host throughput/latency limit", "pathway": "Scheduler outside the stable execution interface"}
-  ],
-  "decision": {"action": "pause", "reason": "Evolution experiment not yet run", "revisit_when": "Second backend fixture passes"}
+	"goal": "Long-lived product objective",
+	"horizon": "Product generations and workload diversity, not an invented user count",
+	"scenarios": [
+		{
+			"id": "another-engine",
+			"stress": "A second runtime consumes programs",
+			"basis": "credible",
+			"source": "Product roadmap",
+			"failure_if_unprepared": "Public language semantics are tied to one interpreter"
+		},
+		{
+			"id": "larger-programs",
+			"stress": "Higher event volumes",
+			"basis": "credible",
+			"source": "Product scope",
+			"failure_if_unprepared": "Memory and event scheduling assumptions become immovable"
+		}
+	],
+	"commitments": [
+		{
+			"decision": "Version semantic IR",
+			"reversibility": "high",
+			"failure_cost": "Breaking persisted or shared programs",
+			"exit_path": "Versioned adapters and fixture migration"
+		}
+	],
+	"options": [
+		{
+			"name": "Embed semantics in the Python engine",
+			"now_cost": "Small initial change",
+			"future_cost": "Potential interpreter rewrite",
+			"selected": false
+		},
+		{
+			"name": "Separate semantic IR from execution",
+			"now_cost": "Boundary tests and adapter",
+			"future_cost": "Compatibility maintenance",
+			"selected": true
+		}
+	],
+	"foundations": [
+		{
+			"boundary": "Compiler to engine",
+			"choice_now": "Stable semantic IR",
+			"future_capacity": "Add another backend without changing language semantics",
+			"scenario_refs": ["another-engine"],
+			"proof_ref": "second-backend"
+		}
+	],
+	"proofs": [
+		{
+			"id": "second-backend",
+			"method": "Run golden program with a second engine",
+			"status": "not_run",
+			"evidence": "Proposed test, not a result"
+		}
+	],
+	"deferred": [
+		{
+			"capability": "Distributed execution",
+			"trigger": "Verified single-host throughput/latency limit",
+			"pathway": "Scheduler outside the stable execution interface"
+		}
+	],
+	"decision": {
+		"action": "pause",
+		"reason": "Evolution experiment not yet run",
+		"revisit_when": "Second backend fixture passes"
+	}
 }
 ```
 

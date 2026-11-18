@@ -1,4 +1,5 @@
 ---
+
 title: Make Running the Same Command Twice Safe
 impact: MEDIUM-HIGH
 impactDescription: prevents duplicate side effects on retry
@@ -53,6 +54,7 @@ def invite(email):
 ```
 
 **Benefits:**
+
 - Retrying after a timeout is safe — no duplicate invite
 - The `Idempotency-Key` header protects against races even during a single retry
 - Output is identical on both runs, so downstream parsing doesn't care which branch ran

@@ -1,4 +1,5 @@
 ---
+
 title: Send Errors and Warnings to stderr, Not stdout
 impact: HIGH
 impactDescription: prevents error text from corrupting piped data
@@ -47,6 +48,7 @@ listServices();
 ```
 
 **Benefits:**
+
 - `mycli list | jq ...` still works even on partial failures
 - `mycli list 2>/dev/null` silences warnings without losing data
 - `mycli list > data.json 2> errors.log` captures them separately

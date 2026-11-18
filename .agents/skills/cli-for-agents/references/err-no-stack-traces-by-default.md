@@ -1,4 +1,5 @@
 ---
+
 title: Reserve Stack Traces for --debug Mode
 impact: MEDIUM-HIGH
 impactDescription: reduces default error output by 10-50x
@@ -66,6 +67,7 @@ if __name__ == '__main__':
 ```
 
 **When NOT to use this pattern:**
+
 - Unexpected internal errors (not caused by user input) should print a traceback and a bug-report URL — the user cannot fix them and the traceback helps the maintainer
 
 Reference: [clig.dev — Minimize noise in output](https://clig.dev/#output)

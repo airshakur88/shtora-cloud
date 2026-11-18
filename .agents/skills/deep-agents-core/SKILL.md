@@ -1,4 +1,5 @@
 ---
+
 name: deep-agents-core
 description: "INVOKE THIS SKILL when building ANY Deep Agents application. Covers create_deep_agent(), harness architecture, SKILL.md format, and configuration options."
 ---
@@ -18,25 +19,25 @@ The agent harness provides these capabilities automatically - you configure, not
 
 <when-to-use>
 
-| Use Deep Agents When | Use LangChain's create_agent When |
-|---------------------|-----------------------------------|
-| Multi-step tasks requiring planning | Simple, single-purpose tasks |
-| Large context requiring file management | Context fits in a single prompt |
-| Need for specialized subagents | Single agent is sufficient |
-| Persistent memory across sessions | Ephemeral, single-session work |
+| Use Deep Agents When                    | Use LangChain's create_agent When |
+| --------------------------------------- | --------------------------------- |
+| Multi-step tasks requiring planning     | Simple, single-purpose tasks      |
+| Large context requiring file management | Context fits in a single prompt   |
+| Need for specialized subagents          | Single agent is sufficient        |
+| Persistent memory across sessions       | Ephemeral, single-session work    |
 
 </when-to-use>
 
 <middleware-selection>
 
-| If you need to... | Middleware | Notes |
-|------------------|------------|-------|
-| Track complex tasks | TodoListMiddleware | Default enabled |
-| Manage file context | FilesystemMiddleware | Configure backend |
-| Delegate work | SubAgentMiddleware | Add custom subagents |
-| Add human approval | HumanInTheLoopMiddleware | Requires checkpointer |
-| Load skills | SkillsMiddleware | Provide skill directories |
-| Access memory | MemoryMiddleware | Requires Store instance |
+| If you need to...   | Middleware               | Notes                     |
+| ------------------- | ------------------------ | ------------------------- |
+| Track complex tasks | TodoListMiddleware       | Default enabled           |
+| Manage file context | FilesystemMiddleware     | Configure backend         |
+| Delegate work       | SubAgentMiddleware       | Add custom subagents      |
+| Add human approval  | HumanInTheLoopMiddleware | Requires checkpointer     |
+| Load skills         | SkillsMiddleware         | Provide skill directories |
+| Access memory       | MemoryMiddleware         | Requires Store instance   |
 
 </middleware-selection>
 
@@ -73,21 +74,25 @@ import { createDeepAgent } from "deepagents";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-const getWeather = tool(
-  async ({ city }) => `It is always sunny in ${city}`,
-  { name: "get_weather", description: "Get weather for a city", schema: z.object({ city: z.string() }) }
-);
+const getWeather = tool(async ({ city }) => `It is always sunny in ${city}`, {
+	name: "get_weather",
+	description: "Get weather for a city",
+	schema: z.object({ city: z.string() }),
+});
 
 const agent = await createDeepAgent({
-  model: "claude-sonnet-4-5-20250929",
-  tools: [getWeather],
-  systemPrompt: "You are a helpful assistant"
+	model: "claude-sonnet-4-5-20250929",
+	tools: [getWeather],
+	systemPrompt: "You are a helpful assistant",
 });
 
 const config = { configurable: { thread_id: "user-123" } };
-const result = await agent.invoke({
-  messages: [{ role: "user", content: "What's the weather in Tokyo?" }]
-}, config);
+const result = await agent.invoke(
+	{
+		messages: [{ role: "user", content: "What's the weather in Tokyo?" }],
+	},
+	config,
+);
 ```
 </typescript>
 </ex-basic-agent>
@@ -124,16 +129,16 @@ import { createDeepAgent, FilesystemBackend } from "deepagents";
 import { MemorySaver, InMemoryStore } from "@langchain/langgraph";
 
 const agent = await createDeepAgent({
-  name: "my-assistant",
-  model: "claude-sonnet-4-5-20250929",
-  tools: [customTool1, customTool2],
-  systemPrompt: "Custom instructions",
-  subagents: [researchAgent, codeAgent],
-  backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
-  interruptOn: { write_file: true },
-  skills: ["./skills/"],
-  checkpointer: new MemorySaver(),
-  store: new InMemoryStore()
+	name: "my-assistant",
+	model: "claude-sonnet-4-5-20250929",
+	tools: [customTool1, customTool2],
+	systemPrompt: "Custom instructions",
+	subagents: [researchAgent, codeAgent],
+	backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
+	interruptOn: { write_file: true },
+	skills: ["./skills/"],
+	checkpointer: new MemorySaver(),
+	store: new InMemoryStore(),
 });
 ```
 </typescript>
@@ -145,7 +150,7 @@ Every deep agent has access to:
 1. **Planning**: `write_todos` - Track multi-step tasks
 2. **Filesystem**: `ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`
 3. **Delegation**: `task` - Spawn specialized subagents
-</built-in-tools>
+   </built-in-tools>
 
 ---
 
@@ -168,6 +173,7 @@ skills/
 
 ```markdown
 ---
+
 name: my-skill
 description: Clear, specific description of what this skill does
 ---
@@ -175,24 +181,27 @@ description: Clear, specific description of what this skill does
 # Skill Name
 
 ## Overview
+
 Brief explanation of the skill's purpose.
 
 ## When to Use
+
 Conditions when this skill applies.
 
 ## Instructions
+
 Step-by-step guidance for the agent.
 ```
 </skill-md-format>
 
 <skills-vs-memory>
 
-| Skills | Memory (AGENTS.md) |
-|--------|-------------------|
-| On-demand loading | Always loaded at startup |
-| Task-specific instructions | General preferences |
-| Large documentation | Compact context |
-| SKILL.md in directories | Single AGENTS.md file |
+| Skills                     | Memory (AGENTS.md)       |
+| -------------------------- | ------------------------ |
+| On-demand loading          | Always loaded at startup |
+| Task-specific instructions | General preferences      |
+| Large documentation        | Compact context          |
+| SKILL.md in directories    | Single AGENTS.md file    |
 
 </skills-vs-memory>
 
@@ -224,14 +233,17 @@ import { createDeepAgent, FilesystemBackend } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = await createDeepAgent({
-  backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
-  skills: ["./skills/"],
-  checkpointer: new MemorySaver()
+	backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
+	skills: ["./skills/"],
+	checkpointer: new MemorySaver(),
 });
 
-const result = await agent.invoke({
-  messages: [{ role: "user", content: "Use the python-testing skill" }]
-}, { configurable: { thread_id: "session-1" } });
+const result = await agent.invoke(
+	{
+		messages: [{ role: "user", content: "Use the python-testing skill" }],
+	},
+	{ configurable: { thread_id: "session-1" } },
+);
 ```
 </typescript>
 </ex-skills-with-filesystem-backend>
@@ -287,7 +299,7 @@ agent = create_deep_agent(
 - Core middleware removal (TodoList, Filesystem, SubAgent always present)
 - The write_todos, task, or filesystem tool names
 - The SKILL.md frontmatter format
-</boundaries>
+  </boundaries>
 
 <fix-checkpointer-for-interrupts>
 <python>
@@ -309,7 +321,10 @@ Interrupts require a checkpointer.
 const agent = await createDeepAgent({ interruptOn: { write_file: true } });
 
 // CORRECT
-const agent = await createDeepAgent({ interruptOn: { write_file: true }, checkpointer: new MemorySaver() });
+const agent = await createDeepAgent({
+	interruptOn: { write_file: true },
+	checkpointer: new MemorySaver(),
+});
 ```
 </typescript>
 </fix-checkpointer-for-interrupts>
@@ -331,10 +346,15 @@ StoreBackend requires a Store instance for persistent memory across threads.
 
 ```typescript
 // WRONG
-const agent = await createDeepAgent({ backend: (config) => new StoreBackend(config) });
+const agent = await createDeepAgent({
+	backend: (config) => new StoreBackend(config),
+});
 
 // CORRECT
-const agent = await createDeepAgent({ backend: (config) => new StoreBackend(config), store: new InMemoryStore() });
+const agent = await createDeepAgent({
+	backend: (config) => new StoreBackend(config),
+	store: new InMemoryStore(),
+});
 ```
 </typescript>
 </fix-store-for-memory>
@@ -374,15 +394,21 @@ await agent.invoke({ messages: [...] }, config);
 
 ```markdown
 # WRONG: Missing frontmatter in SKILL.md
+
 # My Skill
+
 This is my skill...
 
 # CORRECT: Include YAML frontmatter
+
 ---
+
 name: my-skill
 description: Python testing best practices with pytest fixtures and mocking
 ---
+
 # My Skill
+
 This is my skill...
 ```
 </fix-frontmatter-required>
@@ -409,13 +435,17 @@ Use specific descriptions to help agents decide when to use a skill.
 
 ```markdown
 # WRONG: Vague description
+
 ---
+
 name: helper
 description: Helpful skill
 ---
 
 # CORRECT: Specific description
+
 ---
+
 name: python-testing
 description: Python testing best practices with pytest fixtures, mocking, and async patterns
 ---

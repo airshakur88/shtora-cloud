@@ -1,17 +1,18 @@
 ---
+
 name: cloud-architect
 description: Designs cloud architectures, creates migration plans, generates cost optimization recommendations, and produces disaster recovery strategies across AWS, Azure, and GCP. Use when designing cloud architectures, planning migrations, or optimizing multi-cloud deployments. Invoke for Well-Architected Framework, cost optimization, disaster recovery, landing zones, security architecture, serverless design.
 license: MIT
 metadata:
-  author: https://github.com/Jeffallan
-  company: https://synergetic.solutions
-  version: "1.1.0"
-  domain: infrastructure
-  triggers: AWS, Azure, GCP, Google Cloud, cloud migration, cloud architecture, multi-cloud, cloud cost, Well-Architected, landing zone, cloud security, disaster recovery, cloud native, serverless architecture
-  role: architect
-  scope: infrastructure
-  output-format: architecture
-  related-skills: devops-engineer, kubernetes-specialist, terraform-engineer, security-reviewer, microservices-architect, monitoring-expert
+author: https://github.com/Jeffallan
+company: https://synergetic.solutions
+version: "1.1.0"
+domain: infrastructure
+triggers: AWS, Azure, GCP, Google Cloud, cloud migration, cloud architecture, multi-cloud, cloud cost, Well-Architected, landing zone, cloud security, disaster recovery, cloud native, serverless architecture
+role: architect
+scope: infrastructure
+output-format: architecture
+related-skills: devops-engineer, kubernetes-specialist, terraform-engineer, security-reviewer, microservices-architect, monitoring-expert
 ---
 
 # Cloud Architect
@@ -30,6 +31,7 @@ metadata:
 **After Design:** Confirm every component has a redundancy strategy and no single points of failure exist in the topology.
 
 **Before Migration cutover:** Validate VPC peering or connectivity is fully established:
+
 ```bash
 # AWS: confirm peering connection is Active before proceeding
 aws ec2 describe-vpc-peering-connections \
@@ -42,6 +44,7 @@ az network vnet peering list \
 ```
 
 **After Migration:** Verify application health and routing:
+
 ```bash
 # AWS: check target group health in ALB
 aws elbv2 describe-target-health \
@@ -54,17 +57,18 @@ aws elbv2 describe-target-health \
 
 Load detailed guidance based on context:
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| AWS Services | `references/aws.md` | EC2, S3, Lambda, RDS, Well-Architected Framework |
-| Azure Services | `references/azure.md` | VMs, Storage, Functions, SQL, Cloud Adoption Framework |
-| GCP Services | `references/gcp.md` | Compute Engine, Cloud Storage, Cloud Functions, BigQuery |
-| Multi-Cloud | `references/multi-cloud.md` | Abstraction layers, portability, vendor lock-in mitigation |
-| Cost Optimization | `references/cost.md` | Reserved instances, spot, right-sizing, FinOps practices |
+| Topic             | Reference                   | Load When                                                  |
+| ----------------- | --------------------------- | ---------------------------------------------------------- |
+| AWS Services      | `references/aws.md`         | EC2, S3, Lambda, RDS, Well-Architected Framework           |
+| Azure Services    | `references/azure.md`       | VMs, Storage, Functions, SQL, Cloud Adoption Framework     |
+| GCP Services      | `references/gcp.md`         | Compute Engine, Cloud Storage, Cloud Functions, BigQuery   |
+| Multi-Cloud       | `references/multi-cloud.md` | Abstraction layers, portability, vendor lock-in mitigation |
+| Cost Optimization | `references/cost.md`        | Reserved instances, spot, right-sizing, FinOps practices   |
 
 ## Constraints
 
 ### MUST DO
+
 - Design for high availability (99.9%+)
 - Implement security by design (zero-trust)
 - Use infrastructure as code (Terraform, CloudFormation)
@@ -75,6 +79,7 @@ Load detailed guidance based on context:
 - Document architectural decisions
 
 ### MUST NOT DO
+
 - Store credentials in code or public repos
 - Skip encryption (at rest and in transit)
 - Create single points of failure
@@ -210,6 +215,7 @@ az consumption usage list \
 ## Output Templates
 
 When designing cloud architecture, provide:
+
 1. Architecture diagram with services and data flow
 2. Service selection rationale (compute, storage, database, networking)
 3. Security architecture (IAM, network segmentation, encryption)

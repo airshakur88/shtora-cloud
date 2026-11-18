@@ -4,12 +4,12 @@ Target sizes, expanding hit areas without changing visual size, collision rules 
 
 ## Target sizes
 
-| Standard | Minimum |
-| --- | --- |
-| WCAG 2.5.8 (AA) | 24×24px, with exceptions |
-| WCAG 2.5.5 (AAA) | 44×44px |
-| Apple HIG | 44×44pt |
-| Material Design | 48×48dp |
+| Standard         | Minimum                  |
+| ---------------- | ------------------------ |
+| WCAG 2.5.8 (AA)  | 24×24px, with exceptions |
+| WCAG 2.5.5 (AAA) | 44×44px                  |
+| Apple HIG        | 44×44pt                  |
+| Material Design  | 48×48dp                  |
 
 Before reporting an undersized target, check the spacing, equivalent-control, inline, user-agent and essential exceptions.
 
@@ -26,19 +26,19 @@ Where the visible element is smaller, say a 20×20 checkbox, extend the hit area
 ```css
 /* 20px checkbox with a 44px hit area, on the wrapper around the input */
 .checkbox-control {
-  position: relative;
-  width: 20px;
-  height: 20px;
+	position: relative;
+	width: 20px;
+	height: 20px;
 }
 
 .checkbox-control::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%; /* physical centering: direction-independent */
-  transform: translate(-50%, -50%);
-  width: 44px;
-  height: 44px;
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%; /* physical centering: direction-independent */
+	transform: translate(-50%, -50%);
+	width: 44px;
+	height: 44px;
 }
 ```
 
@@ -46,11 +46,11 @@ Where the visible element is smaller, say a 20×20 checkbox, extend the hit area
 
 ```tsx
 <button
-  aria-label="Mark done"
-  className="relative size-5 after:absolute after:top-1/2 after:left-1/2 after:size-11 after:-translate-1/2"
+	aria-label="Mark done"
+	className="relative size-5 after:absolute after:top-1/2 after:left-1/2 after:size-11 after:-translate-1/2"
 >
-  <CheckIcon aria-hidden="true" />
-</button>
+	<CheckIcon aria-hidden="true" />
+</button>;
 ```
 
 ### Layout alternative
@@ -59,10 +59,10 @@ Where the element can afford real box size, skip the pseudo-element and let the 
 
 ```css
 .icon-button {
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-grid;
-  place-items: center;
+	min-width: 44px;
+	min-height: 44px;
+	display: inline-grid;
+	place-items: center;
 }
 ```
 
@@ -78,9 +78,9 @@ Give each one `pointer-events: none` (Tailwind `pointer-events-none`) so events 
 
 ```css
 .card-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
 }
 ```
 

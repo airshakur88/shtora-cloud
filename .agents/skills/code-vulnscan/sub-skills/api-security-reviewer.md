@@ -35,9 +35,9 @@ def get_document(doc_id):
 
 ```javascript
 // Flag: Express
-app.get('/api/orders/:id', authenticate, async (req, res) => {
-  const order = await Order.findById(req.params.id);   // no owner check
-  res.json(order);
+app.get("/api/orders/:id", authenticate, async (req, res) => {
+	const order = await Order.findById(req.params.id); // no owner check
+	res.json(order);
 });
 ```
 
@@ -128,13 +128,13 @@ user.email = request.json['email']
 
 ```javascript
 // Flag: spread request body into model
-const user = new User({ ...req.body });   // can set admin: true
-User.findByIdAndUpdate(id, req.body);    // unfiltered update
+const user = new User({ ...req.body }); // can set admin: true
+User.findByIdAndUpdate(id, req.body); // unfiltered update
 
 // Safe
 User.findByIdAndUpdate(id, {
-  name: req.body.name,
-  email: req.body.email
+	name: req.body.name,
+	email: req.body.email,
 });
 ```
 
@@ -164,6 +164,7 @@ After finding mass assignment, check which sensitive fields exist on the model: 
 APIs that return full objects when only a subset is needed expose PII, internal IDs, and sensitive fields.
 
 Flag:
+
 - Serialization returns all model fields by default: `return user.to_dict()` includes password_hash, api_key, internal_flags
 - GraphQL resolvers resolve all fields without field-level authorization
 - List endpoints returning N objects with full details when only IDs/names are needed
@@ -188,6 +189,7 @@ return jsonify({
 ### Missing rate limiting
 
 Flag endpoints with no rate limiting:
+
 - Authentication: login, password reset, OTP verification — brute force risk
 - Account enumeration endpoints: registration, password reset (can enumerate valid emails)
 - Expensive operations: file uploads, report generation, email sending
@@ -198,23 +200,23 @@ Flag endpoints with no rate limiting:
 ```graphql
 # Malicious query: deeply nested, exponential DB load
 query {
-  users {
-    posts {
-      comments {
-        author {
-          posts {
-            comments {
-              # unlimited depth — can cause DoS
-            }
-          }
-        }
-      }
-    }
-  }
+	users {
+		posts {
+			comments {
+				author {
+					posts {
+						comments {}
+							# unlimited depth — can cause DoS
+					}
+				}
+			}
+		}
+	}
 }
 ```
 
 Check for:
+
 - Query depth limit (max 5–10 levels typical)
 - Query complexity limit (field count × resolver cost)
 - Batch query limit: `query { u1: user(id:1) { ... } u2: user(id:2) { ... } }` — can enumerate all IDs
@@ -239,6 +241,7 @@ Check for:
 ### HTTP response headers
 
 Check API responses for:
+
 - `Content-Type: application/json` — missing or wrong type can enable MIME sniffing
 - `X-Content-Type-Options: nosniff`
 - `Cache-Control: no-store` for sensitive endpoints (profile, payment, auth)
@@ -255,16 +258,16 @@ Check API responses for:
 
 ```json
 {
-  "file": "api/routes/documents.py",
-  "line": 28,
-  "category": "idor",
-  "endpoint": "GET /api/v1/documents/:id",
-  "title": "IDOR — any authenticated user can read any document",
-  "description": "Document retrieval checks authentication but not document ownership. Authenticated users can retrieve documents belonging to other users by incrementing the document ID.",
-  "reproduction": "Authenticate as user A. Note document ID from /api/v1/my-documents. Change ID to another value. The response returns the other user's document.",
-  "impact": "Full read access to all user documents in the system.",
-  "cwe": "CWE-639",
-  "owasp_api": "API1:2023 - Broken Object Level Authorization",
-  "severity": "high"
+	"file": "api/routes/documents.py",
+	"line": 28,
+	"category": "idor",
+	"endpoint": "GET /api/v1/documents/:id",
+	"title": "IDOR — any authenticated user can read any document",
+	"description": "Document retrieval checks authentication but not document ownership. Authenticated users can retrieve documents belonging to other users by incrementing the document ID.",
+	"reproduction": "Authenticate as user A. Note document ID from /api/v1/my-documents. Change ID to another value. The response returns the other user's document.",
+	"impact": "Full read access to all user documents in the system.",
+	"cwe": "CWE-639",
+	"owasp_api": "API1:2023 - Broken Object Level Authorization",
+	"severity": "high"
 }
 ```

@@ -10,11 +10,11 @@ Consistent, informative error responses are critical for API usability.
 
 ```json
 {
-  "error": {
-    "code": "RESOURCE_NOT_FOUND",
-    "message": "User with ID 123 not found",
-    "details": null
-  }
+	"error": {
+		"code": "RESOURCE_NOT_FOUND",
+		"message": "User with ID 123 not found",
+		"details": null
+	}
 }
 ```
 
@@ -36,6 +36,7 @@ Content-Type: application/problem+json
 ```
 
 **Fields:**
+
 - `type` - URI reference identifying error type
 - `title` - Short, human-readable summary
 - `status` - HTTP status code
@@ -46,25 +47,25 @@ Content-Type: application/problem+json
 
 ```json
 {
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Request validation failed",
-    "details": [
-      {
-        "field": "email",
-        "code": "INVALID_FORMAT",
-        "message": "Email must be a valid email address"
-      },
-      {
-        "field": "age",
-        "code": "OUT_OF_RANGE",
-        "message": "Age must be between 18 and 120"
-      }
-    ],
-    "request_id": "req_123456",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "documentation_url": "https://api.example.com/docs/errors#validation-error"
-  }
+	"error": {
+		"code": "VALIDATION_ERROR",
+		"message": "Request validation failed",
+		"details": [
+			{
+				"field": "email",
+				"code": "INVALID_FORMAT",
+				"message": "Email must be a valid email address"
+			},
+			{
+				"field": "age",
+				"code": "OUT_OF_RANGE",
+				"message": "Age must be between 18 and 120"
+			}
+		],
+		"request_id": "req_123456",
+		"timestamp": "2024-01-15T10:30:00Z",
+		"documentation_url": "https://api.example.com/docs/errors#validation-error"
+	}
 }
 ```
 
@@ -138,6 +139,7 @@ WWW-Authenticate: Bearer realm="api", error="invalid_token"
 ```
 
 **Common auth error codes:**
+
 - `MISSING_TOKEN` - No auth token provided
 - `INVALID_TOKEN` - Token is malformed or invalid
 - `EXPIRED_TOKEN` - Token has expired
@@ -257,6 +259,7 @@ Response: 500 Internal Server Error
 ```
 
 **Never expose:**
+
 - Stack traces
 - Database errors
 - Internal paths
@@ -290,53 +293,53 @@ Define standard error codes for your API:
 
 ```json
 {
-  "VALIDATION_ERROR": {
-    "status": 400,
-    "description": "Request validation failed",
-    "subcodes": {
-      "REQUIRED": "Required field is missing",
-      "INVALID_FORMAT": "Field has invalid format",
-      "OUT_OF_RANGE": "Value is out of allowed range",
-      "INVALID_ENUM": "Value is not in allowed set"
-    }
-  },
-  "AUTHENTICATION_ERROR": {
-    "status": 401,
-    "description": "Authentication failed",
-    "subcodes": {
-      "MISSING_TOKEN": "No authentication token provided",
-      "INVALID_TOKEN": "Token is invalid",
-      "EXPIRED_TOKEN": "Token has expired"
-    }
-  },
-  "AUTHORIZATION_ERROR": {
-    "status": 403,
-    "description": "Insufficient permissions",
-    "subcodes": {
-      "INSUFFICIENT_PERMISSIONS": "Missing required permission",
-      "RESOURCE_FORBIDDEN": "Access to resource is forbidden"
-    }
-  },
-  "RESOURCE_NOT_FOUND": {
-    "status": 404,
-    "description": "Resource not found"
-  },
-  "CONFLICT_ERROR": {
-    "status": 409,
-    "description": "Request conflicts with current state",
-    "subcodes": {
-      "RESOURCE_ALREADY_EXISTS": "Resource already exists",
-      "CONCURRENT_MODIFICATION": "Resource was modified by another request"
-    }
-  },
-  "RATE_LIMIT_EXCEEDED": {
-    "status": 429,
-    "description": "Rate limit exceeded"
-  },
-  "INTERNAL_SERVER_ERROR": {
-    "status": 500,
-    "description": "Internal server error"
-  }
+	"VALIDATION_ERROR": {
+		"status": 400,
+		"description": "Request validation failed",
+		"subcodes": {
+			"REQUIRED": "Required field is missing",
+			"INVALID_FORMAT": "Field has invalid format",
+			"OUT_OF_RANGE": "Value is out of allowed range",
+			"INVALID_ENUM": "Value is not in allowed set"
+		}
+	},
+	"AUTHENTICATION_ERROR": {
+		"status": 401,
+		"description": "Authentication failed",
+		"subcodes": {
+			"MISSING_TOKEN": "No authentication token provided",
+			"INVALID_TOKEN": "Token is invalid",
+			"EXPIRED_TOKEN": "Token has expired"
+		}
+	},
+	"AUTHORIZATION_ERROR": {
+		"status": 403,
+		"description": "Insufficient permissions",
+		"subcodes": {
+			"INSUFFICIENT_PERMISSIONS": "Missing required permission",
+			"RESOURCE_FORBIDDEN": "Access to resource is forbidden"
+		}
+	},
+	"RESOURCE_NOT_FOUND": {
+		"status": 404,
+		"description": "Resource not found"
+	},
+	"CONFLICT_ERROR": {
+		"status": 409,
+		"description": "Request conflicts with current state",
+		"subcodes": {
+			"RESOURCE_ALREADY_EXISTS": "Resource already exists",
+			"CONCURRENT_MODIFICATION": "Resource was modified by another request"
+		}
+	},
+	"RATE_LIMIT_EXCEEDED": {
+		"status": 429,
+		"description": "Rate limit exceeded"
+	},
+	"INTERNAL_SERVER_ERROR": {
+		"status": 500,
+		"description": "Internal server error"
+	}
 }
 ```
 
@@ -346,31 +349,31 @@ Define standard error codes for your API:
 
 ```json
 {
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Request validation failed",
-    "details": [
-      {
-        "field": "credit_card.number",
-        "code": "INVALID_FORMAT",
-        "message": "Credit card number must be 16 digits",
-        "value_provided": "1234",
-        "constraints": {
-          "pattern": "^[0-9]{16}$"
-        }
-      },
-      {
-        "field": "items[0].quantity",
-        "code": "OUT_OF_RANGE",
-        "message": "Quantity must be at least 1",
-        "value_provided": 0,
-        "constraints": {
-          "min": 1,
-          "max": 1000
-        }
-      }
-    ]
-  }
+	"error": {
+		"code": "VALIDATION_ERROR",
+		"message": "Request validation failed",
+		"details": [
+			{
+				"field": "credit_card.number",
+				"code": "INVALID_FORMAT",
+				"message": "Credit card number must be 16 digits",
+				"value_provided": "1234",
+				"constraints": {
+					"pattern": "^[0-9]{16}$"
+				}
+			},
+			{
+				"field": "items[0].quantity",
+				"code": "OUT_OF_RANGE",
+				"message": "Quantity must be at least 1",
+				"value_provided": 0,
+				"constraints": {
+					"min": 1,
+					"max": 1000
+				}
+			}
+		]
+	}
 }
 ```
 
@@ -378,21 +381,21 @@ Define standard error codes for your API:
 
 ```json
 {
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Request validation failed",
-    "details": [
-      {
-        "fields": ["start_date", "end_date"],
-        "code": "INVALID_RANGE",
-        "message": "End date must be after start date",
-        "values_provided": {
-          "start_date": "2024-01-20",
-          "end_date": "2024-01-15"
-        }
-      }
-    ]
-  }
+	"error": {
+		"code": "VALIDATION_ERROR",
+		"message": "Request validation failed",
+		"details": [
+			{
+				"fields": ["start_date", "end_date"],
+				"code": "INVALID_RANGE",
+				"message": "End date must be after start date",
+				"values_provided": {
+					"start_date": "2024-01-20",
+					"end_date": "2024-01-15"
+				}
+			}
+		]
+	}
 }
 ```
 
@@ -424,14 +427,14 @@ Document all possible errors for each endpoint:
 /users/{id}:
   get:
     responses:
-      '200':
+      "200":
         description: Success
-      '401':
+      "401":
         description: Authentication failed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Error'
+              $ref: "#/components/schemas/Error"
             examples:
               missing_token:
                 value:
@@ -443,12 +446,12 @@ Document all possible errors for each endpoint:
                   error:
                     code: INVALID_TOKEN
                     message: Token is invalid or expired
-      '404':
+      "404":
         description: User not found
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Error'
+              $ref: "#/components/schemas/Error"
             examples:
               not_found:
                 value:
@@ -463,16 +466,16 @@ Help clients understand if they should retry:
 
 ```json
 {
-  "error": {
-    "code": "SERVICE_UNAVAILABLE",
-    "message": "Service temporarily unavailable",
-    "retry": {
-      "retryable": true,
-      "retry_after": 60,
-      "max_retries": 3,
-      "backoff": "exponential"
-    }
-  }
+	"error": {
+		"code": "SERVICE_UNAVAILABLE",
+		"message": "Service temporarily unavailable",
+		"retry": {
+			"retryable": true,
+			"retry_after": 60,
+			"max_retries": 3,
+			"backoff": "exponential"
+		}
+	}
 }
 ```
 

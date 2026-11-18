@@ -1,8 +1,9 @@
 ---
+
 name: antislop
 description: "Universal prose writing and audit skill. Apply for writing, editing, or reviewing prose, and for explicit requests to score text or flag formulaic AI-writing patterns. Do not activate for ordinary factual, code, or configuration tasks."
 metadata:
-  version: "3.0.0"
+version: "3.0.0"
 ---
 
 # Antislop
@@ -23,11 +24,11 @@ Do not activate for code, code comments, docstrings, configuration, structured d
 
 Use the first matching route:
 
-| Request | Mode | Load |
-|---|---|---|
-| Draft, rewrite, edit, polish, or phrase prose | writing | references/style-mode.md and references/shared-contract.md |
-| Audit, check, score, grade, detect, flag patterns, or "does this pass?" with supplied prose | audit | references/audit-mode.md and references/shared-contract.md |
-| Ordinary factual, code, configuration, or conceptual question | none | no Antislop guidance |
+| Request                                                                                     | Mode    | Load                                                       |
+| ------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------- |
+| Draft, rewrite, edit, polish, or phrase prose                                               | writing | references/style-mode.md and references/shared-contract.md |
+| Audit, check, score, grade, detect, flag patterns, or "does this pass?" with supplied prose | audit   | references/audit-mode.md and references/shared-contract.md |
+| Ordinary factual, code, configuration, or conceptual question                               | none    | no Antislop guidance                                       |
 
 When a request starts with "does this pass?" and includes text, treat it as audit intent even when the text is technical, operational, or security-related.
 

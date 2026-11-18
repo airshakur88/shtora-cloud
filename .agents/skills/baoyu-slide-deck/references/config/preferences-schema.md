@@ -8,19 +8,19 @@ Structure for user preferences in `.baoyu-skills/baoyu-slide-deck/EXTEND.md`.
 # Slide Deck Preferences
 
 ## Defaults
-style: blueprint              # Preset name OR "custom"
-audience: general             # beginners | intermediate | experts | executives | general
-language: auto                # auto | en | zh | ja | etc.
-review: true                  # true = review outline before generation
+style: blueprint # Preset name OR "custom"
+audience: general # beginners | intermediate | experts | executives | general
+language: auto # auto | en | zh | ja | etc.
+review: true # true = review outline before generation
 preferred_image_backend: auto # auto | ask | <backend-id>
-generation_batch_size: 4      # 1-8, used when backend/runtime supports batch or parallel slide generation
+generation_batch_size: 4 # 1-8, used when backend/runtime supports batch or parallel slide generation
 
 ## Custom Dimensions (only when style: custom)
 dimensions:
-  texture: clean              # clean | grid | organic | pixel | paper
-  mood: professional          # professional | warm | cool | vibrant | dark | neutral
-  typography: geometric       # geometric | humanist | handwritten | editorial | technical
-  density: balanced           # minimal | balanced | dense
+  texture: clean # clean | grid | organic | pixel | paper
+  mood: professional # professional | warm | cool | vibrant | dark | neutral
+  typography: geometric # geometric | humanist | handwritten | editorial | technical
+  density: balanced # minimal | balanced | dense
 
 ## Custom Styles (optional)
 custom_styles:
@@ -36,25 +36,25 @@ custom_styles:
 
 ### Defaults
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `style` | string | `blueprint` | Preset name, `custom`, or custom style name |
-| `audience` | string | `general` | Default target audience |
-| `language` | string | `auto` | Output language (auto = detect from input) |
-| `review` | boolean | `true` | Show outline review before generation |
-| `preferred_image_backend` | string | `auto` | Image backend selection. `auto` = prefer runtime-native tool, fall back to the only installed backend, ask if multiple non-native are present. `ask` = always confirm on every run. `<backend-id>` (e.g., `codex-imagegen`, `baoyu-image-gen`, `image_generate`) = pin this backend when available; fall back to `auto` when it isn't. Absent = `auto`. Resolution logic is documented in `SKILL.md`'s `## Image Generation Tools` section. |
-| `generation_batch_size` | int | 4 | Number of slide images to dispatch per batch when the backend has native batch support or the runtime can issue parallel generation calls. Clamp invalid values to 1-8. Current user request overrides this value. |
+| Field                     | Type    | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------- | ------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `style`                   | string  | `blueprint` | Preset name, `custom`, or custom style name                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `audience`                | string  | `general`   | Default target audience                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `language`                | string  | `auto`      | Output language (auto = detect from input)                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `review`                  | boolean | `true`      | Show outline review before generation                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `preferred_image_backend` | string  | `auto`      | Image backend selection. `auto` = prefer runtime-native tool, fall back to the only installed backend, ask if multiple non-native are present. `ask` = always confirm on every run. `<backend-id>` (e.g., `codex-imagegen`, `baoyu-image-gen`, `image_generate`) = pin this backend when available; fall back to `auto` when it isn't. Absent = `auto`. Resolution logic is documented in `SKILL.md`'s `## Image Generation Tools` section. |
+| `generation_batch_size`   | int     | 4           | Number of slide images to dispatch per batch when the backend has native batch support or the runtime can issue parallel generation calls. Clamp invalid values to 1-8. Current user request overrides this value.                                                                                                                                                                                                                          |
 
 ### Custom Dimensions
 
 Only used when `style: custom`. Defines dimension values directly.
 
-| Field | Options | Default |
-|-------|---------|---------|
-| `texture` | clean, grid, organic, pixel, paper | clean |
-| `mood` | professional, warm, cool, vibrant, dark, neutral | professional |
-| `typography` | geometric, humanist, handwritten, editorial, technical | geometric |
-| `density` | minimal, balanced, dense | balanced |
+| Field        | Options                                                | Default      |
+| ------------ | ------------------------------------------------------ | ------------ |
+| `texture`    | clean, grid, organic, pixel, paper                     | clean        |
+| `mood`       | professional, warm, cool, vibrant, dark, neutral       | professional |
+| `typography` | geometric, humanist, handwritten, editorial, technical | geometric    |
+| `density`    | minimal, balanced, dense                               | balanced     |
 
 ### Custom Styles
 

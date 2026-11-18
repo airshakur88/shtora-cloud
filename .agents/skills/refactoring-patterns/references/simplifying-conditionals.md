@@ -3,6 +3,7 @@
 Detailed reference for refactorings that tame complex conditional structures. Conditionals are the hardest code to read and the most likely to harbor bugs. These refactorings decompose, consolidate, and replace conditionals with clearer alternatives.
 
 ## Table of Contents
+
 1. [Decompose Conditional](#decompose-conditional)
 2. [Consolidate Conditional Expression](#consolidate-conditional-expression)
 3. [Replace Nested Conditional with Guard Clauses](#replace-nested-conditional-with-guard-clauses)
@@ -31,50 +32,52 @@ A long `if` statement with a compound condition and multi-line branches forces t
 ### Example
 
 **Before:**
+
 ```javascript
 function calculateCharge(date, quantity, plan) {
-  let charge;
-  if (date.getMonth() >= 6 && date.getMonth() <= 8) {
-    charge = quantity * plan.summerRate;
-  } else {
-    charge = quantity * plan.regularRate + plan.regularServiceCharge;
-  }
-  return charge;
+	let charge;
+	if (date.getMonth() >= 6 && date.getMonth() <= 8) {
+		charge = quantity * plan.summerRate;
+	} else {
+		charge = quantity * plan.regularRate + plan.regularServiceCharge;
+	}
+	return charge;
 }
 ```
 
 **After:**
+
 ```javascript
 function calculateCharge(date, quantity, plan) {
-  if (isSummer(date)) {
-    return summerCharge(quantity, plan);
-  } else {
-    return regularCharge(quantity, plan);
-  }
+	if (isSummer(date)) {
+		return summerCharge(quantity, plan);
+	} else {
+		return regularCharge(quantity, plan);
+	}
 }
 
 function isSummer(date) {
-  return date.getMonth() >= 6 && date.getMonth() <= 8;
+	return date.getMonth() >= 6 && date.getMonth() <= 8;
 }
 
 function summerCharge(quantity, plan) {
-  return quantity * plan.summerRate;
+	return quantity * plan.summerRate;
 }
 
 function regularCharge(quantity, plan) {
-  return quantity * plan.regularRate + plan.regularServiceCharge;
+	return quantity * plan.regularRate + plan.regularServiceCharge;
 }
 ```
 
 ### Naming the Condition
 
-| Condition Expression | Good Name |
-|---------------------|-----------|
-| `date.getMonth() >= 6 && date.getMonth() <= 8` | `isSummer(date)` |
-| `user.age >= 18 && user.hasConsent` | `isEligible(user)` |
-| `cart.total > 100 && !cart.hasPromo` | `qualifiesForDiscount(cart)` |
-| `retries < MAX && !response.ok` | `shouldRetry(retries, response)` |
-| `file.size > 0 && file.ext === '.csv'` | `isValidUpload(file)` |
+| Condition Expression                           | Good Name                        |
+| ---------------------------------------------- | -------------------------------- |
+| `date.getMonth() >= 6 && date.getMonth() <= 8` | `isSummer(date)`                 |
+| `user.age >= 18 && user.hasConsent`            | `isEligible(user)`               |
+| `cart.total > 100 && !cart.hasPromo`           | `qualifiesForDiscount(cart)`     |
+| `retries < MAX && !response.ok`                | `shouldRetry(retries, response)` |
+| `file.size > 0 && file.ext === '.csv'`         | `isValidUpload(file)`            |
 
 The condition name should answer a yes/no question using the domain vocabulary.
 
@@ -98,6 +101,7 @@ When multiple conditions return the same value, combining them into one named ch
 ### Example
 
 **Before:**
+
 ```python
 def disability_amount(employee):
     if employee.seniority < 2:
@@ -111,6 +115,7 @@ def disability_amount(employee):
 ```
 
 **After:**
+
 ```python
 def disability_amount(employee):
     if is_not_eligible_for_disability(employee):
@@ -125,11 +130,11 @@ def is_not_eligible_for_disability(employee):
 
 ### When to Consolidate vs. Keep Separate
 
-| Situation | Action |
-|-----------|--------|
-| All conditions mean the same business concept | Consolidate into one named check |
-| Conditions are independent with different reasons | Keep separate (each deserves its own name) |
-| Conditions should be evaluated in sequence for performance | Keep separate for short-circuit clarity |
+| Situation                                                  | Action                                     |
+| ---------------------------------------------------------- | ------------------------------------------ |
+| All conditions mean the same business concept              | Consolidate into one named check           |
+| Conditions are independent with different reasons          | Keep separate (each deserves its own name) |
+| Conditions should be evaluated in sequence for performance | Keep separate for short-circuit clarity    |
 
 ---
 
@@ -151,48 +156,50 @@ Deeply nested `if/else` structures obscure the normal path. Guard clauses make i
 ### Example
 
 **Before:**
+
 ```javascript
 function payAmount(employee) {
-  let result;
-  if (employee.isSeparated) {
-    result = { amount: 0, reasonCode: 'SEP' };
-  } else {
-    if (employee.isRetired) {
-      result = { amount: 0, reasonCode: 'RET' };
-    } else {
-      // main calculation
-      result = {
-        amount: employee.salary * employee.rate,
-        reasonCode: 'REG'
-      };
-    }
-  }
-  return result;
+	let result;
+	if (employee.isSeparated) {
+		result = { amount: 0, reasonCode: "SEP" };
+	} else {
+		if (employee.isRetired) {
+			result = { amount: 0, reasonCode: "RET" };
+		} else {
+			// main calculation
+			result = {
+				amount: employee.salary * employee.rate,
+				reasonCode: "REG",
+			};
+		}
+	}
+	return result;
 }
 ```
 
 **After:**
+
 ```javascript
 function payAmount(employee) {
-  if (employee.isSeparated) return { amount: 0, reasonCode: 'SEP' };
-  if (employee.isRetired) return { amount: 0, reasonCode: 'RET' };
+	if (employee.isSeparated) return { amount: 0, reasonCode: "SEP" };
+	if (employee.isRetired) return { amount: 0, reasonCode: "RET" };
 
-  return {
-    amount: employee.salary * employee.rate,
-    reasonCode: 'REG'
-  };
+	return {
+		amount: employee.salary * employee.rate,
+		reasonCode: "REG",
+	};
 }
 ```
 
 ### Guard Clause Patterns
 
-| Pattern | Example |
-|---------|---------|
-| Null check | `if (input == null) return defaultValue;` |
-| Empty check | `if (items.length === 0) return [];` |
-| Permission check | `if (!user.canEdit) throw new ForbiddenError();` |
-| Boundary check | `if (index < 0 \|\| index >= size) throw new RangeError();` |
-| Status check | `if (order.isCancelled) return zeroPay();` |
+| Pattern          | Example                                                     |
+| ---------------- | ----------------------------------------------------------- |
+| Null check       | `if (input == null) return defaultValue;`                   |
+| Empty check      | `if (items.length === 0) return [];`                        |
+| Permission check | `if (!user.canEdit) throw new ForbiddenError();`            |
+| Boundary check   | `if (index < 0 \|\| index >= size) throw new RangeError();` |
+| Status check     | `if (order.isCancelled) return zeroPay();`                  |
 
 ### "One return" vs. Guard Clauses
 
@@ -219,6 +226,7 @@ This is the gold standard for eliminating type-based conditionals. Instead of on
 ### Example
 
 **Before:**
+
 ```python
 class Bird:
     def __init__(self, bird_type, voltage=0, coconut_count=0):
@@ -238,6 +246,7 @@ class Bird:
 ```
 
 **After:**
+
 ```python
 class Bird:
     def speed(self):
@@ -258,13 +267,13 @@ class NorwegianBlueParrot(Bird):
 
 ### When to Use Polymorphism vs. Keep the Conditional
 
-| Situation | Recommendation |
-|-----------|---------------|
-| Conditional appears in multiple methods | Polymorphism -- types know their own behavior |
-| Only one method has the conditional | May be overkill -- Decompose Conditional may suffice |
-| New types are added frequently | Polymorphism -- Open/Closed Principle |
-| The set of types is fixed and small (e.g., 2-3) | Conditional may be simpler |
-| Behavior varies by a code that changes at runtime | Use Strategy pattern instead of inheritance |
+| Situation                                         | Recommendation                                       |
+| ------------------------------------------------- | ---------------------------------------------------- |
+| Conditional appears in multiple methods           | Polymorphism -- types know their own behavior        |
+| Only one method has the conditional               | May be overkill -- Decompose Conditional may suffice |
+| New types are added frequently                    | Polymorphism -- Open/Closed Principle                |
+| The set of types is fixed and small (e.g., 2-3)   | Conditional may be simpler                           |
+| Behavior varies by a code that changes at runtime | Use Strategy pattern instead of inheritance          |
 
 ---
 
@@ -288,25 +297,39 @@ Instead of checking for a special case (usually null) in every caller, create a 
 ### Example
 
 **Before:**
+
 ```javascript
 // Scattered throughout the codebase:
-const customerName = (customer !== null) ? customer.name : 'Occupant';
-const billingPlan = (customer !== null) ? customer.billingPlan : BillingPlan.basic();
-const paymentHistory = (customer !== null) ? customer.paymentHistory : new NullPaymentHistory();
+const customerName = customer !== null ? customer.name : "Occupant";
+const billingPlan =
+	customer !== null ? customer.billingPlan : BillingPlan.basic();
+const paymentHistory =
+	customer !== null ? customer.paymentHistory : new NullPaymentHistory();
 ```
 
 **After:**
+
 ```javascript
 class UnknownCustomer {
-  get name() { return 'Occupant'; }
-  get billingPlan() { return BillingPlan.basic(); }
-  get paymentHistory() { return new NullPaymentHistory(); }
-  get isUnknown() { return true; }
+	get name() {
+		return "Occupant";
+	}
+	get billingPlan() {
+		return BillingPlan.basic();
+	}
+	get paymentHistory() {
+		return new NullPaymentHistory();
+	}
+	get isUnknown() {
+		return true;
+	}
 }
 
 class Customer {
-  get isUnknown() { return false; }
-  // ... normal implementation
+	get isUnknown() {
+		return false;
+	}
+	// ... normal implementation
 }
 
 // Callers (no more null checks):
@@ -316,14 +339,14 @@ const billingPlan = customer.billingPlan;
 
 ### Common Special Cases
 
-| Domain | Special Case Object | Default Behavior |
-|--------|-------------------|------------------|
-| Customer | `UnknownCustomer` | Returns "Occupant", basic plan |
-| Currency | `NullMoney` | Zero amount, no currency |
-| Logger | `NullLogger` | Silently discards all messages |
-| Permission | `DeniedPermission` | Returns false for all checks |
-| Config | `DefaultConfig` | Returns sensible defaults |
-| User | `AnonymousUser` | Read-only, no privileges |
+| Domain     | Special Case Object | Default Behavior               |
+| ---------- | ------------------- | ------------------------------ |
+| Customer   | `UnknownCustomer`   | Returns "Occupant", basic plan |
+| Currency   | `NullMoney`         | Zero amount, no currency       |
+| Logger     | `NullLogger`        | Silently discards all messages |
+| Permission | `DeniedPermission`  | Returns false for all checks   |
+| Config     | `DefaultConfig`     | Returns sensible defaults      |
+| User       | `AnonymousUser`     | Read-only, no privileges       |
 
 ---
 
@@ -345,6 +368,7 @@ Assertions document what the code expects to be true. They are executable docume
 ### Example
 
 **Before:**
+
 ```python
 def apply_discount(product, discount_rate):
     # discount should be between 0 and 1
@@ -353,6 +377,7 @@ def apply_discount(product, discount_rate):
 ```
 
 **After:**
+
 ```python
 def apply_discount(product, discount_rate):
     assert 0 <= discount_rate <= 1, f"Discount rate must be 0-1, got {discount_rate}"
@@ -362,24 +387,24 @@ def apply_discount(product, discount_rate):
 
 ### Assertion Guidelines
 
-| Guideline | Rationale |
-|-----------|-----------|
+| Guideline                                 | Rationale                                                                    |
+| ----------------------------------------- | ---------------------------------------------------------------------------- |
 | Never use assertions for input validation | Assertions can be disabled in production; use exceptions for untrusted input |
-| Use assertions for programmer errors | Conditions that should never occur if the code is correct |
-| Keep assertion messages descriptive | Include the actual value and the expected constraint |
-| Don't put side effects in assertions | `assert items.remove(x)` breaks when assertions are disabled |
+| Use assertions for programmer errors      | Conditions that should never occur if the code is correct                    |
+| Keep assertion messages descriptive       | Include the actual value and the expected constraint                         |
+| Don't put side effects in assertions      | `assert items.remove(x)` breaks when assertions are disabled                 |
 
 ---
 
 ## Decision Guide: Which Conditional Refactoring to Use
 
-| Situation | Refactoring |
-|-----------|-------------|
-| Long, complex condition expression | Decompose Conditional |
-| Multiple conditions lead to same result | Consolidate Conditional Expression |
-| Nested if/else with special cases | Replace Nested Conditional with Guard Clauses |
-| Switch/if on type code in multiple places | Replace Conditional with Polymorphism |
-| Null checks scattered everywhere | Introduce Special Case (Null Object) |
-| Hidden assumption in code logic | Introduce Assertion |
-| Condition appears once, set of types is small | Keep the conditional, but Decompose it |
-| Condition varies at runtime | Use Strategy pattern |
+| Situation                                     | Refactoring                                   |
+| --------------------------------------------- | --------------------------------------------- |
+| Long, complex condition expression            | Decompose Conditional                         |
+| Multiple conditions lead to same result       | Consolidate Conditional Expression            |
+| Nested if/else with special cases             | Replace Nested Conditional with Guard Clauses |
+| Switch/if on type code in multiple places     | Replace Conditional with Polymorphism         |
+| Null checks scattered everywhere              | Introduce Special Case (Null Object)          |
+| Hidden assumption in code logic               | Introduce Assertion                           |
+| Condition appears once, set of types is small | Keep the conditional, but Decompose it        |
+| Condition varies at runtime                   | Use Strategy pattern                          |

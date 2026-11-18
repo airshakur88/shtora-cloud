@@ -10,7 +10,7 @@ AI writing is statistically average. It reaches for the most likely next word. W
 
 ## Mandatory pre-output scan
 
-**Em dashes, en dashes, and double hyphens** are forbidden. Before returning any written output, scan the entire response for `—`, `–`, and ` -- `. If count > 0, the draft is not done. Replace every instance with `.` or `,` and break the sentence if needed.
+**Em dashes, en dashes, and double hyphens** are forbidden. Before returning any written output, scan the entire response for `—`, `–`, and `--`. If count > 0, the draft is not done. Replace every instance with `.` or `,` and break the sentence if needed.
 
 ---
 
@@ -71,6 +71,7 @@ This is the hardest pattern to catch. It's an absence.
 AI writing has no opinion, no experience, no war stories. It takes no position, carries no scar tissue, and could have been written about any topic by anyone. That's the tell. Unreviewed AI output signals a lack of respect for the reader.
 
 Rules:
+
 - Take a **position** — not "here are the considerations" but "here is what I think and why"
 - Specific experiences beat general observations. "I've seen this fail three times in enterprise deployments" beats "this approach has known limitations"
 - If a sentence could be written by someone who has never done the thing, rewrite it as someone who has

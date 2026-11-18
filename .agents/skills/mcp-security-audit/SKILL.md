@@ -1,15 +1,18 @@
 ---
+
 name: mcp-security-audit
 description: |
-  Audit MCP (Model Context Protocol) server configurations for security issues. Use this skill when:
-  - Reviewing .mcp.json files for security risks
-  - Checking MCP server args for hardcoded secrets or shell injection patterns
-  - Validating that MCP package-runner dependencies use exact reviewed versions, not bare names, @latest, or ranges
-  - Detecting mutable npm/npx, bunx, pnpm dlx, yarn dlx, and npm exec references in MCP configurations
-  - Auditing which MCP servers a project registers and whether they're on an approved list
-  - Checking for environment variable usage vs. hardcoded credentials in MCP configs
-  - Any request like "is my MCP config secure?", "audit my MCP servers", or "check .mcp.json"
+Audit MCP (Model Context Protocol) server configurations for security issues. Use this skill when:
+
+- Reviewing .mcp.json files for security risks
+- Checking MCP server args for hardcoded secrets or shell injection patterns
+- Validating that MCP package-runner dependencies use exact reviewed versions, not bare names, @latest, or ranges
+- Detecting mutable npm/npx, bunx, pnpm dlx, yarn dlx, and npm exec references in MCP configurations
+- Auditing which MCP servers a project registers and whether they're on an approved list
+- Checking for environment variable usage vs. hardcoded credentials in MCP configs
+- Any request like "is my MCP config secure?", "audit my MCP servers", or "check .mcp.json"
   keywords: [mcp, security, audit, secrets, shell-injection, supply-chain, governance]
+
 ---
 
 # MCP Security Audit
@@ -78,33 +81,35 @@ def check_secrets(mcp_config: dict) -> list[dict]:
 ```
 
 **Good practice — use env var references:**
+
 ```json
 {
-  "mcpServers": {
-    "my-server": {
-      "command": "node",
-      "args": ["server.js"],
-      "env": {
-        "API_KEY": "${MY_API_KEY}",
-        "DB_URL": "${DATABASE_URL}"
-      }
-    }
-  }
+	"mcpServers": {
+		"my-server": {
+			"command": "node",
+			"args": ["server.js"],
+			"env": {
+				"API_KEY": "${MY_API_KEY}",
+				"DB_URL": "${DATABASE_URL}"
+			}
+		}
+	}
 }
 ```
 
 **Bad — hardcoded credentials:**
+
 ```json
 {
-  "mcpServers": {
-    "my-server": {
-      "command": "node",
-      "args": ["server.js", "--api-key", "sk-abc123realkey456"],
-      "env": {
-        "DB_URL": "postgresql://admin:password123@prod-db:5432/main"
-      }
-    }
-  }
+	"mcpServers": {
+		"my-server": {
+			"command": "node",
+			"args": ["server.js", "--api-key", "sk-abc123realkey456"],
+			"env": {
+				"DB_URL": "postgresql://admin:password123@prod-db:5432/main"
+			}
+		}
+	}
 }
 ```
 
@@ -242,11 +247,13 @@ def check_pinned_versions(server_config: dict) -> list[dict]:
 ```
 
 **Good — exact reviewed version:**
+
 ```json
 { "command": "npx", "args": ["-y", "my-mcp-server@2.1.0"] }
 ```
 
 **Review — mutable references:**
+
 ```json
 { "command": "npx", "args": ["-y", "my-mcp-server@latest"] }
 { "command": "npx", "args": ["-y", "my-mcp-server"] }
@@ -307,6 +314,7 @@ def audit_mcp_config(mcp_path: str) -> dict:
 ```
 
 **Usage:**
+
 ```python
 results = audit_mcp_config(".mcp.json")
 if not results["summary"]["passed"]:

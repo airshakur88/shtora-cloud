@@ -6,15 +6,15 @@ Load this reference after a request has been routed to review, audit, or substan
 
 When asked to review, never edit. Reuse the audit operation's authority: no rewritten passage and no file change unless the user separately requests one. Give every finding exactly one status:
 
-| Status | Meaning |
-|---|---|
-| keep | The pattern is present but earned, required by the medium, or preferable to the alternatives. State what earns it. |
-| revise | The source already contains enough material for an honest improvement. |
-| ask-author | The improvement needs a fact, mechanism, example, opinion, or experience the source does not supply. Ask one concise question before drafting and wait. A `[TK: ...]` marker is allowed only when the user explicitly requests a template, scaffold, or marked-up draft. |
-| cut | The passage adds only repetition, ceremony, unsupported emphasis, or closure. |
-| no-finding | The prose already performs its job. Report nothing. |
-| n/a | A structural feature does not apply to the venue or offers no occasion in the text. No judgment is forced. |
-| over-correction | Applying the rule would flatten valid voice or structure (formal register, quoted material, or an author's verified habit). Record it separately; never reinterpret it as an AI-leaning signal. |
+| Status          | Meaning                                                                                                                                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| keep            | The pattern is present but earned, required by the medium, or preferable to the alternatives. State what earns it.                                                                                                                                                       |
+| revise          | The source already contains enough material for an honest improvement.                                                                                                                                                                                                   |
+| ask-author      | The improvement needs a fact, mechanism, example, opinion, or experience the source does not supply. Ask one concise question before drafting and wait. A `[TK: ...]` marker is allowed only when the user explicitly requests a template, scaffold, or marked-up draft. |
+| cut             | The passage adds only repetition, ceremony, unsupported emphasis, or closure.                                                                                                                                                                                            |
+| no-finding      | The prose already performs its job. Report nothing.                                                                                                                                                                                                                      |
+| n/a             | A structural feature does not apply to the venue or offers no occasion in the text. No judgment is forced.                                                                                                                                                               |
+| over-correction | Applying the rule would flatten valid voice or structure (formal register, quoted material, or an author's verified habit). Record it separately; never reinterpret it as an AI-leaning signal.                                                                          |
 
 ## Substance report
 

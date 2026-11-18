@@ -28,16 +28,19 @@ Comprehensive guide for cloud cost optimization including reserved instances, sp
 ```
 
 **Inform Phase**
+
 - Visibility into cloud spend
 - Allocation and showback
 - Benchmarking and forecasting
 
 **Optimize Phase**
+
 - Rate optimization (RIs, savings plans)
 - Usage optimization (right-sizing)
 - Architectural optimization
 
 **Operate Phase**
+
 - Continuous improvement
 - Automation and governance
 - Anomaly detection
@@ -48,13 +51,14 @@ Comprehensive guide for cloud cost optimization including reserved instances, sp
 
 **AWS Savings Plans**
 
-| Type | Flexibility | Savings |
-|------|-------------|---------|
-| Compute Savings Plans | Any EC2, Fargate, Lambda | Up to 66% |
+| Type                       | Flexibility                      | Savings   |
+| -------------------------- | -------------------------------- | --------- |
+| Compute Savings Plans      | Any EC2, Fargate, Lambda         | Up to 66% |
 | EC2 Instance Savings Plans | Specific instance family, region | Up to 72% |
-| Reserved Instances | Specific instance type, AZ | Up to 72% |
+| Reserved Instances         | Specific instance type, AZ       | Up to 72% |
 
 **Commitment Strategy**
+
 ```
 Baseline (always-on): 1-year or 3-year Savings Plans
 Variable (predictable): Scheduled Reserved Instances
@@ -62,6 +66,7 @@ Spiky (unpredictable): On-Demand + Spot
 ```
 
 **Azure Reservations**
+
 ```
 # Azure CLI - Purchase reservation
 az reservations reservation-order purchase \
@@ -73,6 +78,7 @@ az reservations reservation-order purchase \
 ```
 
 **GCP Committed Use Discounts**
+
 - Resource-based: Specific vCPUs and memory
 - Spend-based: Dollar commitment for flexibility
 - 1-year (37% discount) or 3-year (55% discount)
@@ -80,6 +86,7 @@ az reservations reservation-order purchase \
 ### Spot/Preemptible Instances
 
 **When to Use Spot**
+
 - Batch processing and analytics
 - CI/CD build agents
 - Stateless web servers (with auto-scaling)
@@ -87,6 +94,7 @@ az reservations reservation-order purchase \
 - Development and testing environments
 
 **AWS Spot Best Practices**
+
 ```yaml
 # EC2 Auto Scaling with Spot
 MixedInstancesPolicy:
@@ -103,6 +111,7 @@ MixedInstancesPolicy:
 ```
 
 **Spot Interruption Handling**
+
 ```python
 # Check for spot termination notice (AWS)
 import requests
@@ -121,6 +130,7 @@ def check_spot_termination():
 ```
 
 **GCP Preemptible/Spot VMs**
+
 ```hcl
 # Terraform - GCP Spot VM
 resource "google_compute_instance" "spot" {
@@ -139,6 +149,7 @@ resource "google_compute_instance" "spot" {
 ### Right-Sizing
 
 **Analysis Process**
+
 1. Collect metrics (CPU, memory, network, disk I/O)
 2. Identify idle or underutilized resources
 3. Recommend appropriate instance size
@@ -146,6 +157,7 @@ resource "google_compute_instance" "spot" {
 5. Monitor and iterate
 
 **AWS Compute Optimizer**
+
 ```bash
 # Enable Compute Optimizer
 aws compute-optimizer update-enrollment-status \
@@ -158,13 +170,15 @@ aws compute-optimizer get-ec2-instance-recommendations \
 ```
 
 **Right-Sizing Thresholds**
-| Metric | Underutilized | Optimal | Overutilized |
-|--------|---------------|---------|--------------|
-| CPU | <20% avg | 40-60% avg | >80% avg |
-| Memory | <30% avg | 50-70% avg | >85% avg |
-| Network | <10% capacity | Variable | >80% capacity |
+
+| Metric  | Underutilized | Optimal    | Overutilized  |
+| ------- | ------------- | ---------- | ------------- |
+| CPU     | <20% avg      | 40-60% avg | >80% avg      |
+| Memory  | <30% avg      | 50-70% avg | >85% avg      |
+| Network | <10% capacity | Variable   | >80% capacity |
 
 **Azure Advisor Recommendations**
+
 ```bash
 # Get cost recommendations
 az advisor recommendation list \
@@ -177,6 +191,7 @@ az advisor recommendation list \
 ### Object Storage Tiering
 
 **AWS S3 Storage Classes**
+
 ```
 S3 Standard
     |
@@ -194,25 +209,27 @@ S3 Glacier Deep Archive
 ```
 
 **Lifecycle Policy Example**
+
 ```json
 {
-  "Rules": [
-    {
-      "ID": "OptimizeCosts",
-      "Status": "Enabled",
-      "Filter": { "Prefix": "logs/" },
-      "Transitions": [
-        { "Days": 30, "StorageClass": "STANDARD_IA" },
-        { "Days": 90, "StorageClass": "GLACIER" },
-        { "Days": 365, "StorageClass": "DEEP_ARCHIVE" }
-      ],
-      "Expiration": { "Days": 730 }
-    }
-  ]
+	"Rules": [
+		{
+			"ID": "OptimizeCosts",
+			"Status": "Enabled",
+			"Filter": { "Prefix": "logs/" },
+			"Transitions": [
+				{ "Days": 30, "StorageClass": "STANDARD_IA" },
+				{ "Days": 90, "StorageClass": "GLACIER" },
+				{ "Days": 365, "StorageClass": "DEEP_ARCHIVE" }
+			],
+			"Expiration": { "Days": 730 }
+		}
+	]
 }
 ```
 
 **S3 Intelligent-Tiering**
+
 - Automatic tiering based on access patterns
 - No retrieval fees
 - Small monitoring fee per object
@@ -221,15 +238,17 @@ S3 Glacier Deep Archive
 ### Block Storage Optimization
 
 **EBS Volume Selection**
-| Type | Use Case | $/GB/month |
-|------|----------|------------|
-| gp3 | General purpose | $0.08 |
-| gp2 | Legacy (migrate to gp3) | $0.10 |
-| io2 | High IOPS databases | $0.125+ |
-| st1 | Throughput (big data) | $0.045 |
-| sc1 | Cold archives | $0.015 |
+
+| Type | Use Case                | $/GB/month |
+| ---- | ----------------------- | ---------- |
+| gp3  | General purpose         | $0.08      |
+| gp2  | Legacy (migrate to gp3) | $0.10      |
+| io2  | High IOPS databases     | $0.125+    |
+| st1  | Throughput (big data)   | $0.045     |
+| sc1  | Cold archives           | $0.015     |
 
 **gp3 Migration (20% savings)**
+
 ```bash
 # Modify EBS volume from gp2 to gp3
 aws ec2 modify-volume \
@@ -242,15 +261,17 @@ aws ec2 modify-volume \
 ### Database Storage
 
 **Aurora Storage Optimization**
+
 - Pay only for storage used (auto-scaling)
 - No pre-provisioning required
 - 10GB increments up to 128TB
 
 **DynamoDB Capacity Modes**
-| Mode | Best For | Pricing |
-|------|----------|---------|
-| On-Demand | Unpredictable traffic | Pay per request |
-| Provisioned | Steady traffic | Pay per capacity unit |
+
+| Mode                       | Best For                 | Pricing                   |
+| -------------------------- | ------------------------ | ------------------------- |
+| On-Demand                  | Unpredictable traffic    | Pay per request           |
+| Provisioned                | Steady traffic           | Pay per capacity unit     |
 | Provisioned + Auto Scaling | Variable but predictable | Lower cost than on-demand |
 
 ## Network Cost Optimization
@@ -258,6 +279,7 @@ aws ec2 modify-volume \
 ### Data Transfer Costs
 
 **AWS Data Transfer Pricing**
+
 ```
 Inbound: Free
 Same AZ: Free
@@ -268,6 +290,7 @@ Internet Egress: $0.09/GB (first 10TB)
 ```
 
 **Optimization Strategies**
+
 1. Keep traffic within same AZ when possible
 2. Use VPC endpoints for AWS services
 3. Use CloudFront for cacheable content
@@ -275,6 +298,7 @@ Internet Egress: $0.09/GB (first 10TB)
 5. Use regional rather than global services
 
 **VPC Endpoints (Avoid NAT Gateway)**
+
 ```hcl
 # Gateway endpoint (free for S3, DynamoDB)
 resource "aws_vpc_endpoint" "s3" {
@@ -293,6 +317,7 @@ resource "aws_vpc_endpoint" "ecr" {
 ### CDN Optimization
 
 **CloudFront Cost Savings**
+
 - Lower data transfer rates than direct from origin
 - Cache hit ratio optimization (target >90%)
 - Use Origin Shield to reduce origin load
@@ -302,7 +327,7 @@ resource "aws_vpc_endpoint" "ecr" {
 # CloudFront cache optimization
 CacheBehaviors:
   - PathPattern: "/static/*"
-    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized
+    CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
     Compress: true
     TTL:
       DefaultTTL: 86400
@@ -314,6 +339,7 @@ CacheBehaviors:
 ### Lambda Optimization
 
 **Memory/CPU Tuning**
+
 ```python
 # Use AWS Lambda Power Tuning
 # Finds optimal memory for cost vs performance
@@ -327,6 +353,7 @@ CacheBehaviors:
 ```
 
 **Cost Reduction Strategies**
+
 1. Right-size memory allocation
 2. Minimize cold starts (provisioned concurrency for critical paths)
 3. Use ARM64 (Graviton2) - 20% cheaper
@@ -334,6 +361,7 @@ CacheBehaviors:
 5. Use Lambda Layers for shared dependencies
 
 **Graviton2 Migration**
+
 ```yaml
 # SAM template with ARM64
 Resources:
@@ -342,12 +370,13 @@ Resources:
     Properties:
       Runtime: python3.11
       Architectures:
-        - arm64  # 20% cost savings
+        - arm64 # 20% cost savings
 ```
 
 ### Container Optimization
 
 **Fargate Pricing Optimization**
+
 ```
 # Fargate Spot: Up to 70% discount
 # Use for fault-tolerant workloads
@@ -362,14 +391,15 @@ ECS Service:
 ```
 
 **Right-Size Container Resources**
+
 ```yaml
 # Analyze actual usage with Container Insights
 resources:
   requests:
-    memory: "256Mi"  # Based on p95 usage + 20% buffer
-    cpu: "100m"      # Based on p95 usage + 20% buffer
+    memory: "256Mi" # Based on p95 usage + 20% buffer
+    cpu: "100m" # Based on p95 usage + 20% buffer
   limits:
-    memory: "512Mi"  # 2x requests for burst
+    memory: "512Mi" # 2x requests for burst
     cpu: "500m"
 ```
 
@@ -378,26 +408,28 @@ resources:
 ### Tagging Strategy
 
 **Required Tags**
+
 ```yaml
 # Terraform - enforce tags
 variable "required_tags" {
-  default = {
-    environment  = "prod"
-    cost-center  = "engineering"
-    owner        = "platform-team"
-    project      = "api-gateway"
-    managed-by   = "terraform"
-  }
+default = {
+environment  = "prod"
+cost-center  = "engineering"
+owner        = "platform-team"
+project      = "api-gateway"
+managed-by   = "terraform"
+}
 }
 
 resource "aws_instance" "example" {
-  ami           = data.aws_ami.latest.id
-  instance_type = "t3.medium"
-  tags          = var.required_tags
+ami           = data.aws_ami.latest.id
+instance_type = "t3.medium"
+tags          = var.required_tags
 }
 ```
 
 **Tag Enforcement**
+
 ```json
 // AWS SCP - Deny untagged resources
 {
@@ -421,6 +453,7 @@ resource "aws_instance" "example" {
 ### Cost Allocation Reports
 
 **AWS Cost and Usage Report**
+
 ```bash
 # Enable detailed billing reports
 aws cur put-report-definition \
@@ -436,6 +469,7 @@ aws cur put-report-definition \
 ```
 
 **Athena Queries for Analysis**
+
 ```sql
 -- Cost by service and tag
 SELECT
@@ -461,6 +495,7 @@ WHERE reservation_unused_quantity > 0;
 ### Automated Cost Controls
 
 **AWS Budgets with Actions**
+
 ```yaml
 # CloudFormation - Budget with auto-stop
 Resources:
@@ -485,6 +520,7 @@ Resources:
 ```
 
 **Scheduled Scaling (Dev/Test)**
+
 ```yaml
 # Stop non-prod resources nights/weekends
 Resources:
@@ -493,19 +529,20 @@ Resources:
     Properties:
       AutoScalingGroupName: !Ref DevASG
       DesiredCapacity: 0
-      Recurrence: "0 20 * * MON-FRI"  # 8 PM weekdays
+      Recurrence: "0 20 * * MON-FRI" # 8 PM weekdays
 
   ScaleUpSchedule:
     Type: AWS::AutoScaling::ScheduledAction
     Properties:
       AutoScalingGroupName: !Ref DevASG
       DesiredCapacity: 3
-      Recurrence: "0 8 * * MON-FRI"   # 8 AM weekdays
+      Recurrence: "0 8 * * MON-FRI" # 8 AM weekdays
 ```
 
 ### Cost Anomaly Detection
 
 **AWS Cost Anomaly Detection**
+
 ```bash
 # Create anomaly monitor
 aws ce create-anomaly-monitor \
@@ -529,13 +566,13 @@ aws ce create-anomaly-subscription \
 
 ### Key Metrics
 
-| Metric | Formula | Target |
-|--------|---------|--------|
-| Unit Cost | Total Cost / Business Metric | Decreasing |
-| Coverage | Reserved Hours / Total Hours | >70% |
-| Utilization | Used Reserved Hours / Purchased | >80% |
-| Waste | Idle Resource Cost / Total Cost | <10% |
-| Forecast Accuracy | Actual / Forecasted | 90-110% |
+| Metric            | Formula                         | Target     |
+| ----------------- | ------------------------------- | ---------- |
+| Unit Cost         | Total Cost / Business Metric    | Decreasing |
+| Coverage          | Reserved Hours / Total Hours    | >70%       |
+| Utilization       | Used Reserved Hours / Purchased | >80%       |
+| Waste             | Idle Resource Cost / Total Cost | <10%       |
+| Forecast Accuracy | Actual / Forecasted             | 90-110%    |
 
 ### Dashboard Example
 
@@ -561,6 +598,7 @@ FROM metrics;
 ## Quick Wins Checklist
 
 **Immediate Savings (This Week)**
+
 - [ ] Delete unused EBS volumes and snapshots
 - [ ] Terminate stopped EC2 instances not needed
 - [ ] Remove unused Elastic IPs
@@ -568,6 +606,7 @@ FROM metrics;
 - [ ] Review and delete old AMIs
 
 **Short-Term (This Month)**
+
 - [ ] Right-size underutilized instances
 - [ ] Migrate gp2 volumes to gp3
 - [ ] Implement S3 lifecycle policies
@@ -575,6 +614,7 @@ FROM metrics;
 - [ ] Schedule dev/test environments
 
 **Medium-Term (This Quarter)**
+
 - [ ] Purchase Savings Plans for baseline
 - [ ] Implement Spot for fault-tolerant workloads
 - [ ] Set up cost allocation tags

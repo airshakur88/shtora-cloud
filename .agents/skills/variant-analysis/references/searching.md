@@ -6,13 +6,13 @@ without climbing so far that the results become noise.
 
 ## Tool Selection
 
-| Scenario | Tool | Why |
-|----------|------|-----|
-| Quick surface search | ripgrep | Fast, zero setup |
-| Simple pattern matching | Semgrep | Easy syntax, no build needed |
-| Data flow tracking | Semgrep taint / CodeQL | Follows values across functions |
-| Cross-function analysis | CodeQL | Best interprocedural analysis |
-| Non-building code | Semgrep | Works on incomplete code |
+| Scenario                | Tool                   | Why                             |
+| ----------------------- | ---------------------- | ------------------------------- |
+| Quick surface search    | ripgrep                | Fast, zero setup                |
+| Simple pattern matching | Semgrep                | Easy syntax, no build needed    |
+| Data flow tracking      | Semgrep taint / CodeQL | Follows values across functions |
+| Cross-function analysis | CodeQL                 | Best interprocedural analysis   |
+| Non-building code       | Semgrep                | Works on incomplete code        |
 
 Use ripgrep for recon, Semgrep for iteration, CodeQL for precision. Tool loyalty is an
 anti-pattern: "I only use CodeQL" costs you the fast passes that tell you where to aim it.
@@ -76,12 +76,12 @@ Matches 50-100+, high FP. Comprehensive coverage, requires real triage.
 
 ### Choosing your level
 
-| Goal | Level |
-|------|-------|
-| Verify a specific fix | 0 |
-| Find copy-paste bugs | 1 |
-| Audit a component | 2 |
-| Full security assessment | 3 |
+| Goal                     | Level |
+| ------------------------ | ----- |
+| Verify a specific fix    | 0     |
+| Find copy-paste bugs     | 1     |
+| Audit a component        | 2     |
+| Full security assessment | 3     |
 
 ## One Change at a Time
 
@@ -120,12 +120,12 @@ case, not the exotic one. Narrow scope is the single most common reason a hunt f
 
 ### Acceptable rates by context
 
-| Context | Acceptable FP rate |
-|---------|-------------------|
-| Automated CI blocking | <5% |
-| Developer warning | <20% |
-| Security audit triage | <50% |
-| Research/exploration | <80% |
+| Context               | Acceptable FP rate |
+| --------------------- | ------------------ |
+| Automated CI blocking | <5%                |
+| Developer warning     | <20%               |
+| Security audit triage | <50%               |
+| Research/exploration  | <80%               |
 
 For a variant hunt, stop generalizing when more than roughly half the matches are noise.
 That is the signal you climbed one level too far: revert and take a different abstraction
@@ -134,21 +134,25 @@ rather than pushing further up the same one.
 ### Common FP sources and filters
 
 **Test code** — exclude test trees:
+
 ```bash
 rg "pattern" --glob '!**/test*' --glob '!**/*_test.*'
 ```
 
 **Already sanitized** — subtract the safe form:
+
 ```yaml
 pattern-not: dangerous_func(sanitize($X))
 ```
 
 **Literal values** — not attacker-controlled:
+
 ```yaml
 pattern-not: dangerous_func("...")
 ```
 
 **Dead code** — add reachability constraints:
+
 ```yaml
 pattern-not-inside: |
   if False:

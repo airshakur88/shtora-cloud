@@ -15,34 +15,34 @@ vanilla mission shipped with DayZ Server
 
 Measured file tree of the vanilla Chernarus mission (persistence folders omitted):
 
-| File | Size | Role |
-|---|---|---|
-| `init.c` | 2.7 KB | Mission entry point. `void main()` is mandatory |
-| `cfgeconomycore.xml` | 2 KB | **CE master file** — root classes, defaults, and mod CE registration |
-| `cfglimitsdefinition.xml` | 1.3 KB | The controlled vocabularies (categories, tags, usages, tiers) |
-| `cfglimitsdefinitionuser.xml` | 1.4 KB | User-defined groupings over those vocabularies |
-| `db\types.xml` | 880 KB | Per-item spawn rules — the file everyone edits |
-| `db\events.xml` | 53 KB | Dynamic events (vehicles, heli crashes, animal herds, infected) |
-| `db\globals.xml` | 1.7 KB | Global CE tuning variables |
-| `db\economy.xml` | 0.5 KB | Which CE subsystems init / load / respawn / save |
-| `db\messages.xml` | 1.2 KB | Scheduled server messages and restart warnings |
-| `cfgspawnabletypes.xml` | 128 KB | Cargo, attachments and damage applied when an item spawns |
-| `cfgrandompresets.xml` | 34 KB | Named random loot bundles referenced by spawnable types |
-| `cfgeventspawns.xml` | 81 KB | World positions for each event |
-| `cfgeventgroups.xml` | 119 KB | Multi-object event compositions |
-| `cfgplayerspawnpoints.xml` | 13 KB | Fresh-spawn and respawn locations |
-| `cfgignorelist.xml` | 0.8 KB | Types never persisted/restored |
-| `cfgweather.xml` | 4.7 KB | Weather ranges — **XML, not JSON** |
-| `cfgenvironment.xml` | 4.3 KB | Animal/infected territory file registration |
-| `cfggameplay.json` | 2.8 KB | Runtime gameplay tuning (stamina, base damage, UI) |
-| `cfgeffectarea.json` | 6.3 KB | Contaminated / static effect areas |
-| `cfgundergroundtriggers.json` | 35 B | Underground area triggers |
-| `env\*.xml` | 7–86 KB | Per-species territories |
-| `mapgroupproto.xml` | 1.2 MB | **Loot positions inside every building type** |
-| `mapgrouppos.xml` | 1.5 MB | Which building instance sits where on the map |
-| `mapclusterproto.xml`, `mapgroupcluster*.xml` | 34 KB – 4.6 MB | Tree/bush clusters (dynamic events terrain data) |
-| `areaflags.map` | 84 MB | Binary area flags |
-| `storage_<instanceId>\` | — | **Live persistence. Back it up before touching the economy.** |
+| File                                          | Size           | Role                                                                 |
+| --------------------------------------------- | -------------- | -------------------------------------------------------------------- |
+| `init.c`                                      | 2.7 KB         | Mission entry point. `void main()` is mandatory                      |
+| `cfgeconomycore.xml`                          | 2 KB           | **CE master file** — root classes, defaults, and mod CE registration |
+| `cfglimitsdefinition.xml`                     | 1.3 KB         | The controlled vocabularies (categories, tags, usages, tiers)        |
+| `cfglimitsdefinitionuser.xml`                 | 1.4 KB         | User-defined groupings over those vocabularies                       |
+| `db\types.xml`                                | 880 KB         | Per-item spawn rules — the file everyone edits                       |
+| `db\events.xml`                               | 53 KB          | Dynamic events (vehicles, heli crashes, animal herds, infected)      |
+| `db\globals.xml`                              | 1.7 KB         | Global CE tuning variables                                           |
+| `db\economy.xml`                              | 0.5 KB         | Which CE subsystems init / load / respawn / save                     |
+| `db\messages.xml`                             | 1.2 KB         | Scheduled server messages and restart warnings                       |
+| `cfgspawnabletypes.xml`                       | 128 KB         | Cargo, attachments and damage applied when an item spawns            |
+| `cfgrandompresets.xml`                        | 34 KB          | Named random loot bundles referenced by spawnable types              |
+| `cfgeventspawns.xml`                          | 81 KB          | World positions for each event                                       |
+| `cfgeventgroups.xml`                          | 119 KB         | Multi-object event compositions                                      |
+| `cfgplayerspawnpoints.xml`                    | 13 KB          | Fresh-spawn and respawn locations                                    |
+| `cfgignorelist.xml`                           | 0.8 KB         | Types never persisted/restored                                       |
+| `cfgweather.xml`                              | 4.7 KB         | Weather ranges — **XML, not JSON**                                   |
+| `cfgenvironment.xml`                          | 4.3 KB         | Animal/infected territory file registration                          |
+| `cfggameplay.json`                            | 2.8 KB         | Runtime gameplay tuning (stamina, base damage, UI)                   |
+| `cfgeffectarea.json`                          | 6.3 KB         | Contaminated / static effect areas                                   |
+| `cfgundergroundtriggers.json`                 | 35 B           | Underground area triggers                                            |
+| `env\*.xml`                                   | 7–86 KB        | Per-species territories                                              |
+| `mapgroupproto.xml`                           | 1.2 MB         | **Loot positions inside every building type**                        |
+| `mapgrouppos.xml`                             | 1.5 MB         | Which building instance sits where on the map                        |
+| `mapclusterproto.xml`, `mapgroupcluster*.xml` | 34 KB – 4.6 MB | Tree/bush clusters (dynamic events terrain data)                     |
+| `areaflags.map`                               | 84 MB          | Binary area flags                                                    |
+| `storage_<instanceId>\`                       | —              | **Live persistence. Back it up before touching the economy.**        |
 
 ---
 
@@ -120,29 +120,29 @@ A custom item extending `Inventory_Base` is covered. A custom vehicle must exten
 </type>
 ```
 
-| Element | Meaning | Notes |
-|---|---|---|
-| `nominal` | Target number of this item alive in the world | The CE spawns toward this number |
-| `min` | Refill trigger — CE tops up when the count falls to this | `min` > 0 with `nominal` 0 does nothing useful |
-| `lifetime` | Seconds an untouched item survives before cleanup | 10800 = 3 h |
-| `restock` | Seconds before the CE may respawn after removal | `0` = immediately eligible |
-| `quantmin` / `quantmax` | Fill percentage range for quantity items | `-1` = not applicable |
-| `cost` | Spawn priority weight | Higher = more likely when several types compete |
-| `category` | One value from `cfglimitsdefinition.xml` | Wrong name ⇒ file rejected |
-| `usage` | Location classes where it may spawn | Multiple allowed |
-| `value` | Tier(s) | Multiple allowed |
-| `tag` | `floor` / `shelves` / `ground` | Restricts container type |
+| Element                 | Meaning                                                  | Notes                                           |
+| ----------------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| `nominal`               | Target number of this item alive in the world            | The CE spawns toward this number                |
+| `min`                   | Refill trigger — CE tops up when the count falls to this | `min` > 0 with `nominal` 0 does nothing useful  |
+| `lifetime`              | Seconds an untouched item survives before cleanup        | 10800 = 3 h                                     |
+| `restock`               | Seconds before the CE may respawn after removal          | `0` = immediately eligible                      |
+| `quantmin` / `quantmax` | Fill percentage range for quantity items                 | `-1` = not applicable                           |
+| `cost`                  | Spawn priority weight                                    | Higher = more likely when several types compete |
+| `category`              | One value from `cfglimitsdefinition.xml`                 | Wrong name ⇒ file rejected                      |
+| `usage`                 | Location classes where it may spawn                      | Multiple allowed                                |
+| `value`                 | Tier(s)                                                  | Multiple allowed                                |
+| `tag`                   | `floor` / `shelves` / `ground`                           | Restricts container type                        |
 
 ### Flags
 
-| Flag | `1` means |
-|---|---|
-| `count_in_cargo` | Copies inside containers count toward `nominal` |
-| `count_in_hoarder` | Copies in tents/barrels/stashes count |
-| `count_in_map` | Copies lying in the world count |
-| `count_in_player` | Copies in player inventories count |
-| `crafted` | Item is craftable — CE will not spawn it |
-| `deloot` | Item is dynamic-event loot only |
+| Flag               | `1` means                                       |
+| ------------------ | ----------------------------------------------- |
+| `count_in_cargo`   | Copies inside containers count toward `nominal` |
+| `count_in_hoarder` | Copies in tents/barrels/stashes count           |
+| `count_in_map`     | Copies lying in the world count                 |
+| `count_in_player`  | Copies in player inventories count              |
+| `crafted`          | Item is craftable — CE will not spawn it        |
+| `deloot`           | Item is dynamic-event loot only                 |
 
 The usual mistake: `count_in_player="1"` on a common item. Players hoard it, the
 CE believes the target is met, and the world empties out.
@@ -176,8 +176,8 @@ in `mapgroupproto.xml`.
 
 ## 5. `cfgspawnabletypes.xml` — What an Item Carries When It Spawns
 
-`types.xml` decides *whether* something spawns. `cfgspawnabletypes.xml` decides
-what is *in* it and what condition it is in.
+`types.xml` decides _whether_ something spawns. `cfgspawnabletypes.xml` decides
+what is _in_ it and what condition it is in.
 
 ```xml
 <type name="PlateCarrierVest_Camo">
@@ -243,17 +243,17 @@ contaminated areas.
 </event>
 ```
 
-| Element | Meaning |
-|---|---|
-| `nominal` | How many instances of the event are alive at once |
-| `saferadius` | Minimum distance from players to spawn |
-| `distanceradius` | Minimum distance between two instances of this event |
-| `cleanupradius` | Radius cleaned when the event is removed |
-| `secondary` | Another event triggered alongside (here: infected around the crash) |
-| `position` | `fixed` (uses `cfgeventspawns.xml`) or `player` |
-| `limit` | `custom` / `child` / `mixed` — how `nominal` is counted |
-| `children` | The actual classnames, with per-child min/max and loot counts |
-| `active` | `1` enables the event |
+| Element          | Meaning                                                             |
+| ---------------- | ------------------------------------------------------------------- |
+| `nominal`        | How many instances of the event are alive at once                   |
+| `saferadius`     | Minimum distance from players to spawn                              |
+| `distanceradius` | Minimum distance between two instances of this event                |
+| `cleanupradius`  | Radius cleaned when the event is removed                            |
+| `secondary`      | Another event triggered alongside (here: infected around the crash) |
+| `position`       | `fixed` (uses `cfgeventspawns.xml`) or `player`                     |
+| `limit`          | `custom` / `child` / `mixed` — how `nominal` is counted             |
+| `children`       | The actual classnames, with per-child min/max and loot counts       |
+| `active`         | `1` enables the event                                               |
 
 Positions live in `cfgeventspawns.xml`, keyed by the same event name:
 
@@ -310,19 +310,19 @@ from each other at runtime.) See `model-asset-pipeline.md` §5.
 
 `globals.xml` — verified vanilla values worth knowing:
 
-| Variable | Vanilla | Meaning |
-|---|---|---|
-| `CleanupLifetimeDefault` | 45 | Seconds before a dropped item with no `lifetime` is deleted |
-| `CleanupLifetimeRuined` | 330 | Ruined items |
-| `CleanupLifetimeDeadPlayer` | 3600 | Player corpses |
-| `CleanupAvoidance` | 100 | Radius around players where cleanup is suppressed |
-| `LootSpawnAvoidance` | 100 | Radius around players where loot will not spawn |
-| `ZombieMaxCount` | 1000 | Infected cap |
-| `AnimalMaxCount` | 200 | Animal cap |
-| `RespawnAttempt` / `RespawnLimit` / `RespawnTypes` | 2 / 20 / 12 | Loot respawn batching |
-| `FlagRefreshFrequency` / `FlagRefreshMaxDuration` | 432000 / 3456000 | Base-building flag lifetime refresh |
-| `TimeLogin` / `TimeLogout` | 15 / 15 | Login and logout timers |
-| `IdleModeStartup` / `IdleModeCountdown` | 1 / 60 | Empty-server idle mode |
+| Variable                                           | Vanilla          | Meaning                                                     |
+| -------------------------------------------------- | ---------------- | ----------------------------------------------------------- |
+| `CleanupLifetimeDefault`                           | 45               | Seconds before a dropped item with no `lifetime` is deleted |
+| `CleanupLifetimeRuined`                            | 330              | Ruined items                                                |
+| `CleanupLifetimeDeadPlayer`                        | 3600             | Player corpses                                              |
+| `CleanupAvoidance`                                 | 100              | Radius around players where cleanup is suppressed           |
+| `LootSpawnAvoidance`                               | 100              | Radius around players where loot will not spawn             |
+| `ZombieMaxCount`                                   | 1000             | Infected cap                                                |
+| `AnimalMaxCount`                                   | 200              | Animal cap                                                  |
+| `RespawnAttempt` / `RespawnLimit` / `RespawnTypes` | 2 / 20 / 12      | Loot respawn batching                                       |
+| `FlagRefreshFrequency` / `FlagRefreshMaxDuration`  | 432000 / 3456000 | Base-building flag lifetime refresh                         |
+| `TimeLogin` / `TimeLogout`                         | 15 / 15          | Login and logout timers                                     |
+| `IdleModeStartup` / `IdleModeCountdown`            | 1 / 60           | Empty-server idle mode                                      |
 
 `type="0"` is integer, `type="1"` is float.
 
@@ -375,8 +375,8 @@ Mission CreateCustomMission(string path)
 
 Notes:
 
-- **`void main()` is mandatory.** Without it the server logs *"Mission script has
-  no main function. PlayerConnect will stay disabled"* and nobody can join.
+- **`void main()` is mandatory.** Without it the server logs _"Mission script has
+  no main function. PlayerConnect will stay disabled"_ and nobody can join.
 - `CreateHive()` + `InitOffline()` is what starts the CE. Removing it disables
   loot spawning entirely.
 - Starting gear lives in `StartingEquipSetup`, and `init.c` is a **mission** file.
@@ -410,15 +410,15 @@ Notes:
 
 ## Symptom → Cause Quick Table
 
-| Symptom | First thing to check |
-|---|---|
-| Custom item never spawns | `scope = 2`? `types.xml` entry present? `nominal`/`min` > 0? |
-| A whole `types.xml` seems ignored | One invalid `category`/`usage`/`value` name rejects the file — check the RPT |
-| Item spawns, but always empty | Needs a `cfgspawnabletypes.xml` entry |
-| Item spawns once and never again | `restock` too high, or `count_in_player` inflating the live count |
-| Loot dries up after a while | `count_in_*` flags counting hoarded copies toward `nominal` |
-| Custom building has no loot | Missing `mapgroupproto.xml` group |
-| Vehicles disappear on restart | `economy.xml` `<vehicles save="0">` |
-| Nobody can join, no script error | `init.c` missing `void main()` |
-| Items vanish seconds after dropping | `CleanupLifetimeDefault` (45 s) — the type has no `lifetime` |
-| Mod's CE edits lost on server update | The mod overwrote `db\types.xml` instead of using `<ce folder>` |
+| Symptom                              | First thing to check                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| Custom item never spawns             | `scope = 2`? `types.xml` entry present? `nominal`/`min` > 0?                 |
+| A whole `types.xml` seems ignored    | One invalid `category`/`usage`/`value` name rejects the file — check the RPT |
+| Item spawns, but always empty        | Needs a `cfgspawnabletypes.xml` entry                                        |
+| Item spawns once and never again     | `restock` too high, or `count_in_player` inflating the live count            |
+| Loot dries up after a while          | `count_in_*` flags counting hoarded copies toward `nominal`                  |
+| Custom building has no loot          | Missing `mapgroupproto.xml` group                                            |
+| Vehicles disappear on restart        | `economy.xml` `<vehicles save="0">`                                          |
+| Nobody can join, no script error     | `init.c` missing `void main()`                                               |
+| Items vanish seconds after dropping  | `CleanupLifetimeDefault` (45 s) — the type has no `lifetime`                 |
+| Mod's CE edits lost on server update | The mod overwrote `db\types.xml` instead of using `<ce folder>`              |

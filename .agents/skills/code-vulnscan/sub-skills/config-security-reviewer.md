@@ -11,6 +11,7 @@ Find security misconfigurations: debug mode, insecure defaults, missing security
 Debug mode active in production is a critical finding in most frameworks:
 
 **Python / Django:**
+
 ```python
 # Flag: production with DEBUG=True
 DEBUG = True
@@ -18,6 +19,7 @@ DEBUG = True
 ```
 
 **Python / Flask:**
+
 ```python
 # Flag
 app.run(debug=True)
@@ -26,22 +28,25 @@ app.config['TESTING'] = True
 ```
 
 **Node.js / Express:**
+
 ```javascript
 // Flag
-app.set('env', 'development');
+app.set("env", "development");
 // Or: NODE_ENV !== 'production' in production deploy
 ```
 
 **Spring Boot:**
+
 ```yaml
 # application.properties / application.yml
-spring.jpa.show-sql: true               # SQL in logs
-management.endpoints.web.exposure.include: "*"  # all actuator endpoints
-management.endpoint.env.enabled: true   # exposes environment variables
-management.endpoint.heapdump.enabled: true  # memory dump
+spring.jpa.show-sql: true # SQL in logs
+management.endpoints.web.exposure.include: "*" # all actuator endpoints
+management.endpoint.env.enabled: true # exposes environment variables
+management.endpoint.heapdump.enabled: true # memory dump
 ```
 
 Also check for exposed framework-specific debug endpoints:
+
 - Django: `/admin/` without IP restriction, `/__debug__/` (Django Debug Toolbar)
 - Flask: `/console` (Werkzeug debugger — RCE if exposed)
 - Laravel: `APP_DEBUG=true` in `.env`
@@ -54,20 +59,21 @@ For web applications, check all HTTP response headers. Missing security headers 
 
 ### Required headers and their purpose
 
-| Header | Required Value | Severity if missing |
-|--------|----------------|-------------------|
-| `Content-Security-Policy` | Restrictive policy | High |
-| `X-Content-Type-Options` | `nosniff` | Medium |
-| `X-Frame-Options` | `DENY` or `SAMEORIGIN` | Medium |
-| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | High (HTTPS apps) |
-| `Referrer-Policy` | `no-referrer` or `strict-origin-when-cross-origin` | Low |
-| `Permissions-Policy` | restrict unneeded browser features | Low |
+| Header                      | Required Value                                     | Severity if missing |
+| --------------------------- | -------------------------------------------------- | ------------------- |
+| `Content-Security-Policy`   | Restrictive policy                                 | High                |
+| `X-Content-Type-Options`    | `nosniff`                                          | Medium              |
+| `X-Frame-Options`           | `DENY` or `SAMEORIGIN`                             | Medium              |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains`              | High (HTTPS apps)   |
+| `Referrer-Policy`           | `no-referrer` or `strict-origin-when-cross-origin` | Low                 |
+| `Permissions-Policy`        | restrict unneeded browser features                 | Low                 |
 
 ### Content Security Policy (CSP)
 
 A missing CSP is a high finding for apps that serve HTML. A weak CSP is medium.
 
 **Weak CSP patterns to flag:**
+
 ```
 Content-Security-Policy: default-src *                  # wildcard — useless
 Content-Security-Policy: default-src 'unsafe-inline'   # allows all inline scripts
@@ -76,6 +82,7 @@ Content-Security-Policy: script-src 'nonce-...' 'unsafe-inline'  # nonce + unsaf
 ```
 
 **Check CSP implementation in code:**
+
 ```python
 # Flag: CSP header set with unsafe-inline
 response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'"
@@ -86,6 +93,7 @@ response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 's
 Overly permissive CORS allows any website to make credentialed requests to the API.
 
 **Flag — wildcard with credentials:**
+
 ```python
 # Flask-CORS
 CORS(app, origins="*", supports_credentials=True)  # critical: wildcard + credentials
@@ -93,7 +101,7 @@ CORS(app, origins="*", supports_credentials=True)  # critical: wildcard + creden
 
 ```javascript
 // Express
-app.use(cors({ origin: '*', credentials: true }))  // critical
+app.use(cors({ origin: "*", credentials: true })); // critical
 ```
 
 ```python
@@ -103,12 +111,14 @@ CORS_ALLOW_CREDENTIALS = True   # critical combination
 ```
 
 **Flag — overly broad origins:**
+
 ```python
 # Allows any attacker.com subdomain if attacker controls trusted.com
 CORS_ALLOWED_ORIGIN_REGEXES = [r'https://.*\.trusted\.com']  # attacker can register evil.trusted.com
 ```
 
 **Flag — user-supplied Origin reflected:**
+
 ```python
 # Dynamically reflects Origin header without validation
 response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
@@ -134,6 +144,7 @@ response.set_cookie('session', value, secure=False)
 ```
 
 **Proxy / load balancer trust:**
+
 ```python
 # Flag: trusting X-Forwarded-Proto without configuring trusted proxies
 # Django: SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') without ALLOWED_HOSTS/proxy restriction
@@ -195,6 +206,7 @@ app.use(session({
 - Admin interfaces publicly accessible without IP restriction
 
 Check web server configuration files:
+
 - `nginx.conf`, `sites-available/*.conf`
 - `apache2.conf`, `.htaccess`
 - `web.config` (.NET)
@@ -210,14 +222,14 @@ Check web server configuration files:
 
 ```json
 {
-  "file": "myapp/settings.py",
-  "line": 12,
-  "category": "debug_mode",
-  "title": "DEBUG=True in production settings file",
-  "description": "Django DEBUG mode exposes full stack traces, source code snippets, SQL queries, and system paths to any user who triggers an error.",
-  "impact": "Information disclosure leading to targeted exploitation.",
-  "remediation": "Set DEBUG=False in production. Use environment variable: DEBUG = os.environ.get('DEBUG', 'False') == 'True'",
-  "cwe": "CWE-94",
-  "severity": "high"
+	"file": "myapp/settings.py",
+	"line": 12,
+	"category": "debug_mode",
+	"title": "DEBUG=True in production settings file",
+	"description": "Django DEBUG mode exposes full stack traces, source code snippets, SQL queries, and system paths to any user who triggers an error.",
+	"impact": "Information disclosure leading to targeted exploitation.",
+	"remediation": "Set DEBUG=False in production. Use environment variable: DEBUG = os.environ.get('DEBUG', 'False') == 'True'",
+	"cwe": "CWE-94",
+	"severity": "high"
 }
 ```

@@ -61,11 +61,11 @@ Pages return only node IDs, paths and roles; choose a useful page size and follo
 
 ```json
 {
-  "source": {
-    "kind": "retained-evidence",
-    "evidence_id": "ev_ACTUAL_PARENT_ID"
-  },
-  "view": { "kind": "page", "collection": "modules", "offset": 0, "limit": 16 }
+	"source": {
+		"kind": "retained-evidence",
+		"evidence_id": "ev_ACTUAL_PARENT_ID"
+	},
+	"view": { "kind": "page", "collection": "modules", "offset": 0, "limit": 16 }
 }
 ```
 
@@ -73,15 +73,15 @@ Select the relevant page entry by its exact `node_id` and recorded role:
 
 ```json
 {
-  "source": {
-    "kind": "retained-evidence",
-    "evidence_id": "ev_ACTUAL_PARENT_ID"
-  },
-  "view": {
-    "kind": "item",
-    "collection": "modules",
-    "selector": { "node_id": "jag_node_ACTUAL_NODE_ID" }
-  }
+	"source": {
+		"kind": "retained-evidence",
+		"evidence_id": "ev_ACTUAL_PARENT_ID"
+	},
+	"view": {
+		"kind": "item",
+		"collection": "modules",
+		"selector": { "node_id": "jag_node_ACTUAL_NODE_ID" }
+	}
 }
 ```
 
@@ -99,18 +99,18 @@ page instead of reading every full item:
 
 ```json
 {
-  "source": {
-    "kind": "retained-evidence",
-    "evidence_id": "ev_ACTUAL_PARENT_ID"
-  },
-  "view": {
-    "kind": "javascript",
-    "collection": "modules",
-    "projection": "references",
-    "where": { "path": "main.js", "kind": "javascript-module" },
-    "offset": 0,
-    "limit": 16
-  }
+	"source": {
+		"kind": "retained-evidence",
+		"evidence_id": "ev_ACTUAL_PARENT_ID"
+	},
+	"view": {
+		"kind": "javascript",
+		"collection": "modules",
+		"projection": "references",
+		"where": { "path": "main.js", "kind": "javascript-module" },
+		"offset": 0,
+		"limit": 16
+	}
 }
 ```
 

@@ -4,43 +4,43 @@
 
 ```json
 {
-    "title": "E-commerce Product Scraper Input",
-    "type": "object",
-    "schemaVersion": 1,
-    "properties": {
-        "startUrls": {
-            "title": "Start URLs",
-            "type": "array",
-            "description": "Category or product pages to start from",
-            "editor": "requestListSources",
-            "prefill": [{ "url": "https://example.com/category" }]
-        },
-        "maxRequestsPerCrawl": {
-            "title": "Max requests per crawl",
-            "type": "integer",
-            "description": "Maximum number of pages to scrape (0 = unlimited)",
-            "default": 1000,
-            "minimum": 0,
-            "sectionCaption": "Limits"
-        },
-        "locale": {
-            "title": "Locale",
-            "type": "string",
-            "description": "Language of the scraped content",
-            "editor": "select",
-            "default": "en",
-            "enum": ["cs", "en", "de"],
-            "enumTitles": ["Czech", "English", "German"]
-        },
-        "proxyConfiguration": {
-            "title": "Proxy configuration",
-            "type": "object",
-            "description": "Proxy settings for anti-bot protection",
-            "editor": "proxy",
-            "default": { "useApifyProxy": true }
-        }
-    },
-    "required": ["startUrls"]
+	"title": "E-commerce Product Scraper Input",
+	"type": "object",
+	"schemaVersion": 1,
+	"properties": {
+		"startUrls": {
+			"title": "Start URLs",
+			"type": "array",
+			"description": "Category or product pages to start from",
+			"editor": "requestListSources",
+			"prefill": [{ "url": "https://example.com/category" }]
+		},
+		"maxRequestsPerCrawl": {
+			"title": "Max requests per crawl",
+			"type": "integer",
+			"description": "Maximum number of pages to scrape (0 = unlimited)",
+			"default": 1000,
+			"minimum": 0,
+			"sectionCaption": "Limits"
+		},
+		"locale": {
+			"title": "Locale",
+			"type": "string",
+			"description": "Language of the scraped content",
+			"editor": "select",
+			"default": "en",
+			"enum": ["cs", "en", "de"],
+			"enumTitles": ["Czech", "English", "German"]
+		},
+		"proxyConfiguration": {
+			"title": "Proxy configuration",
+			"type": "object",
+			"description": "Proxy settings for anti-bot protection",
+			"editor": "proxy",
+			"default": { "useApifyProxy": true }
+		}
+	},
+	"required": ["startUrls"]
 }
 ```
 
@@ -55,14 +55,14 @@ Every field needs `title`, `type`, and `description`. Types are `string`, `integ
 
 ## Editors by type
 
-| Type | Editors | Notes |
-|------|---------|-------|
-| string | `textfield`, `textarea`, `select`, `datepicker`, `javascript`, `python`, `fileupload`, `hidden` | `pattern`, `minLength`, `maxLength`. `select` needs `enum` or `enumSuggestedValues` (free text allowed), labelled by `enumTitles`. `datepicker` takes `dateType`: `absolute`, `relative`, or `absoluteOrRelative`. |
-| integer, number | `number`, `hidden` | `minimum`, `maximum`, and `unit` for a display suffix such as `"seconds"`. |
-| boolean | `checkbox`, `hidden` | `groupCaption` and `groupDescription` on the first checkbox group a run of them. |
-| object | `json`, `proxy`, `schemaBased`, `hidden` | `properties`, `required`, `additionalProperties`, `minProperties`, `maxProperties`. `proxy` yields `{ useApifyProxy, apifyProxyGroups, proxyUrls }`. `schemaBased` renders sub-properties as form fields, one level deep. |
-| array | `requestListSources`, `stringList`, `keyValue`, `globs`, `pseudoUrls`, `select`, `json`, `schemaBased`, `fileupload`, `hidden` | `items`, `minItems`, `maxItems`, `uniqueItems`. Multiselect is `select` with `items.enum`. `keyValue` and `stringList` take `placeholderKey` / `placeholderValue`. |
-| resource (string or array) | `resourcePicker`, `textfield`, `hidden` | `resourceType`: `dataset`, `keyValueStore`, `requestQueue`, or `mcpConnector`, with `resourcePermissions` `["READ"]` or `["READ", "WRITE"]` for storages. |
+| Type                       | Editors                                                                                                                        | Notes                                                                                                                                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| string                     | `textfield`, `textarea`, `select`, `datepicker`, `javascript`, `python`, `fileupload`, `hidden`                                | `pattern`, `minLength`, `maxLength`. `select` needs `enum` or `enumSuggestedValues` (free text allowed), labelled by `enumTitles`. `datepicker` takes `dateType`: `absolute`, `relative`, or `absoluteOrRelative`.        |
+| integer, number            | `number`, `hidden`                                                                                                             | `minimum`, `maximum`, and `unit` for a display suffix such as `"seconds"`.                                                                                                                                                |
+| boolean                    | `checkbox`, `hidden`                                                                                                           | `groupCaption` and `groupDescription` on the first checkbox group a run of them.                                                                                                                                          |
+| object                     | `json`, `proxy`, `schemaBased`, `hidden`                                                                                       | `properties`, `required`, `additionalProperties`, `minProperties`, `maxProperties`. `proxy` yields `{ useApifyProxy, apifyProxyGroups, proxyUrls }`. `schemaBased` renders sub-properties as form fields, one level deep. |
+| array                      | `requestListSources`, `stringList`, `keyValue`, `globs`, `pseudoUrls`, `select`, `json`, `schemaBased`, `fileupload`, `hidden` | `items`, `minItems`, `maxItems`, `uniqueItems`. Multiselect is `select` with `items.enum`. `keyValue` and `stringList` take `placeholderKey` / `placeholderValue`.                                                        |
+| resource (string or array) | `resourcePicker`, `textfield`, `hidden`                                                                                        | `resourceType`: `dataset`, `keyValueStore`, `requestQueue`, or `mcpConnector`, with `resourcePermissions` `["READ"]` or `["READ", "WRITE"]` for storages.                                                                 |
 
 ## Other field properties
 

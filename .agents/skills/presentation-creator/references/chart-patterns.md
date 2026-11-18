@@ -3,26 +3,28 @@
 ## Color Usage Rules
 
 **Categorical palette** — for data series, groups, categories where color is just a distinguisher:
+
 ```javascript
 const CAT = [
-  '#4e79a7',  // steel blue
-  '#f28e2b',  // orange
-  '#e15759',  // coral
-  '#76b7b2',  // teal
-  '#59a14f',  // green
-  '#edc948',  // gold
-  '#b07aa1',  // mauve
-  '#ff9da7',  // pink
-  '#9c755f',  // brown
-  '#bab0ac',  // gray
+	"#4e79a7", // steel blue
+	"#f28e2b", // orange
+	"#e15759", // coral
+	"#76b7b2", // teal
+	"#59a14f", // green
+	"#edc948", // gold
+	"#b07aa1", // mauve
+	"#ff9da7", // pink
+	"#9c755f", // brown
+	"#bab0ac", // gray
 ];
 ```
 
 **Semantic colors** — ONLY when the color itself carries meaning:
+
 ```javascript
-const SEM_GREEN = '#2ba185';   // positive / success / good
-const SEM_RED = '#f55459';     // negative / failure / bad
-const SEM_AMBER = '#d4953a';   // warning / caution
+const SEM_GREEN = "#2ba185"; // positive / success / good
+const SEM_RED = "#f55459"; // negative / failure / bad
+const SEM_AMBER = "#d4953a"; // warning / caution
 ```
 
 **Rule of thumb**: If you could swap two colors without losing information, use `CAT`. If swapping would confuse the meaning (e.g., making "errors" green), use semantic.
@@ -33,15 +35,15 @@ const SEM_AMBER = '#d4953a';   // warning / caution
 
 ```javascript
 const ax = {
-  axisLine: { stroke: BORDER },
-  tickLine: false,
-  tick: { fill: MUTED, fontSize: 11, fontFamily: 'Rubik, system-ui' }
+	axisLine: { stroke: BORDER },
+	tickLine: false,
+	tick: { fill: MUTED, fontSize: 11, fontFamily: "Rubik, system-ui" },
 };
 
 const grid = {
-  strokeDasharray: '3 3',
-  stroke: '#f0edf3',
-  vertical: false
+	strokeDasharray: "3 3",
+	stroke: "#f0edf3",
+	vertical: false,
 };
 ```
 
@@ -49,14 +51,14 @@ const grid = {
 
 ```javascript
 <Tooltip
-  contentStyle={{
-    background: '#fff',
-    border: `1px solid ${BORDER}`,
-    borderRadius: 6,
-    fontSize: 12,
-    fontFamily: 'Rubik, system-ui'
-  }}
-/>
+	contentStyle={{
+		background: "#fff",
+		border: `1px solid ${BORDER}`,
+		borderRadius: 6,
+		fontSize: 12,
+		fontFamily: "Rubik, system-ui",
+	}}
+/>;
 ```
 
 ## Common Chart Types
@@ -91,14 +93,14 @@ For discrete comparisons. Use `CAT` colors unless the bars represent good/bad ou
 
 ```jsx
 <ResponsiveContainer width="100%" height={280}>
-  <BarChart data={data}>
-    <CartesianGrid {...grid} />
-    <XAxis dataKey="name" {...ax} />
-    <YAxis {...ax} />
-    <Bar dataKey="seriesA" fill={CAT[0]} radius={[3, 3, 0, 0]} />
-    <Bar dataKey="seriesB" fill={CAT[1]} radius={[3, 3, 0, 0]} />
-  </BarChart>
-</ResponsiveContainer>
+	<BarChart data={data}>
+		<CartesianGrid {...grid} />
+		<XAxis dataKey="name" {...ax} />
+		<YAxis {...ax} />
+		<Bar dataKey="seriesA" fill={CAT[0]} radius={[3, 3, 0, 0]} />
+		<Bar dataKey="seriesB" fill={CAT[1]} radius={[3, 3, 0, 0]} />
+	</BarChart>
+</ResponsiveContainer>;
 ```
 
 For a single-series bar chart where all bars represent the same metric, use a single `CAT` color uniformly — do NOT alternate colors per bar unless the bars represent distinct categories.
@@ -132,12 +134,21 @@ Best for showing discrete rule updates with lag. Use semantic colors when steps 
 ### 5. Reference Lines and Areas
 
 ```jsx
-{/* Threshold line — semantic amber for "warning" boundary */}
-<ReferenceLine y={300} stroke={SEM_AMBER} strokeDasharray="6 3" />
+{
+	/* Threshold line — semantic amber for "warning" boundary */
+}
+<ReferenceLine y={300} stroke={SEM_AMBER} strokeDasharray="6 3" />;
 
-{/* Shaded zone — semantic green for "safe" region */}
-<ReferenceArea x1="03:00" x2="03:10" fill={SEM_GREEN} fillOpacity={0.08}
-  label={{ value: '~10 min', fill: SEM_GREEN, fontSize: 11 }} />
+{
+	/* Shaded zone — semantic green for "safe" region */
+}
+<ReferenceArea
+	x1="03:00"
+	x2="03:10"
+	fill={SEM_GREEN}
+	fillOpacity={0.08}
+	label={{ value: "~10 min", fill: SEM_GREEN, fontSize: 11 }}
+/>;
 ```
 
 ## Data Generation Patterns
@@ -146,7 +157,7 @@ Best for showing discrete rule updates with lag. Use semantic colors when steps 
 
 ```javascript
 function gaussian(x, center, width, height) {
-  return height * Math.exp(-((x - center) ** 2) / (2 * width ** 2));
+	return height * Math.exp(-((x - center) ** 2) / (2 * width ** 2));
 }
 ```
 
@@ -169,10 +180,10 @@ Always wrap data generation in `useMemo`:
 
 ```javascript
 const data = useMemo(() => {
-  return Array.from({ length: 144 }, (_, i) => {
-    // generate point
-    return { label, incoming, accepted, sampled };
-  });
+	return Array.from({ length: 144 }, (_, i) => {
+		// generate point
+		return { label, incoming, accepted, sampled };
+	});
 }, []);
 ```
 
@@ -184,21 +195,34 @@ Horizontal bar showing zones. Use semantic colors ONLY when zones carry meaning 
 
 ```jsx
 function ZoneDiagram({ zones }) {
-  return (
-    <div className="zone-diagram">
-      {zones.map((z, i) => (
-        <div key={i} style={{ flex: z.flex, background: z.color, padding: '12px 16px', color: '#fff' }}>
-          <div className="zone-name">{z.name}</div>
-          <div className="zone-desc">{z.desc}</div>
-        </div>
-      ))}
-    </div>
-  );
+	return (
+		<div className="zone-diagram">
+			{zones.map((z, i) => (
+				<div
+					key={i}
+					style={{
+						flex: z.flex,
+						background: z.color,
+						padding: "12px 16px",
+						color: "#fff",
+					}}
+				>
+					<div className="zone-name">{z.name}</div>
+					<div className="zone-desc">{z.desc}</div>
+				</div>
+			))}
+		</div>
+	);
 }
 ```
 
 ```css
-.zone-diagram { display: flex; gap: 2px; border-radius: 8px; overflow: hidden; }
+.zone-diagram {
+	display: flex;
+	gap: 2px;
+	border-radius: 8px;
+	overflow: hidden;
+}
 ```
 
 ### Trace Diagram
@@ -207,24 +231,28 @@ Visual span representation for distributed traces. Use `CAT` for different servi
 
 ```jsx
 function TraceDiagram({ rows }) {
-  return (
-    <div className="trace-diagram">
-      {rows.map((r, i) => (
-        <div key={i} className="trace-row">
-          <span className="trace-label">{r.label}</span>
-          <div className="trace-bar">
-            {r.spans.map((s, j) => (
-              <div key={j} style={{
-                flex: s.w, background: s.bg || CAT[j % CAT.length],
-                opacity: s.opacity ?? 1,
-                borderRadius: 3
-              }} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+	return (
+		<div className="trace-diagram">
+			{rows.map((r, i) => (
+				<div key={i} className="trace-row">
+					<span className="trace-label">{r.label}</span>
+					<div className="trace-bar">
+						{r.spans.map((s, j) => (
+							<div
+								key={j}
+								style={{
+									flex: s.w,
+									background: s.bg || CAT[j % CAT.length],
+									opacity: s.opacity ?? 1,
+									borderRadius: 3,
+								}}
+							/>
+						))}
+					</div>
+				</div>
+			))}
+		</div>
+	);
 }
 ```
 
@@ -232,17 +260,26 @@ function TraceDiagram({ rows }) {
 
 ```jsx
 function Sparkline({ seed = 0, bars = 14, color = CAT[0] }) {
-  const h = Array.from({ length: bars }, (_, i) =>
-    20 + ((seed * 17 + i * 31) % 60)
-  );
-  return (
-    <svg width={bars * 5} height={40} style={{ verticalAlign: 'middle' }}>
-      {h.map((v, i) => (
-        <rect key={i} x={i * 5} y={40 - v * 0.4} width={3.5}
-          height={v * 0.4} rx={1} fill={color} opacity={0.7} />
-      ))}
-    </svg>
-  );
+	const h = Array.from(
+		{ length: bars },
+		(_, i) => 20 + ((seed * 17 + i * 31) % 60),
+	);
+	return (
+		<svg width={bars * 5} height={40} style={{ verticalAlign: "middle" }}>
+			{h.map((v, i) => (
+				<rect
+					key={i}
+					x={i * 5}
+					y={40 - v * 0.4}
+					width={3.5}
+					height={v * 0.4}
+					rx={1}
+					fill={color}
+					opacity={0.7}
+				/>
+			))}
+		</svg>
+	);
 }
 ```
 
@@ -252,13 +289,20 @@ Always wrap charts in a container div:
 
 ```jsx
 <div className="chart-wrap d2">
-  <ResponsiveContainer width="100%" height={320}>
-    {/* chart */}
-  </ResponsiveContainer>
-  <p style={{ fontSize: '0.8rem', color: MUTED, textAlign: 'center', marginTop: 8 }}>
-    Chart annotation or description
-  </p>
-</div>
+	<ResponsiveContainer width="100%" height={320}>
+		{/* chart */}
+	</ResponsiveContainer>
+	<p
+		style={{
+			fontSize: "0.8rem",
+			color: MUTED,
+			textAlign: "center",
+			marginTop: 8,
+		}}
+	>
+		Chart annotation or description
+	</p>
+</div>;
 ```
 
 ## Responsive Sizing

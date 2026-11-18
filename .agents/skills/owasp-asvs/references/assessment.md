@@ -8,7 +8,7 @@ OWASP is a vendor-neutral nonprofit and does not certify vendors,
 verifiers, or software. A trust mark, badge, or "OWASP ASVS-certified"
 claim is never an official OWASP endorsement, however legitimate the
 underlying assessment might be. Organizations may sell ASVS-based
-assurance services, but claiming *OWASP* certification specifically is
+assurance services, but claiming _OWASP_ certification specifically is
 false regardless of the work quality behind it.
 
 ## What a real verification report includes

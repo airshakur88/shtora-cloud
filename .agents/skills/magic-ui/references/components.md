@@ -10,13 +10,15 @@ Use this document to choose the right Magic UI component and avoid integration m
 ```bash
 npx shadcn@latest init
 ```
+
 - Add components via registry:
 ```bash
 npx shadcn@latest add @magicui/<component-slug>
 ```
+
 - Default import path is usually:
 ```tsx
-import { ComponentName } from "@/components/ui/<component-slug>"
+import { ComponentName } from "@/components/ui/<component-slug>";
 ```
 
 If the project does not use `@/` aliases, adapt import paths to local conventions.

@@ -7,7 +7,7 @@ Engineering discipline guidelines for AI coding agents and human engineers based
 ## 1. Simplicity (KISS) — The Prerequisite to Reliability
 
 > "Software simplicity is a prerequisite to reliability."
-> — *Site Reliability Engineering: How Google Runs Production Systems*, Chapter 9
+> — _Site Reliability Engineering: How Google Runs Production Systems_, Chapter 9
 
 Reliability and complexity are fundamentally at odds. Every unnecessary abstraction, configuration knob, indirection layer, or nested branch expands the state space of a system, creates unmapped failure modes, increases cognitive load during outages, and makes automated testing exponentially harder.
 
@@ -52,11 +52,12 @@ AI agents frequently anticipate future requirements by adding unused configurati
 ## 4. Fix Issues at Scale — Eliminating Toil & Systemic Resilience
 
 > "If a human operator needs to touch a system during normal operations, you have an operational bug. Fix it at scale."
-> — *Google SRE Philosophy*
+> — _Google SRE Philosophy_
 
 ### Definition of Toil (Google SRE Chapter 5)
 
 Toil is operational work that is:
+
 - **Manual:** Executing ad-hoc scripts, restarting services by hand, or manual data backfills.
 - **Repetitive:** Running the same triage or mitigation repeatedly.
 - **Automatable:** Tasks that a machine or automated policy could handle without human judgment.
@@ -67,16 +68,16 @@ Google SRE caps operational toil at 50% of an engineer's time, dedicating the re
 
 ### Distributed Systems Scale Invariants
 
-| Failure Domain | Fragile Anti-Pattern (Bandaid) | SRE Scale Invariant (Fix at Scale) |
-| :--- | :--- | :--- |
-| **Retries** | Blind retry in tight loop, flat sleep (`sleep(1)`) | Exponential backoff with Full Jitter, bounded max attempts, retry only on transient status codes (e.g., 429, 503). |
-| **Thundering Herd** | Simultaneous retries across fleet upon service recovery | Random jitter interval added to backoff: `sleep = min(cap, base * 2^attempt) * random(0.5, 1.5)`. |
-| **Cascading Failure** | Calling degraded downstream service continuously | Circuit Breaker (Closed -> Open on error threshold -> Half-Open probe) with rapid fail-fast. |
-| **Resource Starvation** | Unbounded queue, `Promise.all` over unconstrained array | Bounded concurrency (Worker pools, Semaphore with timeout, Bulkhead isolation), explicit backpressure (`HTTP 429 / 503`). |
-| **Race Conditions** | Ad-hoc `sleep(500)` hoping async task finishes | Deterministic synchronization: Promises, Condition Variables, Event Listeners, or polling with bounded timeout and backoff. |
-| **State Mutation** | Retrying non-idempotent operations (`POST /transfers`) | Mandatory Idempotency Keys (`X-Idempotency-Key`) stored with transactional deduplication. |
-| **Health Probes** | Static `200 OK` on `/health` while DB connection is dead | Dual health probes: Liveness (process responsive) vs Readiness (backing datastores and caches verified). |
-| **Error Triage** | Empty `except: pass` or `catch (e) {}` swallowing exceptions | Structured telemetry: Log with error code, stack trace, and correlation ID (`trace_id`, `span_id`). |
+| Failure Domain          | Fragile Anti-Pattern (Bandaid)                               | SRE Scale Invariant (Fix at Scale)                                                                                          |
+| :---------------------- | :----------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| **Retries**             | Blind retry in tight loop, flat sleep (`sleep(1)`)           | Exponential backoff with Full Jitter, bounded max attempts, retry only on transient status codes (e.g., 429, 503).          |
+| **Thundering Herd**     | Simultaneous retries across fleet upon service recovery      | Random jitter interval added to backoff: `sleep = min(cap, base * 2^attempt) * random(0.5, 1.5)`.                           |
+| **Cascading Failure**   | Calling degraded downstream service continuously             | Circuit Breaker (Closed -> Open on error threshold -> Half-Open probe) with rapid fail-fast.                                |
+| **Resource Starvation** | Unbounded queue, `Promise.all` over unconstrained array      | Bounded concurrency (Worker pools, Semaphore with timeout, Bulkhead isolation), explicit backpressure (`HTTP 429 / 503`).   |
+| **Race Conditions**     | Ad-hoc `sleep(500)` hoping async task finishes               | Deterministic synchronization: Promises, Condition Variables, Event Listeners, or polling with bounded timeout and backoff. |
+| **State Mutation**      | Retrying non-idempotent operations (`POST /transfers`)       | Mandatory Idempotency Keys (`X-Idempotency-Key`) stored with transactional deduplication.                                   |
+| **Health Probes**       | Static `200 OK` on `/health` while DB connection is dead     | Dual health probes: Liveness (process responsive) vs Readiness (backing datastores and caches verified).                    |
+| **Error Triage**        | Empty `except: pass` or `catch (e) {}` swallowing exceptions | Structured telemetry: Log with error code, stack trace, and correlation ID (`trace_id`, `span_id`).                         |
 
 ---
 

@@ -1,4 +1,5 @@
 ---
+
 name: codebase-cleanup
 description: Multi-pass refactor / code-quality cleanup designed to be dispatched as 8 specialist subagents (one per cleanup concern), each running a research → critical-assessment → high-confidence-implementation cycle. Triggers on "clean up the codebase", "tech-debt pass", "refactor for quality", "find dead code", "remove AI slop", or any explicit request for a comprehensive quality sweep. Do NOT trigger for narrow targeted fixes ("remove this one function") or for net-new feature work.
 ---

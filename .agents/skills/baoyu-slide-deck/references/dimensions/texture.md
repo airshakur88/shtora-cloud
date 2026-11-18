@@ -4,13 +4,13 @@ Visual texture and background treatment.
 
 ## Options
 
-| Option | Background | Visual Elements | Best For |
-|--------|------------|-----------------|----------|
-| `clean` | Pure solid color, no texture | Clean lines, geometric shapes | Executive, minimal, corporate |
-| `grid` | Subtle grid overlay | Grid lines, schematics, technical diagrams | Technical, architecture, engineering |
-| `organic` | Soft textures, hand-drawn feel | Brush strokes, watercolor, sketchy lines | Creative, educational, friendly |
-| `pixel` | Chunky pixels, 8-bit aesthetic | Pixel art, retro game elements | Gaming, developer, nostalgic |
-| `paper` | Aged/textured paper | Vintage elements, stamps, weathering | Historical, heritage, storytelling |
+| Option    | Background                     | Visual Elements                            | Best For                             |
+| --------- | ------------------------------ | ------------------------------------------ | ------------------------------------ |
+| `clean`   | Pure solid color, no texture   | Clean lines, geometric shapes              | Executive, minimal, corporate        |
+| `grid`    | Subtle grid overlay            | Grid lines, schematics, technical diagrams | Technical, architecture, engineering |
+| `organic` | Soft textures, hand-drawn feel | Brush strokes, watercolor, sketchy lines   | Creative, educational, friendly      |
+| `pixel`   | Chunky pixels, 8-bit aesthetic | Pixel art, retro game elements             | Gaming, developer, nostalgic         |
+| `paper`   | Aged/textured paper            | Vintage elements, stamps, weathering       | Historical, heritage, storytelling   |
 
 ## Rendering Guidelines
 
@@ -51,10 +51,10 @@ Visual texture and background treatment.
 
 ## Combination Notes
 
-| Texture | Works Best With | Avoid With |
-|---------|-----------------|------------|
-| clean | professional, neutral moods | handwritten typography |
-| grid | cool, professional moods | handwritten, vibrant moods |
-| organic | warm, macaron, vibrant moods | technical typography |
-| pixel | vibrant, dark moods | editorial typography |
-| paper | warm moods | geometric typography, minimal density |
+| Texture | Works Best With              | Avoid With                            |
+| ------- | ---------------------------- | ------------------------------------- |
+| clean   | professional, neutral moods  | handwritten typography                |
+| grid    | cool, professional moods     | handwritten, vibrant moods            |
+| organic | warm, macaron, vibrant moods | technical typography                  |
+| pixel   | vibrant, dark moods          | editorial typography                  |
+| paper   | warm moods                   | geometric typography, minimal density |

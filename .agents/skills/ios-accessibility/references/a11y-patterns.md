@@ -1,6 +1,7 @@
 # Accessibility Patterns Reference
 
 ## Contents
+
 - Labels, Values, and Hints
 - Traits and Element Grouping
 - Custom Controls and Adjustable Actions

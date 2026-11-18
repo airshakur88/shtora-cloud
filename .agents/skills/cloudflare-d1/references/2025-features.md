@@ -21,6 +21,7 @@
 ## Overview
 
 D1 received major updates throughout 2025, including:
+
 - **40-60% performance improvement** (January 2025)
 - **Read replication** for global low-latency reads (April 2025)
 - **Automatic query retries** for reliability (September 2025)
@@ -38,12 +39,14 @@ D1 received major updates throughout 2025, including:
 **Status**: Generally Available (All users)
 
 **Improvements**:
+
 - **40-60% reduction in P50 query latency** globally
 - Optimized SQLite engine for edge execution
 - Reduced cold start impact for databases <100 MB
 - Lower network round-trip times
 
 **Before vs After** (typical query):
+
 ```
 Before (December 2024):
 - P50: 35ms
@@ -57,6 +60,7 @@ After (January 2025):
 **Action Required**: None (automatic for all databases)
 
 **Verification**:
+
 ```bash
 # Compare metrics before/after January 15, 2025
 wrangler d1 insights <database-name> --from "2024-12-01" --to "2025-01-31"
@@ -73,11 +77,13 @@ wrangler d1 insights <database-name> --from "2024-12-01" --to "2025-01-31"
 **Feature**: D1 now supports `PRAGMA optimize` for query planner improvements
 
 **What It Does**:
+
 - Analyzes table statistics
 - Updates query planner statistics
 - Improves query performance for complex WHERE clauses
 
 **When to Use**:
+
 ```sql
 -- After bulk inserts (>10,000 rows)
 INSERT INTO users ...;  -- (many rows)
@@ -92,23 +98,25 @@ PRAGMA optimize;
 ```
 
 **Example Worker** (weekly optimization):
+
 ```typescript
 export default {
-  async scheduled(event: ScheduledEvent, env: Env) {
-    // Weekly database optimization
-    await env.DB.prepare('PRAGMA optimize').run();
+	async scheduled(event: ScheduledEvent, env: Env) {
+		// Weekly database optimization
+		await env.DB.prepare("PRAGMA optimize").run();
 
-    console.log('Database optimized:', new Date().toISOString());
-  }
+		console.log("Database optimized:", new Date().toISOString());
+	},
 };
 ```
 
 **Configure Cron Trigger** (wrangler.jsonc):
+
 ```jsonc
 {
-  "triggers": {
-    "crons": ["0 2 * * 0"]  // 2 AM every Sunday
-  }
+	"triggers": {
+		"crons": ["0 2 * * 0"] // 2 AM every Sunday
+	}
 }
 ```
 
@@ -122,17 +130,19 @@ export default {
 
 **What Changed**: Hard limits now enforced on Workers Free plan
 
-| Limit | Before Feb 10 | After Feb 10 |
-|-------|---------------|--------------|
-| Databases per account | 10 (soft warning) | 10 (hard limit) |
-| Database size | 500 MB (soft warning) | 500 MB (hard limit) |
-| Queries per invocation | 50 (soft warning) | 50 (hard limit) |
+| Limit                  | Before Feb 10         | After Feb 10        |
+| ---------------------- | --------------------- | ------------------- |
+| Databases per account  | 10 (soft warning)     | 10 (hard limit)     |
+| Database size          | 500 MB (soft warning) | 500 MB (hard limit) |
+| Queries per invocation | 50 (soft warning)     | 50 (hard limit)     |
 
 **Behavior**:
+
 - **Before**: Exceeding limits → Warnings logged, queries executed
 - **After**: Exceeding limits → **429 Too Many Requests** errors, queries fail
 
 **Error Examples**:
+
 ```typescript
 // Exceeding 50 queries on free tier
 // Error: D1_ERROR: Too many queries (50 per invocation on free plan)
@@ -144,6 +154,7 @@ export default {
 **Migration Guide**:
 
 **Step 1: Audit Current Usage**
+
 ```bash
 # List all databases and sizes
 wrangler d1 list
@@ -153,6 +164,7 @@ wrangler d1 info my-database
 ```
 
 **Step 2: Identify Issues**
+
 - **>10 databases?** → Consolidate or upgrade
 - **Database >400 MB?** → Archive old data or upgrade
 - **Regularly >40 queries/invocation?** → Implement batching or upgrade
@@ -160,20 +172,24 @@ wrangler d1 info my-database
 **Step 3: Optimize (if staying on free tier)**
 
 **A. Implement Query Batching**:
+
 ```typescript
 // Before: 100 queries (exceeds limit)
 for (const user of users) {
-  await env.DB.prepare('INSERT INTO users VALUES (?, ?)').bind(user.name, user.email).run();
+	await env.DB.prepare("INSERT INTO users VALUES (?, ?)")
+		.bind(user.name, user.email)
+		.run();
 }
 
 // After: 1 batch query
-const statements = users.map(user =>
-  env.DB.prepare('INSERT INTO users VALUES (?, ?)').bind(user.name, user.email)
+const statements = users.map((user) =>
+	env.DB.prepare("INSERT INTO users VALUES (?, ?)").bind(user.name, user.email),
 );
-await env.DB.batch(statements);  // Counts as 1 query
+await env.DB.batch(statements); // Counts as 1 query
 ```
 
 **B. Archive Old Data**:
+
 ```sql
 -- Delete logs older than 90 days
 DELETE FROM logs WHERE created_at < unixepoch() - 7776000;
@@ -182,6 +198,7 @@ PRAGMA optimize;
 ```
 
 **C. Consolidate Databases** (if under 10 limit):
+
 ```bash
 # Export from old database
 wrangler d1 execute old-database --command "SELECT * FROM users" > users.sql
@@ -195,12 +212,14 @@ wrangler d1 execute main-database --file=users.sql
 **Cost**: $5/month minimum (Workers Paid plan)
 
 **Benefits**:
+
 - 50,000 databases (vs 10)
 - 10 GB per database (vs 500 MB)
 - 1,000 queries/invocation (vs 50)
 - 30-day Time Travel (vs 7 days)
 
 **How to Upgrade**:
+
 1. Cloudflare dashboard → Workers & Pages
 2. Plans → Upgrade to Workers Paid
 3. Confirm billing
@@ -220,11 +239,13 @@ wrangler d1 execute main-database --file=users.sql
 **Use Case**: Read-heavy applications (e.g., content delivery, dashboards, search)
 
 **Benefits**:
+
 - Up to **2x read throughput**
 - **Lower latency** for reads from nearest region
 - **No additional cost** (included in paid plan)
 
 **Limitations**:
+
 - Write queries still go to primary region
 - Eventual consistency (~100ms lag typical)
 - Paid plan only
@@ -232,77 +253,85 @@ wrangler d1 execute main-database --file=users.sql
 **Setup**:
 
 **Option 1: wrangler CLI**
+
 ```bash
 # Enable read replication
 wrangler d1 replicate enable my-database
 ```
 
 **Option 2: wrangler.jsonc**
+
 ```jsonc
 {
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "my-database",
-    "database_id": "abc123...",
-    "replicate": {
-      "enabled": true,
-      "regions": ["WEUR", "ENAM", "APAC"]  // Optional: specify regions
-    }
-  }]
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "my-database",
+			"database_id": "abc123...",
+			"replicate": {
+				"enabled": true,
+				"regions": ["WEUR", "ENAM", "APAC"] // Optional: specify regions
+			}
+		}
+	]
 }
 ```
 
 **Sessions API** (Read-Write Separation):
+
 ```typescript
-import { D1Database } from '@cloudflare/workers-types';
+import { D1Database } from "@cloudflare/workers-types";
 
 export default {
-  async fetch(request: Request, env: Env) {
-    const url = new URL(request.url);
+	async fetch(request: Request, env: Env) {
+		const url = new URL(request.url);
 
-    if (request.method === 'GET') {
-      // Read from nearest replica (lower latency)
-      const readSession = env.DB.withSession({ mode: 'read-only' });
+		if (request.method === "GET") {
+			// Read from nearest replica (lower latency)
+			const readSession = env.DB.withSession({ mode: "read-only" });
 
-      const users = await readSession
-        .prepare('SELECT * FROM users WHERE status = ?')
-        .bind('active')
-        .all();
+			const users = await readSession
+				.prepare("SELECT * FROM users WHERE status = ?")
+				.bind("active")
+				.all();
 
-      return Response.json(users.results);
-    } else {
-      // Write to primary
-      const writeSession = env.DB.withSession({ mode: 'read-write' });
+			return Response.json(users.results);
+		} else {
+			// Write to primary
+			const writeSession = env.DB.withSession({ mode: "read-write" });
 
-      const { name, email } = await request.json();
-      await writeSession
-        .prepare('INSERT INTO users (name, email) VALUES (?, ?)')
-        .bind(name, email)
-        .run();
+			const { name, email } = await request.json();
+			await writeSession
+				.prepare("INSERT INTO users (name, email) VALUES (?, ?)")
+				.bind(name, email)
+				.run();
 
-      return Response.json({ success: true });
-    }
-  }
+			return Response.json({ success: true });
+		}
+	},
 };
 ```
 
 **Automatic Region Selection**:
+
 ```typescript
 // Cloudflare automatically routes to nearest replica
-const session = env.DB.withSession({ preferredRegion: 'auto' });
+const session = env.DB.withSession({ preferredRegion: "auto" });
 
-const users = await session.prepare('SELECT * FROM users').all();
+const users = await session.prepare("SELECT * FROM users").all();
 
 // Check which region served the request
-console.log('Served by:', users.meta.served_by_region);
+console.log("Served by:", users.meta.served_by_region);
 ```
 
 **Consistency Guarantees**:
+
 - **Eventual consistency**: Replicas lag ~100ms behind primary (typical)
 - **Read-your-writes NOT guaranteed**: Recent writes may not be visible immediately on replicas
 - **Recommendation**: Use read-write session for critical reads after writes
 
 **Performance Impact**:
+
 - **Read latency**: 20-50% lower for users far from primary region
 - **Throughput**: Up to 2x for read-heavy workloads
 - **Write latency**: No change (still goes to primary)
@@ -321,12 +350,13 @@ console.log('Served by:', users.meta.served_by_region);
 
 **Behavior**:
 
-| Query Type | Automatic Retries | Backoff |
-|------------|-------------------|---------|
-| **Read queries** (SELECT) | Up to 2 retries | 100ms, 200ms |
-| **Write queries** (INSERT/UPDATE/DELETE) | No automatic retries | N/A |
+| Query Type                               | Automatic Retries    | Backoff      |
+| ---------------------------------------- | -------------------- | ------------ |
+| **Read queries** (SELECT)                | Up to 2 retries      | 100ms, 200ms |
+| **Write queries** (INSERT/UPDATE/DELETE) | No automatic retries | N/A          |
 
 **How It Works**:
+
 1. Read query fails with transient error (network issue, timeout)
 2. D1 waits 100ms, retries query
 3. If still fails, waits 200ms, retries again
@@ -335,6 +365,7 @@ console.log('Served by:', users.meta.served_by_region);
 **Transparent**: Retries are logged in `wrangler tail` but invisible to application code
 
 **Example Log**:
+
 ```
 [D1] Query retry attempt 1/2: SELECT * FROM users WHERE email = ?
 [D1] Query succeeded on retry 1
@@ -345,47 +376,53 @@ console.log('Served by:', users.meta.served_by_region);
 **When to Implement Application-Level Retries**:
 
 Still implement retries for **write operations**:
+
 ```typescript
 async function retryWrite<T>(
-  operation: () => Promise<T>,
-  maxRetries = 3
+	operation: () => Promise<T>,
+	maxRetries = 3,
 ): Promise<T> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt === maxRetries - 1) throw error;
+	for (let attempt = 0; attempt < maxRetries; attempt++) {
+		try {
+			return await operation();
+		} catch (error) {
+			if (attempt === maxRetries - 1) throw error;
 
-      // Exponential backoff: 100ms, 200ms, 400ms
-      const delay = 100 * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error('Unreachable');
+			// Exponential backoff: 100ms, 200ms, 400ms
+			const delay = 100 * Math.pow(2, attempt);
+			await new Promise((resolve) => setTimeout(resolve, delay));
+		}
+	}
+	throw new Error("Unreachable");
 }
 
 // Usage
 await retryWrite(() =>
-  env.DB.prepare('INSERT INTO users (name, email) VALUES (?, ?)')
-    .bind('Alice', 'alice@example.com')
-    .run()
+	env.DB.prepare("INSERT INTO users (name, email) VALUES (?, ?)")
+		.bind("Alice", "alice@example.com")
+		.run(),
 );
 ```
 
 **Idempotency Considerations**:
 
 Ensure write operations are idempotent to safely retry:
+
 ```typescript
 // ❌ NOT idempotent (retry would create duplicate)
-await env.DB.prepare('INSERT INTO users (email) VALUES (?)').bind(email).run();
+await env.DB.prepare("INSERT INTO users (email) VALUES (?)").bind(email).run();
 
 // ✅ Idempotent (retry is safe)
-await env.DB.prepare('INSERT OR IGNORE INTO users (email) VALUES (?)').bind(email).run();
+await env.DB.prepare("INSERT OR IGNORE INTO users (email) VALUES (?)")
+	.bind(email)
+	.run();
 
 // ✅ Idempotent with WHERE clause
 await env.DB.prepare(
-  'UPDATE users SET last_login = ? WHERE email = ? AND last_login < ?'
-).bind(Date.now(), email, Date.now()).run();
+	"UPDATE users SET last_login = ? WHERE email = ? AND last_login < ?",
+)
+	.bind(Date.now(), email, Date.now())
+	.run();
 ```
 
 **Full best practices guide**: `references/best-practices.md`
@@ -403,6 +440,7 @@ await env.DB.prepare(
 **Use Case**: GDPR compliance, data sovereignty requirements, industry regulations
 
 **Available Jurisdictions**:
+
 - **EU**: European Union (GDPR Article 44-50 compliance)
 - **US**: United States
 - **GLOBAL**: Default (best performance, data may cross borders)
@@ -410,6 +448,7 @@ await env.DB.prepare(
 **Configuration**:
 
 **Option 1: wrangler CLI**
+
 ```bash
 # Create database with jurisdiction
 wrangler d1 create my-database --jurisdiction EU
@@ -419,18 +458,22 @@ wrangler d1 update my-database --jurisdiction EU
 ```
 
 **Option 2: wrangler.jsonc**
+
 ```jsonc
 {
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "my-database",
-    "database_id": "abc123...",
-    "jurisdiction": "EU"  // or "US", "GLOBAL"
-  }]
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "my-database",
+			"database_id": "abc123...",
+			"jurisdiction": "EU" // or "US", "GLOBAL"
+		}
+	]
 }
 ```
 
 **Compliance Guarantees**:
+
 - **EU jurisdiction**: Data stored and processed only in European Union datacenters
 - **US jurisdiction**: Data stored and processed only in United States datacenters
 - **GLOBAL**: Data may be stored/processed in any Cloudflare datacenter
@@ -438,28 +481,33 @@ wrangler d1 update my-database --jurisdiction EU
 **Important**: Metadata (table names, query logs) may still cross borders for platform operations
 
 **Performance Impact**:
+
 - **Latency**: ~10-30ms higher for requests outside jurisdiction
 - **Read replication**: Still allowed within jurisdiction
 - **Throughput**: No change
 
 **Example: GDPR Compliance**:
+
 ```typescript
 // EU jurisdiction database for EU user data
-const euSession = env.DB_EU.withSession({ jurisdiction: 'EU' });
+const euSession = env.DB_EU.withSession({ jurisdiction: "EU" });
 
-await euSession.prepare(
-  'INSERT INTO users (email, country) VALUES (?, ?)'
-).bind('user@example.eu', 'Germany').run();
+await euSession
+	.prepare("INSERT INTO users (email, country) VALUES (?, ?)")
+	.bind("user@example.eu", "Germany")
+	.run();
 
 // GLOBAL database for non-EU data
 const globalSession = env.DB_GLOBAL;
 
-await globalSession.prepare(
-  'INSERT INTO analytics (event, timestamp) VALUES (?, ?)'
-).bind('page_view', Date.now()).run();
+await globalSession
+	.prepare("INSERT INTO analytics (event, timestamp) VALUES (?, ?)")
+	.bind("page_view", Date.now())
+	.run();
 ```
 
 **Use Cases**:
+
 - **GDPR (EU jurisdiction)**: European user data
 - **HIPAA (US jurisdiction)**: Healthcare data in United States
 - **Financial services**: Regulatory data residency requirements
@@ -472,6 +520,7 @@ await globalSession.prepare(
 ### From v2.x to v3.x (2025 Features)
 
 **Step 1: Review Free Tier Usage** (if on free plan)
+
 ```bash
 # Check database count and sizes
 wrangler d1 list
@@ -479,11 +528,13 @@ wrangler d1 list
 # Check query usage (via metrics dashboard or GraphQL API)
 # If approaching limits, plan to upgrade or optimize
 ```
+
 - [ ] Database count < 10
 - [ ] All databases < 400 MB
 - [ ] Query count typically < 40 per invocation
 
 **Step 2: Test PRAGMA optimize**
+
 ```bash
 # Test in staging
 wrangler d1 execute my-database --local --command "PRAGMA optimize"
@@ -491,10 +542,12 @@ wrangler d1 execute my-database --local --command "PRAGMA optimize"
 # Apply in production (during low-traffic window)
 wrangler d1 execute my-database --command "PRAGMA optimize"
 ```
+
 - [ ] No errors from PRAGMA optimize
 - [ ] Query performance improved (check metrics)
 
 **Step 3: Enable Read Replication** (if read-heavy, paid plan)
+
 ```bash
 # Enable replication
 wrangler d1 replicate enable my-database
@@ -502,41 +555,50 @@ wrangler d1 replicate enable my-database
 # Update code to use Sessions API
 # (see references/read-replication.md)
 ```
+
 - [ ] Read replicas enabled
 - [ ] Code uses withSession() for read-write separation
 - [ ] Metrics show improved read latency
 
 **Step 4: Verify Automatic Retry Behavior**
+
 ```bash
 # Monitor wrangler tail for retry logs
 wrangler tail my-worker --format pretty | grep "retry"
 ```
+
 - [ ] Read queries retry automatically on transient failures
 - [ ] Write queries implemented with application-level retries
 
 **Step 5: Configure Jurisdiction** (if compliance required, paid plan)
+
 ```bash
 # Set jurisdiction
 wrangler d1 update my-database --jurisdiction EU
 ```
+
 - [ ] Jurisdiction configured (if needed)
 - [ ] Compliance requirements met
 
 **Step 6: Update Monitoring**
+
 ```bash
 # Track new metrics (query efficiency, replica performance)
 wrangler d1 insights my-database
 ```
+
 - [ ] Metrics dashboard reviewed
 - [ ] Alerts configured for P95 latency, database size
 - [ ] Weekly insights review scheduled
 
 **Step 7: Update Compatibility Date** (recommended)
+
 ```jsonc
 {
-  "compatibility_date": "2025-01-15"  // Performance improvements
+	"compatibility_date": "2025-01-15" // Performance improvements
 }
 ```
+
 - [ ] wrangler.jsonc updated
 - [ ] Tested in staging
 - [ ] Deployed to production
@@ -552,6 +614,7 @@ wrangler d1 insights my-database
 **Affected Users**: Workers Free plan only
 
 **Mitigation**:
+
 - Implement query batching (reduce query count)
 - Archive old data (reduce database size)
 - Consolidate databases (reduce database count)
@@ -562,6 +625,7 @@ wrangler d1 insights my-database
 ### No Other Breaking Changes
 
 All other 2025 features are **additive** and **opt-in**:
+
 - Performance improvements: Automatic, no code changes
 - Read replication: Opt-in, paid plan only
 - Automatic retries: Automatic, backwards compatible

@@ -1,4 +1,5 @@
 ---
+
 name: rust-review
 description: Performs comprehensive Rust security review for safe/unsafe boundary issues, memory safety in unsafe blocks, concurrency hazards, panic-induced DoS, FFI safety, and async runtime mistakes. Use when auditing Rust crates, services, or libraries — particularly those with `unsafe`, FFI, or concurrent code.
 allowed-tools: Agent AskUserQuestion SendMessage TaskCreate TaskUpdate TaskList Read Write Bash
@@ -21,13 +22,13 @@ Rust application/library security review: safe/unsafe boundary auditing, memory 
 
 ## Subagents
 
-| Subagent type | Purpose | Tool set |
-|---|---|---|
-| `rust-review:rust-review-worker` | Run assigned cluster, write findings | Read, Write, Edit, Bash |
-| `rust-review:rust-review-dedup-judge` | Merge duplicates (runs **first**) | Read, Write, Edit, Glob |
-| `rust-review:rust-review-fp-judge` | FP + severity + final reports (runs **second**) | Read, Write, Edit, Bash |
+| Subagent type                         | Purpose                                         | Tool set                |
+| ------------------------------------- | ----------------------------------------------- | ----------------------- |
+| `rust-review:rust-review-worker`      | Run assigned cluster, write findings            | Read, Write, Edit, Bash |
+| `rust-review:rust-review-dedup-judge` | Merge duplicates (runs **first**)               | Read, Write, Edit, Glob |
+| `rust-review:rust-review-fp-judge`    | FP + severity + final reports (runs **second**) | Read, Write, Edit, Bash |
 
-Tools come from each agent's frontmatter at spawn time. The orchestrator's `Task*`/`Agent`/`Bash`/etc. come from this skill's `allowed-tools`. **Search-tool / `Bash` interaction:** in current Claude Code, an agent granted `Bash` is **not** also granted the dedicated `Glob` **or `Grep`** tools (the calls return `No such tool available`; the harness expects `find`/`grep`/`rg` via `Bash` instead). So only the dedup-judge — the one agent that holds **no** `Bash` — uses `Glob`; the worker, fp-judge, and the orchestrator resolve and search paths with `Read` / `Bash` `find` / `rg` / `grep` / `test -f` instead. Because the cluster/finder prompt seeds are written in ripgrep regex syntax (`\s`, `\d`, `\b`), `Bash`-holding agents must run them with **`rg`**. If `rg` is not installed its call fails *loudly* (`command not found`) — fall back to `grep -E` with POSIX classes (`\s`→`[[:space:]]`, `\d`→`[[:digit:]]`, drop `\b`), never a raw-`\s` `grep` whose *silent* empty becomes a bad `cleared`. Do **not** reintroduce `Glob`/`Grep` into a `Bash`-holding agent's protocol.
+Tools come from each agent's frontmatter at spawn time. The orchestrator's `Task*`/`Agent`/`Bash`/etc. come from this skill's `allowed-tools`. **Search-tool / `Bash` interaction:** in current Claude Code, an agent granted `Bash` is **not** also granted the dedicated `Glob` **or `Grep`** tools (the calls return `No such tool available`; the harness expects `find`/`grep`/`rg` via `Bash` instead). So only the dedup-judge — the one agent that holds **no** `Bash` — uses `Glob`; the worker, fp-judge, and the orchestrator resolve and search paths with `Read` / `Bash` `find` / `rg` / `grep` / `test -f` instead. Because the cluster/finder prompt seeds are written in ripgrep regex syntax (`\s`, `\d`, `\b`), `Bash`-holding agents must run them with **`rg`**. If `rg` is not installed its call fails _loudly_ (`command not found`) — fall back to `grep -E` with POSIX classes (`\s`→`[[:space:]]`, `\d`→`[[:digit:]]`, drop `\b`), never a raw-`\s` `grep` whose _silent_ empty becomes a bad `cleared`. Do **not** reintroduce `Glob`/`Grep` into a `Bash`-holding agent's protocol.
 
 ---
 
@@ -83,12 +84,12 @@ The skill is invoked directly (no command wrapper). Parse any free-text argument
 
 Required parameters:
 
-| Parameter | Values | How to infer from args |
-|---|---|---|
-| `threat_model` | `REMOTE` / `LOCAL_UNPRIVILEGED` / `BOTH` | Words like "remote", "network", "attacker" → `REMOTE`; "local", "unprivileged" → `LOCAL_UNPRIVILEGED`; otherwise ask. |
-| `worker_model` | `haiku` / `sonnet` / `opus` | Explicit model name in args. Otherwise ask (no silent default). |
-| `severity_filter` | `all` / `medium` / `high` | "all", "every", "noisy" → `all`; "medium and above" → `medium`; "high only", "criticals only" → `high`. Otherwise ask — **no silent default**. |
-| `scope_subpath` | repo-relative directory (optional) | Phrases like "X only", "just audit X/", "review subdirectory X" → `src/X/` or the matching subdir. Apply fuzzy matching against top-level subdirectories of the repo. If absent, set `"."`; if ambiguous, ask. |
+| Parameter         | Values                                   | How to infer from args                                                                                                                                                                                         |
+| ----------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `threat_model`    | `REMOTE` / `LOCAL_UNPRIVILEGED` / `BOTH` | Words like "remote", "network", "attacker" → `REMOTE`; "local", "unprivileged" → `LOCAL_UNPRIVILEGED`; otherwise ask.                                                                                          |
+| `worker_model`    | `haiku` / `sonnet` / `opus`              | Explicit model name in args. Otherwise ask (no silent default).                                                                                                                                                |
+| `severity_filter` | `all` / `medium` / `high`                | "all", "every", "noisy" → `all`; "medium and above" → `medium`; "high only", "criticals only" → `high`. Otherwise ask — **no silent default**.                                                                 |
+| `scope_subpath`   | repo-relative directory (optional)       | Phrases like "X only", "just audit X/", "review subdirectory X" → `src/X/` or the matching subdir. Apply fuzzy matching against top-level subdirectories of the repo. If absent, set `"."`; if ambiguous, ask. |
 
 Call `AskUserQuestion` exactly once with only unresolved required parameters (`threat_model`, `worker_model`, `severity_filter`) plus `scope_subpath` only when the user explicitly requested a narrowed scope but it is ambiguous. If the required parameters were all pre-filled and scope is absent or resolved, skip the question.
 
@@ -208,7 +209,7 @@ Foreground spawn already serializes — no `sleep` needed before Phase 6b. Skip 
 > **STOP — read this before composing the spawn message.**
 >
 > Workers MUST be spawned **foreground** (no `run_in_background` field, or `run_in_background=false`).
-> "Parallel" here means *one assistant message containing the wave's `Agent` calls* — that already runs them concurrently. (For large `M`, split into consecutive waves of ≤16 calls, one message per wave — see "Required spawn shape" below.) **Background spawns are NOT how you parallelize this skill.**
+> "Parallel" here means _one assistant message containing the wave's `Agent` calls_ — that already runs them concurrently. (For large `M`, split into consecutive waves of ≤16 calls, one message per wave — see "Required spawn shape" below.) **Background spawns are NOT how you parallelize this skill.**
 >
 > Background spawns defeat Phase 6a's primer cache: every worker pays full cache-creation on its first turn (`cache_read_input_tokens=0`), and the primer's ~15 K tokens are wasted M times over. Two real runs had exactly this symptom — every worker started with `first_cr=0`.
 >
@@ -220,7 +221,7 @@ Foreground spawn already serializes — no `sleep` needed before Phase 6b. Skip 
 
 - **Within a wave:** all `Agent` calls in **one** message, **foreground** (no `run_in_background`) — identical shape to a single-wave run.
 - **Across waves:** wave _k+1_ is a **separate** message that can only be sent after wave _k_'s `Agent` calls all return (a tool-use message ends the turn). Waves are therefore serialized with respect to each other — that is correct and loud; accept it. Do **not** try to overlap them.
-- **Never** reach for `run_in_background=true` to fit more workers in one message. More *waves*, never background — background defeats the primer cache (see the STOP box) and is the cardinal error this skill guards against.
+- **Never** reach for `run_in_background=true` to fit more workers in one message. More _waves_, never background — background defeats the primer cache (see the STOP box) and is the cardinal error this skill guards against.
 - **Cache across waves:** the primer prefix has a ~5-minute cache TTL that refreshes on every hit, so back-to-back waves keep hitting it (the 25-worker run confirmed `cache_read≈14 K` on its second wave). If a later wave will start more than ~5 minutes after the previous one (very large `M` or slow workers), re-spawn the Phase-6a primer in its own message first to re-warm the prefix before that wave.
 - **Balance the waves** (e.g. `M=25` → 13+12, not 20+5) so no wave hugs the cap and the last wave isn't a tiny straggler.
 - After every wave has returned, proceed to Phase 7 with the **full** set of M worker results.
@@ -230,12 +231,12 @@ For each worker `N ∈ [1..M]` (in its assigned wave):
 1. `Read: ${output_dir}/worker-prompts/worker-N.txt`
 2. Pass the file contents **verbatim** as the `Agent` tool's `prompt` argument:
 
-| Parameter | Value |
-|-----------|-------|
-| `subagent_type` | `rust-review:rust-review-worker` |
-| `model` | `${worker_model}` (haiku / sonnet / opus) |
-| `description` | `Rust review worker N` |
-| `prompt` | the full text of `worker-N.txt` (no edits) |
+| Parameter           | Value                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| `subagent_type`     | `rust-review:rust-review-worker`                                                                    |
+| `model`             | `${worker_model}` (haiku / sonnet / opus)                                                           |
+| `description`       | `Rust review worker N`                                                                              |
+| `prompt`            | the full text of `worker-N.txt` (no edits)                                                          |
 | `run_in_background` | **field MUST be omitted, OR set to `false`.** Never `true`. See the foreground-spawn warning above. |
 
 The spawn prompt is the single authority. Pass it verbatim — every field is required by the worker's self-check; any deviation triggers `worker-N abort: spawn prompt malformed`.
@@ -254,12 +255,12 @@ The spawn prompt is the single authority. Pass it verbatim — every field is re
 
 The Phase-6 `Agent` invocations block until each worker returns. Inspect each worker's return text and apply this classifier in order — first match wins:
 
-| # | Match (in return text) | Outcome | Action |
-|---|---|---|---|
-| 1 | `worker-N complete:` | **provisional success** | Parse the `wrote N finding files` count, then run the artifact validator below before `TaskUpdate` to `completed`. |
-| 2 | `abort: spawn prompt malformed`, `abort: pre-work budget exceeded`, or `abort: TaskList unavailable` (legacy) | **non-retryable orchestrator bug** | Stop the run, surface the abort + spawn-prompt path. Re-running the same prompt repeats the failure — pre-work-budget exhaustion always means the worker couldn't pass its self-check, which a retry won't fix. |
-| 3 | other `worker-N abort:` | **retryable** | Mark `pending`, set `metadata.abort_reason`, `needs_respawn=true`, increment `attempt`. |
-| 4 | `Agent` errored or no `complete:`/`abort:` token | **retryable** | Same as #3 (transient worker crash). |
+| #   | Match (in return text)                                                                                        | Outcome                            | Action                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `worker-N complete:`                                                                                          | **provisional success**            | Parse the `wrote N finding files` count, then run the artifact validator below before `TaskUpdate` to `completed`.                                                                                              |
+| 2   | `abort: spawn prompt malformed`, `abort: pre-work budget exceeded`, or `abort: TaskList unavailable` (legacy) | **non-retryable orchestrator bug** | Stop the run, surface the abort + spawn-prompt path. Re-running the same prompt repeats the failure — pre-work-budget exhaustion always means the worker couldn't pass its self-check, which a retry won't fix. |
+| 3   | other `worker-N abort:`                                                                                       | **retryable**                      | Mark `pending`, set `metadata.abort_reason`, `needs_respawn=true`, increment `attempt`.                                                                                                                         |
+| 4   | `Agent` errored or no `complete:`/`abort:` token                                                              | **retryable**                      | Same as #3 (transient worker crash).                                                                                                                                                                            |
 
 If any non-retryable, stop. Otherwise, **before re-spawning, clear each retryable worker's prefix-space on disk** — the Phase-7 index is built from disk, so a crashed attempt's higher-id stragglers (files the replacement never re-emits) would otherwise be resurrected into the report. Loop over the worker's actual `pass_prefixes` (from its task `metadata`), substituting each real prefix for `${pfx}` — do **not** run the command with a literal `PREFIX`:
 
@@ -339,7 +340,7 @@ If any Phase-5 cluster task is not `completed` — **or** any worker returned a 
 
 Each judge's full protocol is its system prompt (`agents/rust-review-{dedup,fp}-judge.md`); spawn prompts pass only per-run variables. Do **not** reference `prompts/internal/judges/` — those files don't exist.
 
-> **STOP — these two judges run in SEQUENCE, not in parallel.** Unlike the Phase-6b workers (which you spawn as M `Agent` calls in *one* message precisely because that runs them concurrently), the judges have a hard data dependency: fp-judge must see the `merged_into` / `also_known_as` annotations dedup-judge writes, and it only skips files already carrying `merged_into`. If you emit both `Agent` calls in one message they run concurrently — fp-judge reads findings before any merge annotations exist, judges every duplicate as a separate primary, and (because `dedup-summary.md` doesn't exist yet) trips its "dedup did not run" fallback, producing an inflated, duplicated `REPORT.md`/SARIF.
+> **STOP — these two judges run in SEQUENCE, not in parallel.** Unlike the Phase-6b workers (which you spawn as M `Agent` calls in _one_ message precisely because that runs them concurrently), the judges have a hard data dependency: fp-judge must see the `merged_into` / `also_known_as` annotations dedup-judge writes, and it only skips files already carrying `merged_into`. If you emit both `Agent` calls in one message they run concurrently — fp-judge reads findings before any merge annotations exist, judges every duplicate as a separate primary, and (because `dedup-summary.md` doesn't exist yet) trips its "dedup did not run" fallback, producing an inflated, duplicated `REPORT.md`/SARIF.
 >
 > Spawn dedup-judge in its **own** assistant message, wait for its `dedup-judge complete:` (or `abort:`) return, **then** spawn fp-judge in a **separate** message. Before composing the fp-judge spawn, confirm dedup finished — `Bash: test -f ${output_dir}/dedup-summary.md` must succeed (or you saw the dedup `complete:` token). **Never put both judge `Agent` calls in the same message.**
 

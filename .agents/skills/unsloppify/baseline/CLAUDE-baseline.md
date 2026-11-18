@@ -1,5 +1,6 @@
 <!-- unsloppify baseline v1.3. Full skill and newer versions: github.com/woerndl/unsloppify -->
 ## Writing baseline (all generated text: prose, docs, PR and commit text, code comments)
+
 Write plainly, the boring phrasing wins. Say what is, not what it is not.
 State each idea once. Cut any word whose removal changes nothing. Concrete
 beats impressive: name the file, the number, the mechanism. Structure follows
@@ -12,6 +13,7 @@ Arrows (-> or →) are fine as deliberate shorthand, not decoration.
 Each entry marks a class to infer and rethink. Keep a flagged term only when
 it is genuinely necessary, the exact word for the exact case, and no plain
 phrase does the job:
+
 - load-bearing, smoking gun, smoke test, footgun, blast radius, drift seam,
   cutover, gate off, "the knob", "hangs off N knobs", "fails closed/open" as
   flavor, "typed forward", "persistence contract", "when it lands", "when it

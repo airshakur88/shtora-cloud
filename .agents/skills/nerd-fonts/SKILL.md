@@ -1,13 +1,14 @@
 ---
+
 name: nerd-fonts
 description: "Use Nerd Fonts (nerdfonts) glyphs for icons in CLI output, TUIs, shell prompts, statuslines, editor and terminal configs, docs, and web pages. Pick a named glyph from the 10,995 on nerdfonts.com/cheat-sheet (nf-md-, nf-fa-, nf-dev-, nf-oct-, nf-cod-, nf-seti-, nf-pl-), verify the codepoint, and install a patched font from nerdfonts.com/font-downloads. Use when adding or fixing terminal or editor icons, tofu or empty boxes instead of icons, starship, powerlevel10k, oh-my-posh, tmux, lualine, nvim-tree, or a Nerd Font install, even if the user does not say nerd fonts. Do not use for Lucide, Heroicons, Tabler, Iconify SVGs, or Google Fonts pairings. Also: Nerd Font Mono vs Propo, brew, scoop, choco, font-patcher. Triggers: icon, glyph, nerd font, nerdfonts, powerline, starship, powerlevel10k, oh-my-posh, tmux status, lualine, nvim-tree, devicons, tofu, boxes instead of icons, terminal font, editor font, codepoint, font-patcher, emoji, icon font, file icons, statusline icons."
 license: MIT
 metadata:
-  author: massimodeluisa
-  version: "1.2.0"
-  website: https://www.nerdfonts.com
-  upstream: https://github.com/ryanoasis/nerd-fonts
-  nerd-fonts-release: v3.5.1
+author: massimodeluisa
+version: "1.2.0"
+website: https://www.nerdfonts.com
+upstream: https://github.com/ryanoasis/nerd-fonts
+nerd-fonts-release: v3.5.1
 ---
 
 # Nerd Fonts
@@ -76,27 +77,27 @@ Review checklist for `/nerd-fonts <file>` (`perl` ships with macOS and Linux):
 
 ## Two pages to use
 
-| Need | Page |
-|------|------|
-| Pick or download a font | <https://www.nerdfonts.com/font-downloads> |
-| Find an icon by name, class, or codepoint | <https://www.nerdfonts.com/cheat-sheet> |
+| Need                                      | Page                                       |
+| ----------------------------------------- | ------------------------------------------ |
+| Pick or download a font                   | <https://www.nerdfonts.com/font-downloads> |
+| Find an icon by name, class, or codepoint | <https://www.nerdfonts.com/cheat-sheet>    |
 
 The cheat sheet reads upstream `glyphnames.json`; `data/glyphs.tsv` is the same data bundled here. Each cheat sheet result has copy buttons for Icon, Class, and Code.
 
 ## Which set for what
 
-| Need | Set | Example | Glyphs |
-|------|-----|---------|--------|
-| File types and folders | `seti`, `custom`, `md` | `nf-seti-json` | 167 + 45 |
-| Git and GitHub | `oct` | `nf-oct-git_branch` | 310 |
-| Editor UI, LSP kinds, debug | `cod` | `nf-cod-symbol_method` | 540 |
-| General UI and status | `md`, `fa` | `nf-md-alert_circle`, `nf-fa-check` | 6,896 and 1,818 |
-| Languages, frameworks, tools | `dev` | `nf-dev-rust` | 613 |
-| Prompt separators | `pl`, `ple` | `nf-pl-left_hard_divider` | 9 + 34 |
-| OS and distro logos | `linux` | `nf-linux-archlinux` | 134 |
-| Weather | `weather` | `nf-weather-day_sunny` | 228 |
-| Power states | `iec` | `nf-iec-power` | 5 |
-| Pomodoro timers | `pom` | `nf-pom-pomodoro_ticking` | 11 |
+| Need                         | Set                    | Example                             | Glyphs          |
+| ---------------------------- | ---------------------- | ----------------------------------- | --------------- |
+| File types and folders       | `seti`, `custom`, `md` | `nf-seti-json`                      | 167 + 45        |
+| Git and GitHub               | `oct`                  | `nf-oct-git_branch`                 | 310             |
+| Editor UI, LSP kinds, debug  | `cod`                  | `nf-cod-symbol_method`              | 540             |
+| General UI and status        | `md`, `fa`             | `nf-md-alert_circle`, `nf-fa-check` | 6,896 and 1,818 |
+| Languages, frameworks, tools | `dev`                  | `nf-dev-rust`                       | 613             |
+| Prompt separators            | `pl`, `ple`            | `nf-pl-left_hard_divider`           | 9 + 34          |
+| OS and distro logos          | `linux`                | `nf-linux-archlinux`                | 134             |
+| Weather                      | `weather`              | `nf-weather-day_sunny`              | 228             |
+| Power states                 | `iec`                  | `nf-iec-power`                      | 5               |
+| Pomodoro timers              | `pom`                  | `nf-pom-pomodoro_ticking`           | 11              |
 
 Counts and codepoint ranges: read [`references/glyph-sets.md`](references/glyph-sets.md) when you need prefixes or ranges. Same concept in each set: read [`references/icon-concepts.md`](references/icon-concepts.md) when a surface must stay in one set.
 
@@ -117,26 +118,26 @@ Class names follow `nf-<set>-<name>`. Material Design Icons moved in v3 from `nf
 
 Writing a glyph:
 
-| Where | 4-digit (`nf-oct-mark_github` U+F408) | 5-digit (`nf-md-folder` U+F024B) |
-|-------|------|------|
-| bash, zsh | `printf ''` | `printf '\U000f024b'` |
-| Lua, Neovim | `"\u{f408}"` or `vim.fn.nr2char(0xf408)` | `"\u{f024b}"` |
-| JavaScript | `""` | `"\u{f024b}"` |
-| Vimscript | `""` | `"\U000f024b"` |
-| PowerShell 7 | `` "`u{F408}" `` | `` "`u{F024B}" `` |
-| Windows PowerShell 5.1 | `[char]0xF408` | `[char]::ConvertFromUtf32(0xF024B)` |
-| CSS | `content: "\f408"` | `content: "\f024b"` |
-| starship, tmux, most configs | the literal glyph: `symbol = " "` | the literal glyph `󰉋` |
+| Where                        | 4-digit (`nf-oct-mark_github` U+F408)    | 5-digit (`nf-md-folder` U+F024B)    |
+| ---------------------------- | ---------------------------------------- | ----------------------------------- |
+| bash, zsh                    | `printf ''`                              | `printf '\U000f024b'`               |
+| Lua, Neovim                  | `"\u{f408}"` or `vim.fn.nr2char(0xf408)` | `"\u{f024b}"`                       |
+| JavaScript                   | `""`                                     | `"\u{f024b}"`                       |
+| Vimscript                    | `""`                                     | `"\U000f024b"`                      |
+| PowerShell 7                 | ``"`u{F408}"``                           | ``"`u{F024B}"``                     |
+| Windows PowerShell 5.1       | `[char]0xF408`                           | `[char]::ConvertFromUtf32(0xF024B)` |
+| CSS                          | `content: "\f408"`                       | `content: "\f024b"`                 |
+| starship, tmux, most configs | the literal glyph: `symbol = " "`       | the literal glyph `󰉋`               |
 
 More languages: [`references/glyph-sets.md`](references/glyph-sets.md).
 
 ## Pick the variant
 
-| Variant | Family | Files | Icon width | Use for |
-|---------|--------|-------|------------|---------|
-| Regular | `<Family> Nerd Font` (`NF`) | `*NerdFont-*.ttf` | about 1.5 cells | default for terminals and editors |
-| Mono | `<Family> Nerd Font Mono` (`NFM`) | `*NerdFontMono-*.ttf` | exactly 1 cell | strict monospace, aligned columns, older terminals |
-| Propo | `<Family> Nerd Font Propo` (`NFP`) | `*NerdFontPropo-*.ttf` | proportional | GUI apps, presentations |
+| Variant | Family                             | Files                  | Icon width      | Use for                                            |
+| ------- | ---------------------------------- | ---------------------- | --------------- | -------------------------------------------------- |
+| Regular | `<Family> Nerd Font` (`NF`)        | `*NerdFont-*.ttf`      | about 1.5 cells | default for terminals and editors                  |
+| Mono    | `<Family> Nerd Font Mono` (`NFM`)  | `*NerdFontMono-*.ttf`  | exactly 1 cell  | strict monospace, aligned columns, older terminals |
+| Propo   | `<Family> Nerd Font Propo` (`NFP`) | `*NerdFontPropo-*.ttf` | proportional    | GUI apps, presentations                            |
 
 The variant changes only the added icons, never the base letters.
 
@@ -184,12 +185,12 @@ fc-list ':charset=f408' family
 
 The `printf` line prints `nf-custom-vim` U+E62B, `nf-oct-mark_github` U+F408, `nf-md-folder` U+F024B.
 
-| Symptom | Check | Next action |
-|---------|-------|-------------|
-| Boxes or blanks | The profile still uses another font | Switch to a `* Nerd Font` family, restart the app, run `fc-cache -fv` |
-| `fc-list` not found | macOS does not ship fontconfig | `brew install fontconfig`, or `kitty +list-fonts` inside kitty and grep for nerd, or `system_profiler SPFontsDataType` and grep for nerd font, or the `printf` line alone |
-| Icons overlap the next character | Regular vs Mono | Use the Mono variant, or a terminal that supports double-width glyphs |
-| Icons missing over ssh or tmux | The font is local | Install nothing on the remote host |
+| Symptom                          | Check                               | Next action                                                                                                                                                               |
+| -------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Boxes or blanks                  | The profile still uses another font | Switch to a `* Nerd Font` family, restart the app, run `fc-cache -fv`                                                                                                     |
+| `fc-list` not found              | macOS does not ship fontconfig      | `brew install fontconfig`, or `kitty +list-fonts` inside kitty and grep for nerd, or `system_profiler SPFontsDataType` and grep for nerd font, or the `printf` line alone |
+| Icons overlap the next character | Regular vs Mono                     | Use the Mono variant, or a terminal that supports double-width glyphs                                                                                                     |
+| Icons missing over ssh or tmux   | The font is local                   | Install nothing on the remote host                                                                                                                                        |
 
 ## Read on demand
 
@@ -207,16 +208,16 @@ Upstream: [releases](https://github.com/ryanoasis/nerd-fonts/releases), [README]
 
 ## Common mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Emoji or ASCII as an icon | a Nerd Fonts glyph plus a font note |
-| Codepoint from memory | confirm in `data/glyphs.tsv` or on the cheat sheet |
-| `nf-mdi-*` classes after v3 | `nf-md-*`, search by bare name |
-| `font_family Cascadia Code` | `CaskaydiaCove Nerd Font` (patched names differ for RFN fonts) |
-| `brew install font-jetbrainsmono-nerd-font` | `brew install --cask font-jetbrains-mono-nerd-font` |
-| Installing the font on the remote host over ssh | install it on the local machine that runs the terminal |
-| Icons overlap the next character | the Mono variant, or a terminal with double-width support |
-| PUA glyph on a web page with no webfont | load `webfont.css` or self-host Symbols Only |
-| `right_hard_divider` for a right-pointing triangle | `nf-pl-left_hard_divider` U+E0B0 points right; `nf-pl-right_hard_divider` U+E0B2 points left |
-| Icon floats above or below the text on the web | `line-height: 1` plus `vertical-align` (start at `-0.125em`) or flex centering; check a mixed test line |
-| Fallback icons look shifted or tiny in the terminal | the patched font, or kitty `modify_font baseline`, or a WezTerm fallback `scale` |
+| Mistake                                             | Fix                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Emoji or ASCII as an icon                           | a Nerd Fonts glyph plus a font note                                                                     |
+| Codepoint from memory                               | confirm in `data/glyphs.tsv` or on the cheat sheet                                                      |
+| `nf-mdi-*` classes after v3                         | `nf-md-*`, search by bare name                                                                          |
+| `font_family Cascadia Code`                         | `CaskaydiaCove Nerd Font` (patched names differ for RFN fonts)                                          |
+| `brew install font-jetbrainsmono-nerd-font`         | `brew install --cask font-jetbrains-mono-nerd-font`                                                     |
+| Installing the font on the remote host over ssh     | install it on the local machine that runs the terminal                                                  |
+| Icons overlap the next character                    | the Mono variant, or a terminal with double-width support                                               |
+| PUA glyph on a web page with no webfont             | load `webfont.css` or self-host Symbols Only                                                            |
+| `right_hard_divider` for a right-pointing triangle  | `nf-pl-left_hard_divider` U+E0B0 points right; `nf-pl-right_hard_divider` U+E0B2 points left            |
+| Icon floats above or below the text on the web      | `line-height: 1` plus `vertical-align` (start at `-0.125em`) or flex centering; check a mixed test line |
+| Fallback icons look shifted or tiny in the terminal | the patched font, or kitty `modify_font baseline`, or a WezTerm fallback `scale`                        |

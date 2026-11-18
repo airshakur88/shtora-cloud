@@ -52,7 +52,7 @@ fn assert_examples() {
 
 ## Doctests
 
-```rust
+````rust
 /// Adds two numbers together.
 ///
 /// # Examples
@@ -77,7 +77,7 @@ fn assert_examples() {
 pub fn add(a: i32, b: i32) -> i32 {
     a + b
 }
-```
+````
 
 ## Integration Tests
 

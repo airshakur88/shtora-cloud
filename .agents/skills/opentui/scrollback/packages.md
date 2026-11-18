@@ -1,4 +1,5 @@
 ---
+
 title: Packages
 description: Features like LaTeX should live outside the monorepo. That forces us to improve our APIs and lowers what we review and maintain. There is a package index now.
 date: 2026-08-16

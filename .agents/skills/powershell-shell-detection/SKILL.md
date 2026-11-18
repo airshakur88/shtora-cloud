@@ -1,9 +1,10 @@
 ---
+
 name: powershell-shell-detection
 description: |
-  PowerShell vs Git Bash/MSYS2 shell detection and cross-shell compatibility on Windows.
-  PROACTIVELY activate for: (1) detecting whether script runs under PowerShell, pwsh, Git Bash, or cmd, (2) shell-specific path handling, (3) MSYS_NO_PATHCONV when calling Windows binaries from Git Bash, (4) PowerShell from Git Bash and vice versa, (5) line-ending differences (CRLF vs LF), (6) environment variable differences (env: VAR vs VAR vs percent VAR percent), (7) calling PowerShell scripts (.ps1) from bash and bash scripts from PowerShell, (8) profile loading differences.
-  Provides: shell-detection one-liners, path-conversion helpers, env-var portability patterns, and cross-shell invocation recipes.
+PowerShell vs Git Bash/MSYS2 shell detection and cross-shell compatibility on Windows.
+PROACTIVELY activate for: (1) detecting whether script runs under PowerShell, pwsh, Git Bash, or cmd, (2) shell-specific path handling, (3) MSYS_NO_PATHCONV when calling Windows binaries from Git Bash, (4) PowerShell from Git Bash and vice versa, (5) line-ending differences (CRLF vs LF), (6) environment variable differences (env: VAR vs VAR vs percent VAR percent), (7) calling PowerShell scripts (.ps1) from bash and bash scripts from PowerShell, (8) profile loading differences.
+Provides: shell-detection one-liners, path-conversion helpers, env-var portability patterns, and cross-shell invocation recipes.
 ---
 
 # PowerShell Shell Detection & Cross-Shell Compatibility
@@ -26,6 +27,7 @@ When working on Windows, correctly identifying the shell environment is crucial 
 ### Primary Indicators
 
 **PSModulePath (Most Reliable):**
+
 ```powershell
 # PowerShell detection
 if ($env:PSModulePath) {
@@ -40,6 +42,7 @@ $PSVersionTable.PSVersion
 ```
 
 **PowerShell-Specific Variables:**
+
 ```powershell
 # These only exist in PowerShell
 $PSVersionTable    # Version info
@@ -73,6 +76,7 @@ Get-ShellType
 ### Primary Indicators
 
 **MSYSTEM Environment Variable (Most Reliable):**
+
 ```bash
 # Bash detection in Git Bash/MSYS2
 if [ -n "$MSYSTEM" ]; then
@@ -86,6 +90,7 @@ fi
 ```
 
 **Secondary Detection Methods:**
+
 ```bash
 # Using OSTYPE (Bash-specific)
 case "$OSTYPE" in
@@ -110,19 +115,20 @@ esac
 
 ### Critical Differences
 
-| Aspect | PowerShell | Git Bash/MSYS2 |
-|--------|-----------|----------------|
-| **Environment Variable** | `$env:VARIABLE` | `$VARIABLE` |
-| **Path Separator** | `;` (semicolon) | `:` (colon) |
-| **Path Style** | `C:\Windows\System32` | `/c/Windows/System32` |
-| **Home Directory** | `$env:USERPROFILE` | `$HOME` |
-| **Temp Directory** | `$env:TEMP` | `/tmp` |
-| **Command Format** | `Get-ChildItem` | `ls` (native command) |
-| **Aliases** | PowerShell cmdlet aliases | Unix command aliases |
+| Aspect                   | PowerShell                | Git Bash/MSYS2        |
+| ------------------------ | ------------------------- | --------------------- |
+| **Environment Variable** | `$env:VARIABLE`           | `$VARIABLE`           |
+| **Path Separator**       | `;` (semicolon)           | `:` (colon)           |
+| **Path Style**           | `C:\Windows\System32`     | `/c/Windows/System32` |
+| **Home Directory**       | `$env:USERPROFILE`        | `$HOME`               |
+| **Temp Directory**       | `$env:TEMP`               | `/tmp`                |
+| **Command Format**       | `Get-ChildItem`           | `ls` (native command) |
+| **Aliases**              | PowerShell cmdlet aliases | Unix command aliases  |
 
 ### Path Handling: PowerShell vs Git Bash
 
 **PowerShell Path Handling:**
+
 ```powershell
 # Native Windows paths work directly
 $path = "C:\Users\John\Documents"
@@ -140,6 +146,7 @@ $fullPath = [System.IO.Path]::Combine($home, "documents", "file.txt")
 ```
 
 **Git Bash Path Handling:**
+
 ```bash
 # Git Bash uses Unix-style paths
 path="/c/Users/John/Documents"
@@ -214,6 +221,7 @@ export MSYS2_ARG_CONV_EXCL="--dir=;/test"  # Specific prefixes
 - ✅ **Cross-platform scripting** - PowerShell 7 works on Linux/macOS
 
 **Example PowerShell Scenario:**
+
 ```powershell
 # Azure VM management with Az module
 Connect-AzAccount
@@ -232,6 +240,7 @@ Get-AzVM -ResourceGroupName "Production" |
 - ✅ **Development workflows** - Node.js, Python, Ruby with Unix tools
 
 **Example Git Bash Scenario:**
+
 ```bash
 # Git workflow with Unix tools
 git log --oneline | grep -i "feature" | awk '{print $1}' |
@@ -305,17 +314,18 @@ echo "Running in: $shell_type"
 
 ### Common Environment Variables
 
-| Variable | PowerShell | Git Bash | Purpose |
-|----------|-----------|----------|---------|
-| **Username** | `$env:USERNAME` | `$USER` | Current user |
-| **Home Directory** | `$env:USERPROFILE` | `$HOME` | User home |
-| **Temp Directory** | `$env:TEMP` | `/tmp` | Temporary files |
-| **Path List** | `$env:Path` (`;` sep) | `$PATH` (`:` sep) | Executable paths |
-| **Shell Detection** | `$env:PSModulePath` | `$MSYSTEM` | Shell identifier |
+| Variable            | PowerShell            | Git Bash          | Purpose          |
+| ------------------- | --------------------- | ----------------- | ---------------- |
+| **Username**        | `$env:USERNAME`       | `$USER`           | Current user     |
+| **Home Directory**  | `$env:USERPROFILE`    | `$HOME`           | User home        |
+| **Temp Directory**  | `$env:TEMP`           | `/tmp`            | Temporary files  |
+| **Path List**       | `$env:Path` (`;` sep) | `$PATH` (`:` sep) | Executable paths |
+| **Shell Detection** | `$env:PSModulePath`   | `$MSYSTEM`        | Shell identifier |
 
 ### Cross-Shell Variable Access
 
 **PowerShell accessing environment variables:**
+
 ```powershell
 $env:PATH              # Current PATH
 $env:PSModulePath      # PowerShell module paths
@@ -324,6 +334,7 @@ $env:MSYSTEM           # Would be empty in PowerShell
 ```
 
 **Git Bash accessing environment variables:**
+
 ```bash
 echo $PATH             # Current PATH
 echo $MSYSTEM          # Git Bash: MINGW64, MINGW32, or MSYS
@@ -335,6 +346,7 @@ echo $PSModulePath     # Would be empty in pure Bash
 ### Example 1: Cross-Shell File Finding
 
 **PowerShell:**
+
 ```powershell
 # Find files modified in last 7 days
 Get-ChildItem -Path "C:\Projects" -Recurse -File |
@@ -343,6 +355,7 @@ Get-ChildItem -Path "C:\Projects" -Recurse -File |
 ```
 
 **Git Bash:**
+
 ```bash
 # Same operation in Git Bash
 find /c/Projects -type f -mtime -7 -exec ls -lh {} \;
@@ -351,12 +364,14 @@ find /c/Projects -type f -mtime -7 -exec ls -lh {} \;
 ### Example 2: Process Management
 
 **PowerShell:**
+
 ```powershell
 # Stop all Chrome processes
 Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force
 ```
 
 **Git Bash:**
+
 ```bash
 # Same operation in Git Bash
 ps aux | grep chrome | awk '{print $2}' | xargs kill -9 2>/dev/null
@@ -365,6 +380,7 @@ ps aux | grep chrome | awk '{print $2}' | xargs kill -9 2>/dev/null
 ### Example 3: Text File Processing
 
 **PowerShell:**
+
 ```powershell
 # Extract unique email addresses from logs
 Get-Content "logs.txt" |
@@ -374,6 +390,7 @@ Get-Content "logs.txt" |
 ```
 
 **Git Bash:**
+
 ```bash
 # Same operation in Git Bash
 grep -oE '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' logs.txt |
@@ -385,6 +402,7 @@ grep -oE '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' logs.txt |
 ### Issue 1: Command Not Found
 
 **Problem:** Command works in one shell but not another
+
 ```powershell
 # PowerShell
 Get-Process  # Works
@@ -395,6 +413,7 @@ Get-Process  # Command not found
 ```
 
 **Solution:** Understand that PowerShell cmdlets don't exist in Bash. Use native commands or install PowerShell Core (pwsh) in Git Bash:
+
 ```bash
 # Run PowerShell from Git Bash
 pwsh -Command "Get-Process"
@@ -403,6 +422,7 @@ pwsh -Command "Get-Process"
 ### Issue 2: Path Format Mismatches
 
 **Problem:** Paths don't work across shells
+
 ```bash
 # Git Bash path
 /c/Users/John/file.txt  # Works in Bash
@@ -412,6 +432,7 @@ Test-Path "/c/Users/John/file.txt"  # May fail
 ```
 
 **Solution:** Use cygpath for conversion or normalize paths:
+
 ```bash
 # Convert to Windows format for PowerShell
 win_path=$(cygpath -w "/c/Users/John/file.txt")
@@ -421,6 +442,7 @@ pwsh -Command "Test-Path '$win_path'"
 ### Issue 3: Alias Conflicts
 
 **Problem:** `ls`, `cd`, `cat` behave differently
+
 ```powershell
 # PowerShell
 ls  # Actually runs Get-ChildItem
@@ -431,6 +453,7 @@ ls  # Runs native Unix ls command
 ```
 
 **Solution:** Use full cmdlet names in PowerShell scripts:
+
 ```powershell
 # Instead of: ls
 Get-ChildItem  # Explicit cmdlet name
@@ -439,6 +462,7 @@ Get-ChildItem  # Explicit cmdlet name
 ## Best Practices Summary
 
 ### PowerShell Scripts
+
 1. ✅ Use `$PSScriptRoot` for script-relative paths
 2. ✅ Use `Join-Path` or `[IO.Path]::Combine()` for paths
 3. ✅ Avoid hardcoded backslashes
@@ -447,6 +471,7 @@ Get-ChildItem  # Explicit cmdlet name
 6. ✅ Use `$IsWindows`, `$IsLinux`, `$IsMacOS` for platform detection
 
 ### Git Bash Scripts
+
 1. ✅ Check `$MSYSTEM` for Git Bash detection
 2. ✅ Use `cygpath` for path conversion when needed
 3. ✅ Set `MSYS_NO_PATHCONV=1` to disable auto-conversion if needed
@@ -455,6 +480,7 @@ Get-ChildItem  # Explicit cmdlet name
 6. ✅ Convert to Windows paths when calling Windows tools
 
 ### Cross-Shell Development
+
 1. ✅ Document which shell your script requires
 2. ✅ Add shell detection at script start
 3. ✅ Provide clear error messages for wrong shell

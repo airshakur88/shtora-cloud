@@ -1,6 +1,6 @@
 # Refactoring to Expose a Property
 
-"This code has no algebraic shape" is often a fact about how the code is *arranged*
+"This code has no algebraic shape" is often a fact about how the code is _arranged_
 rather than about what it does. A function that mixes a pure calculation with a database
 write has a property; it just does not have a seam to assert it through. These are the
 rearrangements that expose one, strongest first.
@@ -42,7 +42,7 @@ mocked.
 ## 2. Add the missing inverse
 
 A one-way operation has no roundtrip by definition. Sometimes the inverse is worth
-having in production anyway, and sometimes it is worth having *only* for the test — say
+having in production anyway, and sometimes it is worth having _only_ for the test — say
 which.
 
 ```python

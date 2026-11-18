@@ -69,30 +69,44 @@ review output should use the canonical names.
 
 ```json
 {
-  "finding_id": "CVS-A1B2C3D4E5F6",
-  "vulnerability_name": "SQL injection in account search",
-  "severity": "critical",
-  "exploitability": "Remote; low complexity; without authentication",
-  "cvss_score": 9.8,
-  "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-  "owasp_category": "A03:2021 — Injection",
-  "cwe": "CWE-89 — SQL Injection",
-  "vulnerability_description": "The search parameter is concatenated into a SQL statement executed by the database.",
-  "impact": "An unauthenticated attacker can read or modify all records accessible to the database account.",
-  "affected_assets": ["app/routes/search.py", "GET /accounts/search", "customer database"],
-  "remediation_guidelines": "Use a parameterized query and bind the search value as data.",
-  "confidence": "confirmed",
-  "validation_status": "confirmed",
-  "exact_locations": [
-    {"file": "app/routes/search.py", "line_start": 42, "line_end": 43}
-  ],
-  "taint_path": [
-    {"role": "source", "file": "app/routes/search.py", "line": 38, "code": "term = request.args['q']"},
-    {"role": "sink", "file": "app/routes/search.py", "line": 43, "code": "cursor.execute(query)"}
-  ],
-  "attack_prerequisites": "The search endpoint is network reachable; no account is required.",
-  "references": ["https://cwe.mitre.org/data/definitions/89.html"],
-  "status": "confirmed"
+	"finding_id": "CVS-A1B2C3D4E5F6",
+	"vulnerability_name": "SQL injection in account search",
+	"severity": "critical",
+	"exploitability": "Remote; low complexity; without authentication",
+	"cvss_score": 9.8,
+	"cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+	"owasp_category": "A03:2021 — Injection",
+	"cwe": "CWE-89 — SQL Injection",
+	"vulnerability_description": "The search parameter is concatenated into a SQL statement executed by the database.",
+	"impact": "An unauthenticated attacker can read or modify all records accessible to the database account.",
+	"affected_assets": [
+		"app/routes/search.py",
+		"GET /accounts/search",
+		"customer database"
+	],
+	"remediation_guidelines": "Use a parameterized query and bind the search value as data.",
+	"confidence": "confirmed",
+	"validation_status": "confirmed",
+	"exact_locations": [
+		{ "file": "app/routes/search.py", "line_start": 42, "line_end": 43 }
+	],
+	"taint_path": [
+		{
+			"role": "source",
+			"file": "app/routes/search.py",
+			"line": 38,
+			"code": "term = request.args['q']"
+		},
+		{
+			"role": "sink",
+			"file": "app/routes/search.py",
+			"line": 43,
+			"code": "cursor.execute(query)"
+		}
+	],
+	"attack_prerequisites": "The search endpoint is network reachable; no account is required.",
+	"references": ["https://cwe.mitre.org/data/definitions/89.html"],
+	"status": "confirmed"
 }
 ```
 

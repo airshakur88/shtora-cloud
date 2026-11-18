@@ -125,10 +125,12 @@ fi
 ```
 
 **When to Use Each Shell:**
+
 - **PowerShell:** Windows automation, Azure/M365, PSGallery modules, object pipelines
 - **Git Bash:** Git operations, Unix tools (sed/awk/grep), POSIX scripts, text processing
 
 **Path Handling Differences:**
+
 - **PowerShell:** `C:\Users\John` or `C:/Users/John` (both work in PS 7+)
 - **Git Bash:** `/c/Users/John` (Unix-style, auto-converts to Windows when calling Windows tools)
 

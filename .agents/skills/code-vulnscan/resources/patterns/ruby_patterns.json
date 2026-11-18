@@ -1,58 +1,250 @@
 {
-  "sqli": [
-    {"id": "rb-sqli-001", "regex": "\\.(?:where|having|joins|find_by_sql|select_all|execute)\\s*\\(\\s*['\"][^\\n]*#\\{[^}\\n]*params(?:\\[|\\.)", "vuln_type": "sqli", "confidence": "likely", "description": "Active Record raw SQL interpolates request parameters"},
-    {"id": "rb-sqli-002", "regex": "\\.(?:where|having|find_by_sql|execute)\\s*\\([^;\\n]*['\"]\\s*\\+\\s*params(?:\\[|\\.)", "vuln_type": "sqli", "confidence": "likely", "description": "Raw SQL is concatenated with request parameters"},
-    {"id": "rb-sqli-003", "regex": "\\.(?:order|reorder|group)\\s*\\(\\s*params(?:\\[|\\.)", "vuln_type": "sqli", "confidence": "likely", "description": "Active Record query structure uses a request-controlled identifier or sort fragment"},
-    {"id": "rb-sqli-sequel-001", "regex": "(?:Sequel\\.lit|DB\\s*\\[)\\s*['\"][^\\n]*#\\{[^}\\n]*params(?:\\[|\\.)", "vuln_type": "sqli", "confidence": "likely", "description": "Sequel raw SQL interpolates request parameters"}
-  ],
-  "cmdi": [
-    {"id": "rb-cmdi-001", "regex": "`[^`\\n]*#\\{[^}\\n]*params(?:\\[|\\.)[^`\\n]*`", "vuln_type": "cmdi", "confidence": "likely", "description": "Ruby backtick command interpolates request parameters"},
-    {"id": "rb-cmdi-002", "regex": "\\b(?:system|exec|spawn|IO\\.popen|Kernel\\.system)\\s*\\([^;\\n]*#\\{[^}\\n]*params(?:\\[|\\.)", "vuln_type": "cmdi", "confidence": "likely", "description": "Command string interpolates request parameters"},
-    {"id": "rb-cmdi-003", "regex": "Open3\\.(?:capture2e?|capture3|popen2e?|popen3|pipeline)[^(]*\\([^;\\n]*#\\{[^}\\n]*params(?:\\[|\\.)", "vuln_type": "cmdi", "confidence": "likely", "description": "Open3 shell command interpolates request parameters"},
-    {"id": "rb-cmdi-arg-001", "regex": "\\b(?:system|exec|spawn)\\s*\\(\\s*params(?:\\[|\\.)", "vuln_type": "command_argument_injection", "confidence": "possible", "description": "Request data selects the executable or first process argument"}
-  ],
-  "xss": [
-    {"id": "rb-xss-001", "regex": "params(?:\\[[^]]+\\]|\\.[A-Za-z_]\\w*)\\s*\\.html_safe\\b", "vuln_type": "xss", "confidence": "likely", "description": "Rails marks request data as HTML-safe"},
-    {"id": "rb-xss-002", "regex": "\\braw\\s*\\(\\s*params(?:\\[|\\.)", "vuln_type": "xss", "confidence": "likely", "description": "Rails raw helper renders request data without escaping"},
-    {"id": "rb-xss-erb-001", "regex": "<%=\\s*(?:raw\\s*\\(?)?\\s*params(?:\\[|\\.)[^%\\n]*%>", "vuln_type": "xss", "confidence": "likely", "description": "ERB explicitly renders request data as raw output"},
-    {"id": "rb-xss-sinatra-001", "regex": "\\bbody\\s+params(?:\\[|\\.)", "vuln_type": "xss", "confidence": "possible", "description": "Sinatra response body directly returns request data; verify HTML content type and encoding"}
-  ],
-  "ssti": [
-    {"id": "rb-ssti-001", "regex": "(?:ERB\\.new|Tilt::[A-Za-z]+Template\\.new)\\s*\\(\\s*params(?:\\[|\\.)", "vuln_type": "ssti", "confidence": "likely", "description": "Template source is constructed directly from request parameters"}
-  ],
-  "path_traversal": [
-    {"id": "rb-path-001", "regex": "(?:File\\.(?:read|open|write|binread|delete)|IO\\.read|send_file)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "path_traversal", "confidence": "likely", "description": "File operation receives a request-controlled path"},
-    {"id": "rb-path-002", "regex": "render\\s+(?:file|template):\\s*params(?:\\[|\\.)", "vuln_type": "path_traversal", "confidence": "likely", "description": "Rails renders a request-controlled file or template path"},
-    {"id": "rb-archive-001", "regex": "(?:Zip::File\\.open|Gem::Package::TarReader\\.new)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "path_traversal", "confidence": "possible", "description": "Archive source is request-controlled; verify entry containment and extraction limits"}
-  ],
-  "mass_assignment": [
-    {"id": "rb-mass-001", "regex": "\\.(?:new|create|update|assign_attributes)\\s*\\(\\s*params\\s*\\)", "vuln_type": "mass_assignment", "confidence": "likely", "description": "Model mutation consumes the unfiltered parameter map"},
-    {"id": "rb-mass-002", "regex": "\\.(?:new|create|update|assign_attributes)\\s*\\([^;\\n]*params(?:\\[[^]]+\\])?\\.(?:permit!|to_unsafe_h)", "vuln_type": "mass_assignment", "confidence": "likely", "description": "Model mutation consumes parameters with all fields permitted or marked unsafe"},
-    {"id": "rb-mass-003", "regex": "params(?:\\[[^]]+\\])?\\.permit\\s*\\([^;\\n]*(?:role|admin|tenant_id|owner_id|account_id|status|balance)[^;\\n]*\\)", "vuln_type": "mass_assignment", "confidence": "possible", "description": "Strong-parameter allowlist includes a privileged ownership, role, or state field"}
-  ],
-  "deserialization": [
-    {"id": "rb-deser-001", "regex": "Marshal\\.load\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)", "vuln_type": "deserialization", "confidence": "confirmed", "description": "Marshal deserialization receives request or cookie data"},
-    {"id": "rb-deser-002", "regex": "(?:YAML|Psych)\\.(?:load|unsafe_load)\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)", "vuln_type": "deserialization", "confidence": "likely", "description": "Unsafe YAML deserialization receives request or cookie data"},
-    {"id": "rb-deser-003", "regex": "Oj\\.load\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)[^;\\n]*mode:\\s*:object", "vuln_type": "deserialization", "confidence": "likely", "description": "Oj object mode deserializes request-controlled data"}
-  ],
-  "ssrf": [
-    {"id": "rb-ssrf-001", "regex": "(?:Net::HTTP\\.(?:get|get_response|post)|URI\\.open|open)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "ssrf", "confidence": "likely", "description": "Ruby HTTP-capable API receives a request-controlled URL"},
-    {"id": "rb-ssrf-002", "regex": "(?:RestClient|HTTParty|HTTP)\\.(?:get|post|put|patch|delete|request)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "ssrf", "confidence": "likely", "description": "Third-party HTTP client receives a request-controlled URL"},
-    {"id": "rb-ssrf-faraday-001", "regex": "Faraday\\.(?:get|post|put|patch|delete)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "ssrf", "confidence": "likely", "description": "Faraday request target comes directly from request parameters"}
-  ],
-  "open_redirect": [
-    {"id": "rb-redirect-rails-001", "regex": "redirect_to\\s*(?:\\(|\\s)\\s*params(?:\\[|\\.)", "vuln_type": "open_redirect", "confidence": "likely", "description": "Rails redirect destination is request-controlled"},
-    {"id": "rb-redirect-sinatra-001", "regex": "(?<!redirect_to\\s)\\bredirect\\s*(?:\\(|\\s)\\s*params(?:\\[|\\.)", "vuln_type": "open_redirect", "confidence": "likely", "description": "Sinatra redirect destination is request-controlled"}
-  ],
-  "authorization": [
-    {"id": "rb-tenant-001", "regex": "\\.unscoped\\.(?:find|find_by)\\s*\\([^;\\n]*params(?:\\[|\\.)", "vuln_type": "tenant_scope_bypass", "confidence": "possible", "description": "Unscoped lookup uses a request identifier; verify explicit object and tenant authorization"}
-  ],
-  "sensitive_logging": [
-    {"id": "rb-log-001", "regex": "(?:Rails\\.logger|logger)\\.(?:debug|info|warn|error|fatal)\\s*(?:\\(|\\s)[^;\\n]*params(?:\\.to_unsafe_h|\\b)", "vuln_type": "sensitive_data_exposure", "confidence": "possible", "description": "Application log records an unfiltered parameter map"},
-    {"id": "rb-log-auth-001", "regex": "(?:Rails\\.logger|logger)\\.(?:debug|info|warn|error|fatal)[^;\\n]*(?:HTTP_AUTHORIZATION|Authorization)[^;\\n]*(?:request\\.headers|request\\.env)", "vuln_type": "sensitive_data_exposure", "confidence": "likely", "description": "Authorization credentials are written to application logs"}
-  ],
-  "crypto_tls": [
-    {"id": "rb-crypto-password-001", "regex": "Digest::(?:MD5|SHA1)\\.hexdigest\\s*\\([^;\\n]*params\\s*\\[[^]]*(?:password|passwd|secret)", "vuln_type": "weak_crypto", "confidence": "confirmed", "description": "A submitted password or secret is hashed directly with MD5 or SHA-1"},
-    {"id": "rb-tls-001", "regex": "verify_mode\\s*=\\s*OpenSSL::SSL::VERIFY_NONE", "vuln_type": "tls_bypass", "confidence": "confirmed", "description": "TLS certificate verification is explicitly disabled"}
-  ]
+	"sqli": [
+		{
+			"id": "rb-sqli-001",
+			"regex": "\\.(?:where|having|joins|find_by_sql|select_all|execute)\\s*\\(\\s*['\"][^\\n]*#\\{[^}\\n]*params(?:\\[|\\.)",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Active Record raw SQL interpolates request parameters"
+		},
+		{
+			"id": "rb-sqli-002",
+			"regex": "\\.(?:where|having|find_by_sql|execute)\\s*\\([^;\\n]*['\"]\\s*\\+\\s*params(?:\\[|\\.)",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Raw SQL is concatenated with request parameters"
+		},
+		{
+			"id": "rb-sqli-003",
+			"regex": "\\.(?:order|reorder|group)\\s*\\(\\s*params(?:\\[|\\.)",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Active Record query structure uses a request-controlled identifier or sort fragment"
+		},
+		{
+			"id": "rb-sqli-sequel-001",
+			"regex": "(?:Sequel\\.lit|DB\\s*\\[)\\s*['\"][^\\n]*#\\{[^}\\n]*params(?:\\[|\\.)",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Sequel raw SQL interpolates request parameters"
+		}
+	],
+	"cmdi": [
+		{
+			"id": "rb-cmdi-001",
+			"regex": "`[^`\\n]*#\\{[^}\\n]*params(?:\\[|\\.)[^`\\n]*`",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Ruby backtick command interpolates request parameters"
+		},
+		{
+			"id": "rb-cmdi-002",
+			"regex": "\\b(?:system|exec|spawn|IO\\.popen|Kernel\\.system)\\s*\\([^;\\n]*#\\{[^}\\n]*params(?:\\[|\\.)",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Command string interpolates request parameters"
+		},
+		{
+			"id": "rb-cmdi-003",
+			"regex": "Open3\\.(?:capture2e?|capture3|popen2e?|popen3|pipeline)[^(]*\\([^;\\n]*#\\{[^}\\n]*params(?:\\[|\\.)",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Open3 shell command interpolates request parameters"
+		},
+		{
+			"id": "rb-cmdi-arg-001",
+			"regex": "\\b(?:system|exec|spawn)\\s*\\(\\s*params(?:\\[|\\.)",
+			"vuln_type": "command_argument_injection",
+			"confidence": "possible",
+			"description": "Request data selects the executable or first process argument"
+		}
+	],
+	"xss": [
+		{
+			"id": "rb-xss-001",
+			"regex": "params(?:\\[[^]]+\\]|\\.[A-Za-z_]\\w*)\\s*\\.html_safe\\b",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Rails marks request data as HTML-safe"
+		},
+		{
+			"id": "rb-xss-002",
+			"regex": "\\braw\\s*\\(\\s*params(?:\\[|\\.)",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Rails raw helper renders request data without escaping"
+		},
+		{
+			"id": "rb-xss-erb-001",
+			"regex": "<%=\\s*(?:raw\\s*\\(?)?\\s*params(?:\\[|\\.)[^%\\n]*%>",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "ERB explicitly renders request data as raw output"
+		},
+		{
+			"id": "rb-xss-sinatra-001",
+			"regex": "\\bbody\\s+params(?:\\[|\\.)",
+			"vuln_type": "xss",
+			"confidence": "possible",
+			"description": "Sinatra response body directly returns request data; verify HTML content type and encoding"
+		}
+	],
+	"ssti": [
+		{
+			"id": "rb-ssti-001",
+			"regex": "(?:ERB\\.new|Tilt::[A-Za-z]+Template\\.new)\\s*\\(\\s*params(?:\\[|\\.)",
+			"vuln_type": "ssti",
+			"confidence": "likely",
+			"description": "Template source is constructed directly from request parameters"
+		}
+	],
+	"path_traversal": [
+		{
+			"id": "rb-path-001",
+			"regex": "(?:File\\.(?:read|open|write|binread|delete)|IO\\.read|send_file)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "path_traversal",
+			"confidence": "likely",
+			"description": "File operation receives a request-controlled path"
+		},
+		{
+			"id": "rb-path-002",
+			"regex": "render\\s+(?:file|template):\\s*params(?:\\[|\\.)",
+			"vuln_type": "path_traversal",
+			"confidence": "likely",
+			"description": "Rails renders a request-controlled file or template path"
+		},
+		{
+			"id": "rb-archive-001",
+			"regex": "(?:Zip::File\\.open|Gem::Package::TarReader\\.new)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "path_traversal",
+			"confidence": "possible",
+			"description": "Archive source is request-controlled; verify entry containment and extraction limits"
+		}
+	],
+	"mass_assignment": [
+		{
+			"id": "rb-mass-001",
+			"regex": "\\.(?:new|create|update|assign_attributes)\\s*\\(\\s*params\\s*\\)",
+			"vuln_type": "mass_assignment",
+			"confidence": "likely",
+			"description": "Model mutation consumes the unfiltered parameter map"
+		},
+		{
+			"id": "rb-mass-002",
+			"regex": "\\.(?:new|create|update|assign_attributes)\\s*\\([^;\\n]*params(?:\\[[^]]+\\])?\\.(?:permit!|to_unsafe_h)",
+			"vuln_type": "mass_assignment",
+			"confidence": "likely",
+			"description": "Model mutation consumes parameters with all fields permitted or marked unsafe"
+		},
+		{
+			"id": "rb-mass-003",
+			"regex": "params(?:\\[[^]]+\\])?\\.permit\\s*\\([^;\\n]*(?:role|admin|tenant_id|owner_id|account_id|status|balance)[^;\\n]*\\)",
+			"vuln_type": "mass_assignment",
+			"confidence": "possible",
+			"description": "Strong-parameter allowlist includes a privileged ownership, role, or state field"
+		}
+	],
+	"deserialization": [
+		{
+			"id": "rb-deser-001",
+			"regex": "Marshal\\.load\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)",
+			"vuln_type": "deserialization",
+			"confidence": "confirmed",
+			"description": "Marshal deserialization receives request or cookie data"
+		},
+		{
+			"id": "rb-deser-002",
+			"regex": "(?:YAML|Psych)\\.(?:load|unsafe_load)\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)",
+			"vuln_type": "deserialization",
+			"confidence": "likely",
+			"description": "Unsafe YAML deserialization receives request or cookie data"
+		},
+		{
+			"id": "rb-deser-003",
+			"regex": "Oj\\.load\\s*\\([^;\\n]*(?:params(?:\\[|\\.)|request\\.body|cookies\\[)[^;\\n]*mode:\\s*:object",
+			"vuln_type": "deserialization",
+			"confidence": "likely",
+			"description": "Oj object mode deserializes request-controlled data"
+		}
+	],
+	"ssrf": [
+		{
+			"id": "rb-ssrf-001",
+			"regex": "(?:Net::HTTP\\.(?:get|get_response|post)|URI\\.open|open)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "Ruby HTTP-capable API receives a request-controlled URL"
+		},
+		{
+			"id": "rb-ssrf-002",
+			"regex": "(?:RestClient|HTTParty|HTTP)\\.(?:get|post|put|patch|delete|request)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "Third-party HTTP client receives a request-controlled URL"
+		},
+		{
+			"id": "rb-ssrf-faraday-001",
+			"regex": "Faraday\\.(?:get|post|put|patch|delete)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "ssrf",
+			"confidence": "likely",
+			"description": "Faraday request target comes directly from request parameters"
+		}
+	],
+	"open_redirect": [
+		{
+			"id": "rb-redirect-rails-001",
+			"regex": "redirect_to\\s*(?:\\(|\\s)\\s*params(?:\\[|\\.)",
+			"vuln_type": "open_redirect",
+			"confidence": "likely",
+			"description": "Rails redirect destination is request-controlled"
+		},
+		{
+			"id": "rb-redirect-sinatra-001",
+			"regex": "(?<!redirect_to\\s)\\bredirect\\s*(?:\\(|\\s)\\s*params(?:\\[|\\.)",
+			"vuln_type": "open_redirect",
+			"confidence": "likely",
+			"description": "Sinatra redirect destination is request-controlled"
+		}
+	],
+	"authorization": [
+		{
+			"id": "rb-tenant-001",
+			"regex": "\\.unscoped\\.(?:find|find_by)\\s*\\([^;\\n]*params(?:\\[|\\.)",
+			"vuln_type": "tenant_scope_bypass",
+			"confidence": "possible",
+			"description": "Unscoped lookup uses a request identifier; verify explicit object and tenant authorization"
+		}
+	],
+	"sensitive_logging": [
+		{
+			"id": "rb-log-001",
+			"regex": "(?:Rails\\.logger|logger)\\.(?:debug|info|warn|error|fatal)\\s*(?:\\(|\\s)[^;\\n]*params(?:\\.to_unsafe_h|\\b)",
+			"vuln_type": "sensitive_data_exposure",
+			"confidence": "possible",
+			"description": "Application log records an unfiltered parameter map"
+		},
+		{
+			"id": "rb-log-auth-001",
+			"regex": "(?:Rails\\.logger|logger)\\.(?:debug|info|warn|error|fatal)[^;\\n]*(?:HTTP_AUTHORIZATION|Authorization)[^;\\n]*(?:request\\.headers|request\\.env)",
+			"vuln_type": "sensitive_data_exposure",
+			"confidence": "likely",
+			"description": "Authorization credentials are written to application logs"
+		}
+	],
+	"crypto_tls": [
+		{
+			"id": "rb-crypto-password-001",
+			"regex": "Digest::(?:MD5|SHA1)\\.hexdigest\\s*\\([^;\\n]*params\\s*\\[[^]]*(?:password|passwd|secret)",
+			"vuln_type": "weak_crypto",
+			"confidence": "confirmed",
+			"description": "A submitted password or secret is hashed directly with MD5 or SHA-1"
+		},
+		{
+			"id": "rb-tls-001",
+			"regex": "verify_mode\\s*=\\s*OpenSSL::SSL::VERIFY_NONE",
+			"vuln_type": "tls_bypass",
+			"confidence": "confirmed",
+			"description": "TLS certificate verification is explicitly disabled"
+		}
+	]
 }

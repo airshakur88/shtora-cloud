@@ -1,17 +1,18 @@
 ---
+
 name: anti-slop-engineering
 description: Prevent, detect, and repair AI coding slop and dirty engineering in repositories. Use for planning features, writing code, changing tests, reviewing pull requests, refactoring, hardening CI, debugging regressions, or auditing agent-generated changes. Enforces behavioral contracts, focused diffs, test integrity, repo conventions, security boundaries, and evidence-based completion.
 author: Mamdouh Aboammar <mamdouhfces1997@gmail.com>
 license: MIT
 metadata:
-  version: "1.6.0"
-  focus: "engineering-discipline"
-  repository: "https://github.com/imMamdouhaboammar/anti-slop-engineering"
+version: "1.6.0"
+focus: "engineering-discipline"
+repository: "https://github.com/imMamdouhaboammar/anti-slop-engineering"
 ---
 
 # Anti-Slop Engineering
 
-**Mission:** Deliver the smallest *coherent, correct, maintainable* change supported by independent evidence. Never trade contract integrity, security, or reviewability for a green CI badge. Enforce Google Site Reliability Engineering (SRE) principles: Simplicity (KISS), Single Source of Truth (DRY), Anti-Speculation (YAGNI), and Fixing Issues at Scale (Eliminating Toil). Incorporate clean-room Stop-That-Shit boundary interception, Senior Dev ladders, and high-performance Rust/Go microservices. This skill applies to human and AI-authored changes equally.
+**Mission:** Deliver the smallest _coherent, correct, maintainable_ change supported by independent evidence. Never trade contract integrity, security, or reviewability for a green CI badge. Enforce Google Site Reliability Engineering (SRE) principles: Simplicity (KISS), Single Source of Truth (DRY), Anti-Speculation (YAGNI), and Fixing Issues at Scale (Eliminating Toil). Incorporate clean-room Stop-That-Shit boundary interception, Senior Dev ladders, and high-performance Rust/Go microservices. This skill applies to human and AI-authored changes equally.
 
 ## Operating priorities
 
@@ -83,7 +84,7 @@ Create a tiny scope plan: target files, candidate reuse, test points, risk areas
 - Inspect existing regression tests **before implementation**. Prefer independently specified expected outcomes.
 - On bug fixes, write a failing reproduction first where practical. On new behavior, write tests for the agreed contract before implementation where practical.
 - Existing assertions/fixtures/snapshots are protected: if a test fails after a change, investigate implementation/regression first. Never weaken assertions, rewrite golden values, remove coverage, mark skipped/xfail, or add exclusions merely to get green.
-- Existing tests *may* change when the approved behavior genuinely changes, an assertion was incorrect, or a justified test refactor is necessary. Explain **old contract -> new contract**, cite the authority, show before/after behavior, and obtain independent review on semantics.
+- Existing tests _may_ change when the approved behavior genuinely changes, an assertion was incorrect, or a justified test refactor is necessary. Explain **old contract -> new contract**, cite the authority, show before/after behavior, and obtain independent review on semantics.
 - Do not blindly ban test edits or insist on unit tests for every I/O interaction. Select unit/integration/contract/E2E based on risk. See [test integrity](references/test-integrity.md).
 
 ### Gate 3: Implement with minimum justified complexity
@@ -107,7 +108,7 @@ Create a tiny scope plan: target files, candidate reuse, test points, risk areas
 - Run targeted tests and impacted full-suite checks supported by repo; report commands and outcomes verbatim or as reproducible summaries.
 - Inspect changed tests against the baseline; manually verify independently expected outcomes. Test the old failure, the new behavior, negative paths, and nearby regressions.
 - Exercise boundary tests relevant to change: contract/integration, concurrency, migrations, browser flow, performance, security and accessibility where applicable. Prefer real integration evidence over test doubles at critical seams.
-- Treat test coverage, lint, snapshot updates, and static-scan results as *signals*, never proof. Use mutation tests for fragile business rules when available.
+- Treat test coverage, lint, snapshot updates, and static-scan results as _signals_, never proof. Use mutation tests for fragile business rules when available.
 - If tools/environment prevent verification, say **NOT VERIFIED**; list exact blockers and do not claim completion.
 
 ### Gate 5: Audit the diff as a skeptical reviewer
@@ -133,7 +134,7 @@ bunx anti-slop-engineering exec check-action --tool <tool> --args '<json>'
 bunx anti-slop-engineering cases
 ```
 
-Replace `origin/main` with your actual target branch; if unavailable, compare with a known commit using `--base HEAD`. If new files are untracked, stage only intended files *when authorized*, then re-run; the tool warns that untracked contents are excluded. **Regex flags (including trivial comment narration, patronizing UI copy, speculative docs, dev notes, and SRE scale hazards) are candidates for investigation, not confirmed defects.** The tool neither runs tests nor performs SAST.
+Replace `origin/main` with your actual target branch; if unavailable, compare with a known commit using `--base HEAD`. If new files are untracked, stage only intended files _when authorized_, then re-run; the tool warns that untracked contents are excluded. **Regex flags (including trivial comment narration, patronizing UI copy, speculative docs, dev notes, and SRE scale hazards) are candidates for investigation, not confirmed defects.** The tool neither runs tests nor performs SAST.
 
 Ask explicitly: Could a smaller design do the same thing (KISS)? Did I create two sources of truth (DRY)? Are all parameters and options actively used (YAGNI)? Will retries trigger thundering herds or retry storms under scale (SCALE)? Did I silently expand scope?
 
@@ -179,6 +180,7 @@ Before proposing merge, report: intent, changed files, exact test evidence, base
 ## In-flight task directives and execution control
 
 Apply the Stop Ladder to balance task responsibility and boundary enforcement:
+
 1. Understand current responsibility (explicit contract, affected callers, data migrations).
 2. Start with a direct solution (existing codebase helpers, platform built-ins, standard library).
 3. Expand only to close concrete gaps (supported inputs, real obligations).
@@ -186,6 +188,7 @@ Apply the Stop Ladder to balance task responsibility and boundary enforcement:
 5. Verify the result and finish (no circular verification or redundant multi-agent loops).
 
 Directive syntax:
+
 ```text
 $anti-slop [mode] [level] [files=...] [hash=...] [deps=...] [agents=N] -- [task]
 ```

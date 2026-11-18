@@ -1,4 +1,5 @@
 ---
+
 name: presentation-creator
 description: Create data-driven presentation slides using React, Vite, and Recharts with Sentry branding. Use when asked to "create a presentation", "build slides", "make a deck", "create a data presentation", "build a Sentry presentation". Scaffolds a complete slide-based app with charts, animations, and single-file HTML output.
 ---
@@ -10,6 +11,7 @@ Create interactive, data-driven presentation slides using React + Vite + Rechart
 ## Step 1: Gather Requirements
 
 Ask the user:
+
 1. What is the presentation topic?
 2. How many slides (typically 5-8)?
 3. What data/charts are needed? (time series, comparisons, diagrams, zone charts)
@@ -64,34 +66,46 @@ Create the project structure:
 
 ```json
 {
-  "name": "PROJECT_NAME",
-  "private": true,
-  "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
-  "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1", "recharts": "^2.15.3" },
-  "devDependencies": { "@vitejs/plugin-react": "^4.3.4", "vite": "^6.0.0", "vite-plugin-singlefile": "^2.3.0" }
+	"name": "PROJECT_NAME",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"recharts": "^2.15.3"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^4.3.4",
+		"vite": "^6.0.0",
+		"vite-plugin-singlefile": "^2.3.0"
+	}
 }
 ```
 
 ### vite.config.js
 
 ```javascript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { viteSingleFile } from 'vite-plugin-singlefile'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { viteSingleFile } from "vite-plugin-singlefile";
 
-export default defineConfig({ plugins: [react(), viteSingleFile()] })
+export default defineConfig({ plugins: [react(), viteSingleFile()] });
 ```
 
 ### main.jsx
 
 ```jsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import './App.css'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./App.css";
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 ```
 
 ## Step 3: Build the Slide System
@@ -111,6 +125,7 @@ const SLIDES = [
 ```
 
 Each slide function returns a `<div className="slide-content">` with:
+
 1. An `<h2>` heading
 2. Optional subtitle paragraph
 3. Main content (charts, cards, diagrams, tables)
@@ -124,33 +139,50 @@ Implement keyboard navigation (ArrowRight/Space = next, ArrowLeft = prev) and a 
 
 ```jsx
 function App() {
-  const [cur, setCur] = useState(0);
-  const go = useCallback((d) => setCur(c => Math.max(0, Math.min(SLIDES.length - 1, c + d))), []);
+	const [cur, setCur] = useState(0);
+	const go = useCallback(
+		(d) => setCur((c) => Math.max(0, Math.min(SLIDES.length - 1, c + d))),
+		[],
+	);
 
-  useEffect(() => {
-    const h = (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [go]);
+	useEffect(() => {
+		const h = (e) => {
+			if (e.target.tagName === "INPUT") return;
+			if (e.key === "ArrowRight" || e.key === " ") {
+				e.preventDefault();
+				go(1);
+			}
+			if (e.key === "ArrowLeft") {
+				e.preventDefault();
+				go(-1);
+			}
+		};
+		window.addEventListener("keydown", h);
+		return () => window.removeEventListener("keydown", h);
+	}, [go]);
 
-  return (
-    <>
-      {cur > 0 && <div className="glyph-watermark"><SentryGlyph size={50} /><span className="watermark-title">TITLE</span></div>}
-      <div className="progress" style={{ width: `${((cur + 1) / SLIDES.length) * 100}%` }} />
-      {SLIDES.map((S, i) => (
-        <div key={i} className={`slide ${i === cur ? 'active' : ''}`}>
-          <div className={`slide-content${i === cur ? ' anim' : ''}`}>
-            <S />
-          </div>
-        </div>
-      ))}
-      <Nav cur={cur} total={SLIDES.length} go={go} setCur={setCur} />
-    </>
-  );
+	return (
+		<>
+			{cur > 0 && (
+				<div className="glyph-watermark">
+					<SentryGlyph size={50} />
+					<span className="watermark-title">TITLE</span>
+				</div>
+			)}
+			<div
+				className="progress"
+				style={{ width: `${((cur + 1) / SLIDES.length) * 100}%` }}
+			/>
+			{SLIDES.map((S, i) => (
+				<div key={i} className={`slide ${i === cur ? "active" : ""}`}>
+					<div className={`slide-content${i === cur ? " anim" : ""}`}>
+						<S />
+					</div>
+				</div>
+			))}
+			<Nav cur={cur} total={SLIDES.length} go={go} setCur={setCur} />
+		</>
+	);
 }
 ```
 
@@ -186,23 +218,29 @@ Apply the complete CSS from the design system reference. Key elements:
 ## Step 6: Common Slide Patterns
 
 ### Title Slide
+
 Logo (from `references/sentry-logo.svg` or `references/sentry-glyph.svg`) + h1 + subtitle + author/date info.
 
 ### Problem/Context Slide
+
 Tag + heading + 2-column card grid with icon headers.
 
 ### Data Comparison Slide
+
 Tag + heading + side-by-side charts or before/after comparison table.
 
 ### Technical Deep-Dive Slide
+
 Tag + heading + full-width chart + annotation bullets below.
 
 ### Summary/Decision Slide
+
 Tag + heading + 3-column layout with category headers and bullet lists.
 
 ## Step 7: Iterate and Refine
 
 After initial scaffolding:
+
 1. Run `npm install && npm run dev` to start the dev server
 2. Iterate on chart data models and visual design
 3. Adjust animations, colors, and layout spacing
@@ -211,6 +249,7 @@ After initial scaffolding:
 ## Output Expectations
 
 A working React + Vite project that:
+
 - Renders as a keyboard-navigable slide deck
 - Uses Sentry branding (colors, fonts, icons)
 - Contains Recharts visualizations **only for slides with real quantitative data** from the source content — no fabricated data

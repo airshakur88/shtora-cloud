@@ -19,6 +19,7 @@ Please do not open a public issue. Instead, report security concerns directly to
 - **Subject:** `[Security] Anti-Slop Engineering Vulnerability Report`
 
 Please include:
+
 1. Description of the issue or security bypass pattern.
 2. Steps to reproduce or proof-of-concept diff.
 3. Potential impact or risk evaluation.

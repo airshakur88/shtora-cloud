@@ -1,9 +1,10 @@
 ---
+
 name: mantis-history
 description: >-
-  Analyzes the repository's version control system (VCS) history to extract past vulnerabilities, security fixes, and vulnerability patterns.
-  Use as an initial pre-processing step to build a historical vulnerabilities database (workspace/historical_learnings.jsonl) that informs subsequent stages about past issues and fixes.
-  Don't use for code reviews, writing test scripts, or patching code.
+Analyzes the repository's version control system (VCS) history to extract past vulnerabilities, security fixes, and vulnerability patterns.
+Use as an initial pre-processing step to build a historical vulnerabilities database (workspace/historical_learnings.jsonl) that informs subsequent stages about past issues and fixes.
+Don't use for code reviews, writing test scripts, or patching code.
 ---
 
 # History Analyzer (/mantis-history)
@@ -112,7 +113,6 @@ historical vulnerabilities from the project's version control system (VCS).
 Execute the history analysis stage as follows:
 
 1. **Phase 1: Analyze Codebase and Define Target History:**
-
    - Read existing summaries (e.g. `mantis-summary.md` if available) or quickly
      inspect the root codebase structure to understand the primary files,
      programming languages, and core components.
@@ -122,7 +122,6 @@ Execute the history analysis stage as follows:
      targeted.
 
 2. **Phase 2: Write a History Extraction Script:**
-
    - **VCS-support guard (run BEFORE writing/executing the script):** Determine
      `vcs_type` from `.mantis_state.json` `vcs_info` (or detect it in the LIVE
      root). If `vcs_type` is `none` or `unknown`, OR the VCS history is
@@ -146,7 +145,6 @@ Execute the history analysis stage as follows:
    - **Cost-Efficiency & Scale Optimization:** To ensure the historical analysis
      remains cost-effective and runs efficiently, the script must implement the
      following optimizations:
-
      - **Commit Message/Description Pre-filtering:** Before retrieving diffs,
        the script should dynamically determine relevant keywords for commit
        message screening. It can do this by first inspecting the repository's

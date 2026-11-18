@@ -4,6 +4,7 @@ Verified tool syntax. Flags changed recently in gitleaks and Semgrep; most blog 
 online are stale. Use what is here.
 
 ## Contents
+
 - [Install](#install)
 - [Secret scanning — gitleaks](#secret-scanning--gitleaks)
 - [Secret scanning — TruffleHog](#secret-scanning--trufflehog)
@@ -37,9 +38,9 @@ not a pass — say so.
 ## What Semgrep Community Edition actually does
 
 Worth knowing before you present its output as authoritative. Semgrep's own README
-describes CE as *"suitable for ad-hoc use cases with a high tolerance for false
-positives"* and warns it *"will miss many true positives as it can only analyze code
-within the boundaries of a single function or file."*
+describes CE as _"suitable for ad-hoc use cases with a high tolerance for false
+positives"_ and warns it _"will miss many true positives as it can only analyze code
+within the boundaries of a single function or file."_
 
 Cross-file and cross-function taint analysis is a paid feature. So CE will not follow
 user input from a route handler into a helper module — which is precisely the shape of
@@ -173,11 +174,11 @@ Use `verified,unknown`.
 Measured on SecretBench (818 public repos, 97,479 labelled candidates, 15,084 real
 secrets). These numbers should shape how you present findings:
 
-| Tool | Precision | Recall |
-|---|---|---|
-| gitleaks | 46% | 88% |
-| TruffleHog (unverified mode) | 6% | 52% |
-| GitHub secret scanning | 75% | 6% |
+| Tool                         | Precision | Recall |
+| ---------------------------- | --------- | ------ |
+| gitleaks                     | 46%       | 88%    |
+| TruffleHog (unverified mode) | 6%        | 52%    |
+| GitHub secret scanning       | 75%       | 6%     |
 
 So roughly **half of gitleaks findings are false**, and in unverified mode about
 **94% of TruffleHog findings are**. That is not a reason to skip them — gitleaks has the

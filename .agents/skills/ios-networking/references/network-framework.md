@@ -290,14 +290,14 @@ wifiMonitor.start(queue: .global())
 
 ### Key NWPath Properties
 
-| Property | Description |
-|---|---|
-| `status` | `.satisfied`, `.unsatisfied`, or `.requiresConnection` |
-| `isExpensive` | `true` on cellular or personal hotspot |
-| `isConstrained` | `true` when Low Data Mode is enabled |
-| `availableInterfaces` | Array of available `NWInterface` objects |
-| `supportsDNS` | Whether DNS resolution is available |
-| `supportsIPv4` / `supportsIPv6` | Protocol family support |
+| Property                        | Description                                            |
+| ------------------------------- | ------------------------------------------------------ |
+| `status`                        | `.satisfied`, `.unsatisfied`, or `.requiresConnection` |
+| `isExpensive`                   | `true` on cellular or personal hotspot                 |
+| `isConstrained`                 | `true` when Low Data Mode is enabled                   |
+| `availableInterfaces`           | Array of available `NWInterface` objects               |
+| `supportsDNS`                   | Whether DNS resolution is available                    |
+| `supportsIPv4` / `supportsIPv6` | Protocol family support                                |
 
 ### Adapting Behavior
 
@@ -497,14 +497,14 @@ with async/await via closure-based state handlers.
 
 ### Key Differences from NWConnection
 
-| | `NWConnection` | `NetworkConnection` |
-|---|---|---|
-| **Availability** | iOS 12+ | iOS 26+ |
-| **Type safety** | Untyped protocol stack | Generic `ApplicationProtocol` parameter |
-| **Streams** | Single connection | Built-in QUIC stream multiplexing |
+|                   | `NWConnection`                | `NetworkConnection`                      |
+| ----------------- | ----------------------------- | ---------------------------------------- |
+| **Availability**  | iOS 12+                       | iOS 26+                                  |
+| **Type safety**   | Untyped protocol stack        | Generic `ApplicationProtocol` parameter  |
+| **Streams**       | Single connection             | Built-in QUIC stream multiplexing        |
 | **State updates** | `stateUpdateHandler` callback | `onStateUpdate`, `onPathUpdate` closures |
-| **Wi-Fi Aware** | Not supported | `wifiAware` property |
-| **API style** | Callback-based | Closure-based with `Sendable` support |
+| **Wi-Fi Aware**   | Not supported                 | `wifiAware` property                     |
+| **API style**     | Callback-based                | Closure-based with `Sendable` support    |
 
 ### Basic Usage Shape
 
@@ -580,6 +580,7 @@ func handleInboundStreams(
 
 For new iOS 26+ low-level networking work, evaluate `NetworkConnection` before
 adding new `NWConnection` code:
+
 - It provides stronger type safety through its generic `ApplicationProtocol`.
 - Stream multiplexing is a first-class concept for QUIC.
 - The API is designed for modern Swift with `Sendable` conformance.

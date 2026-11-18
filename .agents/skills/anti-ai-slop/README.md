@@ -8,7 +8,7 @@ AI slop in the UI is **distributional convergence**: models trained on millions 
 
 This skill resists the average. Every default the model wants to reach for is suspect.
 
----- 
+---
 
 ## What this skill does
 
@@ -37,18 +37,18 @@ If a fix doesn't address one of these four, it's cosmetic.
 
 Score each dimension 0–3 (0 = clean, 3 = pure slop):
 
-| # | Dimension |
-|---|-----------|
-| 1 | Visual signature — gradients, glassmorphism, default Tailwind palette |
-| 2 | Typography — single font, no hierarchy, walls of body text |
-| 3 | Hero pattern — centered headline, two buttons, vague subtitle |
-| 4 | Feature blocks — three-card grid with parallel headlines and emoji icons |
-| 5 | Copy register — buzzwords, no numbers, no named entities |
-| 6 | Structural skeleton — generic SaaS page anatomy in default order |
-| 7 | Social proof — fake testimonials, placeholder logos |
-| 8 | State coverage — only happy path, generic spinners |
-| 9 | Specificity — would this design fit any company in any industry? |
-| 10 | Aesthetic commitment — clear direction, or a blend of trends? |
+| #   | Dimension                                                                |
+| --- | ------------------------------------------------------------------------ |
+| 1   | Visual signature — gradients, glassmorphism, default Tailwind palette    |
+| 2   | Typography — single font, no hierarchy, walls of body text               |
+| 3   | Hero pattern — centered headline, two buttons, vague subtitle            |
+| 4   | Feature blocks — three-card grid with parallel headlines and emoji icons |
+| 5   | Copy register — buzzwords, no numbers, no named entities                 |
+| 6   | Structural skeleton — generic SaaS page anatomy in default order         |
+| 7   | Social proof — fake testimonials, placeholder logos                      |
+| 8   | State coverage — only happy path, generic spinners                       |
+| 9   | Specificity — would this design fit any company in any industry?         |
+| 10  | Aesthetic commitment — clear direction, or a blend of trends?            |
 
 **0–7** = strong · **8–15** = workable · **16–23** = slop · **24–30** = pure AI slop
 
@@ -72,16 +72,14 @@ Also triggers automatically before any frontend code generation, even without an
 
 ## How to use this skill
 
-Using this skill is incredibly simple. You do not need any special extensions or plugins. 
+Using this skill is incredibly simple. You do not need any special extensions or plugins.
 
-If you are using the standard Claude.ai web interface, ChatGPT, Cursor, or any other AI tool, simply open the **`SKILL.md`** file in this repository, copy all the text, and paste it directly into your "Project Instructions", "Custom Instructions", or "Rules for AI" or you can also get this file under skills in codebase and tell the LLM to use thus particular skill.
----
+## If you are using the standard Claude.ai web interface, ChatGPT, Cursor, or any other AI tool, simply open the **`SKILL.md`** file in this repository, copy all the text, and paste it directly into your "Project Instructions", "Custom Instructions", or "Rules for AI" or you can also get this file under skills in codebase and tell the LLM to use thus particular skill.
 
 ## The meta-rule
 
 > Before shipping any frontend output, ask: **"What did I do here that another AI wouldn't have done by default?"** If the answer is nothing, restart.
 
-----
-
+---
 
 **Created by Krirox**

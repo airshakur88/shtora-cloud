@@ -1,9 +1,10 @@
 ---
+
 name: mantis-reflect
 description: >-
-  Extracts learnings from execution trajectories at the end of a Mantis loop.
-  Use to parse agent conversations, extract successes, failures, and false assumptions, and append them to workspace/learnings.jsonl.
-  Don't use for analyzing source code or writing patches.
+Extracts learnings from execution trajectories at the end of a Mantis loop.
+Use to parse agent conversations, extract successes, failures, and false assumptions, and append them to workspace/learnings.jsonl.
+Don't use for analyzing source code or writing patches.
 ---
 
 # Reflector (/mantis-reflect)
@@ -129,7 +130,6 @@ distill what went right and what went wrong.
 Execute the reflection stage as follows:
 
 1. **Extract Trajectories (Token Optimization):**
-
    - Do not attempt to read the entire, raw `transcript.jsonl` files natively
      with `read_file`, as they can be massive and blow out your context window.
 
@@ -154,7 +154,6 @@ Execute the reflection stage as follows:
      empty round produces auditable output instead of nothing.
 
 2. **Synthesize Insights:** Review the extracted events. Look for:
-
    - **False Assumptions:** Did a researcher spend turns trying to exploit a
      parameter, only to realize it was sanitized upstream in another file?
    - **Tool Failures:** Did the reproducer fail consistently because of a

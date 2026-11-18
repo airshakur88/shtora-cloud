@@ -16,6 +16,7 @@ mewt print targets    # Check what was actually mutated
 ```
 
 **Look for unintended files:**
+
 - Mocks: `src/mocks/`, `__mocks__/`
 - Tests: `*_test.rs`, `*.test.js`, `tests/`
 - Dependencies: `vendor/`, `node_modules/`
@@ -52,6 +53,7 @@ mewt print mutants --target 'src/utils/**/*.rs' --format ids | wc -l
 ```
 
 Present breakdown to user:
+
 ```
 Component breakdown:
 - src/auth/: 200 mutants × 5s = ~17 min
@@ -80,6 +82,7 @@ mewt print mutants | wc -l
 ```
 
 Example output:
+
 ```
 High/Medium severity: 450 mutants
 Total mutants: 1200
@@ -107,6 +110,7 @@ Based on project structure analysis, present options to user with concrete time 
 - **When to suggest:** Clear component boundaries, user wants rapid iteration
 
 **Implementation:**
+
 ```toml
 [targets]
 # Start with critical component
@@ -118,6 +122,7 @@ include = ["src/auth/**/*.rs"]
 
 After editing `mewt.toml`, purge removed targets then mutate any newly included files:
 Preserve any results that must be retained and confirm that discarding the affected campaign data is authorized before purging.
+
 ```bash
 mewt purge        # removes targets no longer matching [targets].include/ignore
 mewt mutate src/  # adds mutants for any newly included files
@@ -131,12 +136,14 @@ mewt status       # confirm reduced mutant count
 - **When to suggest:** Time-constrained, need actionable findings quickly
 
 **Implementation (by severity level):**
+
 ```toml
 [run]
 mutations = ["ER", "CR", "IF", "IT"]  # Specific types (high/medium)
 ```
 
 After editing `mewt.toml`, full regeneration is required since existing mutants may no longer be valid under the new filter:
+
 ```bash
 mewt purge --all  # clear all existing mutants
 mewt mutate src/  # regenerate with restricted mutation types
@@ -144,6 +151,7 @@ mewt status       # confirm reduced mutant count
 ```
 
 Or use severity filtering during analysis instead (no database changes needed):
+
 ```bash
 # Run all mutants but filter results by severity
 mewt results --severity high,medium
@@ -151,6 +159,7 @@ mewt print mutants --severity high
 ```
 
 **Trade-offs to explain:**
+
 - High/med severity: ~30-40% of mutants (varies by codebase)
 - Low severity: ~60-70% of mutants (operator shuffles, edge cases)
 - Low severity still provides value, just lower priority
@@ -173,11 +182,13 @@ See Two-Phase Campaigns section below for detailed setup.
 ### When to Use
 
 **Good fit:**
+
 - Integration tests dominate runtime
 - Unit tests provide broad coverage but don't map cleanly to specific files
 - Targeted test commands significantly faster than full suite
 
 **Not recommended:**
+
 - Well-organized unit tests with clear file mappings
 - Tests already fast and targeted
 
@@ -219,6 +230,7 @@ test.timeout = 60
 ### Execution
 
 **Phase 1:**
+
 ```bash
 mewt run
 ```
@@ -227,6 +239,7 @@ Wait for completion.
 **Phase 2 (after phase 1 completes):**
 
 1. **Extract uncaught mutants:**
+
    ```bash
    mewt results --status Uncaught --format ids > uncaught_ids.txt
    ```
@@ -236,16 +249,19 @@ Wait for completion.
    - Uncomment Phase 2 `[test]` section
 
 3. **Re-test with full suite:**
+
    ```bash
    mewt test --ids-file uncaught_ids.txt
    ```
 
 4. **Review final results:**
+
    ```bash
    mewt results  # Remaining uncaught are true coverage gaps
    ```
 
 **Example speedup:**
+
 ```
 Naive approach:
   2,000 mutants × 45s = 25 hours
@@ -312,13 +328,16 @@ If targeted tests aren't significantly faster, this optimization won't help.
 ### Trade-offs
 
 **Benefits:**
+
 - Faster campaign execution
 - Scales linearly with codebase size
 
 **Risks:**
+
 - May miss cross-module integration bugs
 - Requires correct glob-to-test mapping
 
 **Mitigation:**
+
 - Use this for initial passes
 - Consider two-phase approach for comprehensive validation

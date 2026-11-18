@@ -18,14 +18,14 @@
 
 ```json
 {
-  "CORSRules": [
-    {
-      "AllowedOrigins": ["*"],
-      "AllowedMethods": ["GET", "HEAD"],
-      "AllowedHeaders": ["Range"],
-      "MaxAgeSeconds": 3600
-    }
-  ]
+	"CORSRules": [
+		{
+			"AllowedOrigins": ["*"],
+			"AllowedMethods": ["GET", "HEAD"],
+			"AllowedHeaders": ["Range"],
+			"MaxAgeSeconds": 3600
+		}
+	]
 }
 ```
 
@@ -35,15 +35,15 @@
 
 ```json
 {
-  "CORSRules": [
-    {
-      "AllowedOrigins": ["https://app.example.com"],
-      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
-      "AllowedHeaders": ["Content-Type", "Content-MD5"],
-      "ExposeHeaders": ["ETag"],
-      "MaxAgeSeconds": 3600
-    }
-  ]
+	"CORSRules": [
+		{
+			"AllowedOrigins": ["https://app.example.com"],
+			"AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+			"AllowedHeaders": ["Content-Type", "Content-MD5"],
+			"ExposeHeaders": ["ETag"],
+			"MaxAgeSeconds": 3600
+		}
+	]
 }
 ```
 
@@ -53,15 +53,15 @@
 
 ```json
 {
-  "CORSRules": [
-    {
-      "AllowedOrigins": ["http://localhost:3000", "http://localhost:5173"],
-      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
-      "AllowedHeaders": ["*"],
-      "ExposeHeaders": ["ETag"],
-      "MaxAgeSeconds": 3600
-    }
-  ]
+	"CORSRules": [
+		{
+			"AllowedOrigins": ["http://localhost:3000", "http://localhost:5173"],
+			"AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+			"AllowedHeaders": ["*"],
+			"ExposeHeaders": ["ETag"],
+			"MaxAgeSeconds": 3600
+		}
+	]
 }
 ```
 
@@ -76,6 +76,7 @@
 **Cause**: CORS not configured or origin not allowed.
 
 **Solution**:
+
 1. Add origin to `AllowedOrigins` in bucket CORS policy
 2. Verify method is in `AllowedMethods`
 3. For `*` origin, ensure credentials mode is not 'include'

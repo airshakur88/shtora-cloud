@@ -1,9 +1,10 @@
 ---
+
 name: mantis-meta-agent
 description: >-
-  Acts as the persistent supervisor, launching and monitoring the automated review campaign.
-  Use when running a long-running, continuous security review campaign that needs autonomous coordination.
-  Don't use for executing individual review stages directly.
+Acts as the persistent supervisor, launching and monitoring the automated review campaign.
+Use when running a long-running, continuous security review campaign that needs autonomous coordination.
+Don't use for executing individual review stages directly.
 ---
 
 # Meta-Agent Orchestrator (/mantis-meta-agent)
@@ -126,7 +127,6 @@ Execute your orchestration duties in a continuous loop:
 
 1. **Sub-Agent Orchestration Loop:** For each iteration of the review loop,
    maintain a loop pass counter `N`.
-
    - **Initialization / Startup:** Read `N` from `"pass_number"` in
      `workspace/.mantis_state.json`. If missing or invalid, scan
      `workspace/archive/` for folders matching `findings_pass_N` or
@@ -151,11 +151,9 @@ Execute your orchestration duties in a continuous loop:
      pass. Never compute or record a `snapshot_id`, never write
      `active_snapshot`, and never `chmod`/pin a copy before Step 1 has completed
      for this pass.
-
      1. **SYNC (must be the very first action of the pass; `--sync` only).**
         First, **pre-sync backup hygiene** — remove stale `*.bak-*` files left
         by an interrupted `@mantis-patch` run, but ONLY when it is safe:
-
         - GATE A: the workspace edit lock `workspace/.workspace_edit.lock` must
           be FREE (no patch in flight). If it is held or cannot be acquired
           non-blocking, SKIP deletion and proceed to sync (Block C STEP 0 hides
@@ -178,7 +176,7 @@ Execute your orchestration duties in a continuous loop:
 
         SYNC (very first action of the pass; ONLY if a sync was requested; NEVER
         mid-pass): STEP 0 - HIDE MANTIS ARTIFACTS from dirtiness:
-        mantis-summary.md, *.bak-*, workspace/, .mantis_snapshots/ MUST be
+        mantis-summary.md, _.bak-_, workspace/, .mantis_snapshots/ MUST be
         invisible to every dirty check. Delete stray `mantis-summary.md` and
         UUID-shaped `*.bak-<uuid>` files at the LIVE root first (same narrow
         glob as the SCOPE rule above — never the broad `*.bak-*` glob for
@@ -219,7 +217,6 @@ Execute your orchestration duties in a continuous loop:
         LIVE repository root (Block A step 5 VCS-metadata carve-out —
         history/diff/VCS commands run in the live root, never inside a pinned
         CODE_ROOT):
-
         1. Check for Git: run `git rev-parse --is-inside-work-tree`. If this
            command succeeds (returns exit code 0 and output is `true`), a Git
            repository is active. Set `vcs_type` to `"git"` and extract:
@@ -266,7 +263,6 @@ Execute your orchestration duties in a continuous loop:
         possibly-drifted live tree). If reusing, skip steps 1–4 and go straight
         to step 5 (state write; the `snapshot_history` append inside Step 5 is
         itself idempotent — see Step 5).
-
         1. Detect vcs_info (existing meta-agent detection). VCS_ID = commit_hash
            (git/hg) / manifest revision (multi-vcs) / "" (else).
         2. FREE-SPACE PRECHECK: if a full copy is needed, compare `du -s` of the
@@ -281,7 +277,7 @@ Execute your orchestration duties in a continuous loop:
              \<state_root>/.mantis_snapshots/pass\_\<N> (MUST NOT contain the
              path segment "/workspace/"). Copy EXCLUDING .git .hg .repo .svn CVS
              nested submodule VCS dirs, workspace/, .mantis_snapshots/,
-             mantis-summary.md, and *.bak-* (same hide-list as STEP 0, so a
+             mantis-summary.md, and _.bak-_ (same hide-list as STEP 0, so a
              colocated state_root cannot cause recursive self-copy); dereference
              symlinks pointing INSIDE the tree; DROP symlinks pointing outside;
              smudge LFS content if the analysis needs it. If `state_root` itself
@@ -342,7 +338,6 @@ Execute your orchestration duties in a continuous loop:
 
      4. **RECORD (only after Steps 1–3).** Update `workspace/.mantis_state.json`
         (conforming to `schema.json` `#/$defs/state`):
-
         - Write `"vcs_info"` from Step 2 (always, both modes).
         - If `--sync` was requested this pass: write `"active_snapshot"` =
           `{ "root": <root>, "snapshot_id": <SNAPSHOT_ID>, "snapshot_pinned": <true if pinned, false if HALT>, "pass": <N>, "vcs_type": <vcs_type> }`.
@@ -512,7 +507,6 @@ Execute your orchestration duties in a continuous loop:
      reproduced findings, evidence, and patches.
 
    - **Stage 15 (Archive & KB Verification):**
-
      1. **Call the `@mantis-architecture` subagent** to perform a final
         synthesis of the current round's findings (especially
         `"FALSE_POSITIVE"`, `"NON_VIABLE"`, `"SAMPLE_OR_TEST"`, and
@@ -555,7 +549,6 @@ Execute your orchestration duties in a continuous loop:
            keys would strand `@mantis-plan` with no PREV reference.
 
 2. **Intelligent Supervision & Error Handling:**
-
    - Wait for each subagent to finish its execution and report back.
    - After a subagent returns control to you, optionally use your file reading
      tools to quickly inspect the resulting JSON files (e.g., in
@@ -570,7 +563,6 @@ Execute your orchestration duties in a continuous loop:
    security flaw or verifies a patch (reported by the `@mantis-patch` subagent),
    or when `@mantis-calibrate` finishes its scoring, you may output a brief text
    summary to the user.
-
    - **Do NOT report findings that failed to reproduce
      (`repro_status: "failed_to_reproduce"`) as confirmed vulnerabilities.**
    - **Do NOT report findings that are marked `LOW` priority or are `NON_VIABLE`
@@ -584,7 +576,6 @@ Execute your orchestration duties in a continuous loop:
    ask for progress updates, collaboratively debug environmental issues, or
    provide high-level strategic guidance (e.g., "Focus exclusively on the
    networking stack in the next pass").
-
    - Adapt the instructions you give to your subagents based on recent user
      feedback.
    - You can use your subagent delegation tools to perform "Deep Dives" on

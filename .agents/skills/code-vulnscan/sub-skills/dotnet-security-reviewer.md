@@ -12,16 +12,16 @@ Find exploitable .NET application flaws that API-name matching misses: endpoint 
 
 Inventory the effective framework, target frameworks, hosting model, and middleware before tracing findings.
 
-| Stack | Entry points and security signals |
-|---|---|
-| ASP.NET Core MVC / API | `[ApiController]`, `[Controller]`, `[Route]`, `[Http*]`, conventional routes, endpoint metadata, filters, model binders, formatters |
-| Minimal APIs | `MapGet`/`MapPost`/`MapMethods`, route groups, endpoint filters, `.RequireAuthorization()`, `.AllowAnonymous()`, parameter binding and `AsParameters` |
-| Razor Pages / MVC views | `PageModel`, `OnGet*`/`OnPost*`, `[BindProperty]`, handlers, tag helpers, `Html.Raw`, partials, antiforgery, view imports |
-| Blazor Server / WebAssembly | routable components, `[Parameter]`, `[SupplyParameterFromQuery]`, `MarkupString`, JS interop, circuits, prerendering, API authorization |
-| EF Core / Dapper / ADO.NET | `DbContext`, query filters, raw SQL, interpolated SQL, command parameters, bulk operations, tenancy and concurrency tokens |
-| Authentication | Identity, cookies, JWT bearer, OpenID Connect, OAuth, Microsoft.Identity.Web, policy/role/claim handlers, Data Protection |
-| Realtime / RPC / functions | SignalR hubs, gRPC services, Azure Functions triggers/bindings, webhooks, queues, scheduled functions |
-| Background work | `BackgroundService`, hosted services, Hangfire, Quartz.NET, Channels, MassTransit, NServiceBus, Kafka/Rabbit consumers |
+| Stack                       | Entry points and security signals                                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ASP.NET Core MVC / API      | `[ApiController]`, `[Controller]`, `[Route]`, `[Http*]`, conventional routes, endpoint metadata, filters, model binders, formatters                   |
+| Minimal APIs                | `MapGet`/`MapPost`/`MapMethods`, route groups, endpoint filters, `.RequireAuthorization()`, `.AllowAnonymous()`, parameter binding and `AsParameters` |
+| Razor Pages / MVC views     | `PageModel`, `OnGet*`/`OnPost*`, `[BindProperty]`, handlers, tag helpers, `Html.Raw`, partials, antiforgery, view imports                             |
+| Blazor Server / WebAssembly | routable components, `[Parameter]`, `[SupplyParameterFromQuery]`, `MarkupString`, JS interop, circuits, prerendering, API authorization               |
+| EF Core / Dapper / ADO.NET  | `DbContext`, query filters, raw SQL, interpolated SQL, command parameters, bulk operations, tenancy and concurrency tokens                            |
+| Authentication              | Identity, cookies, JWT bearer, OpenID Connect, OAuth, Microsoft.Identity.Web, policy/role/claim handlers, Data Protection                             |
+| Realtime / RPC / functions  | SignalR hubs, gRPC services, Azure Functions triggers/bindings, webhooks, queues, scheduled functions                                                 |
+| Background work             | `BackgroundService`, hosted services, Hangfire, Quartz.NET, Channels, MassTransit, NServiceBus, Kafka/Rabbit consumers                                |
 
 Inspect `.csproj`, `Directory.Packages.props`, lock/assets files, `Program.cs`, `Startup.cs`, middleware and endpoint registration, `appsettings*.json`, launch profiles, environment variables, `web.config`, Razor files, EF migrations, Identity configuration, Data Protection key storage, reverse-proxy settings, Docker/Kubernetes/IIS configuration, and cloud-function metadata. Environment-specific configuration is part of the effective code path.
 

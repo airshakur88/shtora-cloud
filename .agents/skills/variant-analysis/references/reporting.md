@@ -17,10 +17,10 @@ place:
 
 ## The Methodology Table
 
-| Version | Pattern | Tool | Matches | TP | FP |
-|---------|---------|------|---------|----|----|
-| v1 | exact | ripgrep | 1 | 1 | 0 |
-| v2 | abstract | semgrep | N | N | N |
+| Version | Pattern  | Tool    | Matches | TP  | FP  |
+| ------- | -------- | ------- | ------- | --- | --- |
+| v1      | exact    | ripgrep | 1       | 1   | 0   |
+| v2      | abstract | semgrep | N       | N   | N   |
 
 This table makes the hunt reproducible. It records which abstractions worked, which
 produced noise, and where the search stopped.

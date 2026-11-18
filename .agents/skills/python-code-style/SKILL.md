@@ -1,4 +1,5 @@
 ---
+
 name: python-code-style
 description: Python code style, linting, formatting, naming conventions, and documentation standards. Use when writing new code, reviewing style, configuring linters, writing docstrings, or establishing project standards.
 ---
@@ -337,12 +338,15 @@ pytest
 ## [Unreleased]
 
 ### Added
+
 - New feature X
 
 ### Changed
+
 - Modified behavior of Y
 
 ### Fixed
+
 - Bug in Z
 ```
 

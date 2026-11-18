@@ -1,4 +1,5 @@
 ---
+
 name: code-patterns
 description: Reference guide for detecting AI slop patterns in code including generic variable names, obvious comments, and unnecessary abstractions. Use as reference when reviewing code quality.
 ---
@@ -8,6 +9,7 @@ description: Reference guide for detecting AI slop patterns in code including ge
 This reference documents common "AI slop" patterns in code that indicate low-quality, AI-generated content that should be cleaned up.
 
 ## Table of Contents
+
 - Naming Antipatterns
 - Comment Antipatterns
 - Structure Antipatterns
@@ -17,16 +19,19 @@ This reference documents common "AI slop" patterns in code that indicate low-qua
 ## Naming Antipatterns
 
 ### Overly Generic Names
+
 **Bad:** `data`, `result`, `temp`, `value`, `item`, `thing`, `obj`, `info`
 
 These names appear frequently in AI-generated code and provide no semantic meaning.
 
 **Better:** Name things after what they represent:
+
 - `userData` → `currentUser`, `userProfile`, `activeSession`
 - `result` → `parsedDocument`, `sortedItems`, `validationError`
 - `temp` → `formattedDate`, `normalizedInput`, `previousValue`
 
 ### Unnecessarily Verbose Names
+
 **Bad:** `getUserDataFromDatabaseByUserIdAndReturnResult()`, `calculateTotalSumOfAllItemPricesInCart()`
 
 **Better:** `getUser(userId)`, `calculateCartTotal()`
@@ -34,7 +39,9 @@ These names appear frequently in AI-generated code and provide no semantic meani
 The function signature and context provide enough information.
 
 ### Generic Placeholder Patterns
+
 Watch for repeated use of:
+
 - `foo`, `bar`, `baz` in production code
 - `test1`, `test2`, `test3` as function names
 - `MyClass`, `MyFunction`, `MyVariable` prefixes
@@ -43,6 +50,7 @@ Watch for repeated use of:
 ## Comment Antipatterns
 
 ### Obvious Comments
+
 Comments that restate what the code clearly does:
 
 ```python
@@ -64,6 +72,7 @@ for item in items:
 **Rule:** If the code is self-documenting, delete the comment.
 
 ### Generic TODO Comments
+
 ```python
 # Bad
 # TODO: Implement this function
@@ -79,6 +88,7 @@ for item in items:
 Include WHO should do it, WHAT specifically, and WHY if not obvious.
 
 ### Over-Explained Simple Logic
+
 ```python
 # Bad
 # Check if the user is authenticated by examining the session token
@@ -91,6 +101,7 @@ if session.token in valid_tokens:
 **Better:** Just write clear code, or if truly complex, explain the business rule, not the syntax.
 
 ### Comment Blocks That Announce Sections
+
 ```python
 # Bad
 ########################################
@@ -107,6 +118,7 @@ if session.token in valid_tokens:
 ## Structure Antipatterns
 
 ### Unnecessary Abstraction Layers
+
 ```python
 # Bad - AI-generated overengineering
 class UserManagerFactory:
@@ -129,7 +141,9 @@ def get_user(user_id):
 **Rule:** Don't add abstraction layers until you need them. YAGNI.
 
 ### Over-Use of Design Patterns
+
 Not everything needs to be:
+
 - Factory Pattern
 - Singleton Pattern
 - Observer Pattern
@@ -139,6 +153,7 @@ Not everything needs to be:
 Use patterns when they solve real problems, not because you learned about them.
 
 ### Generic Error Handling
+
 ```python
 # Bad
 try:
@@ -151,6 +166,7 @@ except Exception as e:
 **Better:** Catch specific exceptions and handle them appropriately.
 
 ### Empty Catch Blocks
+
 ```python
 # Bad
 try:
@@ -164,6 +180,7 @@ This is nearly always wrong. If you truly need to ignore an exception, explain w
 ## Implementation Antipatterns
 
 ### Unnecessarily Complex Implementations
+
 ```python
 # Bad - AI overthinking simple tasks
 def is_even(n):
@@ -176,6 +193,7 @@ def is_even(n):
 ```
 
 ### Premature Optimization
+
 ```python
 # Bad - optimizing before profiling
 # Using bit manipulation for "performance"
@@ -190,7 +208,9 @@ def multiply_by_two(n):
 **Rule:** Clear code first, then optimize based on profiling data.
 
 ### Copy-Paste Code Blocks
+
 Watch for:
+
 - Similar functions with slight variations
 - Repeated conditional logic
 - Duplicated error handling
@@ -198,6 +218,7 @@ Watch for:
 **Better:** Extract common logic into shared functions.
 
 ### Magic Numbers Without Explanation
+
 ```python
 # Bad
 if len(input) > 255:
@@ -212,6 +233,7 @@ if len(input) > MAX_INPUT_LENGTH:
 ## Documentation Antipatterns
 
 ### Generic Docstrings
+
 ```python
 # Bad
 def process_data(data):
@@ -229,7 +251,9 @@ def process_data(data):
 This adds zero information. Either document properly or don't document at all.
 
 ### README Boilerplate
+
 Watch for:
+
 - "This project aims to..."
 - "Welcome to our amazing project!"
 - Generic installation instructions that don't match the actual project
@@ -237,6 +261,7 @@ Watch for:
 - Excessive emoji and "inspirational" quotes
 
 ### Over-Documented Internal APIs
+
 Not everything needs exhaustive documentation:
 
 ```python
@@ -288,18 +313,21 @@ def _format_date(date_obj):
 ## Language-Specific Slop
 
 ### Python
+
 - Unnecessary use of `lambda` when a function would be clearer
 - List comprehensions when a simple loop would be more readable
 - Overuse of `*args, **kwargs` without clear need
 - Generic exception catching: `except Exception:`
 
 ### JavaScript/TypeScript
+
 - Unnecessary use of arrow functions everywhere
 - Over-chaining array methods for simple operations
 - Generic `any` types in TypeScript
 - Excessive use of ternary operators for complex logic
 
 ### Java
+
 - Excessive getter/setter boilerplate for simple data holders
 - Unnecessary use of interfaces with single implementations
 - Generic `Object` types instead of generics
@@ -308,6 +336,7 @@ def _format_date(date_obj):
 ## Detection Signals
 
 ### High-Confidence Slop Indicators
+
 1. Variable named `result` that holds different types
 2. Functions with generic verbs: `handleData`, `processInfo`, `manageItems`
 3. Comments that explain syntax rather than intent
@@ -315,6 +344,7 @@ def _format_date(date_obj):
 5. Consistent over-engineering across codebase
 
 ### Medium-Confidence Indicators
+
 1. Very long function/variable names that include the full context
 2. Excessive defensive programming (checking for impossible conditions)
 3. Empty or minimal implementations with "TODO" comments
@@ -323,18 +353,21 @@ def _format_date(date_obj):
 ## Cleanup Strategies
 
 ### Immediate Actions
+
 1. Delete obvious comments
 2. Rename generic variables in their immediate scope
 3. Remove empty catch blocks or add proper handling
 4. Delete unused imports and functions
 
 ### Refactoring
+
 1. Extract repeated code into functions
 2. Simplify complex conditionals
 3. Remove unnecessary abstraction layers
 4. Replace generic names with domain-specific names
 
 ### Testing-Required Changes
+
 1. Removing error handling (ensure safe to remove)
 2. Simplifying algorithms (verify behavior matches)
 3. Removing "defensive" null checks (ensure they're truly unnecessary)

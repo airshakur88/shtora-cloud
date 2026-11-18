@@ -13,7 +13,7 @@
 
 Inspect applicable issues: input validation at trust boundaries; auth vs authorization; tenant isolation; SSRF; SQL/NoSQL/OS injection; XSS and unsafe DOM sinks; path traversal; file upload handling; deserialization; insecure randomness or cryptography; rate limits; replay; secrets in client code; token handling; CORS + credentials combinations; CSRF according to auth mode; supply-chain integrity.
 
-A wildcard CORS response is not *automatically* a vulnerability on a deliberately public unauthenticated resource; credentials and allowed methods/origins matter. Never call a regex match an exploit without checking context.
+A wildcard CORS response is not _automatically_ a vulnerability on a deliberately public unauthenticated resource; credentials and allowed methods/origins matter. Never call a regex match an exploit without checking context.
 
 ## Operational / agent-specific failures
 

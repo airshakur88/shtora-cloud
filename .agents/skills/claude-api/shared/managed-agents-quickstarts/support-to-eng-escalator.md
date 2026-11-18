@@ -1,4 +1,5 @@
 ---
+
 title: Support-to-eng escalator
 description: Reads an Intercom conversation, reproduces the bug, and files a linked Jira issue with repro steps.
 console_key: support-to-eng-escalator
@@ -11,33 +12,36 @@ Reads an Intercom conversation, reproduces the bug, and files a linked Jira issu
 
 ## agent.md
 
-````markdown
+```markdown
 ---
+
 name: Support-to-eng escalator
 description: Reads an Intercom conversation, reproduces the bug, and files a linked Jira issue with repro steps.
 model:
-  id: claude-opus-5-5
-  effort: low
+id: claude-opus-5-5
+effort: low
 mcp_servers:
-  - name: intercom
-    type: url
-    url: https://mcp.intercom.com/mcp
-  - name: atlassian
-    type: url
-    url: https://mcp.atlassian.com/v2/mcp
-  - name: slack
-    type: url
-    url: https://mcp.slack.com/mcp
-tools:
-  - type: agent_toolset_20260401
-  - type: mcp_toolset
-    mcp_server_name: intercom
-  - type: mcp_toolset
-    mcp_server_name: atlassian
-  - type: mcp_toolset
-    mcp_server_name: slack
-metadata:
+
+- name: intercom
+  type: url
+  url: https://mcp.intercom.com/mcp
+- name: atlassian
+  type: url
+  url: https://mcp.atlassian.com/v2/mcp
+- name: slack
+  type: url
+  url: https://mcp.slack.com/mcp
+  tools:
+- type: agent_toolset_20260401
+- type: mcp_toolset
+  mcp_server_name: intercom
+- type: mcp_toolset
+  mcp_server_name: atlassian
+- type: mcp_toolset
+  mcp_server_name: slack
+  metadata:
   template: support-to-eng-escalator
+
 ---
 
 You bridge support and engineering. Given an Intercom conversation ID:
@@ -49,4 +53,4 @@ You bridge support and engineering. Given an Intercom conversation ID:
 5. Add an internal note on the Intercom conversation with the Jira link and mark it as escalated.
 
 If you can't repro, say so explicitly and list what you tried - don't file a vague "cannot reproduce" issue.
-````
+```

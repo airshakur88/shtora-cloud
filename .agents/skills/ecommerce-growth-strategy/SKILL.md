@@ -1,10 +1,11 @@
 ---
+
 name: ecommerce-growth-strategy
 description: "E-commerce growth strategy advisor. Diagnoses current business health using unit economics (CAC, LTV, AOV, contribution margin), identifies the highest-impact growth opportunities across 5 levers (traffic, conversion, AOV, retention, expansion), and builds a prioritized 90-day growth roadmap. Uses the Ansoff Matrix adapted for e-commerce to evaluate market penetration, channel expansion, product expansion, and new market entry. Includes multichannel readiness assessment (Amazon, Walmart, TikTok Shop, Etsy, DTC/Shopify/Shopify) and product line expansion analysis. No API key required. Use when: (1) planning next phase of e-commerce growth, (2) deciding whether to expand to new channels or products, (3) diagnosing why growth has stalled, (4) prioritizing what to fix or build next."
 metadata:
-  nexscope:
-    emoji: "🚀"
-    category: ecommerce
+nexscope:
+emoji: "🚀"
+category: ecommerce
 ---
 
 # E-Commerce Growth Strategy 🚀
@@ -62,6 +63,7 @@ subscribers and 5K Instagram followers. What's my best path to $10K/month?
 ## How This Skill Works
 
 **Step 1: Collect information.** Extract from the user's initial message:
+
 - Product / category
 - Current sales platform(s)
 - Current monthly revenue (or stage)
@@ -129,6 +131,7 @@ Reply like: "1c 2f 3abd 4e 5c 6 AOV $35, margin 60%, repeat 15%, list 2000, visi
 **Step 3: Diagnose current state.** Using the numbers provided (or estimating with ⚠️ where missing):
 
 Calculate and present:
+
 - **Unit Economics Health Check:**
   - CAC (if calculable from budget + new customers)
   - LTV = AOV × Purchase Frequency × Customer Lifespan × Gross Margin
@@ -138,29 +141,30 @@ Calculate and present:
 
 - **The Growth Equation:**
   Revenue = Traffic × Conversion Rate × AOV × Purchase Frequency
-  
+
   Show which variable has the biggest room for improvement based on their numbers vs benchmarks. A 20% improvement in conversion is often worth more than a 20% increase in traffic.
 
 **Step 4: Map growth opportunities.** Using the E-Commerce Ansoff Matrix:
 
-| | Existing Products | New Products |
-|---|---|---|
+|                      | Existing Products                                                       | New Products                                                           |
+| -------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **Existing Markets** | 🟢 **Penetrate** (optimize conversion, increase AOV, improve retention) | 🟡 **Product Expansion** (adjacent categories, bundles, subscriptions) |
-| **New Markets** | 🟡 **Channel Expansion** (new platforms, new countries) | 🔴 **Diversification** (new products in new markets — highest risk) |
+| **New Markets**      | 🟡 **Channel Expansion** (new platforms, new countries)                 | 🔴 **Diversification** (new products in new markets — highest risk)    |
 
 For each quadrant, identify 2-3 specific opportunities based on their business. Then rank every opportunity on a **Growth Opportunity Matrix**:
 
-| Opportunity | Impact (1-5) | Effort (1-5) | Priority |
-|-------------|:---:|:---:|:---:|
-| e.g., Add email abandoned cart flow | 5 | 2 | 🔴 High |
-| e.g., Expand to Amazon | 4 | 4 | 🟡 Medium |
-| e.g., Launch subscription model | 3 | 5 | 🟢 Low |
+| Opportunity                         | Impact (1-5) | Effort (1-5) | Priority  |
+| ----------------------------------- | :----------: | :----------: | :-------: |
+| e.g., Add email abandoned cart flow |      5       |      2       |  🔴 High  |
+| e.g., Expand to Amazon              |      4       |      4       | 🟡 Medium |
+| e.g., Launch subscription model     |      3       |      5       |  🟢 Low   |
 
 Priority = High Impact + Low Effort first. Always.
 
 **Step 5: Analyze each priority opportunity in detail.**
 
 For each High and Medium priority opportunity, provide:
+
 - What it is and why it matters for this business
 - Specific tactics to execute
 - Expected impact (revenue, conversion, AOV improvement)
@@ -171,11 +175,13 @@ For each High and Medium priority opportunity, provide:
 **Step 6: Build the 90-day growth roadmap.**
 
 Break into 3 phases:
+
 - **Days 1-30: Foundation** — fix what's broken, capture quick wins
-- **Days 31-60: Build** — implement medium-effort, high-impact initiatives  
+- **Days 31-60: Build** — implement medium-effort, high-impact initiatives
 - **Days 61-90: Scale** — double down on what's working, launch expansion experiments
 
 Each phase has:
+
 - Specific actions with deadlines
 - Milestones to hit
 - KPIs to track
@@ -192,9 +198,11 @@ Define targets for each key metric based on their current baseline + realistic i
 Every e-commerce business grows through the same 5 levers. The question is which lever gives you the biggest return right now.
 
 ### Lever 1: Traffic / Acquisition
+
 **What:** Get more potential buyers to your store
 **When to prioritize:** Conversion rate is already decent (>2%) but visitor count is low
 **Tactics:**
+
 - SEO / content marketing (highest ROI long-term, 3-6 months to see results)
 - Paid ads — Google Shopping, Meta, TikTok (immediate but costs money)
 - Influencer/affiliate partnerships
@@ -202,12 +210,14 @@ Every e-commerce business grows through the same 5 levers. The question is which
 - Marketplace expansion (Amazon, Walmart = built-in traffic)
 
 **Key metric:** Cost per visitor, CAC by channel
-**Benchmark:** Average ecommerce CAC varies by category — beauty $20-60, apparel $30-80, food $15-50, supplements $40-100, home goods $30-70 *(Finsi.ai 2026)*
+**Benchmark:** Average ecommerce CAC varies by category — beauty $20-60, apparel $30-80, food $15-50, supplements $40-100, home goods $30-70 _(Finsi.ai 2026)_
 
 ### Lever 2: Conversion Rate Optimization (CRO)
+
 **What:** Turn more visitors into buyers
 **When to prioritize:** Getting traffic but conversion is below benchmark
 **Tactics:**
+
 - Fix mobile experience (60%+ of traffic is mobile)
 - Simplify checkout (guest checkout, fewer steps)
 - Add social proof (reviews, UGC, trust badges)
@@ -219,9 +229,11 @@ Every e-commerce business grows through the same 5 levers. The question is which
 **Benchmarks:** Average ecommerce conversion rate ~1.5-3% depending on source. By device: desktop ~2.8%, mobile ~2.8%. By traffic source: email 5.3%, organic search 2.8%, paid search 1.9%, social <1% *(Red Stag Fulfillment 2026, Smart Insights 2025)*
 
 ### Lever 3: Average Order Value (AOV)
+
 **What:** Get each buyer to spend more per transaction
 **When to prioritize:** Good traffic + good conversion, but revenue feels low relative to order volume
 **Tactics:**
+
 - Bundling and kits
 - Free shipping threshold (set 20-30% above current AOV)
 - Upsells and cross-sells (on product page, in cart, post-purchase)
@@ -232,9 +244,11 @@ Every e-commerce business grows through the same 5 levers. The question is which
 **Impact:** A 15% increase in AOV with same traffic = 15% more revenue at zero acquisition cost
 
 ### Lever 4: Retention / Purchase Frequency
+
 **What:** Get existing customers to buy again (and again)
 **When to prioritize:** You're acquiring customers but they buy once and disappear
 **Tactics:**
+
 - Email marketing automation (welcome, post-purchase, win-back flows)
 - Loyalty/rewards program
 - Subscription model (for consumables)
@@ -243,16 +257,19 @@ Every e-commerce business grows through the same 5 levers. The question is which
 - Community building (social, UGC, exclusive groups)
 
 **Key metrics:** Repeat purchase rate, purchase frequency, customer lifespan
-**Benchmarks:** 
-- Acquiring a new customer costs 5-25× more than retaining one *(Harvard Business Review)*
-- 5% increase in retention → 25-95% more profit *(HBR)*
-- Existing customers are 50% more likely to try new products, spend 31% more *(Forbes)*
-- Average ecommerce repeat purchase rate: ~28% *(Omnisend)*
+**Benchmarks:**
+
+- Acquiring a new customer costs 5-25× more than retaining one _(Harvard Business Review)_
+- 5% increase in retention → 25-95% more profit _(HBR)_
+- Existing customers are 50% more likely to try new products, spend 31% more _(Forbes)_
+- Average ecommerce repeat purchase rate: ~28% _(Omnisend)_
 
 ### Lever 5: Expansion (Channels, Products, Markets)
+
 **What:** Grow beyond current boundaries
 **When to prioritize:** Current channel/product is profitable and operationally stable. Don't expand from a broken base
 **Types:**
+
 - **Channel expansion:** Shopify → Amazon, Amazon → Walmart, any → TikTok Shop
 - **Product expansion:** Adjacent categories, variations, bundles, subscriptions
 - **Market expansion:** US → EU, US → UK, domestic → international
@@ -266,6 +283,7 @@ Every e-commerce business grows through the same 5 levers. The question is which
 When a user asks about expanding to a new channel, evaluate readiness:
 
 ### Readiness Checklist (must be YES on all before expanding)
+
 - [ ] Current channel is profitable (positive contribution margin)
 - [ ] Operations can handle +30% order volume without breaking
 - [ ] Have systems for inventory sync across channels
@@ -274,18 +292,19 @@ When a user asks about expanding to a new channel, evaluate readiness:
 
 ### Channel-Specific Assessment
 
-| Channel | Best For | Audience | Fees | Key Requirement |
-|---------|---------|---------|------|-----------------|
-| **Amazon** | Established products with search demand | Broadest reach, high purchase intent | 15% referral + FBA fees | Competitive pricing, strong reviews |
-| **Walmart** | Brands already on Amazon, price-competitive | Growing, value-conscious | 6-20% referral | Brand registry, competitive pricing |
-| **TikTok Shop** | Visual, demonstrable products targeting 18-34 | Young, impulse buyers | 5% + shipping | Video content capability, trend-aware |
-| **Etsy** | Handmade, vintage, unique, customizable | Niche buyers willing to pay premium | 6.5% transaction + listing | Unique/artisan positioning |
-| **Own Website (DTC/Shopify)** | Brand control, customer data ownership | Your audience | Platform fees only (~2-3%) | Marketing capability to drive traffic |
-| **eBay** | Clearance, refurbished, collectibles, niche | Bargain hunters, collectors | ~13% final value | Competitive pricing, good seller rating |
+| Channel                       | Best For                                      | Audience                             | Fees                       | Key Requirement                         |
+| ----------------------------- | --------------------------------------------- | ------------------------------------ | -------------------------- | --------------------------------------- |
+| **Amazon**                    | Established products with search demand       | Broadest reach, high purchase intent | 15% referral + FBA fees    | Competitive pricing, strong reviews     |
+| **Walmart**                   | Brands already on Amazon, price-competitive   | Growing, value-conscious             | 6-20% referral             | Brand registry, competitive pricing     |
+| **TikTok Shop**               | Visual, demonstrable products targeting 18-34 | Young, impulse buyers                | 5% + shipping              | Video content capability, trend-aware   |
+| **Etsy**                      | Handmade, vintage, unique, customizable       | Niche buyers willing to pay premium  | 6.5% transaction + listing | Unique/artisan positioning              |
+| **Own Website (DTC/Shopify)** | Brand control, customer data ownership        | Your audience                        | Platform fees only (~2-3%) | Marketing capability to drive traffic   |
+| **eBay**                      | Clearance, refurbished, collectibles, niche   | Bargain hunters, collectors          | ~13% final value           | Competitive pricing, good seller rating |
 
 ### Expansion Priority by Current Platform
 
 **If currently on Shopify/DTC:**
+
 1. Amazon (if product has search demand) — instant access to high-intent traffic
 2. TikTok Shop (if product is visual) — low fees, organic viral potential
 3. Etsy (if product is unique/handmade) — niche premium audience
@@ -293,6 +312,7 @@ When a user asks about expanding to a new channel, evaluate readiness:
 5. eBay — good for clearance, niche, or collectible products
 
 **If currently on Amazon:**
+
 1. Own website (DTC/Shopify) — own your customer data and email list
 2. Walmart — similar catalog, growing marketplace, lower competition
 3. TikTok Shop — diversify beyond search-based channels
@@ -300,6 +320,7 @@ When a user asks about expanding to a new channel, evaluate readiness:
 5. Etsy — only if product is unique/handmade/customizable
 
 **If currently on Etsy:**
+
 1. Own website (DTC/Shopify) — capture email, build brand outside Etsy
 2. Amazon Handmade — if product fits, much larger audience
 3. TikTok Shop — visual/handmade products do well organically
@@ -307,6 +328,7 @@ When a user asks about expanding to a new channel, evaluate readiness:
 5. Walmart — only if you can scale production for mass market
 
 **If currently on Walmart:**
+
 1. Amazon — if not already there, much larger traffic
 2. Own website (DTC/Shopify) — build brand, own customer data
 3. TikTok Shop — younger audience, viral potential
@@ -314,6 +336,7 @@ When a user asks about expanding to a new channel, evaluate readiness:
 5. Etsy — only if product has handmade/unique angle
 
 **If currently on TikTok Shop:**
+
 1. Own website (DTC/Shopify) — capture email from viral traffic
 2. Amazon — convert TikTok awareness into search-based sales
 3. Walmart — price-conscious audience overlap
@@ -321,6 +344,7 @@ When a user asks about expanding to a new channel, evaluate readiness:
 5. eBay — clearance or bundle deals
 
 **If currently on eBay:**
+
 1. Own website (DTC/Shopify) — build brand beyond marketplace
 2. Amazon — much larger audience for established products
 3. Walmart — growing alternative marketplace
@@ -332,32 +356,36 @@ When a user asks about expanding to a new channel, evaluate readiness:
 ## Product Line Expansion Framework
 
 ### When to Expand
+
 - Current products are profitable and reviews are strong (4+ stars)
 - You're seeing repeat customers ask for related products
 - Competitors offer adjacent products you don't
 - You've identified gaps from customer reviews/feedback
 
 ### How to Identify Adjacent Products
+
 1. **Customer review mining** — what do customers wish your product included? What do they buy alongside it?
 2. **Competitor catalog analysis** — what else do similar brands sell?
 3. **Search demand** — are people searching for products adjacent to yours?
 4. **Cross-sell data** — what products are frequently bought together in your category?
 
 ### Product Launch Strategy (3 Phases)
+
 1. **Phase 1: Owned audience** — launch to email list and existing customers first. Low CAC, real feedback
 2. **Phase 2: Paid + social** — expand via ads, influencer partnerships, social media
 3. **Phase 3: Marketplace** — list on Amazon/Walmart once you have reviews and momentum
 
-*(ConvertCart 2025)*
+_(ConvertCart 2025)_
 
 ### Expansion Risk Assessment
-| Type | Risk Level | Example |
-|------|:---------:|---------|
-| Variation of existing product | 🟢 Low | New color/size of best-seller |
-| Complementary accessory | 🟢 Low | Leash brand adds collars |
-| Adjacent category (same audience) | 🟡 Medium | Dog treats brand adds dog toys |
-| New category (different audience) | 🔴 High | Dog treats brand adds cat food |
-| Subscription model | 🟡 Medium | One-time purchase → recurring |
+
+| Type                              | Risk Level | Example                        |
+| --------------------------------- | :--------: | ------------------------------ |
+| Variation of existing product     |   🟢 Low   | New color/size of best-seller  |
+| Complementary accessory           |   🟢 Low   | Leash brand adds collars       |
+| Adjacent category (same audience) | 🟡 Medium  | Dog treats brand adds dog toys |
+| New category (different audience) |  🔴 High   | Dog treats brand adds cat food |
+| Subscription model                | 🟡 Medium  | One-time purchase → recurring  |
 
 ---
 
@@ -366,22 +394,25 @@ When a user asks about expanding to a new channel, evaluate readiness:
 When calculating unit economics, use these formulas and benchmarks:
 
 ### Formulas
+
 - **CAC** = Total Acquisition Spend ÷ New Customers Acquired (include ad spend, creative, tools, discounts)
 - **LTV** = AOV × Purchase Frequency × Customer Lifespan × Gross Margin
 - **LTV:CAC Ratio** = LTV ÷ CAC
 - **Contribution Margin** = Revenue - COGS - Shipping - Processing (3%) - Packaging - Returns provision (5%)
 - **Payback Period** = CAC ÷ (AOV × Contribution Margin %)
 
-### LTV:CAC Benchmarks *(Finsi.ai 2026)*
-| Ratio | Meaning |
-|:-----:|---------|
-| < 1:1 | Losing money on every customer. Business model broken |
-| 1:1 - 2:1 | Marginal. Profitable only with very low overhead |
+### LTV:CAC Benchmarks _(Finsi.ai 2026)_
+
+|   Ratio   | Meaning                                                                                     |
+| :-------: | ------------------------------------------------------------------------------------------- |
+|   < 1:1   | Losing money on every customer. Business model broken                                       |
+| 1:1 - 2:1 | Marginal. Profitable only with very low overhead                                            |
 | 2:1 - 3:1 | Functional. Room for improvement — focus on retention (raise LTV) or efficiency (lower CAC) |
-| 3:1 - 5:1 | Healthy. Target range for growth-stage brands |
-| > 5:1 | Under-investing in growth. Could afford to spend more on acquisition |
+| 3:1 - 5:1 | Healthy. Target range for growth-stage brands                                               |
+|   > 5:1   | Under-investing in growth. Could afford to spend more on acquisition                        |
 
 ### Growth Equation
+
 ```
 Revenue = Traffic × Conversion Rate × AOV × Purchase Frequency
 ```
@@ -392,21 +423,27 @@ Show the user which variable has the most room to improve. A 20% lift in convers
 ## Growth Priorities by Business Stage
 
 ### Pre-launch ($0/mo)
+
 **Focus:** Validate product-market fit before spending on growth
+
 - Build email list (landing page + lead magnet)
 - Launch to small audience, get 50+ honest reviews
 - Prove unit economics work (positive contribution margin)
 - **Don't:** Scale ads, expand channels, launch multiple products
 
 ### Early Stage (<$10K/mo)
+
 **Focus:** Find profitable acquisition channel + build retention foundation
+
 - Priority lever: Traffic (find 1 channel that works profitably)
 - Set up basic email flows (welcome, cart abandon, post-purchase)
 - Optimize product pages for conversion
 - **Don't:** Expand to new channels, launch new products, over-invest in brand
 
 ### Growing ($10K-50K/mo)
+
 **Focus:** Optimize unit economics + diversify traffic + build retention
+
 - Priority lever: Retention + CRO (highest ROI at this stage)
 - Expand to 2-3 marketing channels
 - Begin product line planning (adjacent products)
@@ -414,7 +451,9 @@ Show the user which variable has the most room to improve. A 20% lift in convers
 - **Don't:** Scale what isn't profitable, expand too fast operationally
 
 ### Scaling ($50K-200K/mo)
+
 **Focus:** Systemize, delegate, expand
+
 - Priority lever: Expansion + AOV
 - Launch on 2nd/3rd sales channels
 - Expand product line (adjacent categories)
@@ -423,7 +462,9 @@ Show the user which variable has the most room to improve. A 20% lift in convers
 - **Don't:** Neglect retention while chasing acquisition, ignore operations
 
 ### Established ($200K+/mo)
+
 **Focus:** Defensibility, efficiency, diversification
+
 - Priority lever: All 5 — systematic optimization
 - International expansion
 - Subscription/recurring revenue
@@ -500,21 +541,25 @@ Revenue = Traffic × Conversion × AOV × Frequency
 For detailed execution of specific growth initiatives:
 
 **Paid advertising:**
+
 ```bash
 npx skills add nexscope-ai/eCommerce-Skills --skill ecommerce-ppc-strategy-planner -g
 ```
 
 **Email marketing system:**
+
 ```bash
 npx skills add nexscope-ai/eCommerce-Skills --skill ecommerce-email-marketing-builder -g
 ```
 
 **Full marketing strategy:**
+
 ```bash
 npx skills add nexscope-ai/eCommerce-Skills --skill ecommerce-marketing-strategy-builder -g
 ```
 
 **Product descriptions:**
+
 ```bash
 npx skills add nexscope-ai/eCommerce-Skills --skill product-description-generator -g
 ```

@@ -66,7 +66,7 @@ injection:
     criteria:
       - "User-controlled input is embedded directly into XML document structure without proper encoding"
       - "XML construction uses string concatenation or interpolation instead of XML builder libraries or safe serializers"
-      - "Input is not validated or escaped for XML special characters (<, >, &, ', \")"
+      - 'Input is not validated or escaped for XML special characters (<, >, &, '', ")'
       - "The vulnerability allows injecting new XML elements, attributes, or CDATA sections"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
 
@@ -401,7 +401,6 @@ api_security:
       - "The endpoint is not a dedicated administrative or management endpoint, and/or the required role or scope is not an administrative-level privilege where returning full data objects is expected functionality"
       - "The vulnerability is about over-exposure of data fields in API design (returning more than needed), not about authorization failures (wrong user accessing data)"
       - "Vulnerable code path is reachable remotely over network protocols (HTTP/S, API requests, gRPC, WebSocket) without requiring direct server, container, or filesystem access"
-
 
 serialization:
   unsafe-deserialization:

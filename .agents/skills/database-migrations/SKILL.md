@@ -1,12 +1,13 @@
 ---
+
 name: database-migrations
 description: >
-  Database migration best practices for schema changes, data migrations, rollbacks,
-  and zero-downtime deployments across PostgreSQL, MySQL, and common ORMs (Prisma,
-  Drizzle, Django, TypeORM, golang-migrate). Use when planning or implementing
-  database schema changes.
+Database migration best practices for schema changes, data migrations, rollbacks,
+and zero-downtime deployments across PostgreSQL, MySQL, and common ORMs (Prisma,
+Drizzle, Django, TypeORM, golang-migrate). Use when planning or implementing
+database schema changes.
 metadata:
-  origin: ECC
+origin: ECC
 ---
 
 # Database Migration Patterns
@@ -200,12 +201,12 @@ npx drizzle-kit push
 import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  name: text("name"),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	id: uuid("id").primaryKey().defaultRandom(),
+	email: text("email").notNull().unique(),
+	name: text("name"),
+	isActive: boolean("is_active").notNull().default(true),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 ```
 
@@ -330,14 +331,14 @@ Day 7: Migration drops old status column
 
 ## Anti-Patterns
 
-| Anti-Pattern | Why It Fails | Better Approach |
-|-------------|-------------|-----------------|
-| Manual SQL in production | No audit trail, unrepeatable | Always use migration files |
-| Editing deployed migrations | Causes drift between environments | Create new migration instead |
-| NOT NULL without default | Locks table, rewrites all rows | Add nullable, backfill, then add constraint |
-| Inline index on large table | Blocks writes during build | CREATE INDEX CONCURRENTLY |
-| Schema + data in one migration | Hard to rollback, long transactions | Separate migrations |
-| Dropping column before removing code | Application errors on missing column | Remove code first, drop column next deploy |
+| Anti-Pattern                         | Why It Fails                         | Better Approach                             |
+| ------------------------------------ | ------------------------------------ | ------------------------------------------- |
+| Manual SQL in production             | No audit trail, unrepeatable         | Always use migration files                  |
+| Editing deployed migrations          | Causes drift between environments    | Create new migration instead                |
+| NOT NULL without default             | Locks table, rewrites all rows       | Add nullable, backfill, then add constraint |
+| Inline index on large table          | Blocks writes during build           | CREATE INDEX CONCURRENTLY                   |
+| Schema + data in one migration       | Hard to rollback, long transactions  | Separate migrations                         |
+| Dropping column before removing code | Application errors on missing column | Remove code first, drop column next deploy  |
 
 ## When to Use This Skill
 

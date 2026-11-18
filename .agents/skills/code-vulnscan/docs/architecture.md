@@ -26,21 +26,21 @@ The initial pattern sweep is deliberately a discovery step. A matching API name 
 
 ## Runtime components
 
-| Component | Responsibility |
-|---|---|
-| `SKILL.md` | Main workflow, routing rules, required phases, and reporting contract |
-| `scripts/scan.py` | Repository enumeration, polyglot framework detection, route discovery, candidate persistence, and resume support |
-| `scripts/taint.py` | Taint dispatcher and shared Python/JavaScript/PHP/Ruby analysis |
-| `scripts/taint_go.py` | Go request-to-sink tracking |
-| `scripts/taint_java.py` | Java web/JVM tracking |
-| `scripts/taint_kotlin.py` | Kotlin Spring and Ktor tracking |
-| `scripts/taint_csharp.py` | ASP.NET/.NET tracking |
-| `scripts/taint_rust.py` | Actix-web, Axum, Warp, and Rocket tracking |
-| `scripts/dependency.py` | Manifest and lockfile parsing, local CVE matching, and optional OSV lookup |
-| `scripts/secrets.py` | Pattern and entropy-based secret discovery, including optional Git history |
-| `scripts/orchestrate.py` | Groups candidates into reviewer-specific, self-contained phase payloads |
-| `sub-skills/*.md` | Manual data-flow, framework, architecture, infrastructure, and exploitability review guidance |
-| `scripts/report.py` | Markdown, HTML, JSON, and SARIF generation from reviewed findings |
+| Component                 | Responsibility                                                                                                   |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `SKILL.md`                | Main workflow, routing rules, required phases, and reporting contract                                            |
+| `scripts/scan.py`         | Repository enumeration, polyglot framework detection, route discovery, candidate persistence, and resume support |
+| `scripts/taint.py`        | Taint dispatcher and shared Python/JavaScript/PHP/Ruby analysis                                                  |
+| `scripts/taint_go.py`     | Go request-to-sink tracking                                                                                      |
+| `scripts/taint_java.py`   | Java web/JVM tracking                                                                                            |
+| `scripts/taint_kotlin.py` | Kotlin Spring and Ktor tracking                                                                                  |
+| `scripts/taint_csharp.py` | ASP.NET/.NET tracking                                                                                            |
+| `scripts/taint_rust.py`   | Actix-web, Axum, Warp, and Rocket tracking                                                                       |
+| `scripts/dependency.py`   | Manifest and lockfile parsing, local CVE matching, and optional OSV lookup                                       |
+| `scripts/secrets.py`      | Pattern and entropy-based secret discovery, including optional Git history                                       |
+| `scripts/orchestrate.py`  | Groups candidates into reviewer-specific, self-contained phase payloads                                          |
+| `sub-skills/*.md`         | Manual data-flow, framework, architecture, infrastructure, and exploitability review guidance                    |
+| `scripts/report.py`       | Markdown, HTML, JSON, and SARIF generation from reviewed findings                                                |
 
 ## Language and framework routing
 

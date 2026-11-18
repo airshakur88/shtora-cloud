@@ -12,11 +12,11 @@ C stdio commonly line-buffers a TTY, block-buffers a pipe, and leaves stderr unb
 
 Node's process streams deliberately preserve compatibility with the underlying platform. Writes have this sync/async matrix:
 
-| Destination | POSIX | Windows |
-|-------------|-------|---------|
-| Regular file | synchronous | synchronous |
-| TTY | synchronous | asynchronous |
-| Pipe or socket | asynchronous | synchronous |
+| Destination    | POSIX        | Windows      |
+| -------------- | ------------ | ------------ |
+| Regular file   | synchronous  | synchronous  |
+| TTY            | synchronous  | asynchronous |
+| Pipe or socket | asynchronous | synchronous  |
 
 Synchronous writes can block the event loop. Asynchronous writes can accumulate in memory if the consumer is slow, so high-volume producers must honor backpressure. Do not infer stream behavior from TTY status alone.
 
@@ -49,18 +49,18 @@ Use the shared error-aware write helper from `output-architecture.md`; its
 explicit outcome lets each caller apply the correct stream policy:
 
 ```typescript
-import { writeOutput, type WriteOutcome } from './streams.js';
+import { writeOutput, type WriteOutcome } from "./streams.js";
 
 // Usage in a streaming loop
 const streamResults = async (
-  results: ReadonlyArray<string>,
-  stream: NodeJS.WritableStream,
+	results: ReadonlyArray<string>,
+	stream: NodeJS.WritableStream,
 ): Promise<WriteOutcome> => {
-  for (const line of results) {
-    const outcome = await writeOutput(stream, line + '\n');
-    if (outcome === 'epipe') return outcome;
-  }
-  return 'written';
+	for (const line of results) {
+		const outcome = await writeOutput(stream, line + "\n");
+		if (outcome === "epipe") return outcome;
+	}
+	return "written";
 };
 ```
 
@@ -75,31 +75,32 @@ When stdout is a TTY, you can read the terminal size and react to resize events:
 
 ```typescript
 type TerminalSize = {
-  readonly columns: number;
-  readonly rows: number;
+	readonly columns: number;
+	readonly rows: number;
 };
 
 const getTerminalSize = (): TerminalSize | undefined =>
-  process.stdout.isTTY
-    ? { columns: process.stdout.columns, rows: process.stdout.rows }
-    : undefined;
+	process.stdout.isTTY
+		? { columns: process.stdout.columns, rows: process.stdout.rows }
+		: undefined;
 
 // React to terminal resize
 const onResize = (callback: (size: TerminalSize) => void): (() => void) => {
-  const handler = () => {
-    callback({
-      columns: process.stdout.columns,
-      rows: process.stdout.rows,
-    });
-  };
-  process.stdout.on('resize', handler);
-  return () => {
-    process.stdout.off('resize', handler);
-  };
+	const handler = () => {
+		callback({
+			columns: process.stdout.columns,
+			rows: process.stdout.rows,
+		});
+	};
+	process.stdout.on("resize", handler);
+	return () => {
+		process.stdout.off("resize", handler);
+	};
 };
 ```
 
 Use terminal dimensions to:
+
 - Truncate table columns to fit the viewport
 - Wrap long text at the correct column boundary
 - Decide whether content fits on one screen (for pager integration)
@@ -132,93 +133,94 @@ syntax requirements. A caller's decoder owns the accepted record shape.
 
 ```typescript
 type NdjsonRecord =
-  | { readonly type: 'result'; readonly file: string; readonly status: 'pass' | 'fail' }
-  | { readonly type: 'warning'; readonly message: string }
-  | {
-      readonly type: 'summary';
-      readonly total: number;
-      readonly passed: number;
-      readonly failed: number;
-    };
+	| {
+			readonly type: "result";
+			readonly file: string;
+			readonly status: "pass" | "fail";
+	  }
+	| { readonly type: "warning"; readonly message: string }
+	| {
+			readonly type: "summary";
+			readonly total: number;
+			readonly passed: number;
+			readonly failed: number;
+	  };
 ```
 
 ### NDJSON Writer
 
 ```typescript
 type NdjsonWriter = {
-  readonly write: (record: NdjsonRecord) => Promise<WriteOutcome>;
+	readonly write: (record: NdjsonRecord) => Promise<WriteOutcome>;
 };
 
 const createNdjsonWriter = (stream: NodeJS.WritableStream): NdjsonWriter => {
-  const write = (record: NdjsonRecord): Promise<WriteOutcome> => {
-    const line = JSON.stringify(record) + '\n';
-    return writeOutput(stream, line);
-  };
+	const write = (record: NdjsonRecord): Promise<WriteOutcome> => {
+		const line = JSON.stringify(record) + "\n";
+		return writeOutput(stream, line);
+	};
 
-  return { write };
+	return { write };
 };
 
 // Usage
 const writer = createNdjsonWriter(process.stdout);
 const records: readonly NdjsonRecord[] = [
-  { type: 'result', file: 'src/app.ts', status: 'pass' },
-  { type: 'result', file: 'src/lib.ts', status: 'fail' },
-  { type: 'summary', total: 2, passed: 1, failed: 1 },
+	{ type: "result", file: "src/app.ts", status: "pass" },
+	{ type: "result", file: "src/lib.ts", status: "fail" },
+	{ type: "summary", total: 2, passed: 1, failed: 1 },
 ];
 
 for (const record of records) {
-  if ((await writer.write(record)) === 'epipe') {
-    process.exitCode = 141;
-    break;
-  }
+	if ((await writer.write(record)) === "epipe") {
+		process.exitCode = 141;
+		break;
+	}
 }
 ```
 
 ### NDJSON Reader
 
 ```typescript
-import { createInterface } from 'node:readline';
+import { createInterface } from "node:readline";
 
 type NdjsonDecoder<T> = (value: unknown) => T;
 
 const parseNdjsonLine = <T>(
-  line: string,
-  lineNumber: number,
-  decode: NdjsonDecoder<T>,
+	line: string,
+	lineNumber: number,
+	decode: NdjsonDecoder<T>,
 ): T => {
-  try {
-    const value: unknown = JSON.parse(line);
-    return decode(value);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Invalid NDJSON at line ${lineNumber}: ${message}`);
-  }
+	try {
+		const value: unknown = JSON.parse(line);
+		return decode(value);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new Error(`Invalid NDJSON at line ${lineNumber}: ${message}`);
+	}
 };
 
 const readNdjson = async function* <T>(
-  input: NodeJS.ReadableStream,
-  decode: NdjsonDecoder<T>,
+	input: NodeJS.ReadableStream,
+	decode: NdjsonDecoder<T>,
 ): AsyncGenerator<T> {
-  const rl = createInterface({ input, crlfDelay: Infinity });
-  let lineNumber = 0;
-  for await (const line of rl) {
-    lineNumber += 1;
-    if (line.trim() === '') continue;
-    yield parseNdjsonLine(line, lineNumber, decode);
-  }
+	const rl = createInterface({ input, crlfDelay: Infinity });
+	let lineNumber = 0;
+	for await (const line of rl) {
+		lineNumber += 1;
+		if (line.trim() === "") continue;
+		yield parseNdjsonLine(line, lineNumber, decode);
+	}
 };
 
 // Usage
 // cat results.ndjson | mycli summarize
-for await (
-  const record of readNdjson(
-    process.stdin,
-    (value) => ndjsonRecordSchema.parse(value),
-  )
-) {
-  if (record.type === 'summary') {
-    process.stderr.write(`Total: ${record.total}, Failed: ${record.failed}\n`);
-  }
+for await (const record of readNdjson(process.stdin, (value) =>
+	ndjsonRecordSchema.parse(value),
+)) {
+	if (record.type === "summary") {
+		process.stderr.write(`Total: ${record.total}, Failed: ${record.failed}\n`);
+	}
 }
 ```
 
@@ -237,41 +239,41 @@ The user pressed Ctrl-C. Acknowledge immediately on stderr, start cleanup with a
 ```typescript
 type CleanupFn = () => void | Promise<void>;
 
-const createSignalHandler = (
-  cleanupFns: ReadonlyArray<CleanupFn>,
-): void => {
-  let shuttingDown = false;
-  const CLEANUP_TIMEOUT_MS = 5_000;
+const createSignalHandler = (cleanupFns: ReadonlyArray<CleanupFn>): void => {
+	let shuttingDown = false;
+	const CLEANUP_TIMEOUT_MS = 5_000;
 
-  const handleSigint = (): void => {
-    if (shuttingDown) {
-      // Second Ctrl-C: force exit immediately
-      process.stderr.write('\nForce quit. Cleanup skipped.\n');
-      process.exit(130);
-      return;
-    }
+	const handleSigint = (): void => {
+		if (shuttingDown) {
+			// Second Ctrl-C: force exit immediately
+			process.stderr.write("\nForce quit. Cleanup skipped.\n");
+			process.exit(130);
+			return;
+		}
 
-    shuttingDown = true;
-    process.stderr.write('\nShutting down...\n');
+		shuttingDown = true;
+		process.stderr.write("\nShutting down...\n");
 
-    const timeout = setTimeout(() => {
-      process.stderr.write('Cleanup timed out. Exiting.\n');
-      process.exit(130);
-    }, CLEANUP_TIMEOUT_MS);
+		const timeout = setTimeout(() => {
+			process.stderr.write("Cleanup timed out. Exiting.\n");
+			process.exit(130);
+		}, CLEANUP_TIMEOUT_MS);
 
-    void Promise.allSettled(
-      cleanupFns.map((fn) => Promise.resolve().then(fn)),
-    )
-      .then((results) => {
-        clearTimeout(timeout);
-        const cleanupFailed = results.some((result) => result.status === 'rejected');
-        if (cleanupFailed) process.stderr.write('One or more cleanup tasks failed.\n');
-        process.removeListener('SIGINT', handleSigint);
-        process.exitCode = 130;
-      });
-  };
+		void Promise.allSettled(
+			cleanupFns.map((fn) => Promise.resolve().then(fn)),
+		).then((results) => {
+			clearTimeout(timeout);
+			const cleanupFailed = results.some(
+				(result) => result.status === "rejected",
+			);
+			if (cleanupFailed)
+				process.stderr.write("One or more cleanup tasks failed.\n");
+			process.removeListener("SIGINT", handleSigint);
+			process.exitCode = 130;
+		});
+	};
 
-  process.on('SIGINT', handleSigint);
+	process.on("SIGINT", handleSigint);
 };
 ```
 
@@ -297,30 +299,34 @@ Graceful shutdown -- the same cleanup logic as SIGINT. This is the signal sent b
 
 ```typescript
 const handleSigterm = (): void => {
-  // A handled, graceful SIGTERM may use 0. Choose and document 143 instead if
-  // this CLI intentionally preserves signal-style termination status.
-  const gracefulExitCode = 0;
-  const cleanupTimeoutExitCode = 1;
-  process.stderr.write('Received SIGTERM. Shutting down...\n');
+	// A handled, graceful SIGTERM may use 0. Choose and document 143 instead if
+	// this CLI intentionally preserves signal-style termination status.
+	const gracefulExitCode = 0;
+	const cleanupTimeoutExitCode = 1;
+	process.stderr.write("Received SIGTERM. Shutting down...\n");
 
-  const timeout = setTimeout(() => {
-    process.stderr.write('Cleanup timed out. Exiting.\n');
-    process.exit(cleanupTimeoutExitCode);
-  }, CLEANUP_TIMEOUT_MS);
+	const timeout = setTimeout(() => {
+		process.stderr.write("Cleanup timed out. Exiting.\n");
+		process.exit(cleanupTimeoutExitCode);
+	}, CLEANUP_TIMEOUT_MS);
 
-  void Promise.allSettled(
-    cleanupFns.map((fn) => Promise.resolve().then(fn)),
-  )
-    .then((results) => {
-      clearTimeout(timeout);
-      const cleanupFailed = results.some((result) => result.status === 'rejected');
-      if (cleanupFailed) process.stderr.write('One or more cleanup tasks failed.\n');
-      process.removeListener('SIGTERM', handleSigterm);
-      process.exitCode = cleanupFailed ? cleanupTimeoutExitCode : gracefulExitCode;
-    });
+	void Promise.allSettled(
+		cleanupFns.map((fn) => Promise.resolve().then(fn)),
+	).then((results) => {
+		clearTimeout(timeout);
+		const cleanupFailed = results.some(
+			(result) => result.status === "rejected",
+		);
+		if (cleanupFailed)
+			process.stderr.write("One or more cleanup tasks failed.\n");
+		process.removeListener("SIGTERM", handleSigterm);
+		process.exitCode = cleanupFailed
+			? cleanupTimeoutExitCode
+			: gracefulExitCode;
+	});
 };
 
-process.on('SIGTERM', handleSigterm);
+process.on("SIGTERM", handleSigterm);
 ```
 
 A handled SIGTERM is an application-controlled graceful shutdown. It may return
@@ -343,17 +349,17 @@ mycli run | head -5
 
 ```typescript
 const handleEpipe = (
-  stream: NodeJS.WritableStream,
-  onEpipe: () => void,
+	stream: NodeJS.WritableStream,
+	onEpipe: () => void,
 ): void => {
-  stream.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EPIPE') {
-      onEpipe();
-      return;
-    }
-    // Re-throw non-EPIPE errors
-    throw err;
-  });
+	stream.on("error", (err: NodeJS.ErrnoException) => {
+		if (err.code === "EPIPE") {
+			onEpipe();
+			return;
+		}
+		// Re-throw non-EPIPE errors
+		throw err;
+	});
 };
 
 // A closed data consumer ends the command; a closed diagnostics consumer does not.
@@ -371,63 +377,65 @@ Bringing it all together as a single setup function:
 
 ```typescript
 type GracefulShutdownConfig = {
-  readonly cleanupFns: ReadonlyArray<CleanupFn>;
-  readonly cleanupTimeoutMs?: number;
-  readonly sigtermExitCode?: number;
-  readonly sigtermTimeoutExitCode?: number;
+	readonly cleanupFns: ReadonlyArray<CleanupFn>;
+	readonly cleanupTimeoutMs?: number;
+	readonly sigtermExitCode?: number;
+	readonly sigtermTimeoutExitCode?: number;
 };
 
 const setupGracefulShutdown = (config: GracefulShutdownConfig): void => {
-  const {
-    cleanupFns,
-    cleanupTimeoutMs = 5_000,
-    sigtermExitCode = 0,
-    sigtermTimeoutExitCode = 1,
-  } = config;
-  let shuttingDown = false;
+	const {
+		cleanupFns,
+		cleanupTimeoutMs = 5_000,
+		sigtermExitCode = 0,
+		sigtermTimeoutExitCode = 1,
+	} = config;
+	let shuttingDown = false;
 
-  const shutdown = (
-    signal: string,
-    settledExitCode: number,
-    timeoutExitCode: number,
-  ): void => {
-    if (shuttingDown) {
-      process.stderr.write(`\nForce quit. Cleanup skipped.\n`);
-      process.exit(timeoutExitCode);
-      return;
-    }
+	const shutdown = (
+		signal: string,
+		settledExitCode: number,
+		timeoutExitCode: number,
+	): void => {
+		if (shuttingDown) {
+			process.stderr.write(`\nForce quit. Cleanup skipped.\n`);
+			process.exit(timeoutExitCode);
+			return;
+		}
 
-    shuttingDown = true;
-    process.stderr.write(`\nReceived ${signal}. Shutting down...\n`);
+		shuttingDown = true;
+		process.stderr.write(`\nReceived ${signal}. Shutting down...\n`);
 
-    const timeout = setTimeout(() => {
-      process.stderr.write('Cleanup timed out. Exiting.\n');
-      process.exit(timeoutExitCode);
-    }, cleanupTimeoutMs);
+		const timeout = setTimeout(() => {
+			process.stderr.write("Cleanup timed out. Exiting.\n");
+			process.exit(timeoutExitCode);
+		}, cleanupTimeoutMs);
 
-    void Promise.allSettled(
-      cleanupFns.map((fn) => Promise.resolve().then(fn)),
-    )
-      .then((results) => {
-        clearTimeout(timeout);
-        const cleanupFailed = results.some((result) => result.status === 'rejected');
-        if (cleanupFailed) process.stderr.write('One or more cleanup tasks failed.\n');
-        process.removeListener('SIGINT', onSigint);
-        process.removeListener('SIGTERM', onSigterm);
-        process.exitCode = cleanupFailed ? timeoutExitCode : settledExitCode;
-      });
-  };
+		void Promise.allSettled(
+			cleanupFns.map((fn) => Promise.resolve().then(fn)),
+		).then((results) => {
+			clearTimeout(timeout);
+			const cleanupFailed = results.some(
+				(result) => result.status === "rejected",
+			);
+			if (cleanupFailed)
+				process.stderr.write("One or more cleanup tasks failed.\n");
+			process.removeListener("SIGINT", onSigint);
+			process.removeListener("SIGTERM", onSigterm);
+			process.exitCode = cleanupFailed ? timeoutExitCode : settledExitCode;
+		});
+	};
 
-  const onSigint = (): void => shutdown('SIGINT', 130, 130);
-  const onSigterm = (): void =>
-    shutdown('SIGTERM', sigtermExitCode, sigtermTimeoutExitCode);
+	const onSigint = (): void => shutdown("SIGINT", 130, 130);
+	const onSigterm = (): void =>
+		shutdown("SIGTERM", sigtermExitCode, sigtermTimeoutExitCode);
 
-  process.on('SIGINT', onSigint);
-  process.on('SIGTERM', onSigterm);
+	process.on("SIGINT", onSigint);
+	process.on("SIGTERM", onSigterm);
 
-  // Handle EPIPE independently (Node.js ignores SIGPIPE).
-  handleEpipe(process.stdout, () => process.exit(141));
-  handleEpipe(process.stderr, () => {});
+	// Handle EPIPE independently (Node.js ignores SIGPIPE).
+	handleEpipe(process.stdout, () => process.exit(141));
+	handleEpipe(process.stderr, () => {});
 };
 ```
 
@@ -454,24 +462,24 @@ Based on clig.dev's guidance: your program should expect to be started in a stat
 ### Visibility-Atomic File Replacement
 
 ```typescript
-import { writeFile, rename, unlink } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { writeFile, rename, unlink } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { randomUUID } from "node:crypto";
 
 const replaceVisibleAtomically = async (
-  filePath: string,
-  content: string,
+	filePath: string,
+	content: string,
 ): Promise<void> => {
-  // Same-directory placement permits a same-filesystem rename.
-  const tempPath = join(dirname(filePath), `.${randomUUID()}.tmp`);
-  try {
-    await writeFile(tempPath, content, 'utf-8');
-    await rename(tempPath, filePath);
-  } catch (error) {
-    // Clean up the temp file on failure (best effort)
-    await unlink(tempPath).catch(() => {});
-    throw error;
-  }
+	// Same-directory placement permits a same-filesystem rename.
+	const tempPath = join(dirname(filePath), `.${randomUUID()}.tmp`);
+	try {
+		await writeFile(tempPath, content, "utf-8");
+		await rename(tempPath, filePath);
+	} catch (error) {
+		// Clean up the temp file on failure (best effort)
+		await unlink(tempPath).catch(() => {});
+		throw error;
+	}
 };
 ```
 
@@ -506,23 +514,23 @@ Structure mutating operations so that re-running them after a partial failure pr
 ```typescript
 // Each step checks whether it has already been completed
 type MigrationStep = {
-  readonly name: string;
-  readonly isCompleted: () => Promise<boolean>;
-  readonly execute: () => Promise<void>;
+	readonly name: string;
+	readonly isCompleted: () => Promise<boolean>;
+	readonly execute: () => Promise<void>;
 };
 
 const runMigration = async (
-  steps: ReadonlyArray<MigrationStep>,
+	steps: ReadonlyArray<MigrationStep>,
 ): Promise<void> => {
-  for (const step of steps) {
-    const done = await step.isCompleted();
-    if (done) {
-      process.stderr.write(`  Skipping ${step.name} (already completed)\n`);
-      continue;
-    }
-    process.stderr.write(`  Running ${step.name}...\n`);
-    await step.execute();
-  }
+	for (const step of steps) {
+		const done = await step.isCompleted();
+		if (done) {
+			process.stderr.write(`  Skipping ${step.name} (already completed)\n`);
+			continue;
+		}
+		process.stderr.write(`  Running ${step.name}...\n`);
+		await step.execute();
+	}
 };
 ```
 
@@ -542,12 +550,12 @@ Never page when stdout is piped -- the pipe consumer is the "pager."
 
 Use `less -FIRX` as the default:
 
-| Flag | Effect |
-|------|--------|
+| Flag | Effect                                                                      |
+| ---- | --------------------------------------------------------------------------- |
 | `-F` | Quit immediately if content fits on one screen (no paging for short output) |
-| `-I` | Case-insensitive search |
-| `-R` | Pass-through ANSI color/style escape sequences |
-| `-X` | Leave content on screen when less quits (don't clear the terminal) |
+| `-I` | Case-insensitive search                                                     |
+| `-R` | Pass-through ANSI color/style escape sequences                              |
+| `-X` | Leave content on screen when less quits (don't clear the terminal)          |
 
 ### Respecting User Preferences
 
@@ -562,69 +570,69 @@ shell. Fall back to argument-vector form `less -FIRX` when `PAGER` is unset.
 Spawn the pager as a child process and pipe your output to its stdin:
 
 ```typescript
-import { spawn, type ChildProcess } from 'node:child_process';
+import { spawn, type ChildProcess } from "node:child_process";
 
 type PagerConfig = {
-  readonly content: string;
+	readonly content: string;
 };
 
 type PagerSpec = {
-  readonly command: string;
-  readonly args: readonly string[];
+	readonly command: string;
+	readonly args: readonly string[];
 };
 
 const resolvePager = (value: string | undefined): PagerSpec | undefined => {
-  if (value === '') return undefined;
-  if (value !== undefined) return { command: value, args: [] };
-  return { command: 'less', args: ['-F', '-I', '-R', '-X'] };
+	if (value === "") return undefined;
+	if (value !== undefined) return { command: value, args: [] };
+	return { command: "less", args: ["-F", "-I", "-R", "-X"] };
 };
 
 const directWrite = async (content: string): Promise<number> =>
-  (await writeOutput(process.stdout, content)) === 'epipe' ? 141 : 0;
+	(await writeOutput(process.stdout, content)) === "epipe" ? 141 : 0;
 
 const waitForSpawn = (child: ChildProcess): Promise<boolean> =>
-  new Promise((resolve) => {
-    child.once('spawn', () => resolve(true));
-    child.once('error', () => resolve(false));
-  });
+	new Promise((resolve) => {
+		child.once("spawn", () => resolve(true));
+		child.once("error", () => resolve(false));
+	});
 
 const waitForClose = (child: ChildProcess): Promise<number> =>
-  new Promise((resolve) => {
-    child.once('close', (code) => resolve(code ?? 1));
-    child.once('error', () => resolve(1));
-  });
+	new Promise((resolve) => {
+		child.once("close", (code) => resolve(code ?? 1));
+		child.once("error", () => resolve(1));
+	});
 
 const throughPager = async (config: PagerConfig): Promise<number> => {
-  if (!process.stdout.isTTY) {
-    return directWrite(config.content);
-  }
+	if (!process.stdout.isTTY) {
+		return directWrite(config.content);
+	}
 
-  const terminalRows = process.stdout.rows ?? 24;
-  const lineCount = config.content.split('\n').length;
+	const terminalRows = process.stdout.rows ?? 24;
+	const lineCount = config.content.split("\n").length;
 
-  if (lineCount <= terminalRows) {
-    return directWrite(config.content);
-  }
+	if (lineCount <= terminalRows) {
+		return directWrite(config.content);
+	}
 
-  const spec = resolvePager(process.env['PAGER']);
-  if (spec === undefined) return directWrite(config.content);
+	const spec = resolvePager(process.env["PAGER"]);
+	if (spec === undefined) return directWrite(config.content);
 
-  const pager = spawn(spec.command, [...spec.args], {
-    shell: false,
-    stdio: ['pipe', process.stdout, process.stderr],
-  });
-  const closed = waitForClose(pager);
+	const pager = spawn(spec.command, [...spec.args], {
+		shell: false,
+		stdio: ["pipe", process.stdout, process.stderr],
+	});
+	const closed = waitForClose(pager);
 
-  if (!(await waitForSpawn(pager))) {
-    // Spawn failed before any content was delivered, so replay is safe.
-    return directWrite(config.content);
-  }
+	if (!(await waitForSpawn(pager))) {
+		// Spawn failed before any content was delivered, so replay is safe.
+		return directWrite(config.content);
+	}
 
-  const outcome = await writeOutput(pager.stdin, config.content);
-  if (outcome === 'written') pager.stdin.end();
+	const outcome = await writeOutput(pager.stdin, config.content);
+	if (outcome === "written") pager.stdin.end();
 
-  // A pager that exits normally before consuming everything is not an error.
-  return closed;
+	// A pager that exits normally before consuming everything is not an error.
+	return closed;
 };
 ```
 
@@ -637,55 +645,55 @@ duplicate output. Return the adapter status to the entry point; do not call
 For output that is generated incrementally (not available all at once), pipe directly to the pager's stdin:
 
 ```typescript
-import { spawn } from 'node:child_process';
+import { spawn } from "node:child_process";
 
 type StreamingPager = {
-  readonly write: (data: string) => Promise<WriteOutcome>;
-  readonly end: () => Promise<number>;
+	readonly write: (data: string) => Promise<WriteOutcome>;
+	readonly end: () => Promise<number>;
 };
 
 const createStreamingPager = async (): Promise<StreamingPager> => {
-  if (!process.stdout.isTTY) {
-    return {
-      write: (data) => writeOutput(process.stdout, data),
-      end: () => Promise.resolve(0),
-    };
-  }
+	if (!process.stdout.isTTY) {
+		return {
+			write: (data) => writeOutput(process.stdout, data),
+			end: () => Promise.resolve(0),
+		};
+	}
 
-  const spec = resolvePager(process.env['PAGER']);
-  if (spec === undefined) {
-    return {
-      write: (data) => writeOutput(process.stdout, data),
-      end: () => Promise.resolve(0),
-    };
-  }
+	const spec = resolvePager(process.env["PAGER"]);
+	if (spec === undefined) {
+		return {
+			write: (data) => writeOutput(process.stdout, data),
+			end: () => Promise.resolve(0),
+		};
+	}
 
-  const pager = spawn(spec.command, [...spec.args], {
-    shell: false,
-    stdio: ['pipe', process.stdout, process.stderr],
-  });
-  const closed = waitForClose(pager);
+	const pager = spawn(spec.command, [...spec.args], {
+		shell: false,
+		stdio: ["pipe", process.stdout, process.stderr],
+	});
+	const closed = waitForClose(pager);
 
-  if (!(await waitForSpawn(pager))) {
-    return {
-      write: (data) => writeOutput(process.stdout, data),
-      end: () => Promise.resolve(0),
-    };
-  }
+	if (!(await waitForSpawn(pager))) {
+		return {
+			write: (data) => writeOutput(process.stdout, data),
+			end: () => Promise.resolve(0),
+		};
+	}
 
-  let inputClosed = false;
+	let inputClosed = false;
 
-  return {
-    write: async (data) => {
-      const outcome = await writeOutput(pager.stdin, data);
-      if (outcome === 'epipe') inputClosed = true;
-      return outcome;
-    },
-    end: async () => {
-      if (!inputClosed) pager.stdin.end();
-      return closed;
-    },
-  };
+	return {
+		write: async (data) => {
+			const outcome = await writeOutput(pager.stdin, data);
+			if (outcome === "epipe") inputClosed = true;
+			return outcome;
+		},
+		end: async () => {
+			if (!inputClosed) pager.stdin.end();
+			return closed;
+		},
+	};
 };
 ```
 
@@ -696,13 +704,13 @@ Every streaming caller awaits `write`; on `epipe`, it stops producing and calls
 
 ## Summary of Exit Codes for Signals
 
-| Signal | Trigger | Correct behavior | Exit code |
-|--------|---------|-----------------|-----------|
-| SIGINT | Ctrl-C | Acknowledge on stderr, bounded cleanup, exit | 130 |
-| SIGTERM | `kill`, container stop | Graceful cleanup | 0 or the CLI's documented status (often 143 when preserving signal style) |
-| SIGPIPE / stdout EPIPE | Data consumer closed | Exit silently and immediately | 141 |
-| stderr EPIPE | Diagnostics consumer closed | Stop diagnostics; let stdout work continue | Command's own code |
-| SIGKILL | `kill -9` | Cannot be caught. This is why crash-only design matters. | 137 |
+| Signal                 | Trigger                     | Correct behavior                                         | Exit code                                                                 |
+| ---------------------- | --------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| SIGINT                 | Ctrl-C                      | Acknowledge on stderr, bounded cleanup, exit             | 130                                                                       |
+| SIGTERM                | `kill`, container stop      | Graceful cleanup                                         | 0 or the CLI's documented status (often 143 when preserving signal style) |
+| SIGPIPE / stdout EPIPE | Data consumer closed        | Exit silently and immediately                            | 141                                                                       |
+| stderr EPIPE           | Diagnostics consumer closed | Stop diagnostics; let stdout work continue               | Command's own code                                                        |
+| SIGKILL                | `kill -9`                   | Cannot be caught. This is why crash-only design matters. | 137                                                                       |
 
 ## Key Takeaways
 

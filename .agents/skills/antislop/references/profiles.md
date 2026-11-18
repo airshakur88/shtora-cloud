@@ -6,32 +6,32 @@ Source preservation and explicit user instructions take precedence. A supplied w
 
 ## Voices
 
-| Voice | Guidance |
-|---|---|
-| `casual` | Conversational contractions and a looser cadence. |
-| `professional` | Concise, direct, and measured work prose. |
-| `technical` | Precise terminology and explicit logic. |
-| `warm` | Considerate and approachable without invented emotion. |
-| `blunt` | Terse and direct with minimal cushioning. |
+| Voice          | Guidance                                               |
+| -------------- | ------------------------------------------------------ |
+| `casual`       | Conversational contractions and a looser cadence.      |
+| `professional` | Concise, direct, and measured work prose.              |
+| `technical`    | Precise terminology and explicit logic.                |
+| `warm`         | Considerate and approachable without invented emotion. |
+| `blunt`        | Terse and direct with minimal cushioning.              |
 
 ## Contexts
 
-| Context | Guidance |
-|---|---|
-| `linkedin` | Professional social posts. |
-| `blog` | General published articles. |
-| `technical-blog` | Technical articles for practitioners. |
-| `investor-email` | Concise investor updates. |
-| `docs` | Product and engineering documentation. |
-| `casual` | Informal personal communication. |
+| Context          | Guidance                               |
+| ---------------- | -------------------------------------- |
+| `linkedin`       | Professional social posts.             |
+| `blog`           | General published articles.            |
+| `technical-blog` | Technical articles for practitioners.  |
+| `investor-email` | Concise investor updates.              |
+| `docs`           | Product and engineering documentation. |
+| `casual`         | Informal personal communication.       |
 
 ## Mechanics
 
-| Mechanics | Guidance |
-|---|---|
-| `house` | Antislop house style: no em dashes, straight quotes, and sentence case headings. |
-| `american` | American English spelling while retaining Antislop punctuation rules. |
-| `british` | British English spelling while retaining Antislop punctuation rules. |
+| Mechanics  | Guidance                                                                         |
+| ---------- | -------------------------------------------------------------------------------- |
+| `house`    | Antislop house style: no em dashes, straight quotes, and sentence case headings. |
+| `american` | American English spelling while retaining Antislop punctuation rules.            |
+| `british`  | British English spelling while retaining Antislop punctuation rules.             |
 
 ## Precedence
 

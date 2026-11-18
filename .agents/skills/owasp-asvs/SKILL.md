@@ -1,4 +1,5 @@
 ---
+
 name: owasp-asvs
 description: How to apply and reference the OWASP Application Security Verification Standard (ASVS) v5.0.0 (https://owasp.github.io/www-project-application-security-verification-standard/) - project-agnostic. Covers the three verification levels (L1/L2/L3) and how to pick one, the 17 requirement chapters (encoding, validation, frontend, API, file handling, authentication, session management, authorization, tokens, OAuth/OIDC, cryptography, secure communication, configuration, data protection, secure coding, logging, WebRTC), the `<chapter>.<section>.<requirement>` numbering and versioned-reference format, documentation requirements vs. implementation requirements, and how compliance is actually verified. Use when designing an application's security controls, deciding which security requirements apply to a feature or codebase, writing or reviewing a security requirements checklist, mapping findings to ASVS requirement IDs, or assessing/reporting ASVS compliance.
 ---
@@ -11,9 +12,9 @@ Current version: **5.0.0** (released May 2025). Full text and all formats
 (PDF/Word/CSV/JSON) at
 [github.com/OWASP/ASVS](https://github.com/OWASP/ASVS/tree/master/5.0).
 
-ASVS is not prescriptive about *how* to implement a control — that's the
+ASVS is not prescriptive about _how_ to implement a control — that's the
 [Cheat Sheet Series](https://cheatsheetseries.owasp.org/) — and not
-prescriptive about *how* to test one — that's the Web Security Testing
+prescriptive about _how_ to test one — that's the Web Security Testing
 Guide. ASVS only states the security outcome that must be true.
 
 ## What counts as a requirement
@@ -39,11 +40,11 @@ Every entry must satisfy all four words in the name:
 Levels are cumulative and priority-ordered by risk-reduction-per-effort,
 not by requirement number:
 
-| Level | ~Share of requirements | Cumulative | Who it's for |
-|---|---|---|---|
-| **L1** | ~20% | ~20% | Minimum baseline for any application. First-layer defenses against attacks that need no precondition — the goal is as *few* requirements as possible to keep the barrier to entry low. Not reliably black-box-penetration-testable. |
-| **L2** | ~50% | ~70% (L1+L2) | What most applications handling meaningful data should target. Less common attacks, or protections that need a precondition, or more complex versions of L1 controls (e.g. MFA superseding L1's password-only rules). |
-| **L3** | ~30% | 100% | High-assurance applications (e.g. banking). Defense-in-depth and harder-to-implement controls. |
+| Level  | ~Share of requirements | Cumulative   | Who it's for                                                                                                                                                                                                                        |
+| ------ | ---------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **L1** | ~20%                   | ~20%         | Minimum baseline for any application. First-layer defenses against attacks that need no precondition — the goal is as _few_ requirements as possible to keep the barrier to entry low. Not reliably black-box-penetration-testable. |
+| **L2** | ~50%                   | ~70% (L1+L2) | What most applications handling meaningful data should target. Less common attacks, or protections that need a precondition, or more complex versions of L1 controls (e.g. MFA superseding L1's password-only rules).               |
+| **L3** | ~30%                   | 100%         | High-assurance applications (e.g. banking). Defense-in-depth and harder-to-implement controls.                                                                                                                                      |
 
 Pick a level from the application's own risk profile and user
 expectations — ASVS deliberately does not mandate one. Start at L1 and
@@ -70,6 +71,7 @@ ticket, a code comment) should cite the **versioned** form:
 An unversioned ID is read as "latest ASVS." The `v` is always lowercase.
 
 Release semantics (semver-shaped, see [[semver]] for the general rules):
+
 - **Major** (`4.0.3` → `5.0.0`): full reorganization, requirement numbers
   can move, full re-evaluation needed.
 - **Minor** (`5.0.0` → `5.1.0`): requirements added/removed, numbering
@@ -96,25 +98,25 @@ implementation looks reasonable.
 Chapter numbering is stable across the whole standard; sections within a
 chapter are listed in [`references/chapters.md`](references/chapters.md).
 
-| # | Chapter | Covers |
-|---|---|---|
-| V1 | Encoding and Sanitization | Output encoding, injection prevention (SQL/OS/LDAP/XPath/LaTeX/regex/CSV), sanitization, unsafe memory, safe deserialization |
-| V2 | Validation and Business Logic | Input validation, business-logic abuse (sequencing, limits, race conditions), anti-automation |
-| V3 | Web Frontend Security | Content-type sniffing, cookie flags, CSP/security headers, CORS/origin isolation, subresource integrity |
-| V4 | API and Web Service | REST/generic web service security, HTTP message structure validation, GraphQL, WebSocket |
-| V5 | File Handling | Upload validation, storage, download, path traversal |
-| V6 | Authentication | Passwords, general auth security, MFA, out-of-band and cryptographic authenticators, IdP-based auth (loosely follows NIST SP 800-63B) |
-| V7 | Session Management | Session token security, timeout, termination, session-abuse defenses, federated re-auth |
-| V8 | Authorization | Authorization design, operation-level (object/function) authorization |
-| V9 | Self-contained Tokens | JWT-style token source/integrity and content requirements |
-| V10 | OAuth and OIDC | OAuth client/resource-server/auth-server roles, OIDC client/OP roles, consent management |
-| V11 | Cryptography | Crypto inventory, implementation hygiene, encryption/hashing/RNG/public-key choices, in-use data crypto |
-| V12 | Secure Communication | TLS guidance, HTTPS for external-facing services, service-to-service transport security |
-| V13 | Configuration | Backend communication config, secret management, unintended information leakage |
-| V14 | Data Protection | Sensitive-data handling, client-side data exposure |
-| V15 | Secure Coding and Architecture | Architecture/dependency hygiene, defensive coding, safe concurrency |
-| V16 | Security Logging and Error Handling | What to log, security events, log protection, safe error handling |
-| V17 | WebRTC | TURN server, media, and signaling security |
+| #   | Chapter                             | Covers                                                                                                                                |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| V1  | Encoding and Sanitization           | Output encoding, injection prevention (SQL/OS/LDAP/XPath/LaTeX/regex/CSV), sanitization, unsafe memory, safe deserialization          |
+| V2  | Validation and Business Logic       | Input validation, business-logic abuse (sequencing, limits, race conditions), anti-automation                                         |
+| V3  | Web Frontend Security               | Content-type sniffing, cookie flags, CSP/security headers, CORS/origin isolation, subresource integrity                               |
+| V4  | API and Web Service                 | REST/generic web service security, HTTP message structure validation, GraphQL, WebSocket                                              |
+| V5  | File Handling                       | Upload validation, storage, download, path traversal                                                                                  |
+| V6  | Authentication                      | Passwords, general auth security, MFA, out-of-band and cryptographic authenticators, IdP-based auth (loosely follows NIST SP 800-63B) |
+| V7  | Session Management                  | Session token security, timeout, termination, session-abuse defenses, federated re-auth                                               |
+| V8  | Authorization                       | Authorization design, operation-level (object/function) authorization                                                                 |
+| V9  | Self-contained Tokens               | JWT-style token source/integrity and content requirements                                                                             |
+| V10 | OAuth and OIDC                      | OAuth client/resource-server/auth-server roles, OIDC client/OP roles, consent management                                              |
+| V11 | Cryptography                        | Crypto inventory, implementation hygiene, encryption/hashing/RNG/public-key choices, in-use data crypto                               |
+| V12 | Secure Communication                | TLS guidance, HTTPS for external-facing services, service-to-service transport security                                               |
+| V13 | Configuration                       | Backend communication config, secret management, unintended information leakage                                                       |
+| V14 | Data Protection                     | Sensitive-data handling, client-side data exposure                                                                                    |
+| V15 | Secure Coding and Architecture      | Architecture/dependency hygiene, defensive coding, safe concurrency                                                                   |
+| V16 | Security Logging and Error Handling | What to log, security events, log protection, safe error handling                                                                     |
+| V17 | WebRTC                              | TURN server, media, and signaling security                                                                                            |
 
 Filter chapters by what the application actually does before applying a
 level: a machine-to-machine API skips V3 (frontend); an app with no
@@ -149,7 +151,7 @@ guidance; in short:
   number with its version (`v5.0.0-6.2.1`, not bare `6.2.1`). A
   `mapping_v4.0.3_to_v5.0.0.yml` table ships in the ASVS repo's
   `5.0/mappings/` directory for migrating old references.
-- L1/L2/L3 is a *minimum bar per level*, not a partition — L2 compliance
+- L1/L2/L3 is a _minimum bar per level_, not a partition — L2 compliance
   means all L1 **and** all L2 requirements, not just the ones labeled L2.
 - A chapter with no relevant functionality in your app (no GraphQL, no
   WebRTC, no OAuth) should be excluded from scope with a stated reason,

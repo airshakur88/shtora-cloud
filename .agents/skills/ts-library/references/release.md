@@ -16,9 +16,9 @@ pnpm add -D bumpp
 
 ```json
 {
-  "scripts": {
-    "release": "bumpp"
-  }
+	"scripts": {
+		"release": "bumpp"
+	}
 }
 ```
 
@@ -26,9 +26,9 @@ Interactive prompt for patch/minor/major. Options:
 
 ```json
 {
-  "scripts": {
-    "release": "bumpp --commit --tag --push"
-  }
+	"scripts": {
+		"release": "bumpp --commit --tag --push"
+	}
 }
 ```
 
@@ -47,9 +47,9 @@ pnpm add -D changelogen
 
 ```json
 {
-  "scripts": {
-    "changelog": "changelogen --release"
-  }
+	"scripts": {
+		"changelog": "changelogen --release"
+	}
 }
 ```
 
@@ -57,9 +57,9 @@ Combined workflow:
 
 ```json
 {
-  "scripts": {
-    "release": "changelogen --release && bumpp"
-  }
+	"scripts": {
+		"release": "changelogen --release && bumpp"
+	}
 }
 ```
 
@@ -67,9 +67,9 @@ Combined workflow:
 
 ```json
 {
-  "scripts": {
-    "release": "pnpm lint && pnpm test && changelogen --release && bumpp --commit --tag --push"
-  }
+	"scripts": {
+		"release": "pnpm lint && pnpm test && changelogen --release && bumpp --commit --tag --push"
+	}
 }
 ```
 
@@ -165,15 +165,15 @@ bumpp --preid alpha  # 1.0.0 -> 1.0.1-alpha.0
 
 ```json
 {
-  "name": "@scope/package",
-  "version": "1.0.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/org/repo.git"
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "@scope/package",
+	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/org/repo.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
 ```
 

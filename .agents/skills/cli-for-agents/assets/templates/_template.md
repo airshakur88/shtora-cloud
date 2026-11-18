@@ -1,4 +1,5 @@
 ---
+
 title: {Action-oriented title starting with an imperative verb}
 impact: CRITICAL|HIGH|MEDIUM-HIGH|MEDIUM|LOW-MEDIUM|LOW
 impactDescription: {quantified impact: "prevents X", "reduces Y by N%", "O(a) to O(b)"}
@@ -31,10 +32,12 @@ head. Keep it under 30 lines.}
 {Optional sections below, use only when genuinely needed:}
 
 **Benefits:**
+
 - {Observable benefit agents or operators will see}
 - {Observable benefit agents or operators will see}
 
 **When NOT to use this pattern:**
+
 - {Exception with a concrete scenario, not "it depends"}
 
 **Alternative ({short context label}):**

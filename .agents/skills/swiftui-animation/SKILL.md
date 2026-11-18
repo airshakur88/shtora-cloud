@@ -1,4 +1,5 @@
 ---
+
 name: swiftui-animation
 description: "Implement, diagnose, or review SwiftUI motion using explicit and scoped implicit animations, springs, transitions, PhaseAnimator, KeyframeAnimator, matched geometry or navigation zoom, SF Symbol effects, and custom Animation types. Use when views should animate on state changes, insertion, removal, navigation, or multi-step choreography, or when motion must respect Reduce Motion and Swift concurrency."
 ---
@@ -31,18 +32,18 @@ correct timing, transitions, and accessibility handling using Swift 6.3 patterns
 
 ### Step 1: Identify the animation category
 
-| Category | API | When to use |
-|---|---|---|
-| State-driven | `withAnimation`, `.animation(_:body:)`, `.animation(_:value:)` | Explicit state changes, selective modifier animation, or simple value-bound changes |
-| Multi-phase | `PhaseAnimator` | Sequenced multi-step animations |
-| Keyframe | `KeyframeAnimator` | Complex multi-property choreography |
-| Shared element | `matchedGeometryEffect` | Layout-driven hero transitions |
-| Navigation | `matchedTransitionSource` + `.navigationTransition(.zoom)` | NavigationStack push/pop zoom |
-| View lifecycle | `.transition()` | Insertion and removal |
-| Text content | `.contentTransition()` | In-place text/number changes |
-| Symbol | `.symbolEffect()` | SF Symbol animations |
-| Custom | `CustomAnimation` protocol | Novel timing curves |
-| Core Animation bridge | `CALayer`, `CAAnimation`, `CADisplayLink` | Read `references/core-animation-bridge.md` before advising |
+| Category              | API                                                            | When to use                                                                         |
+| --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| State-driven          | `withAnimation`, `.animation(_:body:)`, `.animation(_:value:)` | Explicit state changes, selective modifier animation, or simple value-bound changes |
+| Multi-phase           | `PhaseAnimator`                                                | Sequenced multi-step animations                                                     |
+| Keyframe              | `KeyframeAnimator`                                             | Complex multi-property choreography                                                 |
+| Shared element        | `matchedGeometryEffect`                                        | Layout-driven hero transitions                                                      |
+| Navigation            | `matchedTransitionSource` + `.navigationTransition(.zoom)`     | NavigationStack push/pop zoom                                                       |
+| View lifecycle        | `.transition()`                                                | Insertion and removal                                                               |
+| Text content          | `.contentTransition()`                                         | In-place text/number changes                                                        |
+| Symbol                | `.symbolEffect()`                                              | SF Symbol animations                                                                |
+| Custom                | `CustomAnimation` protocol                                     | Novel timing curves                                                                 |
+| Core Animation bridge | `CALayer`, `CAAnimation`, `CADisplayLink`                      | Read `references/core-animation-bridge.md` before advising                          |
 
 ### Step 2: Choose the animation curve
 
@@ -216,6 +217,7 @@ struct WaveShape: Shape {
 ```
 
 Rules:
+
 - Stored properties must conform to `VectorArithmetic`.
 - Use `@AnimatableIgnored` to exclude non-animatable properties.
 - Computed properties are never included.
@@ -405,6 +407,7 @@ withAnimation(.easeIn) { isVisible.toggle() } // CORRECT: own mutation
 ### 3. Missing reduce motion support
 
 For symbols, remove inherited effects; gate larger motion with `reduceMotion ? .none : animation`.
+
 ```swift
 @Environment(\.accessibilityReduceMotion) private var reduceMotion
 Image(systemName: "wifi").symbolEffect(.pulse, isActive: isSearching).symbolEffectsRemoved(reduceMotion)

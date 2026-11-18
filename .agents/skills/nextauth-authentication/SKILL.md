@@ -1,9 +1,10 @@
 ---
+
 name: nextauth-authentication
 description: Guidelines for implementing NextAuth.js (Auth.js v5) authentication in Next.js applications with session management and security best practices
 metadata:
-  maintainer: Mindrally
-  source: https://github.com/Mindrally/skills
+maintainer: Mindrally
+source: https://github.com/Mindrally/skills
 ---
 
 # NextAuth Authentication
@@ -45,72 +46,73 @@ AUTH_URL=https://your-domain.com
 ### auth.ts (Root Configuration)
 
 ```typescript
-import NextAuth from 'next-auth';
-import GitHub from 'next-auth/providers/github';
-import Google from 'next-auth/providers/google';
-import Credentials from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GitHub, // Credentials auto-detected from AUTH_GITHUB_ID/SECRET
-    Google,
-    Credentials({
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        // Validate credentials
-        const user = await validateCredentials(credentials);
-        if (!user) return null;
-        return user;
-      },
-    }),
-  ],
-  session: {
-    strategy: 'jwt', // or 'database'
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
-  },
-  callbacks: {
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-      }
-      return session;
-    },
-    async authorized({ auth, request }) {
-      const isAuthenticated = !!auth?.user;
-      const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard');
+	adapter: PrismaAdapter(prisma),
+	providers: [
+		GitHub, // Credentials auto-detected from AUTH_GITHUB_ID/SECRET
+		Google,
+		Credentials({
+			credentials: {
+				email: { label: "Email", type: "email" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize(credentials) {
+				// Validate credentials
+				const user = await validateCredentials(credentials);
+				if (!user) return null;
+				return user;
+			},
+		}),
+	],
+	session: {
+		strategy: "jwt", // or 'database'
+		maxAge: 30 * 24 * 60 * 60, // 30 days
+	},
+	pages: {
+		signIn: "/auth/signin",
+		error: "/auth/error",
+	},
+	callbacks: {
+		async jwt({ token, user, account }) {
+			if (user) {
+				token.id = user.id;
+				token.role = user.role;
+			}
+			return token;
+		},
+		async session({ session, token }) {
+			if (token) {
+				session.user.id = token.id as string;
+				session.user.role = token.role as string;
+			}
+			return session;
+		},
+		async authorized({ auth, request }) {
+			const isAuthenticated = !!auth?.user;
+			const isProtectedRoute =
+				request.nextUrl.pathname.startsWith("/dashboard");
 
-      if (isProtectedRoute && !isAuthenticated) {
-        return false; // Redirect to sign-in
-      }
+			if (isProtectedRoute && !isAuthenticated) {
+				return false; // Redirect to sign-in
+			}
 
-      return true;
-    },
-  },
+			return true;
+		},
+	},
 });
 ```
 
 ### Route Handlers (app/api/auth/[...nextauth]/route.ts)
 
 ```typescript
-import { handlers } from '@/auth';
+import { handlers } from "@/auth";
 
 export const { GET, POST } = handlers;
 ```
@@ -118,26 +120,26 @@ export const { GET, POST } = handlers;
 ### Middleware (middleware.ts)
 
 ```typescript
-import { auth } from '@/auth';
+import { auth } from "@/auth";
 
 export default auth((req) => {
-  const isAuthenticated = !!req.auth;
-  const isAuthPage = req.nextUrl.pathname.startsWith('/auth');
-  const isProtectedRoute = req.nextUrl.pathname.startsWith('/dashboard');
+	const isAuthenticated = !!req.auth;
+	const isAuthPage = req.nextUrl.pathname.startsWith("/auth");
+	const isProtectedRoute = req.nextUrl.pathname.startsWith("/dashboard");
 
-  // Redirect authenticated users away from auth pages
-  if (isAuthenticated && isAuthPage) {
-    return Response.redirect(new URL('/dashboard', req.nextUrl));
-  }
+	// Redirect authenticated users away from auth pages
+	if (isAuthenticated && isAuthPage) {
+		return Response.redirect(new URL("/dashboard", req.nextUrl));
+	}
 
-  // Redirect unauthenticated users from protected routes
-  if (!isAuthenticated && isProtectedRoute) {
-    return Response.redirect(new URL('/auth/signin', req.nextUrl));
-  }
+	// Redirect unauthenticated users from protected routes
+	if (!isAuthenticated && isProtectedRoute) {
+		return Response.redirect(new URL("/auth/signin", req.nextUrl));
+	}
 });
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
 ```
 
@@ -149,14 +151,15 @@ Best for: Serverless, Edge runtime, minimal database queries
 
 ```typescript
 export const { auth } = NextAuth({
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+	session: {
+		strategy: "jwt",
+		maxAge: 30 * 24 * 60 * 60, // 30 days
+	},
 });
 ```
 
 Characteristics:
+
 - Sessions stored in encrypted cookies
 - No database query per request
 - Cannot be invalidated before expiration
@@ -168,15 +171,16 @@ Best for: Immediate session invalidation, "sign out everywhere"
 
 ```typescript
 export const { auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: 'database',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
+	adapter: PrismaAdapter(prisma),
+	session: {
+		strategy: "database",
+		maxAge: 30 * 24 * 60 * 60, // 30 days
+	},
 });
 ```
 
 Characteristics:
+
 - Sessions stored in database
 - Database query on every request
 - Can be invalidated immediately
@@ -186,34 +190,34 @@ Characteristics:
 
 ```typescript
 // auth.config.ts - Edge-compatible config
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig } from "next-auth";
 
 export const authConfig: NextAuthConfig = {
-  pages: {
-    signIn: '/auth/signin',
-  },
-  callbacks: {
-    authorized({ auth, request }) {
-      return !!auth?.user;
-    },
-  },
-  providers: [], // Configured in auth.ts
+	pages: {
+		signIn: "/auth/signin",
+	},
+	callbacks: {
+		authorized({ auth, request }) {
+			return !!auth?.user;
+		},
+	},
+	providers: [], // Configured in auth.ts
 };
 
 // auth.ts - Full config with adapter
-import NextAuth from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { authConfig } from './auth.config';
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
-  adapter: PrismaAdapter(prisma),
-  providers: [GitHub, Google],
+	...authConfig,
+	adapter: PrismaAdapter(prisma),
+	providers: [GitHub, Google],
 });
 
 // middleware.ts - Uses edge-compatible config
-import NextAuth from 'next-auth';
-import { authConfig } from './auth.config';
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
 export default NextAuth(authConfig).auth;
 ```
@@ -298,56 +302,56 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ## Server Actions
 
 ```typescript
-'use server';
+"use server";
 
-import { auth, signIn, signOut } from '@/auth';
+import { auth, signIn, signOut } from "@/auth";
 
 // Sign in action
 export async function handleSignIn(provider: string) {
-  await signIn(provider, { redirectTo: '/dashboard' });
+	await signIn(provider, { redirectTo: "/dashboard" });
 }
 
 // Sign out action
 export async function handleSignOut() {
-  await signOut({ redirectTo: '/' });
+	await signOut({ redirectTo: "/" });
 }
 
 // Protected action
 export async function createPost(formData: FormData) {
-  const session = await auth();
+	const session = await auth();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+	if (!session?.user) {
+		throw new Error("Unauthorized");
+	}
 
-  const title = formData.get('title') as string;
+	const title = formData.get("title") as string;
 
-  await prisma.post.create({
-    data: {
-      title,
-      authorId: session.user.id,
-    },
-  });
+	await prisma.post.create({
+		data: {
+			title,
+			authorId: session.user.id,
+		},
+	});
 
-  revalidatePath('/posts');
+	revalidatePath("/posts");
 }
 ```
 
 ## API Route Protection
 
 ```typescript
-import { auth } from '@/auth';
-import { NextResponse } from 'next/server';
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const session = await auth();
+	const session = await auth();
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+	if (!session?.user) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 
-  const data = await fetchUserData(session.user.id);
-  return NextResponse.json(data);
+	const data = await fetchUserData(session.user.id);
+	return NextResponse.json(data);
 }
 ```
 
@@ -357,27 +361,27 @@ export async function GET() {
 
 ```typescript
 // types/next-auth.d.ts
-import { DefaultSession, DefaultUser } from 'next-auth';
-import { JWT, DefaultJWT } from 'next-auth/jwt';
+import { DefaultSession, DefaultUser } from "next-auth";
+import { JWT, DefaultJWT } from "next-auth/jwt";
 
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      role: string;
-    } & DefaultSession['user'];
-  }
+declare module "next-auth" {
+	interface Session {
+		user: {
+			id: string;
+			role: string;
+		} & DefaultSession["user"];
+	}
 
-  interface User extends DefaultUser {
-    role: string;
-  }
+	interface User extends DefaultUser {
+		role: string;
+	}
 }
 
-declare module 'next-auth/jwt' {
-  interface JWT extends DefaultJWT {
-    id: string;
-    role: string;
-  }
+declare module "next-auth/jwt" {
+	interface JWT extends DefaultJWT {
+		id: string;
+		role: string;
+	}
 }
 ```
 
@@ -413,75 +417,78 @@ export default async function AdminPage() {
 ### GitHub
 
 ```typescript
-import GitHub from 'next-auth/providers/github';
+import GitHub from "next-auth/providers/github";
 
 GitHub({
-  clientId: process.env.AUTH_GITHUB_ID,
-  clientSecret: process.env.AUTH_GITHUB_SECRET,
-  authorization: {
-    params: {
-      scope: 'read:user user:email',
-    },
-  },
+	clientId: process.env.AUTH_GITHUB_ID,
+	clientSecret: process.env.AUTH_GITHUB_SECRET,
+	authorization: {
+		params: {
+			scope: "read:user user:email",
+		},
+	},
 });
 ```
 
 ### Google
 
 ```typescript
-import Google from 'next-auth/providers/google';
+import Google from "next-auth/providers/google";
 
 Google({
-  clientId: process.env.AUTH_GOOGLE_ID,
-  clientSecret: process.env.AUTH_GOOGLE_SECRET,
-  authorization: {
-    params: {
-      prompt: 'consent',
-      access_type: 'offline',
-      response_type: 'code',
-    },
-  },
+	clientId: process.env.AUTH_GOOGLE_ID,
+	clientSecret: process.env.AUTH_GOOGLE_SECRET,
+	authorization: {
+		params: {
+			prompt: "consent",
+			access_type: "offline",
+			response_type: "code",
+		},
+	},
 });
 ```
 
 ### Credentials Provider
 
 ```typescript
-import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 Credentials({
-  name: 'credentials',
-  credentials: {
-    email: { label: 'Email', type: 'email' },
-    password: { label: 'Password', type: 'password' },
-  },
-  async authorize(credentials) {
-    if (!credentials?.email || !credentials?.password) {
-      return null;
-    }
+	name: "credentials",
+	credentials: {
+		email: { label: "Email", type: "email" },
+		password: { label: "Password", type: "password" },
+	},
+	async authorize(credentials) {
+		if (!credentials?.email || !credentials?.password) {
+			return null;
+		}
 
-    const user = await prisma.user.findUnique({
-      where: { email: credentials.email },
-    });
+		const user = await prisma.user.findUnique({
+			where: { email: credentials.email },
+		});
 
-    if (!user || !user.hashedPassword) {
-      return null;
-    }
+		if (!user || !user.hashedPassword) {
+			return null;
+		}
 
-    const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
+		const isValid = await bcrypt.compare(
+			credentials.password,
+			user.hashedPassword,
+		);
 
-    if (!isValid) {
-      return null;
-    }
+		if (!isValid) {
+			return null;
+		}
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    };
-  },
+		return {
+			id: user.id,
+			email: user.email,
+			name: user.name,
+			role: user.role,
+		};
+	},
 });
 ```
 
@@ -498,23 +505,24 @@ openssl rand -base64 32
 
 ```typescript
 export const { auth } = NextAuth({
-  cookies: {
-    sessionToken: {
-      name: `__Secure-authjs.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-  },
+	cookies: {
+		sessionToken: {
+			name: `__Secure-authjs.session-token`,
+			options: {
+				httpOnly: true,
+				sameSite: "lax",
+				path: "/",
+				secure: process.env.NODE_ENV === "production",
+			},
+		},
+	},
 });
 ```
 
 ### 3. CSRF Protection
 
 Auth.js handles CSRF protection automatically. Ensure you:
+
 - Use POST for sign-in/sign-out
 - Don't disable built-in protections
 
@@ -523,22 +531,22 @@ Auth.js handles CSRF protection automatically. Ensure you:
 ```typescript
 // Always verify on the server for sensitive operations
 export async function sensitiveOperation() {
-  const session = await auth();
+	const session = await auth();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+	if (!session?.user) {
+		throw new Error("Unauthorized");
+	}
 
-  // Double-check user exists in database
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  });
+	// Double-check user exists in database
+	const user = await prisma.user.findUnique({
+		where: { id: session.user.id },
+	});
 
-  if (!user || user.banned) {
-    throw new Error('Access denied');
-  }
+	if (!user || user.banned) {
+		throw new Error("Access denied");
+	}
 
-  // Proceed with operation
+	// Proceed with operation
 }
 ```
 
@@ -596,28 +604,28 @@ export default function AuthErrorPage({
 
 ```typescript
 // Mock auth for testing
-import { auth } from '@/auth';
+import { auth } from "@/auth";
 
-jest.mock('@/auth', () => ({
-  auth: jest.fn(),
+jest.mock("@/auth", () => ({
+	auth: jest.fn(),
 }));
 
-describe('Protected API', () => {
-  it('returns 401 for unauthenticated requests', async () => {
-    (auth as jest.Mock).mockResolvedValue(null);
+describe("Protected API", () => {
+	it("returns 401 for unauthenticated requests", async () => {
+		(auth as jest.Mock).mockResolvedValue(null);
 
-    const response = await GET();
-    expect(response.status).toBe(401);
-  });
+		const response = await GET();
+		expect(response.status).toBe(401);
+	});
 
-  it('returns data for authenticated requests', async () => {
-    (auth as jest.Mock).mockResolvedValue({
-      user: { id: '1', email: 'test@example.com' },
-    });
+	it("returns data for authenticated requests", async () => {
+		(auth as jest.Mock).mockResolvedValue({
+			user: { id: "1", email: "test@example.com" },
+		});
 
-    const response = await GET();
-    expect(response.status).toBe(200);
-  });
+		const response = await GET();
+		expect(response.status).toBe(200);
+	});
 });
 ```
 

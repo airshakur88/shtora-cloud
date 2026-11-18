@@ -38,15 +38,15 @@ Cryptography vulnerabilities threaten confidentiality and integrity of sensitive
 
 Choose the right algorithm for the job — using the wrong primitive (e.g. SHA256 for passwords) is as dangerous as using a broken one:
 
-| Use Case | Recommended | Avoid | Why |
-| --- | --- | --- | --- |
-| Symmetric encryption | AES-256-GCM, ChaCha20-Poly1305 | DES, 3DES, AES-ECB, RC4 | ECB reveals patterns; DES/RC4 are broken |
-| Password hashing | Argon2id (preferred), bcrypt, scrypt | MD5, SHA-1, plain SHA-256 | Fast hashes enable brute-force; memory-hard functions resist GPU attacks |
-| Message authentication | HMAC-SHA256, Poly1305 | HMAC-MD5, HMAC-SHA1 | MD5/SHA1 have known collision weaknesses |
-| Digital signatures | Ed25519, ECDSA P-256 | RSA-PKCS1v1.5 | PKCS1v1.5 has padding oracle vulnerabilities |
-| Key exchange | X25519, ECDH P-256 | Static RSA key transport | Forward secrecy requires ephemeral keys |
-| Random generation | `crypto/rand` | `math/rand` | `math/rand` output is predictable |
-| TLS | TLS 1.2+ (prefer 1.3) | TLS 1.0, 1.1, SSL | Known attacks (BEAST, POODLE) on older versions |
+| Use Case               | Recommended                          | Avoid                     | Why                                                                      |
+| ---------------------- | ------------------------------------ | ------------------------- | ------------------------------------------------------------------------ |
+| Symmetric encryption   | AES-256-GCM, ChaCha20-Poly1305       | DES, 3DES, AES-ECB, RC4   | ECB reveals patterns; DES/RC4 are broken                                 |
+| Password hashing       | Argon2id (preferred), bcrypt, scrypt | MD5, SHA-1, plain SHA-256 | Fast hashes enable brute-force; memory-hard functions resist GPU attacks |
+| Message authentication | HMAC-SHA256, Poly1305                | HMAC-MD5, HMAC-SHA1       | MD5/SHA1 have known collision weaknesses                                 |
+| Digital signatures     | Ed25519, ECDSA P-256                 | RSA-PKCS1v1.5             | PKCS1v1.5 has padding oracle vulnerabilities                             |
+| Key exchange           | X25519, ECDH P-256                   | Static RSA key transport  | Forward secrecy requires ephemeral keys                                  |
+| Random generation      | `crypto/rand`                        | `math/rand`               | `math/rand` output is predictable                                        |
+| TLS                    | TLS 1.2+ (prefer 1.3)                | TLS 1.0, 1.1, SSL         | Known attacks (BEAST, POODLE) on older versions                          |
 
 ### Key Size Requirements
 

@@ -1,9 +1,10 @@
 ---
+
 name: mantis-plan
 description: >-
-  Formulates a targeted defensive security reviewing plan based on the active threat model and historical learnings.
-  Use when starting a security review campaign to map the codebase boundaries and generate a roadmap (workspace/plan.json).
-  Don't use for executing code reviews, writing test scripts, or patching code.
+Formulates a targeted defensive security reviewing plan based on the active threat model and historical learnings.
+Use when starting a security review campaign to map the codebase boundaries and generate a roadmap (workspace/plan.json).
+Don't use for executing code reviews, writing test scripts, or patching code.
 ---
 
 # Strategist (/mantis-plan)
@@ -156,13 +157,11 @@ Execute the planning stage as follows:
 
 2. **Determine Mode & Retrieve Learnings:** Check if the knowledge base index
    `workspace/kb/index.md` exists.
-
    - **MODE A: First-Pass Exhaustive Mode (No `workspace/kb/index.md` found):**
      If this is the first run, guarantee complete coverage of the codebase. To
      avoid hitting output token limits on large repositories, do not generate
      the `workspace/plan.json` manually in your text response. Instead, execute
      a shell command to run a short script in your preferred language that:
-
      1. Uses `find` or `os.walk` to crawl all production directories. If a
         `mantis-summary.md` file exists in a directory, use its contents to
         understand the directory structure instead of reading every individual
@@ -185,7 +184,6 @@ Execute the planning stage as follows:
      components and files that have histories of vulnerabilities. You may
      generate the `workspace/plan.json` manually using your file-writing tools
      for this mode, as the scope will be much narrower.
-
      - **Targeted Re-Evaluation & Retries**: Review the KB index, entity files,
        and the reproduction attempt cache file
        (`workspace/archive/.repro_attempts.json` if it exists). You must
@@ -246,7 +244,6 @@ Execute the planning stage as follows:
        count=0, so a signature-keyed writer and a stable_key reader never miss
        each other and wrongly reset the attempt budget. (The cache mixes both
        value forms AND both key styles during migration.)
-
        1. **Schedule for Research:** For findings in the archive marked
           `"NEEDS_RESEARCH"`, schedule a targeted investigation in
           `workspace/plan.json` (to gather missing context and resolve them to
@@ -273,7 +270,6 @@ Execute the planning stage as follows:
           ```
 
           Then decide mechanically:
-
           - **COPY VERBATIM** (fast retry) ONLY if ALL hold: Block B is MATCHED
             for the finding, AND its primary file (first `code_paths`, line
             stripped) is NOT in `changed_files`, AND that file EXISTS under
@@ -323,7 +319,6 @@ Execute the planning stage as follows:
             produces a line-number HINT that focuses the RE-DISCOVER
             investigation — it does NOT replace re-verification (the snapshot
             changed, so the finding is still re-researched downstream).
-
             - **How:** Translate the finding's old line FORWARD from PREV to CUR
               (do NOT blame PREV in isolation — that returns the line as of PREV
               and does not map it forward). Run in the LIVE repo root (Block A
@@ -398,7 +393,6 @@ Execute the planning stage as follows:
        themselves. The goal: identify files that IMPORT or DEPEND ON the changed
        files, so the planner can schedule targeted investigations for consumers
        of the changed code (not just the changed code itself).
-
        - **How:** Start with the file-level dependency graph
          (`workspace/kb/dependencies.json` or entity-relationship markdown) as
          the mandatory floor: for each changed file F, find all files that
@@ -434,7 +428,6 @@ Execute the planning stage as follows:
        exists), use it to SUPPLEMENT the dependency-aware fan-out above with
        precise, symbol-level caller discovery. The structural index decides
        ORDER of investigation priority, NEVER MEMBERSHIP of the audit set.
-
        - **Resolution-first protocol (MANDATORY):** Before querying callers,
          resolve the symbol:
 
@@ -453,7 +446,6 @@ Execute the planning stage as follows:
 
        - **Coverage-aware interpretation:** Check `coverage.partition_status` in
          every structural index response:
-
          - `complete` + `precision == semantic` + no callers = "no indexed
            callers" — the partition is fully indexed with a semantic backend, so
            the empty result is authoritative for indexed code. Still run grep
@@ -468,7 +460,6 @@ Execute the planning stage as follows:
            MUST run exhaustive grep fallback.
 
        - **Guardrails:**
-
          - HINT-only: structural index results decide ORDER, never MEMBERSHIP.
            They prioritize which dependent files to investigate first; they MUST
            NEVER cause a file to be dropped from the audit scope.
@@ -492,7 +483,6 @@ Execute the planning stage as follows:
        a moderate probability (e.g., a 25-50% chance per planning pass), include
        either an unconstrained adversarial sweep or a random exploration in the
        plan:
-
        1. **Adversarial Sweep:** Select a component or directory that the threat
           model currently marks as safe, low-risk, or out of scope. Instruct the
           researcher to perform an unconstrained sweep, ignoring safety
@@ -517,14 +507,17 @@ Execute the planning stage as follows:
 
 ```json
 {
-  "investigations": [
-    {
-      "title": "Exhaustive Review: [relative_file_path]",
-      "target_files": ["[relative_file_path_1]", "[relative_file_path_2]"],
-      "kb_references": ["workspace/kb/entities/auth_module.md", "workspace/kb/vulnerabilities/CWE-79.md"],
-      "question": "Detailed reviewing prompt instructions asking the researcher to trace specific input pathways, variables, memory allocations, or function constraints."
-    }
-  ]
+	"investigations": [
+		{
+			"title": "Exhaustive Review: [relative_file_path]",
+			"target_files": ["[relative_file_path_1]", "[relative_file_path_2]"],
+			"kb_references": [
+				"workspace/kb/entities/auth_module.md",
+				"workspace/kb/vulnerabilities/CWE-79.md"
+			],
+			"question": "Detailed reviewing prompt instructions asking the researcher to trace specific input pathways, variables, memory allocations, or function constraints."
+		}
+	]
 }
 ```
 

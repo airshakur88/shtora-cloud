@@ -1,9 +1,10 @@
 ---
+
 name: mantis-chain
 description: >-
-  Analyzes individual security findings to identify and construct complex exploit chains.
-  Use after validation stages to see if multiple low-severity bugs can be combined into a higher impact vulnerability.
-  Don't use for initial codebase auditing or writing patch code.
+Analyzes individual security findings to identify and construct complex exploit chains.
+Use after validation stages to see if multiple low-severity bugs can be combined into a higher impact vulnerability.
+Don't use for initial codebase auditing or writing patch code.
 ---
 
 # Vulnerability Chainer (/mantis-chain)
@@ -177,7 +178,6 @@ to achieve a higher-impact compromise.
 Execute the chaining stage as follows:
 
 1. **Load Primitives & Validated Findings:**
-
    - Read the JSON files in the `workspace/findings/` directory. Filter for
      findings that have passed validation (e.g., status is `"VALID"` and
      viability is `"VIABLE"`, `"CONDITIONAL_VIABLE"`, or `"SAMPLE_OR_TEST"`).
@@ -216,10 +216,9 @@ Execute the chaining stage as follows:
      "User controls file upload path", "Service runs as root").
 
 2. **Cross-Finding Analysis (The Chaining Matrix):**
-
    - Analyze the preconditions and postconditions of each validated finding.
-   - Ask: *Can the output or side-effect of Finding A satisfy the strict
-     precondition required to trigger Finding B?*
+   - Ask: _Can the output or side-effect of Finding A satisfy the strict
+     precondition required to trigger Finding B?_
    - Example Chains to look for:
      - **Path Traversal + Loose Permissions = RCE:** A low-severity path
        traversal (Finding A) allows writing to `/tmp`, but a separate
@@ -233,7 +232,6 @@ Execute the chaining stage as follows:
        to exploit a stack buffer overflow (Finding B).
 
 3. **Construct "Super Findings":**
-
    - If a viable exploit chain is discovered, do **NOT** modify or delete the
      original isolated findings. They still need to be patched individually.
    - **Idempotency check (run BEFORE minting a UUID):** Apply the Idempotency
@@ -326,7 +324,7 @@ Execute the chaining stage as follows:
        file path.)
    - **Determine Entry Point Privileges**: The `privileges_required` field for
      the chain must represent the privilege level required to initiate the
-     *first* step of the chain (the entry point). For example, if the chain
+     _first_ step of the chain (the entry point). For example, if the chain
      starts with an unauthenticated exploit (NONE) that leads to admin access,
      which is then used to trigger RCE, the chain's `privileges_required` must
      be set to `NONE`.
@@ -387,7 +385,6 @@ Execute the chaining stage as follows:
    ```
 
 4. **Chain Deduplication Tagging:**
-
    - To ensure `/mantis-dedupe` treats these chains differently than raw
      findings, ensure the word "Chain" is prominently featured in the `"title"`
      and `"history"` fields as shown in the schema.

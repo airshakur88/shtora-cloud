@@ -2,17 +2,17 @@
 
 The JSON format is a portable checkpoint for consequential decisions. It is not a benchmark, source verifier, risk score or substitute for human authority. Save it near the active project's decision evidence, not automatically in every repository.
 
-| Field | Required content |
-| --- | --- |
-| `kind` | `investigation` or `architecture` |
-| `goal`, `proposal` | Desired result distinct from initially proposed method |
-| `evidence[]` | `source`, `finding`, `level` (`observed`, `derived`, `inferred`) |
-| `direct_check` | `status` (`found`, `not_found`, `unknown`, `not_applicable`), `source`, `finding` |
-| `assumptions[]` | `claim`, `state` (`verified` or `unverified`), `basis` |
-| `decision_axes[]` | Architecture only: `name`, 2+ distinct `considered` options, one selected value (or single candidate with `constraint_rationale`) |
-| `alternatives[]` | Architecture only: at least 2 distinct credible options (or single candidate with `constraint_rationale`), each with `name`, `benefit`, `risk`, `reversal` |
-| `horizons[]` | Architecture only: current and later `stage`, each with `scenario` and `consequence` |
-| `decision` | `action` (`proceed`, `pause`, `stop`), `choice`, `reason`, `invalidated_by` |
+| Field              | Required content                                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind`             | `investigation` or `architecture`                                                                                                                          |
+| `goal`, `proposal` | Desired result distinct from initially proposed method                                                                                                     |
+| `evidence[]`       | `source`, `finding`, `level` (`observed`, `derived`, `inferred`)                                                                                           |
+| `direct_check`     | `status` (`found`, `not_found`, `unknown`, `not_applicable`), `source`, `finding`                                                                          |
+| `assumptions[]`    | `claim`, `state` (`verified` or `unverified`), `basis`                                                                                                     |
+| `decision_axes[]`  | Architecture only: `name`, 2+ distinct `considered` options, one selected value (or single candidate with `constraint_rationale`)                          |
+| `alternatives[]`   | Architecture only: at least 2 distinct credible options (or single candidate with `constraint_rationale`), each with `name`, `benefit`, `risk`, `reversal` |
+| `horizons[]`       | Architecture only: current and later `stage`, each with `scenario` and `consequence`                                                                       |
+| `decision`         | `action` (`proceed`, `pause`, `stop`), `choice`, `reason`, `invalidated_by`                                                                                |
 
 When a direct answer is found and execution continues, add `decision.direct_path_handling` (`use` or `bypass`). A bypass also needs `decision.direct_override_reason`. Recording an unsupported reason does not make it true. When hard constraints eliminate alternatives, an axis specifies a single candidate with `constraint_rationale` directly on that axis. For an architecture-wide single-candidate decision, specify `single_candidate: true` and `constraint_rationale` at the record's top level (not under `decision`); eliminated candidates do not count as credible options. For an investigation that ends in `stop`, architectural alternatives and horizons are unnecessary.
 

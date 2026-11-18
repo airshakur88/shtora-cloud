@@ -30,6 +30,13 @@ async function toDataUrl(key: string): Promise<string | null> {
 	return `data:${mime};base64,${btoa(binary)}`;
 }
 
+export class PlaygroundImageError extends Error {
+	constructor(key: string) {
+		super(`Playground image not found: ${key}`);
+		this.name = "PlaygroundImageError";
+	}
+}
+
 async function resolveContent(content: ChatContent): Promise<ChatContent> {
 	if (!Array.isArray(content)) return content;
 	const parts: ChatContentPart[] = [];
@@ -44,7 +51,7 @@ async function resolveContent(content: ChatContent): Promise<ChatContent> {
 			continue;
 		}
 		const dataUrl = await toDataUrl(key);
-		if (!dataUrl) continue;
+		if (!dataUrl) throw new PlaygroundImageError(key);
 		parts.push({
 			type: "image_url",
 			image_url: {

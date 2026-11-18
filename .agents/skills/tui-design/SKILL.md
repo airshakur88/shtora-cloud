@@ -1,4 +1,5 @@
 ---
+
 name: tui-design
 description: Use this skill when designing terminal user interfaces, creating TUI layouts, choosing TUI color schemes, implementing keyboard navigation, building terminal dashboards, or working with any TUI framework. Activates on mentions of TUI design, terminal UI, Ratatui layout, Ink components, Textual widgets, Bubbletea views, terminal color palette, keybinding design, panel layout, split panes, terminal dashboard, box-drawing characters, sparklines, progress bars, modal dialogs, focus management, or terminal accessibility.
 ---

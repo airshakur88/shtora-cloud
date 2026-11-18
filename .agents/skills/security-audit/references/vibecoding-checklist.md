@@ -10,6 +10,7 @@ about a missing authorization check stops the feature from running. This is exac
 why SAST alone misses most of them, and why this checklist is worked manually.
 
 ## Contents
+
 1. [Missing row-level security](#1-missing-row-level-security--critical)
 2. [Secrets in client bundles](#2-secrets-in-client-bundles--critical)
 3. [Missing authorization / IDOR](#3-missing-authorization--idor--high)
@@ -79,7 +80,7 @@ backend route, and rotate every exposed key — they are already public.
 **Frequency: 88 findings in the pentest study, second most common class. Rises from
 11% of issues in small apps to 28% in larger ones.**
 
-Why it happens: prompts specify *what* an endpoint returns, never *who* may call it.
+Why it happens: prompts specify _what_ an endpoint returns, never _who_ may call it.
 Generated queries key on the request parameter alone (`WHERE id = :id`) with no owner
 or tenant filter. Authentication gets checked; authorization does not. The distinction
 is "is someone logged in" versus "does this particular user own this particular row".

@@ -6,15 +6,15 @@ happens, worst first.
 Report every issue you find with its severity attached. Do not decide on the author's
 behalf that a MEDIUM is not worth mentioning.
 
-| Issue | Severity | How it shows up |
-|---|---|---|
-| Tautological | CRITICAL | Assertion is true regardless of the implementation |
-| Vacuous | CRITICAL | `assume()` filters out nearly everything, or contradicts itself |
-| No assertion | HIGH | Body calls the function and stops |
-| Reimplementation | HIGH | Assertion recomputes the function's own logic |
-| Weaker property available | MEDIUM | Length checked, ordering not |
-| Over-filtered | MEDIUM | Stacked `assume()` where a strategy constraint belongs |
-| Settings | LOW | `max_examples=5`, or no deadline on an expensive strategy |
+| Issue                     | Severity | How it shows up                                                 |
+| ------------------------- | -------- | --------------------------------------------------------------- |
+| Tautological              | CRITICAL | Assertion is true regardless of the implementation              |
+| Vacuous                   | CRITICAL | `assume()` filters out nearly everything, or contradicts itself |
+| No assertion              | HIGH     | Body calls the function and stops                               |
+| Reimplementation          | HIGH     | Assertion recomputes the function's own logic                   |
+| Weaker property available | MEDIUM   | Length checked, ordering not                                    |
+| Over-filtered             | MEDIUM   | Stacked `assume()` where a strategy constraint belongs          |
+| Settings                  | LOW      | `max_examples=5`, or no deadline on an expensive strategy       |
 
 ## Tautological
 

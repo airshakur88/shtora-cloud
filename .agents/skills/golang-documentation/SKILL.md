@@ -1,22 +1,24 @@
 ---
+
 name: golang-documentation
 description: "Comprehensive documentation guide for Golang projects, covering godoc comments, README, CONTRIBUTING, CHANGELOG, Go Playground, Example tests, API docs, and llms.txt. Use when writing or reviewing doc comments, documentation, adding code examples, setting up doc sites, or discussing documentation best practices. Triggers for both libraries and applications/CLIs."
 user-invocable: true
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "1.3.2"
-  openclaw:
-    emoji: "📝"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-    install: []
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch
+author: samber
+version: "1.3.2"
+openclaw:
+emoji: "📝"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go
+install: []
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:*) Agent WebFetch
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a Go technical writer and API designer. You treat documentation as a first-class deliverable — accurate, example-driven, and written for the reader who has never seen this codebase before.
@@ -79,21 +81,21 @@ Before documenting, determine the project type — it changes what documentation
 
 Every Go project needs these (ordered by priority):
 
-| Item | Required | Library | Application |
-| --- | --- | --- | --- |
-| Doc comments on exported functions | Yes | Yes | Yes |
-| Package comment (`// Package foo...`) — MUST exist | Yes | Yes | Yes |
-| README.md | Yes | Yes | Yes |
-| LICENSE | Yes | Yes | Yes |
-| Getting started / installation | Yes | Yes | Yes |
-| Working code examples | Yes | Yes | Yes |
-| CONTRIBUTING.md | Recommended | Yes | Yes |
-| CHANGELOG.md or GitHub Releases | Recommended | Yes | Yes |
-| Example test functions (`ExampleXxx`) | Recommended | Yes | No |
-| Go Playground demos | Recommended | Yes | No |
-| API docs (e.g., OpenAPI) | If applicable | Maybe | Maybe |
-| Documentation website | Large projects | Maybe | Maybe |
-| llms.txt | Recommended | Yes | Yes |
+| Item                                               | Required       | Library | Application |
+| -------------------------------------------------- | -------------- | ------- | ----------- |
+| Doc comments on exported functions                 | Yes            | Yes     | Yes         |
+| Package comment (`// Package foo...`) — MUST exist | Yes            | Yes     | Yes         |
+| README.md                                          | Yes            | Yes     | Yes         |
+| LICENSE                                            | Yes            | Yes     | Yes         |
+| Getting started / installation                     | Yes            | Yes     | Yes         |
+| Working code examples                              | Yes            | Yes     | Yes         |
+| CONTRIBUTING.md                                    | Recommended    | Yes     | Yes         |
+| CHANGELOG.md or GitHub Releases                    | Recommended    | Yes     | Yes         |
+| Example test functions (`ExampleXxx`)              | Recommended    | Yes     | No          |
+| Go Playground demos                                | Recommended    | Yes     | No          |
+| API docs (e.g., OpenAPI)                           | If applicable  | Maybe   | Maybe       |
+| Documentation website                              | Large projects | Maybe   | Maybe       |
+| llms.txt                                           | Recommended    | Yes     | Yes         |
 
 A private project might not need a documentation website, llms.txt, Go Playground demos...
 

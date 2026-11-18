@@ -11,6 +11,7 @@ Restrict R2 bucket access using Cloudflare Access for identity-based authenticat
 Cloudflare Access provides identity-based access control for R2 buckets, allowing you to restrict access to specific users, groups, or applications within your organization. This enables Zero Trust security for internal tools, employee-only content, and sensitive data.
 
 **Key Benefits**:
+
 - **Zero Trust Security** - Verify identity before granting access
 - **SSO Integration** - SAML, OAuth, OIDC providers (Google, Okta, Azure AD)
 - **Granular Policies** - User, group, IP, device, and location-based rules
@@ -19,6 +20,7 @@ Cloudflare Access provides identity-based access control for R2 buckets, allowin
 - **Multi-factor Authentication** - Enforce MFA for sensitive data
 
 **Use Cases**:
+
 - Internal file storage (HR documents, financials)
 - Employee-only resources (training videos, company files)
 - Partner/vendor access (restricted file sharing)
@@ -69,6 +71,7 @@ Cloudflare Access provides identity-based access control for R2 buckets, allowin
 ### Step 1: Enable Cloudflare Access
 
 **Dashboard Steps**:
+
 1. Navigate to **Zero Trust** → **Access** → **Applications**
 2. Click **Add an application**
 3. Select **Self-hosted**
@@ -80,6 +83,7 @@ Cloudflare Access provides identity-based access control for R2 buckets, allowin
 ### Step 2: Configure Identity Provider
 
 **Add SSO Provider**:
+
 1. Go to **Zero Trust** → **Settings** → **Authentication**
 2. Click **Add new** under Login methods
 3. Select provider (Google, Okta, Azure AD, etc.)
@@ -87,6 +91,7 @@ Cloudflare Access provides identity-based access control for R2 buckets, allowin
 5. Test authentication
 
 **Supported Providers**:
+
 - Google Workspace
 - Okta
 - Azure AD (Microsoft Entra)
@@ -97,6 +102,7 @@ Cloudflare Access provides identity-based access control for R2 buckets, allowin
 ### Step 3: Create Access Policies
 
 **Policy Types**:
+
 - **Allow**: Grant access to matching users
 - **Block**: Deny access to matching users
 - **Bypass**: Skip Access for specific scenarios
@@ -119,6 +125,7 @@ Require:
 ```
 
 **Dashboard Configuration**:
+
 1. In application settings, click **Add a policy**
 2. Configure include rules (who should have access)
 3. Configure exclude rules (who should be denied)
@@ -134,6 +141,7 @@ bunx wrangler r2 bucket domain add my-bucket files.example.com
 ```
 
 **Dashboard Steps**:
+
 1. R2 → Select bucket → **Settings**
 2. Scroll to **Custom Domains**
 3. Add domain: `files.example.com`
@@ -142,6 +150,7 @@ bunx wrangler r2 bucket domain add my-bucket files.example.com
 ### Step 5: Apply Access Policy to R2 Domain
 
 **Dashboard Steps**:
+
 1. **Zero Trust** → **Access** → **Applications** → Your application
 2. Verify **Application domain** matches R2 custom domain
 3. Policies will automatically protect all requests to domain
@@ -230,87 +239,91 @@ Service Tokens:
 ### Validate Access JWT in Workers
 
 ```typescript
-import { Hono } from 'hono';
+import { Hono } from "hono";
 
 type Bindings = {
-  MY_BUCKET: R2Bucket;
-  ACCESS_AUD: string;  // Cloudflare Access audience tag
+	MY_BUCKET: R2Bucket;
+	ACCESS_AUD: string; // Cloudflare Access audience tag
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Validate Cloudflare Access JWT
 async function validateAccessToken(
-  request: Request,
-  env: Bindings
+	request: Request,
+	env: Bindings,
 ): Promise<{ valid: boolean; email?: string; groups?: string[] }> {
-  const cookieHeader = request.headers.get('Cookie');
+	const cookieHeader = request.headers.get("Cookie");
 
-  if (!cookieHeader) {
-    return { valid: false };
-  }
+	if (!cookieHeader) {
+		return { valid: false };
+	}
 
-  // Extract Access JWT from cookie
-  const cfAccessToken = cookieHeader
-    .split(';')
-    .find(c => c.trim().startsWith('CF_Authorization='))
-    ?.split('=')[1];
+	// Extract Access JWT from cookie
+	const cfAccessToken = cookieHeader
+		.split(";")
+		.find((c) => c.trim().startsWith("CF_Authorization="))
+		?.split("=")[1];
 
-  if (!cfAccessToken) {
-    return { valid: false };
-  }
+	if (!cfAccessToken) {
+		return { valid: false };
+	}
 
-  // Verify JWT with Cloudflare's public keys
-  const certsUrl = 'https://example.cloudflareaccess.com/cdn-cgi/access/certs';
-  const certsResponse = await fetch(certsUrl);
-  const certs = await certsResponse.json();
+	// Verify JWT with Cloudflare's public keys
+	const certsUrl = "https://example.cloudflareaccess.com/cdn-cgi/access/certs";
+	const certsResponse = await fetch(certsUrl);
+	const certs = await certsResponse.json();
 
-  // Decode and verify JWT (use jose library)
-  try {
-    const { payload } = await verifyJWT(cfAccessToken, certs, env.ACCESS_AUD);
+	// Decode and verify JWT (use jose library)
+	try {
+		const { payload } = await verifyJWT(cfAccessToken, certs, env.ACCESS_AUD);
 
-    return {
-      valid: true,
-      email: payload.email,
-      groups: payload.groups || [],
-    };
-  } catch (error) {
-    console.error('JWT validation failed:', error);
-    return { valid: false };
-  }
+		return {
+			valid: true,
+			email: payload.email,
+			groups: payload.groups || [],
+		};
+	} catch (error) {
+		console.error("JWT validation failed:", error);
+		return { valid: false };
+	}
 }
 
 // Protected endpoint
-app.get('/files/:filename', async (c) => {
-  // Validate Access token
-  const auth = await validateAccessToken(c.req.raw, c.env);
+app.get("/files/:filename", async (c) => {
+	// Validate Access token
+	const auth = await validateAccessToken(c.req.raw, c.env);
 
-  if (!auth.valid) {
-    return c.json({ error: 'Unauthorized - Cloudflare Access required' }, 401);
-  }
+	if (!auth.valid) {
+		return c.json({ error: "Unauthorized - Cloudflare Access required" }, 401);
+	}
 
-  // Check group-based permissions
-  const filename = c.req.param('filename');
+	// Check group-based permissions
+	const filename = c.req.param("filename");
 
-  if (filename.startsWith('finance/') && !auth.groups?.includes('Finance Team')) {
-    return c.json({ error: 'Forbidden - Finance Team access required' }, 403);
-  }
+	if (
+		filename.startsWith("finance/") &&
+		!auth.groups?.includes("Finance Team")
+	) {
+		return c.json({ error: "Forbidden - Finance Team access required" }, 403);
+	}
 
-  // Fetch file from R2
-  const object = await c.env.MY_BUCKET.get(filename);
+	// Fetch file from R2
+	const object = await c.env.MY_BUCKET.get(filename);
 
-  if (!object) {
-    return c.json({ error: 'File not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "File not found" }, 404);
+	}
 
-  // Log access for audit trail
-  console.log(`File accessed: ${filename} by ${auth.email}`);
+	// Log access for audit trail
+	console.log(`File accessed: ${filename} by ${auth.email}`);
 
-  return new Response(object.body, {
-    headers: {
-      'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
-    },
-  });
+	return new Response(object.body, {
+		headers: {
+			"Content-Type":
+				object.httpMetadata?.contentType || "application/octet-stream",
+		},
+	});
 });
 
 export default app;
@@ -320,38 +333,38 @@ export default app;
 
 ```typescript
 // Service-to-service access with service tokens
-app.get('/api/files/:filename', async (c) => {
-  const serviceToken = c.req.header('CF-Access-Client-Id');
-  const serviceSecret = c.req.header('CF-Access-Client-Secret');
+app.get("/api/files/:filename", async (c) => {
+	const serviceToken = c.req.header("CF-Access-Client-Id");
+	const serviceSecret = c.req.header("CF-Access-Client-Secret");
 
-  if (!serviceToken || !serviceSecret) {
-    return c.json({ error: 'Service token required' }, 401);
-  }
+	if (!serviceToken || !serviceSecret) {
+		return c.json({ error: "Service token required" }, 401);
+	}
 
-  // Validate service token with Access
-  const validation = await fetch(
-    'https://example.cloudflareaccess.com/cdn-cgi/access/token',
-    {
-      headers: {
-        'CF-Access-Client-Id': serviceToken,
-        'CF-Access-Client-Secret': serviceSecret,
-      },
-    }
-  );
+	// Validate service token with Access
+	const validation = await fetch(
+		"https://example.cloudflareaccess.com/cdn-cgi/access/token",
+		{
+			headers: {
+				"CF-Access-Client-Id": serviceToken,
+				"CF-Access-Client-Secret": serviceSecret,
+			},
+		},
+	);
 
-  if (!validation.ok) {
-    return c.json({ error: 'Invalid service token' }, 401);
-  }
+	if (!validation.ok) {
+		return c.json({ error: "Invalid service token" }, 401);
+	}
 
-  // Proceed with file access
-  const filename = c.req.param('filename');
-  const object = await c.env.MY_BUCKET.get(filename);
+	// Proceed with file access
+	const filename = c.req.param("filename");
+	const object = await c.env.MY_BUCKET.get(filename);
 
-  if (!object) {
-    return c.json({ error: 'File not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "File not found" }, 404);
+	}
 
-  return new Response(object.body);
+	return new Response(object.body);
 });
 ```
 
@@ -362,6 +375,7 @@ app.get('/api/files/:filename', async (c) => {
 ### Enable Access Logs
 
 **Dashboard Steps**:
+
 1. **Zero Trust** → **Logs** → **Access**
 2. Enable **Access audit logs**
 3. Configure log destination:
@@ -407,28 +421,28 @@ ORDER BY failed_attempts DESC;
 
 ```typescript
 // Ensure users can only access their own files
-app.get('/user-files/:filename', async (c) => {
-  const auth = await validateAccessToken(c.req.raw, c.env);
+app.get("/user-files/:filename", async (c) => {
+	const auth = await validateAccessToken(c.req.raw, c.env);
 
-  if (!auth.valid) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+	if (!auth.valid) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
 
-  const filename = c.req.param('filename');
-  const userId = auth.email?.split('@')[0]; // Extract user ID from email
+	const filename = c.req.param("filename");
+	const userId = auth.email?.split("@")[0]; // Extract user ID from email
 
-  // Ensure file belongs to user
-  if (!filename.startsWith(`users/${userId}/`)) {
-    return c.json({ error: 'Access denied - not your file' }, 403);
-  }
+	// Ensure file belongs to user
+	if (!filename.startsWith(`users/${userId}/`)) {
+		return c.json({ error: "Access denied - not your file" }, 403);
+	}
 
-  const object = await c.env.MY_BUCKET.get(filename);
+	const object = await c.env.MY_BUCKET.get(filename);
 
-  if (!object) {
-    return c.json({ error: 'File not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "File not found" }, 404);
+	}
 
-  return new Response(object.body);
+	return new Response(object.body);
 });
 ```
 
@@ -436,31 +450,34 @@ app.get('/user-files/:filename', async (c) => {
 
 ```typescript
 // Restrict access to business hours
-app.get('/restricted/:filename', async (c) => {
-  const auth = await validateAccessToken(c.req.raw, c.env);
+app.get("/restricted/:filename", async (c) => {
+	const auth = await validateAccessToken(c.req.raw, c.env);
 
-  if (!auth.valid) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+	if (!auth.valid) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
 
-  // Check business hours (9 AM - 5 PM EST)
-  const now = new Date();
-  const hour = now.getUTCHours() - 5; // EST offset
+	// Check business hours (9 AM - 5 PM EST)
+	const now = new Date();
+	const hour = now.getUTCHours() - 5; // EST offset
 
-  if (hour < 9 || hour >= 17) {
-    return c.json({
-      error: 'Access restricted to business hours (9 AM - 5 PM EST)',
-    }, 403);
-  }
+	if (hour < 9 || hour >= 17) {
+		return c.json(
+			{
+				error: "Access restricted to business hours (9 AM - 5 PM EST)",
+			},
+			403,
+		);
+	}
 
-  const filename = c.req.param('filename');
-  const object = await c.env.MY_BUCKET.get(filename);
+	const filename = c.req.param("filename");
+	const object = await c.env.MY_BUCKET.get(filename);
 
-  if (!object) {
-    return c.json({ error: 'File not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "File not found" }, 404);
+	}
 
-  return new Response(object.body);
+	return new Response(object.body);
 });
 ```
 
@@ -468,37 +485,42 @@ app.get('/restricted/:filename', async (c) => {
 
 ```typescript
 // Track and limit file downloads per user
-app.get('/limited/:filename', async (c) => {
-  const auth = await validateAccessToken(c.req.raw, c.env);
+app.get("/limited/:filename", async (c) => {
+	const auth = await validateAccessToken(c.req.raw, c.env);
 
-  if (!auth.valid) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+	if (!auth.valid) {
+		return c.json({ error: "Unauthorized" }, 401);
+	}
 
-  const filename = c.req.param('filename');
-  const downloadKey = `downloads:${auth.email}:${filename}`;
+	const filename = c.req.param("filename");
+	const downloadKey = `downloads:${auth.email}:${filename}`;
 
-  // Check download count (stored in KV)
-  const downloads = parseInt(await c.env.DOWNLOAD_LIMITS.get(downloadKey) || '0');
+	// Check download count (stored in KV)
+	const downloads = parseInt(
+		(await c.env.DOWNLOAD_LIMITS.get(downloadKey)) || "0",
+	);
 
-  if (downloads >= 3) {
-    return c.json({
-      error: 'Download limit exceeded (max 3 per file)',
-    }, 429);
-  }
+	if (downloads >= 3) {
+		return c.json(
+			{
+				error: "Download limit exceeded (max 3 per file)",
+			},
+			429,
+		);
+	}
 
-  // Increment download count
-  await c.env.DOWNLOAD_LIMITS.put(downloadKey, String(downloads + 1), {
-    expirationTtl: 86400, // Reset after 24 hours
-  });
+	// Increment download count
+	await c.env.DOWNLOAD_LIMITS.put(downloadKey, String(downloads + 1), {
+		expirationTtl: 86400, // Reset after 24 hours
+	});
 
-  const object = await c.env.MY_BUCKET.get(filename);
+	const object = await c.env.MY_BUCKET.get(filename);
 
-  if (!object) {
-    return c.json({ error: 'File not found' }, 404);
-  }
+	if (!object) {
+		return c.json({ error: "File not found" }, 404);
+	}
 
-  return new Response(object.body);
+	return new Response(object.body);
 });
 ```
 
@@ -526,6 +548,7 @@ app.get('/limited/:filename', async (c) => {
 **Error**: "Forbidden - Access policy does not allow"
 
 **Solutions**:
+
 - Check policy includes user's email or group
 - Verify user authenticated with correct IdP
 - Check exclude rules aren't blocking user
@@ -536,6 +559,7 @@ app.get('/limited/:filename', async (c) => {
 **Error**: "Invalid JWT signature"
 
 **Solutions**:
+
 - Verify Access audience tag matches (env.ACCESS_AUD)
 - Check JWT expiration (max session duration)
 - Ensure using latest public keys from `/certs` endpoint
@@ -546,6 +570,7 @@ app.get('/limited/:filename', async (c) => {
 **Error**: "Service token authentication failed"
 
 **Solutions**:
+
 - Verify service token is still valid (not expired or revoked)
 - Check client ID and secret are correct
 - Ensure service token is in correct application policy
@@ -556,6 +581,7 @@ app.get('/limited/:filename', async (c) => {
 **Problem**: Access policies not applied to R2 custom domain
 
 **Solutions**:
+
 - Verify custom domain configured in Access application
 - Check DNS records point to correct R2 endpoint
 - Wait for DNS propagation (up to 24 hours)

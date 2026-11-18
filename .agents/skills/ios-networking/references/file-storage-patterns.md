@@ -15,12 +15,12 @@ backup exclusions, and handling storage pressure on iOS.
 iOS provides four primary directories for app data. Choose based on whether
 the data is user-generated, re-creatable, or temporary.
 
-| Directory | Backed Up | Purged by System | Use For |
-|---|---|---|---|
-| `Documents/` | Yes | No | User-generated content (documents, exports, user files) |
-| `Library/Application Support/` | Yes | No | App-generated supporting files (databases, config, caches that should survive updates) |
-| `Library/Caches/` | No | Yes (low storage) | Re-creatable data (downloaded images, API responses, computed data) |
-| `tmp/` | No | Yes (anytime) | Truly temporary files (in-progress uploads, scratch files) |
+| Directory                      | Backed Up | Purged by System  | Use For                                                                                |
+| ------------------------------ | --------- | ----------------- | -------------------------------------------------------------------------------------- |
+| `Documents/`                   | Yes       | No                | User-generated content (documents, exports, user files)                                |
+| `Library/Application Support/` | Yes       | No                | App-generated supporting files (databases, config, caches that should survive updates) |
+| `Library/Caches/`              | No        | Yes (low storage) | Re-creatable data (downloaded images, API responses, computed data)                    |
+| `tmp/`                         | No        | Yes (anytime)     | Truly temporary files (in-progress uploads, scratch files)                             |
 
 ### Accessing Standard Directories
 
@@ -78,12 +78,12 @@ determines when the file is accessible relative to the device lock state.
 Docs: [FileProtectionType](https://sosumi.ai/documentation/foundation/fileprotectiontype),
 [Encrypting Your App's Files](https://sosumi.ai/documentation/uikit/encrypting-your-app-s-files)
 
-| Level | Constant | When Accessible | Use For |
-|---|---|---|---|
-| Complete | `.complete` | Only when device is unlocked | Sensitive user data (health records, financial data) |
-| Complete Unless Open | `.completeUnlessOpen` | Can finish if opened before lock | Active downloads, recordings in progress |
-| Until First Auth | `.completeUntilFirstUserAuthentication` | After first unlock (default) | Most app data; background-accessible content |
-| None | `.none` | Always, even before first unlock | Non-sensitive system-required data |
+| Level                | Constant                                | When Accessible                  | Use For                                              |
+| -------------------- | --------------------------------------- | -------------------------------- | ---------------------------------------------------- |
+| Complete             | `.complete`                             | Only when device is unlocked     | Sensitive user data (health records, financial data) |
+| Complete Unless Open | `.completeUnlessOpen`                   | Can finish if opened before lock | Active downloads, recordings in progress             |
+| Until First Auth     | `.completeUntilFirstUserAuthentication` | After first unlock (default)     | Most app data; background-accessible content         |
+| None                 | `.none`                                 | Always, even before first unlock | Non-sensitive system-required data                   |
 
 ### Setting File Protection
 
@@ -197,13 +197,13 @@ func isExcludedFromBackup(_ url: URL) throws -> Bool {
 
 ### When to Exclude from Backup
 
-| Exclude | Keep in Backup |
-|---|---|
-| Downloaded media (images, videos, audio) | User-created documents |
-| API response caches | User preferences and settings |
-| Generated thumbnails or previews | App databases with user data |
-| Offline map tiles | In-app purchase receipts |
-| Pre-computed search indexes | User-generated content |
+| Exclude                                  | Keep in Backup                |
+| ---------------------------------------- | ----------------------------- |
+| Downloaded media (images, videos, audio) | User-created documents        |
+| API response caches                      | User preferences and settings |
+| Generated thumbnails or previews         | App databases with user data  |
+| Offline map tiles                        | In-app purchase receipts      |
+| Pre-computed search indexes              | User-generated content        |
 
 ### Common Pattern: Application Support with Exclusion
 

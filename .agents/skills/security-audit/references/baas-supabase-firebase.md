@@ -8,6 +8,7 @@ Verify enforcement. Never accept "RLS is enabled" as an answer — enabled with 
 permissive policy, or enabled without `FORCE`, is the same as off.
 
 ## Contents
+
 - [The two commands that catch most of it](#the-two-commands-that-catch-most-of-it)
 - [Supabase: tooling that actually exists](#supabase-tooling-that-actually-exists)
 - [Supabase: SQL audit queries](#supabase-sql-audit-queries)
@@ -36,13 +37,13 @@ enforcement rather than assume it.
 
 ## Supabase: tooling that actually exists
 
-| Command | What it does | Security use |
-|---|---|---|
-| `supabase db lint` | `plpgsql_check` — PL/pgSQL runtime and schema errors | **Not a security linter.** Widely mistaken for one. |
-| `supabase db advisors` | Runs the embedded `splinter` lint SQL | **This is the security check.** Needs CLI 2.81.3 or newer. |
-| `supabase inspect db <sub>` | bloat, locks, index-stats, outliers, vacuum-stats | **No security subcommand.** Performance and ops only. |
-| `supabase test db [path]` | pgTAP | RLS regression tests in CI |
-| Dashboard Security Advisor | Same splinter lints, in the UI | Manual check |
+| Command                     | What it does                                         | Security use                                               |
+| --------------------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `supabase db lint`          | `plpgsql_check` — PL/pgSQL runtime and schema errors | **Not a security linter.** Widely mistaken for one.        |
+| `supabase db advisors`      | Runs the embedded `splinter` lint SQL                | **This is the security check.** Needs CLI 2.81.3 or newer. |
+| `supabase inspect db <sub>` | bloat, locks, index-stats, outliers, vacuum-stats    | **No security subcommand.** Performance and ops only.      |
+| `supabase test db [path]`   | pgTAP                                                | RLS regression tests in CI                                 |
+| Dashboard Security Advisor  | Same splinter lints, in the UI                       | Manual check                                               |
 
 Run splinter directly against any Postgres, with no CLI version dependency:
 
@@ -192,10 +193,10 @@ select * from pg_policies where schemaname = 'storage';
 
 ## Supabase: anon vs service_role, and the 2025 key migration
 
-| | `anon` / `sb_publishable_…` | `service_role` / `sb_secret_…` |
-|---|---|---|
-| RLS | Enforced | **`BYPASSRLS` — skips every policy** |
-| Safe in a client bundle | Yes, by design | **Never** |
+|                         | `anon` / `sb_publishable_…` | `service_role` / `sb_secret_…`       |
+| ----------------------- | --------------------------- | ------------------------------------ |
+| RLS                     | Enforced                    | **`BYPASSRLS` — skips every policy** |
+| Safe in a client bundle | Yes, by design              | **Never**                            |
 
 New opaque key formats shipped June 2025 and are mandatory on new projects; legacy
 JWT-style keys are being removed in late 2026. `sb_secret_` keys are blocked on a
@@ -402,13 +403,13 @@ origin makes an open project look locked.
 never "may this caller read this row". Data protection lives entirely in server-side
 policy evaluation.
 
-| Platform | Public by design | The real control | Never in a client |
-|---|---|---|---|
-| Firebase | `apiKey`, `projectId`, `appId` | Security Rules, plus App Check for abuse | Service-account JSON |
-| Supabase | `sb_publishable_…` / `anon` | RLS, grants, exposed-schema config | `sb_secret_…` / `service_role` |
+| Platform | Public by design               | The real control                         | Never in a client              |
+| -------- | ------------------------------ | ---------------------------------------- | ------------------------------ |
+| Firebase | `apiKey`, `projectId`, `appId` | Security Rules, plus App Check for abuse | Service-account JSON           |
+| Supabase | `sb_publishable_…` / `anon`    | RLS, grants, exposed-schema config       | `sb_secret_…` / `service_role` |
 
 Firebase documents this explicitly: the API key is public and rules are what protect
-the data. The asymmetry that catches people is that Supabase ships a *second* key that
+the data. The asymmetry that catches people is that Supabase ships a _second_ key that
 grants `BYPASSRLS`, and both keys look like similar opaque blobs sitting adjacent in
 the dashboard, so coding agents paste the wrong one routinely.
 

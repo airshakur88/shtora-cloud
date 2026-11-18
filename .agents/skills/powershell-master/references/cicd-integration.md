@@ -56,27 +56,27 @@ trigger:
   - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: |
-      Install-Module -Name Pester -Force -Scope CurrentUser
-      Invoke-Pester -Path ./tests -OutputFormat NUnitXml
-  displayName: 'Run Pester Tests'
+  - task: PowerShell@2
+    inputs:
+      targetType: "inline"
+      script: |
+        Install-Module -Name Pester -Force -Scope CurrentUser
+        Invoke-Pester -Path ./tests -OutputFormat NUnitXml
+    displayName: "Run Pester Tests"
 
-- task: PowerShell@2
-  inputs:
-    filePath: '$(System.DefaultWorkingDirectory)/build.ps1'
-    arguments: '-Configuration Release'
-  displayName: 'Run Build Script'
+  - task: PowerShell@2
+    inputs:
+      filePath: "$(System.DefaultWorkingDirectory)/build.ps1"
+      arguments: "-Configuration Release"
+    displayName: "Run Build Script"
 
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'NUnit'
-    testResultsFiles: '**/TestResults.xml'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: "NUnit"
+      testResultsFiles: "**/TestResults.xml"
 ```
 
 ### Cross-Platform Pipeline
@@ -85,20 +85,20 @@ steps:
 strategy:
   matrix:
     linux:
-      imageName: 'ubuntu-latest'
+      imageName: "ubuntu-latest"
     windows:
-      imageName: 'windows-latest'
+      imageName: "windows-latest"
     mac:
-      imageName: 'macos-latest'
+      imageName: "macos-latest"
 
 pool:
   vmImage: $(imageName)
 
 steps:
-- pwsh: |
-    Write-Host "Running on $($PSVersionTable.OS)"
-    ./test-script.ps1
-  displayName: 'Cross-platform test'
+  - pwsh: |
+      Write-Host "Running on $($PSVersionTable.OS)"
+      ./test-script.ps1
+    displayName: "Cross-platform test"
 ```
 
 ## Bitbucket Pipelines

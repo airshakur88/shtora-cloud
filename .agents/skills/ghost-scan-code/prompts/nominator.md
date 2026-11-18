@@ -34,6 +34,7 @@ Parse the line:
 ```
 
 Extract:
+
 - **base_path**: project base path (e.g., ".", "api", "frontend/src")
 - **type**: project type (backend, frontend, mobile, library)
 - **agent**: agent name (e.g., "injection")
@@ -46,6 +47,7 @@ Read `<skill_dir>/criteria/<type>.yaml` — look up the `<agent>` top-level key,
 ### Step 3: Nominate files
 
 **Rules:**
+
 - You are a FAST TRIAGER. Most nominations complete in 1–3 tool calls.
 - Do NOT read file contents to analyze for vulnerabilities. Only identify files by name, path, and pattern matching.
 - Use Grep and Glob to find candidate files. Prefer Grep for pattern-based searches, Glob for structural searches.
@@ -53,9 +55,10 @@ Read `<skill_dir>/criteria/<type>.yaml` — look up the `<agent>` top-level key,
 - **Prior candidates:** If your work item already has indented candidate lines below it (from a prior run), those files are ALREADY NOMINATED. Exclude them from your results and find up to the depth limit in NEW files only. Broaden your search patterns to cover files the previous run missed.
 - All returned file paths must be relative to the repo root.
 - Every returned file must actually exist in the repository.
-- Do NOT nominate files in: node_modules, vendor, dist, build, .git, __pycache__, .next, target, .cache, .venv, venv, test, tests, __tests__, spec, __mocks__, fixtures, testdata, mocks.
+- Do NOT nominate files in: node_modules, vendor, dist, build, .git, **pycache**, .next, target, .cache, .venv, venv, test, tests, **tests**, spec, **mocks**, fixtures, testdata, mocks.
 
 **Strategy:**
+
 1. Parse the `candidates` hint — it describes what patterns, function calls, imports, or file types to look for.
 2. Determine the project's base path. Scope all searches to `<base_path>` (or repo root if base_path is ".").
 3. **Library projects only**: Use Glob to identify the public API surface first — the main entry point (`index.ts`, `index.js`, `src/index.*`, `__init__.py`, or the `main`/`exports` field in `package.json`). Note which files are directly exported or re-exported from the entry point — these are higher priority candidates.

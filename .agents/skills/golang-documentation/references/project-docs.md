@@ -46,13 +46,13 @@ Copy the template from [templates/CONTRIBUTING.md](./templates/CONTRIBUTING.md).
 
 If setup takes more than 10 minutes, add these improvements:
 
-| Problem | Solution |
-| --- | --- |
-| Complex build steps | Add a `Makefile` with `make build`, `make test`, `make lint` |
-| External service dependencies | Add `docker-compose.yml` for local dev |
-| Inconsistent dev environments | Add `.devcontainer/` for VS Code devcontainers |
-| Slow test suite | Separate unit tests (fast) from integration tests (build tags) |
-| Missing documentation | Add `make help` that lists available targets |
+| Problem                       | Solution                                                       |
+| ----------------------------- | -------------------------------------------------------------- |
+| Complex build steps           | Add a `Makefile` with `make build`, `make test`, `make lint`   |
+| External service dependencies | Add `docker-compose.yml` for local dev                         |
+| Inconsistent dev environments | Add `.devcontainer/` for VS Code devcontainers                 |
+| Slow test suite               | Separate unit tests (fast) from integration tests (build tags) |
+| Missing documentation         | Add `make help` that lists available targets                   |
 
 ---
 

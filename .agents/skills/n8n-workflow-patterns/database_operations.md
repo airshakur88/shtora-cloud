@@ -17,13 +17,17 @@ Trigger → [Query/Read] → [Transform] → [Write/Update] → [Verify/Log]
 ## Core Components
 
 ### 1. Trigger
+
 **Options**:
+
 - **Schedule** - Periodic sync/maintenance (most common)
 - **Webhook** - Event-driven writes
 - **Manual** - One-time operations
 
 ### 2. Database Read Nodes
+
 **Supported databases**:
+
 - Postgres
 - MySQL
 - MongoDB
@@ -33,24 +37,30 @@ Trigger → [Query/Read] → [Transform] → [Write/Update] → [Verify/Log]
 - And more via community nodes
 
 ### 3. Transform
+
 **Purpose**: Map between different database schemas or formats
 
 **Typical nodes**:
+
 - **Set** - Field mapping
 - **Code** - Complex transformations
 - **Merge** - Combine data from multiple sources
 
 ### 4. Database Write Nodes
+
 **Operations**:
+
 - INSERT - Create new records
 - UPDATE - Modify existing records
 - UPSERT - Insert or update
 - DELETE - Remove records
 
 ### 5. Verification
+
 **Purpose**: Confirm operations succeeded
 
 **Methods**:
+
 - Query to verify records
 - Count rows affected
 - Log results
@@ -60,9 +70,11 @@ Trigger → [Query/Read] → [Transform] → [Write/Update] → [Verify/Log]
 ## Common Use Cases
 
 ### 1. Data Synchronization
+
 **Flow**: Schedule → Read Source DB → Transform → Write Target DB → Log
 
 **Example** (Postgres to MySQL sync):
+
 ```
 1. Schedule (every 15 minutes)
 2. Postgres (SELECT * FROM users WHERE updated_at > {{$json.last_sync}})
@@ -74,6 +86,7 @@ Trigger → [Query/Read] → [Transform] → [Write/Update] → [Verify/Log]
 ```
 
 **Incremental sync query**:
+
 ```sql
 SELECT *
 FROM users
@@ -83,6 +96,7 @@ LIMIT 1000
 ```
 
 **Parameters**:
+
 ```javascript
 {
   "parameters": [
@@ -92,9 +106,11 @@ LIMIT 1000
 ```
 
 ### 2. ETL (Extract, Transform, Load)
+
 **Flow**: Extract from multiple sources → Transform → Load into warehouse
 
 **Example** (Consolidate data):
+
 ```
 1. Schedule (daily at 2 AM)
 2. [Parallel branches]
@@ -108,9 +124,11 @@ LIMIT 1000
 ```
 
 ### 3. Data Validation & Cleanup
+
 **Flow**: Schedule → Query → Validate → Update/Delete invalid records
 
 **Example** (Clean orphaned records):
+
 ```
 1. Schedule (weekly)
 2. Postgres (SELECT users WHERE email IS NULL OR email = '')
@@ -121,9 +139,11 @@ LIMIT 1000
 ```
 
 ### 4. Backup & Archive
+
 **Flow**: Schedule → Query → Export → Store
 
 **Example** (Archive old records):
+
 ```
 1. Schedule (monthly)
 2. Postgres (SELECT * FROM orders WHERE created_at < NOW() - INTERVAL '2 years')
@@ -134,9 +154,11 @@ LIMIT 1000
 ```
 
 ### 5. Real-time Data Updates
+
 **Flow**: Webhook → Parse → Update Database
 
 **Example** (Update user status):
+
 ```
 1. Webhook (receive status update)
 2. Postgres (UPDATE users SET status = {{$json.body.status}} WHERE id = {{$json.body.user_id}})
@@ -152,6 +174,7 @@ LIMIT 1000
 ### Postgres
 
 #### SELECT Query
+
 ```javascript
 {
   operation: "executeQuery",
@@ -164,6 +187,7 @@ LIMIT 1000
 ```
 
 #### INSERT
+
 ```javascript
 {
   operation: "insert",
@@ -181,6 +205,7 @@ LIMIT 1000
 ```
 
 #### UPDATE
+
 ```javascript
 {
   operation: "update",
@@ -197,6 +222,7 @@ LIMIT 1000
 ```
 
 #### UPSERT (INSERT ... ON CONFLICT)
+
 ```javascript
 {
   operation: "executeQuery",
@@ -217,6 +243,7 @@ LIMIT 1000
 ### MySQL
 
 #### SELECT with JOIN
+
 ```javascript
 {
   operation: "executeQuery",
@@ -233,6 +260,7 @@ LIMIT 1000
 ```
 
 #### Bulk INSERT
+
 ```javascript
 {
   operation: "insert",
@@ -245,6 +273,7 @@ LIMIT 1000
 ### MongoDB
 
 #### Find Documents
+
 ```javascript
 {
   operation: "find",
@@ -258,6 +287,7 @@ LIMIT 1000
 ```
 
 #### Insert Document
+
 ```javascript
 {
   operation: "insert",
@@ -271,6 +301,7 @@ LIMIT 1000
 ```
 
 #### Update Document
+
 ```javascript
 {
   operation: "update",
@@ -290,6 +321,7 @@ LIMIT 1000
 ## Batch Processing
 
 ### Pattern 1: Split In Batches
+
 **Use when**: Processing large datasets to avoid memory issues
 
 ```
@@ -301,6 +333,7 @@ Postgres (SELECT 10000 records)
 ```
 
 ### Pattern 2: Paginated Queries
+
 **Use when**: Database has millions of records
 
 ```
@@ -315,6 +348,7 @@ Set (initialize: offset=0, limit=1000)
 ```
 
 **Query**:
+
 ```sql
 SELECT * FROM large_table
 ORDER BY id
@@ -322,6 +356,7 @@ LIMIT $1 OFFSET $2
 ```
 
 ### Pattern 3: Cursor-Based Pagination
+
 **Better performance for large datasets**:
 
 ```
@@ -336,6 +371,7 @@ Set (initialize: last_id=0)
 ```
 
 **Query**:
+
 ```sql
 SELECT * FROM table
 WHERE id > $1
@@ -348,6 +384,7 @@ LIMIT 1000
 ## Transaction Handling
 
 ### Pattern 1: BEGIN/COMMIT/ROLLBACK
+
 **For databases that support transactions**:
 
 ```javascript
@@ -372,6 +409,7 @@ LIMIT 1000
 ```
 
 ### Pattern 2: Atomic Operations
+
 **Use database features for atomicity**:
 
 ```sql
@@ -383,6 +421,7 @@ DO UPDATE SET quantity = inventory.quantity + $2
 ```
 
 ### Pattern 3: Error Rollback
+
 **Manual rollback on error**:
 
 ```
@@ -400,6 +439,7 @@ Error Trigger:
 ## Data Transformation
 
 ### Schema Mapping
+
 ```javascript
 // Code node - map schemas
 const sourceData = $input.all();
@@ -420,6 +460,7 @@ return sourceData.map(item => ({
 ```
 
 ### Data Type Conversions
+
 ```javascript
 // Code node - convert data types
 return $input.all().map(item => ({
@@ -439,6 +480,7 @@ return $input.all().map(item => ({
 ```
 
 ### Aggregation
+
 ```javascript
 // Code node - aggregate data
 const items = $input.all();
@@ -468,6 +510,7 @@ return Object.entries(summary).map(([date, data]) => ({
 ## Performance Optimization
 
 ### 1. Use Indexes
+
 Ensure database has proper indexes:
 
 ```sql
@@ -479,6 +522,7 @@ CREATE INDEX idx_orders_user_id ON orders(user_id);
 ```
 
 ### 2. Limit Result Sets
+
 Always use LIMIT:
 
 ```sql
@@ -493,6 +537,7 @@ WHERE created_at > $1
 ```
 
 ### 3. Use Prepared Statements
+
 Parameterized queries are faster:
 
 ```javascript
@@ -509,6 +554,7 @@ Parameterized queries are faster:
 ```
 
 ### 4. Batch Writes
+
 Write multiple records at once:
 
 ```javascript
@@ -524,6 +570,7 @@ Write multiple records at once:
 ```
 
 ### 5. Connection Pooling
+
 Configure in credentials:
 
 ```javascript
@@ -544,6 +591,7 @@ Configure in credentials:
 ## Error Handling
 
 ### Pattern 1: Check Rows Affected
+
 ```
 Database Operation (UPDATE users...)
   → IF ({{$json.rowsAffected === 0}})
@@ -551,6 +599,7 @@ Database Operation (UPDATE users...)
 ```
 
 ### Pattern 2: Constraint Violations
+
 ```javascript
 // Database operation with continueOnFail: true
 {
@@ -567,6 +616,7 @@ IF ({{$json.error !== undefined}})
 ```
 
 ### Pattern 3: Rollback on Error
+
 ```
 Try Operations:
   → Database Write 1
@@ -583,6 +633,7 @@ Error Trigger:
 ## Security Best Practices
 
 ### 1. Use Parameterized Queries (Prevent SQL Injection)
+
 ```javascript
 // ✅ SAFE - parameterized
 {
@@ -597,6 +648,7 @@ Error Trigger:
 ```
 
 ### 2. Least Privilege Access
+
 **Create dedicated workflow user**:
 
 ```sql
@@ -610,6 +662,7 @@ GRANT ALL PRIVILEGES TO n8n_workflow;
 ```
 
 ### 3. Validate Input Data
+
 ```javascript
 // Code node - validate before write
 const email = $json.email;
@@ -634,6 +687,7 @@ return [{
 ```
 
 ### 4. Encrypt Sensitive Data
+
 ```javascript
 // Code node - encrypt before storage
 const crypto = require('crypto');
@@ -659,11 +713,13 @@ return [{
 ## Common Gotchas
 
 ### 1. ❌ Wrong: Unbounded queries
+
 ```sql
 SELECT * FROM large_table  -- Could return millions
 ```
 
 ### ✅ Correct: Use LIMIT
+
 ```sql
 SELECT * FROM large_table
 ORDER BY created_at DESC
@@ -671,23 +727,27 @@ LIMIT 1000
 ```
 
 ### 2. ❌ Wrong: String concatenation in queries
+
 ```javascript
-query: "SELECT * FROM users WHERE id = '{{$json.id}}'"
+query: "SELECT * FROM users WHERE id = '{{$json.id}}'";
 ```
 
 ### ✅ Correct: Parameterized queries
+
 ```javascript
 query: "SELECT * FROM users WHERE id = $1",
 parameters: ["={{$json.id}}"]
 ```
 
 ### 3. ❌ Wrong: No transaction for multi-step operations
+
 ```
 INSERT into orders
 INSERT into order_items  // Fails → orphaned order record
 ```
 
 ### ✅ Correct: Use transaction
+
 ```
 BEGIN
 INSERT into orders
@@ -696,16 +756,19 @@ COMMIT (or ROLLBACK on error)
 ```
 
 ### 4. ❌ Wrong: Processing all items at once
+
 ```
 SELECT 1000000 records → Process all → OOM error
 ```
 
 ### ✅ Correct: Batch processing
+
 ```
 SELECT records → Split In Batches (1000) → Process → Loop
 ```
 
 ### 5. ❌ Wrong: Expecting output items from write operations
+
 ```
 INSERT INTO table ... → Next node never executes (0 output items)
 ```
@@ -714,6 +777,7 @@ Database write operations (INSERT, UPDATE, DELETE) may return **0 result rows** 
 When 0 rows come back, n8n translates this to **0 output items**, silently breaking any downstream chain.
 
 ### ✅ Correct: Set `alwaysOutputData` on write nodes
+
 ```
 INSERT INTO table ... (alwaysOutputData: true) → Next node executes with 1 empty item
 ```
@@ -731,16 +795,19 @@ This ensures at least 1 empty item (`{json: {}}`) flows downstream.
 From n8n template library (456 database templates):
 
 **Data Sync**:
+
 ```
 Schedule → Postgres (SELECT new records) → Transform → MySQL (INSERT)
 ```
 
 **ETL Pipeline**:
+
 ```
 Schedule → [Multiple DB reads] → Merge → Transform → Warehouse (INSERT)
 ```
 
 **Backup**:
+
 ```
 Schedule → Postgres (SELECT all) → JSON → Google Drive (upload)
 ```
@@ -752,6 +819,7 @@ Use `search_templates({query: "database"})` to find more!
 ## Checklist for Database Workflows
 
 ### Planning
+
 - [ ] Identify source and target databases
 - [ ] Understand schema differences
 - [ ] Plan transformation logic
@@ -759,6 +827,7 @@ Use `search_templates({query: "database"})` to find more!
 - [ ] Design error handling strategy
 
 ### Implementation
+
 - [ ] Use parameterized queries (never concatenate)
 - [ ] Add LIMIT to all SELECT queries
 - [ ] Use appropriate operation (INSERT/UPDATE/UPSERT)
@@ -766,6 +835,7 @@ Use `search_templates({query: "database"})` to find more!
 - [ ] Test with small dataset first
 
 ### Performance
+
 - [ ] Add database indexes for queries
 - [ ] Use batch operations
 - [ ] Implement pagination for large datasets
@@ -773,6 +843,7 @@ Use `search_templates({query: "database"})` to find more!
 - [ ] Monitor query execution times
 
 ### Security
+
 - [ ] Use parameterized queries (SQL injection prevention)
 - [ ] Least privilege database user
 - [ ] Validate and sanitize input
@@ -780,6 +851,7 @@ Use `search_templates({query: "database"})` to find more!
 - [ ] Never log sensitive data
 
 ### Reliability
+
 - [ ] Add transaction handling if needed
 - [ ] Check rows affected
 - [ ] Handle constraint violations
@@ -791,6 +863,7 @@ Use `search_templates({query: "database"})` to find more!
 ## Summary
 
 **Key Points**:
+
 1. **Always use parameterized queries** (prevent SQL injection)
 2. **Batch processing** for large datasets
 3. **Transaction handling** for multi-step operations
@@ -800,5 +873,6 @@ Use `search_templates({query: "database"})` to find more!
 **Pattern**: Trigger → Query → Transform → Write → Verify
 
 **Related**:
+
 - [http_api_integration.md](http_api_integration.md) - Fetching data to store in DB
 - [scheduled_tasks.md](scheduled_tasks.md) - Periodic database maintenance

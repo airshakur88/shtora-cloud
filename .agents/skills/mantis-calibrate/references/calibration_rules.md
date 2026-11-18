@@ -19,72 +19,72 @@ capabilities beyond what is already inherent to their starting position (or
 already possessed via legitimate means), the finding must be capped or
 downgraded.
 
-______________________________________________________________________
+---
 
 ### Category A: Force-Downgrade to LOW (Cap at 2.0 / LOW Priority)
 
-01. **`repro_failure` (Reproduction Failure or Not Attempted)** The reproduction
-    failed (`repro_status: "failed_to_reproduce"`), was not attempted
-    (`repro_status: "not_attempted"`), or the `repro_status` field was missing
-    (treated as `"not_attempted"`), regardless of theoretical production
-    viability.
+1. **`repro_failure` (Reproduction Failure or Not Attempted)** The reproduction
+   failed (`repro_status: "failed_to_reproduce"`), was not attempted
+   (`repro_status: "not_attempted"`), or the `repro_status` field was missing
+   (treated as `"not_attempted"`), regardless of theoretical production
+   viability.
 
-    **Snapshot carve-out (STALE_EVIDENCE):** do NOT fire this rule when the
-    finding is NOT_MATCHED to the active snapshot, or its `code_paths` file is
-    absent under the pinned CODE_ROOT (see the STALE-EVIDENCE guard in
-    `mantis-calibrate/SKILL.md`). A failed/absent reproduction against drifted
-    or missing code is uninformative; keep the higher score and mark
-    `calibration_checklist.repro_failure.outcome = "UNKNOWN"` with a
-    `STALE_EVIDENCE:` reason instead of force-LOW.
+   **Snapshot carve-out (STALE_EVIDENCE):** do NOT fire this rule when the
+   finding is NOT_MATCHED to the active snapshot, or its `code_paths` file is
+   absent under the pinned CODE_ROOT (see the STALE-EVIDENCE guard in
+   `mantis-calibrate/SKILL.md`). A failed/absent reproduction against drifted
+   or missing code is uninformative; keep the higher score and mark
+   `calibration_checklist.repro_failure.outcome = "UNKNOWN"` with a
+   `STALE_EVIDENCE:` reason instead of force-LOW.
 
-02. **`unreachable_inputs` (Unreachable / Uncontrolled Inputs)** The finding
-    relies on inputs that are documented as highly unlikely to be
-    user-controlled, and no path from a trust boundary is proven.
+2. **`unreachable_inputs` (Unreachable / Uncontrolled Inputs)** The finding
+   relies on inputs that are documented as highly unlikely to be
+   user-controlled, and no path from a trust boundary is proven.
 
-03. **`third_party_reachability` (Third-Party / Supply Chain Reachability)**
-    Vulnerabilities in third-party libraries (dependency CVEs) where a reachable
-    path from application input to the vulnerable function has not been actively
-    demonstrated.
+3. **`third_party_reachability` (Third-Party / Supply Chain Reachability)**
+   Vulnerabilities in third-party libraries (dependency CVEs) where a reachable
+   path from application input to the vulnerable function has not been actively
+   demonstrated.
 
-04. **`minor_config_hygiene` (Minor Configuration Hygiene)** Minor deviations
-    from best practice (e.g., slightly loose permissions on internal dirs, lack
-    of modern encryption on low-value internal transport) without a clear
-    exploit path.
+4. **`minor_config_hygiene` (Minor Configuration Hygiene)** Minor deviations
+   from best practice (e.g., slightly loose permissions on internal dirs, lack
+   of modern encryption on low-value internal transport) without a clear
+   exploit path.
 
-05. **`non_security_critical` (Non-Security Critical Components)** The finding
-    affects a component or data with no security sensitivity (e.g., public info,
-    signatures on non-security payloads, cosmetic outputs).
+5. **`non_security_critical` (Non-Security Critical Components)** The finding
+   affects a component or data with no security sensitivity (e.g., public info,
+   signatures on non-security payloads, cosmetic outputs).
 
-06. **`vague_code_paths` (Vague Code Paths / Fragile Assumptions)** Relying on
-    unverified assumptions about caller behavior or adjacent system components.
+6. **`vague_code_paths` (Vague Code Paths / Fragile Assumptions)** Relying on
+   unverified assumptions about caller behavior or adjacent system components.
 
-    **Snapshot carve-out (STALE_EVIDENCE):** do NOT fire this rule when the
-    finding is NOT_MATCHED to the active snapshot, or its `code_paths` file is
-    absent under the pinned CODE_ROOT. "Caller behavior" re-checked against
-    drifted callers is meaningless; keep the higher score and mark
-    `calibration_checklist.vague_code_paths.outcome = "UNKNOWN"` with a
-    `STALE_EVIDENCE:` reason. Also skip this rule for non-source LOCATOR
-    findings.
+   **Snapshot carve-out (STALE_EVIDENCE):** do NOT fire this rule when the
+   finding is NOT_MATCHED to the active snapshot, or its `code_paths` file is
+   absent under the pinned CODE_ROOT. "Caller behavior" re-checked against
+   drifted callers is meaningless; keep the higher score and mark
+   `calibration_checklist.vague_code_paths.outcome = "UNKNOWN"` with a
+   `STALE_EVIDENCE:` reason. Also skip this rule for non-source LOCATOR
+   findings.
 
-07. **`unreliable_triggers` (Unreliable/Noisy Triggers)** Triggers that are
-    likely to be ignored in practice or indistinguishable from normal
-    operations.
+7. **`unreliable_triggers` (Unreliable/Noisy Triggers)** Triggers that are
+   likely to be ignored in practice or indistinguishable from normal
+   operations.
 
-08. **`prerequisite_shell` (Prerequisite Shell Access / Equivalent Primitives)**
-    The attacker already possesses local shell access on the target container or
-    host with the **same or higher** privilege level than the exploit provides,
-    rendering the gained access redundant under the Principle of Marginal
-    Capability (e.g., exploiting a bug to get a standard user shell when already
-    logged in as a standard user, or exploiting a local buffer overflow to run
-    commands as root when already running as root). This does NOT apply to
-    low-to-high privilege escalation (e.g., standard user to root), which should
-    cap at MEDIUM.
+8. **`prerequisite_shell` (Prerequisite Shell Access / Equivalent Primitives)**
+   The attacker already possesses local shell access on the target container or
+   host with the **same or higher** privilege level than the exploit provides,
+   rendering the gained access redundant under the Principle of Marginal
+   Capability (e.g., exploiting a bug to get a standard user shell when already
+   logged in as a standard user, or exploiting a local buffer overflow to run
+   commands as root when already running as root). This does NOT apply to
+   low-to-high privilege escalation (e.g., standard user to root), which should
+   cap at MEDIUM.
 
-09. **`physical_long_term` (Physical Long-Term / Laboratory Access)** If the
-    attack requires long-term physical access to the device or specialized
-    laboratory equipment (e.g., fault injection, side-channel analysis, chip
-    decapping). Force-downgrade to **LOW (2.0)** due to the extreme execution
-    barrier and requirement for physical possession.
+9. **`physical_long_term` (Physical Long-Term / Laboratory Access)** If the
+   attack requires long-term physical access to the device or specialized
+   laboratory equipment (e.g., fault injection, side-channel analysis, chip
+   decapping). Force-downgrade to **LOW (2.0)** due to the extreme execution
+   barrier and requirement for physical possession.
 
 10. **`trusted_controller_zero_delta` (Trusted-Controller-Mediated Interface -
     Zero Delta)** If the vulnerable interface is reachable only from a component
@@ -94,7 +94,7 @@ ______________________________________________________________________
     grants **zero marginal capability** (i.e., the controller could already
     achieve the identical effect or level of compromise via its standard,
     legitimate interface), force-downgrade to **LOW (2.0)**. (This generalizes
-    the *Standard Host-to-Guest Attacks* rule below).
+    the _Standard Host-to-Guest Attacks_ rule below).
 
 11. **`standard_host_attacks` (Standard Host-to-Guest Attacks)** If the attacker
     position is `HOST_SYSTEM` (host hypervisor attacking guest) on standard
@@ -107,20 +107,20 @@ ______________________________________________________________________
     guest enclaves, TEE, SEV, TDX, SGX, or attestation (in which case apply the
     CC Host Attacks cap-HIGH rule instead).
 
-______________________________________________________________________
+---
 
 ### Category B: Force-Cap to HIGH (Cap at 7.9 / Maximum HIGH Priority)
 
 1. **`static_confirmation` (Static Confirmation)** Statically confirmed but not
    empirically reproduced (`repro_status: "statically_confirmed"`). Cap
    `likelihood_score` at **3**, apply **0.8** multiplier to Hazard, and MUST NOT
-   be CRITICAL. *Exception:* If the finding details (description, history, or
+   be CRITICAL. _Exception:_ If the finding details (description, history, or
    reproduction output) include a valid external stack trace, sanitizer trace
    (e.g. ASan, UBSan, MSan), crash log, or core dump proving the vulnerability
    was triggered in execution (e.g., in a prior run or by external tools), treat
    it as empirically reproduced (Likelihood 5) and do not apply this static cap.
 
-   **Snapshot carve-out (STALE_EVIDENCE):** the trace-lift *Exception* above
+   **Snapshot carve-out (STALE_EVIDENCE):** the trace-lift _Exception_ above
    MUST NOT be applied when the finding is NOT_MATCHED to the active snapshot,
    or its `code_paths` file is absent under the pinned CODE_ROOT — a stack trace
    / ASan / crash-log captured on a prior snapshot may not correspond to the
@@ -138,7 +138,7 @@ ______________________________________________________________________
 3. **`internal_nested` (Internal / Nested Components)** Any finding with a
    Network/Trust Exposure multiplier less than 1.0 (i.e., Internal Component or
    Privileged Zone). If the calculated score lands in the CRITICAL range, cap
-   the score at **7.9** and downgrade the priority to HIGH. *Exception:* Do NOT
+   the score at **7.9** and downgrade the priority to HIGH. _Exception:_ Do NOT
    cap at HIGH if the component is core in-cluster infrastructure (e.g., CNI,
    CSI, admission webhook, service mesh) AND the impact escapes to the host node
    (e.g., node-root file R/W) or allows cross-tenant escalation. These remain
@@ -149,7 +149,7 @@ ______________________________________________________________________
 4. **`probabilistic_llm` (Probabilistic LLM Vectors)** Attacks relying on
    probabilistic LLM behavior (e.g., prompt injection, jailbreaking) to trigger
    a vulnerability. Cap at **HIGH** (7.9) and default to **MEDIUM** or **LOW**.
-   *Exception:* If the attacker can query the LLM/system repeatedly without rate
+   _Exception:_ If the attacker can query the LLM/system repeatedly without rate
    limits, concurrency limits, or security blocking/alerting that would impede
    the attack (allowing them to brute-force and effectively eliminate the
    non-determinism), this cap may be lifted.
@@ -183,7 +183,7 @@ ______________________________________________________________________
    allows lateral reach into a different trust domain or achieves persistence
    surviving controller re-provisioning, do not cap).
 
-______________________________________________________________________
+---
 
 ### Category C: Force-Cap to MEDIUM (Cap at 5.9 / Maximum MEDIUM Priority)
 
@@ -198,7 +198,6 @@ ______________________________________________________________________
    over — their own account, tenant, project, namespace, container, VM, device,
    or single-user installation — and does not cross any isolation boundary
    between mutually-distrusting principals, cap at **MEDIUM (5.9)**.
-
    - The exploit may grant genuinely new capability within that domain (e.g.,
      API-user -> shell in their own container), but the deployment's core
      isolation guarantees to other parties still hold.

@@ -13,6 +13,7 @@ Assume compromise. A key that sat in a public repository, a CI log, or a client 
 must be treated as known to an attacker even if no abuse is visible yet.
 
 ## Contents
+
 - [Order of operations](#order-of-operations)
 - [Supabase](#supabase)
 - [Firebase and Google Cloud](#firebase-and-google-cloud)

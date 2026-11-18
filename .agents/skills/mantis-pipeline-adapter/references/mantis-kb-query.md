@@ -136,7 +136,6 @@ provenance checking, but do not require a `CODE_ROOT` to proceed.
    grep its first lines for `MANTIS_HELPER_VERSION = 1`; if that marker is
    absent or a different integer (a helper left by an older pipeline version),
    REGENERATE the helper. The script must:
-
    - Read `chunks.jsonl` (skipping the provenance header line if present).
    - Tokenize query and chunk text (lowercase, split on non-alphanumeric).
    - Compute BM25 or TF-IDF similarity scores between the query and each chunk.
@@ -160,13 +159,13 @@ includes:
 
 ```json
 {
-  "id": "auth_module:0",
-  "source_file": "workspace/kb/entities/auth_module.md",
-  "entity_type": "entity",
-  "start_line": null,
-  "end_line": null,
-  "score": 12.34,
-  "chunk_text": "The auth module handles..."
+	"id": "auth_module:0",
+	"source_file": "workspace/kb/entities/auth_module.md",
+	"entity_type": "entity",
+	"start_line": null,
+	"end_line": null,
+	"score": 12.34,
+	"chunk_text": "The auth module handles..."
 }
 ```
 

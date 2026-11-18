@@ -13,7 +13,7 @@ default_language_version:
 repos:
   # --- File hygiene ---
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0  # check for latest: https://github.com/pre-commit/pre-commit-hooks/releases
+    rev: v5.0.0 # check for latest: https://github.com/pre-commit/pre-commit-hooks/releases
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -22,12 +22,12 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=1000"]
       - id: check-merge-conflict
-      - id: debug-statements  # catches pdb/ipdb left in code
+      - id: debug-statements # catches pdb/ipdb left in code
 
   # --- Ruff: lint + format ---
   # Order matters: lint --fix first (may change code), then format
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.12  # check for latest: https://github.com/astral-sh/ruff-pre-commit/releases
+    rev: v0.11.12 # check for latest: https://github.com/astral-sh/ruff-pre-commit/releases
     hooks:
       - id: ruff
         types_or: [python, pyi]
@@ -37,7 +37,7 @@ repos:
 
   # --- Type checking ---
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0  # check for latest: https://github.com/pre-commit/mirrors-mypy/tags
+    rev: v1.15.0 # check for latest: https://github.com/pre-commit/mirrors-mypy/tags
     hooks:
       - id: mypy
         # Add type stubs your project needs as additional_dependencies:
@@ -82,15 +82,15 @@ pre-commit autoupdate
 Running mypy in pre-commit has a caveat: pre-commit runs each hook in an isolated environment, so mypy won't have access to your project's installed dependencies unless you list them in `additional_dependencies`. For complex projects, you may prefer running mypy separately:
 
 ```yaml
-  # Alternative: run mypy via local hook using project's venv
-  - repo: local
-    hooks:
-      - id: mypy
-        name: mypy
-        entry: uv run mypy
-        language: system
-        types: [python]
-        pass_filenames: false
+# Alternative: run mypy via local hook using project's venv
+- repo: local
+  hooks:
+    - id: mypy
+      name: mypy
+      entry: uv run mypy
+      language: system
+      types: [python]
+      pass_filenames: false
 ```
 
 This approach uses your project's actual environment, so mypy can see all installed packages and stubs. The tradeoff is it depends on the developer having run `uv sync` first.

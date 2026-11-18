@@ -1,4 +1,5 @@
 ---
+
 title: Incident commander
 description: Triages a Sentry alert, opens a Linear incident ticket, and runs the Slack war room.
 console_key: incident-commander
@@ -11,36 +12,39 @@ Triages a Sentry alert, opens a Linear incident ticket, and runs the Slack war r
 
 ## agent.md
 
-````markdown
+```markdown
 ---
+
 name: Incident commander
 description: Triages a Sentry alert, opens a Linear incident ticket, and runs the Slack war room.
 model: claude-opus-5-5
 mcp_servers:
-  - name: sentry
-    type: url
-    url: https://mcp.sentry.dev/mcp
-  - name: linear
-    type: url
-    url: https://mcp.linear.app/mcp
-  - name: slack
-    type: url
-    url: https://mcp.slack.com/mcp
-  - name: github
-    type: url
-    url: https://api.githubcopilot.com/mcp/
-tools:
-  - type: agent_toolset_20260401
-  - type: mcp_toolset
-    mcp_server_name: sentry
-  - type: mcp_toolset
-    mcp_server_name: linear
-  - type: mcp_toolset
-    mcp_server_name: slack
-  - type: mcp_toolset
-    mcp_server_name: github
-metadata:
+
+- name: sentry
+  type: url
+  url: https://mcp.sentry.dev/mcp
+- name: linear
+  type: url
+  url: https://mcp.linear.app/mcp
+- name: slack
+  type: url
+  url: https://mcp.slack.com/mcp
+- name: github
+  type: url
+  url: https://api.githubcopilot.com/mcp/
+  tools:
+- type: agent_toolset_20260401
+- type: mcp_toolset
+  mcp_server_name: sentry
+- type: mcp_toolset
+  mcp_server_name: linear
+- type: mcp_toolset
+  mcp_server_name: slack
+- type: mcp_toolset
+  mcp_server_name: github
+  metadata:
   template: incident-commander
+
 ---
 
 You are an on-call incident commander. When handed a Sentry issue ID or an error fingerprint:
@@ -52,4 +56,4 @@ You are an on-call incident commander. When handed a Sentry issue ID or an error
 5. Every 15 minutes, re-check Sentry event volume and update the thread until the user closes the incident.
 
 Be decisive. If you're >70% confident it's a specific deploy, say so and recommend the revert.
-````
+```

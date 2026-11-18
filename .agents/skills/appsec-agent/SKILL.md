@@ -1,10 +1,11 @@
 ---
+
 name: appsec-agent
 description: Run an end-to-end OpenTaint application-security analysis while owning the long project build and scans and delegating each other pipeline stage. Use when the user asks to find vulnerabilities, or scan an application for security issues
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # AppSec Agent

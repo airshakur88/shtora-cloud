@@ -1,23 +1,25 @@
 ---
+
 name: golang-graphql
 description: "Implements GraphQL APIs in Golang using gqlgen or graphql-go. Apply when building GraphQL servers, designing schemas, writing resolvers, handling subscriptions, or integrating GraphQL with existing Go HTTP services. Also apply when the codebase imports `github.com/99designs/gqlgen` or `github.com/graph-gophers/graphql-go`."
 user-invocable: false
 license: MIT
 compatibility: Designed for Claude Code, Codex or similar harness, and for projects using Golang.
 metadata:
-  author: samber
-  version: "0.2.2"
-  openclaw:
-    emoji: "🔮"
-    homepage: https://github.com/samber/cc-skills-golang
-    requires:
-      bins:
-        - go
-    install: []
-    skill-library-version: "0.17.89"
-allowed-tools: Read Edit Write Glob Grep Bash(go:*) Bash(golangci-lint:*) Bash(git:*) Agent WebFetch mcp__context7__resolve-library-id mcp__context7__query-docs Bash(curl:*) Bash(godig:*) Bash(gopls:*) LSP mcp__gopls__*
+author: samber
+version: "0.2.2"
+openclaw:
+emoji: "🔮"
+homepage: https://github.com/samber/cc-skills-golang
+requires:
+bins: - go
+install: []
+skill-library-version: "0.17.89"
+allowed-tools: Read Edit Write Glob Grep Bash(go:_) Bash(golangci-lint:_) Bash(git:*) Agent WebFetch mcp__context7__resolve-library-id mcp__context7__query-docs Bash(curl:*) Bash(godig:_) Bash(gopls:_) LSP mcp__gopls__*
 paths:
-  - "**/*.go"
+
+- "**/*.go"
+
 ---
 
 **Persona:** You are a Go GraphQL engineer. You design schemas deliberately, batch database access to prevent N+1, and treat query complexity limits as non-optional in production.
@@ -41,11 +43,11 @@ This skill is not exhaustive — refer to each library's official documentation 
 
 ## Library Choice
 
-| Library | Approach | Type safety | Build step | Best for |
-| --- | --- | --- | --- | --- |
-| `github.com/99designs/gqlgen` | Codegen | Compile-time | `go generate` | Large schemas, federation, strict types |
-| `github.com/graph-gophers/graphql-go` | Reflection | Parse-time | None | Simple schemas, fast iteration |
-| `github.com/graphql-go/graphql` | Code-first | Runtime | None | **Avoid** — verbose, no SDL |
+| Library                               | Approach   | Type safety  | Build step    | Best for                                |
+| ------------------------------------- | ---------- | ------------ | ------------- | --------------------------------------- |
+| `github.com/99designs/gqlgen`         | Codegen    | Compile-time | `go generate` | Large schemas, federation, strict types |
+| `github.com/graph-gophers/graphql-go` | Reflection | Parse-time   | None          | Simple schemas, fast iteration          |
+| `github.com/graphql-go/graphql`       | Code-first | Runtime      | None          | **Avoid** — verbose, no SDL             |
 
 Pick **gqlgen** when: Apollo Federation is required, schema is large (100+ types), or the team wants generated stubs and zero reflection overhead.
 
@@ -58,15 +60,15 @@ For deep-dive on each library, see [gqlgen reference](./references/gqlgen.md) an
 ```graphql
 # ✓ Good — explicit nullability; ID scalar for opaque identifiers
 type User {
-  id: ID!
-  email: String! # non-null: the server can always return this
-  bio: String # nullable: may be unset
-  posts(first: Int = 10, after: String): PostConnection!
+	id: ID!
+	email: String! # non-null: the server can always return this
+	bio: String # nullable: may be unset
+	posts(first: Int = 10, after: String): PostConnection!
 }
 
 # ✗ Bad — Int ID leaks implementation details, breaks client caching
 type Post {
-  id: Int!
+	id: Int!
 }
 ```
 
@@ -78,8 +80,8 @@ type Post {
 
 ```graphql
 type CreateUserPayload {
-  user: User
-  errors: [UserError!]!
+	user: User
+	errors: [UserError!]!
 }
 ```
 
@@ -243,18 +245,18 @@ For graph-gophers: `graphql.MaxDepth(10)` and `graphql.MaxParallelism(10)` optio
 
 ## Common Mistakes
 
-| Mistake | Why it matters | Fix |
-| --- | --- | --- |
-| N+1 queries in child resolvers | One SQL per parent row → O(n) DB calls | Use per-request DataLoader |
-| Global DataLoader | Cross-request cache — stale data, data leaks | Create DataLoader in request middleware |
-| Editing `models_gen.go` directly | Next `go generate` wipes hand edits | Use `autobind` or `models.<T>.model` in `gqlgen.yml` |
-| Forgetting `go generate` after schema change | Resolver interface mismatch at compile time | Re-run `go tool gqlgen generate` |
-| `int` field in graph-gophers resolver | Library requires `int32` for `Int` scalar | Use `int32` (or `float64` for `Float`) |
-| Introspection enabled in production | Exposes full schema to attackers | Gate with `ENV` check |
-| No complexity cap | Deeply nested query → CPU/memory DoS | `extension.FixedComplexityLimit(N)` |
-| Leaking DB errors from resolvers | Exposes SQL internals to clients | Wrap in `ErrorPresenter` / `ResolverError` |
-| Subscription goroutine leak | Client disconnect → goroutine runs forever | `defer close(ch)` + `select ctx.Done()` |
-| Nullable field for always-required data | Clients must null-check everywhere | Mark `!` in schema; return error from resolver |
+| Mistake                                      | Why it matters                               | Fix                                                  |
+| -------------------------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| N+1 queries in child resolvers               | One SQL per parent row → O(n) DB calls       | Use per-request DataLoader                           |
+| Global DataLoader                            | Cross-request cache — stale data, data leaks | Create DataLoader in request middleware              |
+| Editing `models_gen.go` directly             | Next `go generate` wipes hand edits          | Use `autobind` or `models.<T>.model` in `gqlgen.yml` |
+| Forgetting `go generate` after schema change | Resolver interface mismatch at compile time  | Re-run `go tool gqlgen generate`                     |
+| `int` field in graph-gophers resolver        | Library requires `int32` for `Int` scalar    | Use `int32` (or `float64` for `Float`)               |
+| Introspection enabled in production          | Exposes full schema to attackers             | Gate with `ENV` check                                |
+| No complexity cap                            | Deeply nested query → CPU/memory DoS         | `extension.FixedComplexityLimit(N)`                  |
+| Leaking DB errors from resolvers             | Exposes SQL internals to clients             | Wrap in `ErrorPresenter` / `ResolverError`           |
+| Subscription goroutine leak                  | Client disconnect → goroutine runs forever   | `defer close(ch)` + `select ctx.Done()`              |
+| Nullable field for always-required data      | Clients must null-check everywhere           | Mark `!` in schema; return error from resolver       |
 
 ## Deep Dives
 

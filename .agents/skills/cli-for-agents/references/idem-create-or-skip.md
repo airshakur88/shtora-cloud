@@ -1,4 +1,5 @@
 ---
+
 title: Make Create Commands Skip When Target Already Exists
 impact: MEDIUM-HIGH
 impactDescription: prevents race conditions and wrapper if-exists checks
@@ -51,11 +52,13 @@ echo "user ${NAME} created with role ${ROLE}"
 ```
 
 **Benefits:**
+
 - Retry on transient failure is always safe
 - Same-config re-run is a no-op (not a duplicate, not an error)
 - Different-config re-run errors with a concrete fix instead of silent drift
 
 **When NOT to use this pattern:**
+
 - When duplicate resources are semantically valid (e.g., "create log entry") — accept and explain explicitly via a different verb like `append`
 
 Reference: [clig.dev — Make operations idempotent](https://clig.dev/#robustness-guidelines)

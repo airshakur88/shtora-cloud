@@ -6,15 +6,15 @@ Load only the section selected by the requested medium, venue, or profile.
 
 Pick the medium the request implies. The medium changes structural expectations, never absolute rules: banned vocabulary, formatting, and the zero-em-dash rule apply in every medium.
 
-| Medium | Optimize for | Preserve | Avoid |
-|---|---|---|---|
-| Argument | A supported position and its strongest real limitation | Evidence, attribution, the author's judgment | A survey when one through-line will do |
-| Explanation | An accurate mechanism at the reader's level | Causal chains, caveats, named actors | False precision beyond the source |
-| Evocation | Concrete images and an intended feeling | Earned two-part sentences, rhythm, imagery | Demanding a thesis or supporting data |
-| Narrative | Events, perspective, a reason to continue | Voice, deliberate ambiguity when earned | Adding disorder to evade a pattern |
-| Guide | Correct steps, conditions, a working outcome | Headings, lists, warnings, exact terms | Restructuring for novelty |
-| Reference | Accurate, scannable retrieval | Repeated schemas, predictable headings, tables | Anti-template edits that break consistency |
-| Message | The request, decision, owner, next action | Real politeness, useful bullets | Turning a message into an essay |
+| Medium      | Optimize for                                           | Preserve                                       | Avoid                                      |
+| ----------- | ------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------ |
+| Argument    | A supported position and its strongest real limitation | Evidence, attribution, the author's judgment   | A survey when one through-line will do     |
+| Explanation | An accurate mechanism at the reader's level            | Causal chains, caveats, named actors           | False precision beyond the source          |
+| Evocation   | Concrete images and an intended feeling                | Earned two-part sentences, rhythm, imagery     | Demanding a thesis or supporting data      |
+| Narrative   | Events, perspective, a reason to continue              | Voice, deliberate ambiguity when earned        | Adding disorder to evade a pattern         |
+| Guide       | Correct steps, conditions, a working outcome           | Headings, lists, warnings, exact terms         | Restructuring for novelty                  |
+| Reference   | Accurate, scannable retrieval                          | Repeated schemas, predictable headings, tables | Anti-template edits that break consistency |
+| Message     | The request, decision, owner, next action              | Real politeness, useful bullets                | Turning a message into an essay            |
 
 A reference page earns predictable headings. An evocation does not owe a thesis. A guide may use numbered steps. Mechanism checks still separate an unsupported significance claim from an evidenced consequence in every medium: a claim that names its mechanism, actor, result, or limit beside it is not a finding.
 
@@ -22,11 +22,11 @@ A reference page earns predictable headings. An evocation does not owe a thesis.
 
 Pick the operation the request implies and stay inside its authority:
 
-| Operation | Authority | Boundary |
-|---|---|---|
-| Review | Quote evidence and diagnose without rewriting. | Never edit. Every finding carries a quoted span, rule, status, and reason. |
-| Refactor | List the full finding set, then apply only the accepted minimal edits. | Report rejected and unresolved findings; never broaden an edit past what was accepted. |
-| Recreate | Extract facts, claims, quotes, intent, and constraints from the source, draft fresh prose, then verify the candidate keeps them. | Never invent a fact, claim, or quote the source does not supply. |
+| Operation | Authority                                                                                                                        | Boundary                                                                               |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Review    | Quote evidence and diagnose without rewriting.                                                                                   | Never edit. Every finding carries a quoted span, rule, status, and reason.             |
+| Refactor  | List the full finding set, then apply only the accepted minimal edits.                                                           | Report rejected and unresolved findings; never broaden an edit past what was accepted. |
+| Recreate  | Extract facts, claims, quotes, intent, and constraints from the source, draft fresh prose, then verify the candidate keeps them. | Never invent a fact, claim, or quote the source does not supply.                       |
 
 Route by venue when the request names one: tickets must keep reproduction steps and acceptance conditions; developer replies must lead with the verified action and its caveat; postmortems must keep a timeline, impact in numbers, contributing factors as a causal chain, and honest uncertainty; technical articles must open at the problem and keep one committed opinion; release notes must ground every claim in the supplied changes. Conventional templates (changelog categories, issue templates, postmortem sections) are earned in their venue, not slop. Fiction is an opt-in profile, never a default, and its guidance cannot affect general or technical scoring.
 

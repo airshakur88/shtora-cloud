@@ -1,10 +1,11 @@
 ---
+
 name: future-scale-gate
 description: Use before committing to hard-to-reverse foundations for a long-lived software product, language, runtime, data model, or platform; when current workload evidence is being used to dismiss credible growth requirements; or when a team wants to build for extreme future scale without proving which foundations matter. Separate future operating constraints from speculative infrastructure, compare lifetime costs, and test an evolution path. Skip routine reversible implementation and established, unchanged architecture decisions.
 license: MIT
 metadata:
-  version: "0.1.0"
-  parent: anti-slop-engineering
+version: "0.1.0"
+parent: anti-slop-engineering
 ---
 
 # Future-Scale Gate
@@ -21,14 +22,14 @@ This Skill owns **architectural evolution capacity**: whether today's structural
 
 ## Activation and refusal
 
-| Signal | Action |
-| --- | --- |
-| A language/runtime, persistence contract, core API, or irreversible data model is being established | Run an operating-envelope and reversal-cost assessment |
-| “No performance problem today, so this cannot matter” dismisses a plausible future operating constraint | Separate *measuring a hotspot* from *designing capacity for future workloads* |
-| “Plan for millions” is used to demand microservices, sharding, or distributed execution immediately | Demand a credible scenario, migration barrier, and bounded evolution proof |
-| A later engine, tenant model, or deployment target might be blocked by a current design | Test the smallest representative evolution path before commitment |
-| A localized feature is reversible within existing stable boundaries | Skip this Skill; use BUILD/FIX |
-| A direct answer exists or the underlying solution is questionable | Route to Decision Guard before architecture work |
+| Signal                                                                                                  | Action                                                                        |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| A language/runtime, persistence contract, core API, or irreversible data model is being established     | Run an operating-envelope and reversal-cost assessment                        |
+| “No performance problem today, so this cannot matter” dismisses a plausible future operating constraint | Separate _measuring a hotspot_ from _designing capacity for future workloads_ |
+| “Plan for millions” is used to demand microservices, sharding, or distributed execution immediately     | Demand a credible scenario, migration barrier, and bounded evolution proof    |
+| A later engine, tenant model, or deployment target might be blocked by a current design                 | Test the smallest representative evolution path before commitment             |
+| A localized feature is reversible within existing stable boundaries                                     | Skip this Skill; use BUILD/FIX                                                |
+| A direct answer exists or the underlying solution is questionable                                       | Route to Decision Guard before architecture work                              |
 
 Do not block ordinary work with repeated future-proofing checklists. Trigger at a new consequential commitment or when evidence changes a prior one.
 
@@ -45,20 +46,20 @@ Do not block ordinary work with repeated future-proofing checklists. Trigger at 
 
 ## Execution router
 
-| Evidence state | Decision | Handoff |
-| --- | --- | --- |
-| Credible future, expensive reversal, cheap foundation, feasible evolution test | `proceed` with foundation only | Anti-Slop BUILD; defer infrastructure with triggers |
-| Credible future, reversal expensive, but necessary boundary/proof unknown | `pause` | Smallest source check or evolution spike; do not lock the design |
-| Future only speculative and expensive to prepare for now | `stop` speculative investment | Maintain replaceable design and a revisit trigger |
-| Scale is already failing under a proven workload | Route to performance diagnosis | Measure causes; protect architectural contracts while optimizing |
-| Future demand requires a signed change of product scope or budget | `pause` for authority | Show choice, cost, and consequence without deploying |
-| No consequential commitment or meaningful migration hazard | Return to BUILD/FIX | No record, no extra ceremony |
+| Evidence state                                                                 | Decision                       | Handoff                                                          |
+| ------------------------------------------------------------------------------ | ------------------------------ | ---------------------------------------------------------------- |
+| Credible future, expensive reversal, cheap foundation, feasible evolution test | `proceed` with foundation only | Anti-Slop BUILD; defer infrastructure with triggers              |
+| Credible future, reversal expensive, but necessary boundary/proof unknown      | `pause`                        | Smallest source check or evolution spike; do not lock the design |
+| Future only speculative and expensive to prepare for now                       | `stop` speculative investment  | Maintain replaceable design and a revisit trigger                |
+| Scale is already failing under a proven workload                               | Route to performance diagnosis | Measure causes; protect architectural contracts while optimizing |
+| Future demand requires a signed change of product scope or budget              | `pause` for authority          | Show choice, cost, and consequence without deploying             |
+| No consequential commitment or meaningful migration hazard                     | Return to BUILD/FIX            | No record, no extra ceremony                                     |
 
 ## Workflows
 
 ### Before commitment: [Architect](usecases/architect.md)
 
-1. Identify the product's expected lifetime and *types* of future users, workloads, growth, failure, and extension; do not invent exact growth forecasts.
+1. Identify the product's expected lifetime and _types_ of future users, workloads, growth, failure, and extension; do not invent exact growth forecasts.
 2. Classify evidence. Define a **future operating envelope** across materially different stresses when relevant; one grounded irreversible requirement is sufficient without inventing another. Name the failure mode if unprepared.
 3. Name hard-to-reverse choices. For each, state why reversal is costly and how exit/migration could work.
 4. Compare credible designs across current complexity, lifecycle cost, failure/recovery, and exit cost. If a hard constraint leaves only one viable option, cite it instead of inventing a fake alternative. Separate framework, hosting, persistence, and execution axes when they differ.
@@ -82,19 +83,19 @@ python3 scripts/future_scale_guard.py audit path/to/record.json --json
 node bin/cli.js future-scale audit path/to/record.json --json
 ```
 
-The checker validates structure and referenced evidence *statuses*, not scenario plausibility, independent proof truth, expected load, or architecture quality. `0` = structurally complete, `2` = incomplete, `1` = invalid input. For `pause` and `stop`, record honest uncertainty without manufacturing a completed proceed packet.
+The checker validates structure and referenced evidence _statuses_, not scenario plausibility, independent proof truth, expected load, or architecture quality. `0` = structurally complete, `2` = incomplete, `1` = invalid input. For `pause` and `stop`, record honest uncertainty without manufacturing a completed proceed packet.
 
 ## Failure taxonomy
 
-| Failure | Observable signal | Recovery |
-| --- | --- | --- |
-| Present-only optimization | “No bottleneck today” used to dismiss irreversible runtime coupling | Identify future operating envelope and reversal cost |
-| Capacity theater | Cluster or distributed stack before a supported use case | Separate stable boundary from deferred scale implementation |
-| Interface theater | “It is modular” but second consumer cannot run unchanged semantics | Build the smallest alternate consumer/proof |
-| Forecast theater | Exact loads/costs invented to justify a decision | Use explicit qualitative scenarios and measurements |
-| Foundation laundering | Expensive abstraction with no credible scenario or exit risk | Remove it or supply a falsifiable scenario and proof |
-| Sunk-cost defense | Prior implementation effort used to dismiss contrary evidence | Compare forward costs and revisit the commitment |
-| Premature permanence | Database/schema/IR choice locks the public contract by accident | Version, migrate, and test compatibility before hardening |
+| Failure                   | Observable signal                                                   | Recovery                                                    |
+| ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Present-only optimization | “No bottleneck today” used to dismiss irreversible runtime coupling | Identify future operating envelope and reversal cost        |
+| Capacity theater          | Cluster or distributed stack before a supported use case            | Separate stable boundary from deferred scale implementation |
+| Interface theater         | “It is modular” but second consumer cannot run unchanged semantics  | Build the smallest alternate consumer/proof                 |
+| Forecast theater          | Exact loads/costs invented to justify a decision                    | Use explicit qualitative scenarios and measurements         |
+| Foundation laundering     | Expensive abstraction with no credible scenario or exit risk        | Remove it or supply a falsifiable scenario and proof        |
+| Sunk-cost defense         | Prior implementation effort used to dismiss contrary evidence       | Compare forward costs and revisit the commitment            |
+| Premature permanence      | Database/schema/IR choice locks the public contract by accident     | Version, migrate, and test compatibility before hardening   |
 
 ## Completion
 

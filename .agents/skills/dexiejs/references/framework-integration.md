@@ -15,19 +15,21 @@
 Use a shared DB module and subscribe with `liveQuery()`.
 
 ```js
-import { liveQuery } from 'dexie';
-import { db } from './db.js';
+import { liveQuery } from "dexie";
+import { db } from "./db.js";
 
-const sub = liveQuery(() => db.todos.where('done').equals(0).toArray()).subscribe({
-  next(rows) {
-    renderTodos(rows);
-  },
-  error(error) {
-    console.error('liveQuery failed', error);
-  },
+const sub = liveQuery(() =>
+	db.todos.where("done").equals(0).toArray(),
+).subscribe({
+	next(rows) {
+		renderTodos(rows);
+	},
+	error(error) {
+		console.error("liveQuery failed", error);
+	},
 });
 
-window.addEventListener('beforeunload', () => sub.unsubscribe());
+window.addEventListener("beforeunload", () => sub.unsubscribe());
 ```
 
 Keep DOM rendering separate from data logic.
@@ -37,23 +39,23 @@ Keep DOM rendering separate from data logic.
 Use `dexie-react-hooks` for reactive reads.
 
 ```tsx
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from './db';
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "./db";
 
 export function TodoList() {
-  const todos = useLiveQuery(
-    () => db.todos.where('done').equals(0).reverse().sortBy('updatedAt'),
-    [],
-    []
-  );
+	const todos = useLiveQuery(
+		() => db.todos.where("done").equals(0).reverse().sortBy("updatedAt"),
+		[],
+		[],
+	);
 
-  return (
-    <ul>
-      {todos.map((todo) => (
-        <li key={todo.id}>{todo.title}</li>
-      ))}
-    </ul>
-  );
+	return (
+		<ul>
+			{todos.map((todo) => (
+				<li key={todo.id}>{todo.title}</li>
+			))}
+		</ul>
+	);
 }
 ```
 
@@ -70,19 +72,19 @@ Dexie is browser storage. Keep Dexie usage in client-only code.
 Pattern A: place DB consumers in files with `'use client'`.
 
 ```tsx
-'use client';
+"use client";
 
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/client/db';
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/client/db";
 ```
 
 Pattern B: dynamically import Dexie-using components with SSR disabled.
 
 ```tsx
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const TodosClientPanel = dynamic(() => import('./TodosClientPanel'), {
-  ssr: false,
+const TodosClientPanel = dynamic(() => import("./TodosClientPanel"), {
+	ssr: false,
 });
 ```
 
@@ -93,16 +95,16 @@ Do not import Dexie modules into Server Components, route handlers, or server ac
 Route `loader` and `beforeLoad` code can run both server and client. Gate Dexie access.
 
 ```ts
-import { createClientOnlyFn } from '@tanstack/react-start';
+import { createClientOnlyFn } from "@tanstack/react-start";
 
 const getDb = createClientOnlyFn(async () => {
-  const mod = await import('../db/client-db');
-  return mod.db;
+	const mod = await import("../db/client-db");
+	return mod.db;
 });
 
 export async function readTodosClientOnly() {
-  const db = await getDb();
-  return db.todos.toArray();
+	const db = await getDb();
+	return db.todos.toArray();
 }
 ```
 

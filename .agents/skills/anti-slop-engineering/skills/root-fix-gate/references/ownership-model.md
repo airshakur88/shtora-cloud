@@ -4,15 +4,15 @@
 
 The right fix is located where the relevant invariant becomes authoritative, not necessarily where a wrong value is visible. An invariant may concern identity, order contact, billing, transport representation, permission, or presentation. A shared string name such as `email` does not prove two contexts have the same responsibility.
 
-| Symptom | First likely owner to inspect | Counterexample that defeats the shortcut |
-| --- | --- | --- |
-| Same validation repeated in controllers | Domain validation/schema or shared application policy | Each endpoint applies a genuinely different rule |
-| Email shown on multiple profile screens | Identity data contract and response serialization | Email is valid identity data but visibility is a presentation policy |
-| Email required only when ordering | Checkout order contact boundary and identity constraints | Login, reset, or provider identity requires email |
-| Same retry copied through clients | Network/client abstraction or central retry policy | Operations have different idempotency/rate-limit constraints |
-| Permission filtering duplicated across routes | Authorization policy close to protected operations | Tenant-specific resources require distinct policy rules |
-| UI displays inconsistent totals | Canonical aggregation/data definition | Currency/timezone semantics differ by consumer |
-| Legacy adapter emits wrong shape | Adapter/serialization boundary | Core domain contract itself is invalid |
+| Symptom                                       | First likely owner to inspect                            | Counterexample that defeats the shortcut                             |
+| --------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------- |
+| Same validation repeated in controllers       | Domain validation/schema or shared application policy    | Each endpoint applies a genuinely different rule                     |
+| Email shown on multiple profile screens       | Identity data contract and response serialization        | Email is valid identity data but visibility is a presentation policy |
+| Email required only when ordering             | Checkout order contact boundary and identity constraints | Login, reset, or provider identity requires email                    |
+| Same retry copied through clients             | Network/client abstraction or central retry policy       | Operations have different idempotency/rate-limit constraints         |
+| Permission filtering duplicated across routes | Authorization policy close to protected operations       | Tenant-specific resources require distinct policy rules              |
+| UI displays inconsistent totals               | Canonical aggregation/data definition                    | Currency/timezone semantics differ by consumer                       |
+| Legacy adapter emits wrong shape              | Adapter/serialization boundary                           | Core domain contract itself is invalid                               |
 
 Trace **origin → writes → persistence → transformations → reads → consumers**. Find the earliest location whose invariant is actually wrong. Replacing only the output may conceal the cause; changing an earlier component without checking later contracts may also break the system.
 

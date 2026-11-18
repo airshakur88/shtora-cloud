@@ -52,25 +52,25 @@ Cluster by flag type, surface the top issues with example case IDs, and feed the
 
 The per-case checks (apply to the tier-2 sample):
 
-- **Unambiguous success criteria.** Would two independent domain experts, shown the same output, agree on pass vs fail? If the criteria admit reasonable disagreement ("write a *good* summary"), scores reflect grader opinion as much as model capability. Note the dual failure: under-specified (a required output, filename, format left unstated) or over-specified (the prompt is a step-by-step recipe, leaving nothing for the model to decide).
+- **Unambiguous success criteria.** Would two independent domain experts, shown the same output, agree on pass vs fail? If the criteria admit reasonable disagreement ("write a _good_ summary"), scores reflect grader opinion as much as model capability. Note the dual failure: under-specified (a required output, filename, format left unstated) or over-specified (the prompt is a step-by-step recipe, leaving nothing for the model to decide).
 
 - **Reference solution exists and passes.** Does each case ship with at least one gold answer that actually passes the grader? A 0% pass rate across all variants is more often a broken case than a hard one. Spot-check by running the reference through the grader.
 
 - **Ground-truth labels are correct.** Sample ten cases and independently re-derive the expected answers. Widely used benchmarks routinely carry meaningful label error; wrong labels cap measurable accuracy for reasons that have nothing to do with the model.
 
-- **Where did the ground truth come from?** Ask, and record the answer as a tag: human-written, human-verified, or **a model's outputs - and which model**. If the expected outputs are a model's outputs, reference-match scoring rewards *imitating that model*, not being right; this is worst in a migration, where gold derived from the incumbent makes the incumbent look best by construction and penalises a successor for every stylistic difference. Prefer a rubric or pairwise judge over reference similarity in that case, or have a human verify a sample of the references first. Never use model A's outputs as gold when the question is A vs B.
+- **Where did the ground truth come from?** Ask, and record the answer as a tag: human-written, human-verified, or **a model's outputs - and which model**. If the expected outputs are a model's outputs, reference-match scoring rewards _imitating that model_, not being right; this is worst in a migration, where gold derived from the incumbent makes the incumbent look best by construction and penalises a successor for every stylistic difference. Prefer a rubric or pairwise judge over reference similarity in that case, or have a human verify a sample of the references first. Never use model A's outputs as gold when the question is A vs B.
 
 - **No annotation artifacts.** Could a trivial baseline score well from surface patterns - question length, keywords, option order - without solving the task? If a no-op or majority-class baseline scores well above chance, the eval is partly measuring the artifact.
 
 - **Label leakage in the prompt.** Does the expected answer, or a near-paraphrase, appear anywhere the model can see - the prompt, few-shot examples, system message, a tool description, a file the agent can read? Common in few-shot setups assembled by copy-pasting from the golden set.
 
-- **Answerable from memory.** For cases about real, named entities, can the model answer from parametric memory even though the intent is to test retrieval or tool use? If the goal is whether the model can *do the work*, subjects need to be obscure or synthetic enough that recall alone doesn't carry it.
+- **Answerable from memory.** For cases about real, named entities, can the model answer from parametric memory even though the intent is to test retrieval or tool use? If the goal is whether the model can _do the work_, subjects need to be obscure or synthetic enough that recall alone doesn't carry it.
 
 - **Difficulty comes from the problem, not the prompt.** Are hard-looking cases just worded obscurely? Then the score measures prompt-deciphering. Suggest stating the problem plainly and letting the problem itself be hard.
 
 - **Agentic cases: symptom, not investigation.** For cases that ask an agent to diagnose or fix something, how much of the investigation is handed over in the prompt? If it already includes the log line, the failing test name, or the file, the eval measures whether the model can read a hint, not find one. Give the agent what a user would plausibly report and let it fetch the rest.
 
-- **Realistic distribution and interaction shape.** Compare a handful of cases to production traffic. Also check the *shape*: a single-turn eval won't capture effects that only appear in long multi-turn or agentic settings, and vice versa. Name any obvious divergence up front so readers can calibrate how far results transfer.
+- **Realistic distribution and interaction shape.** Compare a handful of cases to production traffic. Also check the _shape_: a single-turn eval won't capture effects that only appear in long multi-turn or agentic settings, and vice versa. Name any obvious divergence up front so readers can calibrate how far results transfer.
 
 - **Difficulty headroom.** If results exist, look at the spread. If the baseline already scores ~95%+, the eval cannot discriminate at the top and a hillclimb will mostly move cost or latency - useful, but say so in advance. If everything scores ~0%, there is more often a case or grader bug than a genuinely impossible task.
 
@@ -78,9 +78,9 @@ The per-case checks (apply to the tier-2 sample):
 
 - **Class balance.** For classification-style evals, check the label distribution; report the majority-class baseline alongside model scores. When both positives and negatives exist, prefer precision/recall/specificity to accuracy alone.
 
-- **Both-directions coverage.** An eval for "does the agent search when it should" also needs "does the agent *not* search when it shouldn't"; otherwise always-search scores perfectly and one-sided evals produce one-sided optimisation. Same for refusals, tool use, escalation.
+- **Both-directions coverage.** An eval for "does the agent search when it should" also needs "does the agent _not_ search when it shouldn't"; otherwise always-search scores perfectly and one-sided evals produce one-sided optimisation. Same for refusals, tool use, escalation.
 
-- **One capability per case (when diagnosis matters).** A case that needs retrieval *and* reasoning *and* formatting shows 0 whenever any one breaks. Fine for a headline number; flag it when the user wants to know *why* variants differ.
+- **One capability per case (when diagnosis matters).** A case that needs retrieval _and_ reasoning _and_ formatting shows 0 whenever any one breaks. Fine for a headline number; flag it when the user wants to know _why_ variants differ.
 
 - **Inverted items as a smoke test.** Where a clearly weaker variant outscores a clearly stronger one on an item, it is far more often a case or grader bug than a real inversion - a good place to look closely.
 
@@ -94,7 +94,7 @@ These checks concern the code around the model call. The central failure mode is
 
 - **Infra failures distinguished from model failures.** How does the runner handle a timeout, an API or rate-limit error after retries, an unparseable output, a response cut off at `max_tokens`, a tool that threw, a grader that itself failed? If any of these are silently scored as 0 (or as pass) and mixed in with real answers, the headline is contaminated. Attempts that never produced a scorable output go to an `errors.jsonl` sidecar with a failure class (harness/serving error, timeout, served-model mismatch) - never into `results.jsonl`, where they'd occupy the `(case, rep)` slot, block resume, and score plumbing as a model failure. Rows that did produce output carry `stop_reason` and `status: truncated` when the response hit `max_tokens`, so a clipped answer is counted and shown but not averaged in as wrong. Refusals are a graded outcome, not an error - record them as their own metric so refusal-zeros and capability-zeros aren't summed.
 
-- **"No answer" is not "negative answer."** Does the grader distinguish the model *asserting a negative* ("no vulnerabilities found") from the model *failing to produce an answer* (empty, crashed, truncated, unparseable)? If both land on the same label, a runner that errors on every input scores identically to one that carefully found nothing. Look for this in detection, classification, and retrieval evals where "none" is a valid answer.
+- **"No answer" is not "negative answer."** Does the grader distinguish the model _asserting a negative_ ("no vulnerabilities found") from the model _failing to produce an answer_ (empty, crashed, truncated, unparseable)? If both land on the same label, a runner that errors on every input scores identically to one that carefully found nothing. Look for this in detection, classification, and retrieval evals where "none" is a valid answer.
 
 - **Clean, isolated state per trial.** Does each (case, rep) start from a fresh environment - no files, rows, git history, env vars, or cached results left from a previous trial? Shared state leaks one case's side effects into another's score, lets an agent read hints from an earlier run, and makes results order-dependent.
 
@@ -106,11 +106,11 @@ These checks concern the code around the model call. The central failure mode is
 
 - **Token and context limits won't clip any case.** Compare the longest prompt and longest plausible correct answer against the configured context window and `max_tokens`. Truncation is easy to misread as the model choosing to stop; it must surface as `status: truncated`, not as a wrong answer.
 
-- **Transient errors retried with jittered backoff, and retries recorded.** Unretried 429/529s show up as spurious failures and can make one variant or one time of day look worse; a zero-delay retry loop is worse - it multiplies cost invisibly and can turn one 429 into a torn-down batch. Back off with jitter, cap attempts, and record the attempt count per row so retries can be excluded from latency and "attempts run vs attempts scored" is visible in the data, not just the bill. If the runner re-runs whole failed *cases*, decide which attempt's grade lands - default strict (passed-only-on-retry is a fail) - and count every attempt's usage.
+- **Transient errors retried with jittered backoff, and retries recorded.** Unretried 429/529s show up as spurious failures and can make one variant or one time of day look worse; a zero-delay retry loop is worse - it multiplies cost invisibly and can turn one 429 into a torn-down batch. Back off with jitter, cap attempts, and record the attempt count per row so retries can be excluded from latency and "attempts run vs attempts scored" is visible in the data, not just the bill. If the runner re-runs whole failed _cases_, decide which attempt's grade lands - default strict (passed-only-on-retry is a fail) - and count every attempt's usage.
 
 - **A hard per-case wall-clock ceiling, independent of stream liveness.** A hung streaming connection can emit keepalives indefinitely, defeating inactivity timers; only a ceiling on total case time reclaims the worker slot. When it fires the attempt goes to `errors.jsonl` as a timeout, never a zero.
 
-- **The model that served the request is the model you asked for.** Read `model` from the *response* on a smoke case, then assert it on every call - beyond documented alias->snapshot resolution, a mismatch (a provider fallback, a capacity reroute) fails the attempt loudly. A score served by the wrong model measures nothing, and silent substitution may not surface anywhere else; where the provider exposes usage or billing records, cross-check the aggregate once.
+- **The model that served the request is the model you asked for.** Read `model` from the _response_ on a smoke case, then assert it on every call - beyond documented alias->snapshot resolution, a mismatch (a provider fallback, a capacity reroute) fails the attempt loudly. A score served by the wrong model measures nothing, and silent substitution may not surface anywhere else; where the provider exposes usage or billing records, cross-check the aggregate once.
 
 - **Eval config matches production config.** Diff the system prompt, tool definitions, model version, sampling parameters, and scaffolding in the eval against what actually ships. The runner must call the app's real entry point; a re-implemented call silently measures a different setup.
 
@@ -120,7 +120,7 @@ These checks concern the code around the model call. The central failure mode is
 
 - **Reproducible over time.** Dependencies pinned, case set and grader versioned together, environment specified. Scores from before and after a grader change are not comparable.
 
-- **Harness tested on known-good and known-bad.** Before the first full pass, run (a) an oracle - the reference answers, or a variant that *should* score near 100% - and (b) a null baseline - empty output, a constant answer, or the majority class - through the whole pipeline. If the oracle doesn't pass, the harness or grader is broken; if the null doesn't fail, the grader is too lenient. Two runs, minutes, and it catches most wiring bugs before they cost a full pass.
+- **Harness tested on known-good and known-bad.** Before the first full pass, run (a) an oracle - the reference answers, or a variant that _should_ score near 100% - and (b) a null baseline - empty output, a constant answer, or the majority class - through the whole pipeline. If the oracle doesn't pass, the harness or grader is broken; if the null doesn't fail, the grader is too lenient. Two runs, minutes, and it catches most wiring bugs before they cost a full pass.
 
 ## 3. Metrics hygiene
 
@@ -180,11 +180,11 @@ These checks concern the function that turns an output into a score - exact matc
 
 ## 5. Can it detect the change you're after?
 
-An eval can be correct on every item above and still be useless for the decision at hand because it lacks the resolution to see the effect. Check this *before* the first full pass and again before round 1 of a hillclimb - discovering it after several paid rounds is the expensive way.
+An eval can be correct on every item above and still be useless for the decision at hand because it lacks the resolution to see the effect. Check this _before_ the first full pass and again before round 1 of a hillclimb - discovering it after several paid rounds is the expensive way.
 
 - **Noise floor vs headroom vs the smallest change worth acting on.** From the baseline run at its actual rep count, compute the noise floor on the target metric - the half-width of the paired-difference 95% CI at the current n × R (for a pass-rate, roughly `1/sqrt(n·R)`: 25 cases × 2 reps ~ ±14 points, 100 × 2 ~ ±7). Put it next to the **headroom** (ceiling minus baseline) and the **smallest improvement the user would actually ship on**. If the noise floor exceeds either, say so plainly now, with the numbers, and offer the levers in order of cost: more reps (cheapest, and paired designs make them go further), more cases, a pairwise or continuous metric instead of a binary one, or trimming to discriminating cases for iteration with a full-set confirm at the end. Cases and reps are two knobs on the same dial; budget them together when the set is sized, not after.
 
-- **Train and test are the same population.** If the eval will be hillclimbed with a split, the split must be drawn at random (stratified by `tags[0]`), never by baseline score. A train slice hand-picked from the worst-scoring cases guarantees two things: the analyzer only ever sees pathological cases, so its fixes target the tail rather than the population; and selecting on low baseline scores buys regression to the mean - those cases "improve" on re-run by chance alone. The symptom is a healthy train gain with a flat held-out set. Check at baseline that train and test means agree within noise; if they don't, re-draw before round 1. The analyzer can still *focus* on failures within train.
+- **Train and test are the same population.** If the eval will be hillclimbed with a split, the split must be drawn at random (stratified by `tags[0]`), never by baseline score. A train slice hand-picked from the worst-scoring cases guarantees two things: the analyzer only ever sees pathological cases, so its fixes target the tail rather than the population; and selecting on low baseline scores buys regression to the mean - those cases "improve" on re-run by chance alone. The symptom is a healthy train gain with a flat held-out set. Check at baseline that train and test means agree within noise; if they don't, re-draw before round 1. The analyzer can still _focus_ on failures within train.
 
 - **The mechanism is wired.** Whatever the score is supposed to depend on - a tool, a memory store, an instruction file - disable it and confirm the score drops; enable it and confirm it engages in the transcripts. If the score barely moves either way, the eval isn't measuring the lever you plan to pull.
 

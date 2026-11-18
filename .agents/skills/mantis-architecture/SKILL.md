@@ -1,9 +1,10 @@
 ---
+
 name: mantis-architecture
 description: >-
-  Synthesizes raw learnings and codebase analysis into an interlinked Markdown Knowledge Base (KB).
-  Use at the beginning of a loop to build or update architecture.md, entities, and vulnerabilities.
-  Don't use for generating threat models or formulating execution plans.
+Synthesizes raw learnings and codebase analysis into an interlinked Markdown Knowledge Base (KB).
+Use at the beginning of a loop to build or update architecture.md, entities, and vulnerabilities.
+Don't use for generating threat models or formulating execution plans.
 ---
 
 # Architect (/mantis-architecture)
@@ -214,14 +215,12 @@ VCS):**
 
 1. **Read the Inbox (`workspace/learnings.jsonl` and
    `workspace/historical_learnings.jsonl`):**
-
    - Parse the contents of `workspace/learnings.jsonl` (and
      `workspace/historical_learnings.jsonl` if it exists). Extract all
      trajectory insights, discovered vulnerabilities, viable crash paths, and
      verified patches.
 
 2. **Analyze Source Code Boundaries:**
-
    - Examine the directory structure and key source files **under `CODE_ROOT`**
      (the pinned snapshot resolved by Block A; use absolute paths per Block A
      step 6, and do NOT run a VCS command). Dynamically identify the core
@@ -235,10 +234,8 @@ VCS):**
      serialization mechanisms, or training boundaries).
 
 3. **Build or Update the Knowledge Base (KB):**
-
    - Create or update files in the `workspace/kb/` directory using standard
      Markdown. Follow these strict paths:
-
      - `workspace/kb/architecture.md`: High-level data flows, zone definitions,
        system design, and overall availability/uptime requirements (if
        documented or inferable from configuration like systemd, kubernetes, or
@@ -251,7 +248,7 @@ VCS):**
        LOW_CRITICALITY if applicable). Incorporate trajectory insights here.
      - `workspace/kb/vulnerabilities/[CWE-ID_or_BugClass].md`: Descriptions of
        bug classes (e.g., `CWE-79.md` or `Memory-Corruption.md`) that have been
-       historically relevant to this codebase, including examples of what *not*
+       historically relevant to this codebase, including examples of what _not_
        to do.
      - `workspace/kb/index.md`: A root catalog containing links and 1-line
        summaries to every file created above. This is the map the Planner will
@@ -290,7 +287,6 @@ VCS):**
      mechanisms, not by per-assertion tags.
 
 4. **Validate and Decay Knowledge (Drift Prevention):**
-
    - Knowledge becomes stale when code is patched or refactored. Before
      finalizing the KB updates, spot-check the assertions in the existing
      `workspace/kb/entities/` against the source **under `CODE_ROOT`** (the
@@ -309,7 +305,6 @@ VCS):**
      `KB_SNAPSHOT` marker on that KB file.
 
 5. **Transactional Inbox Clearing & Archiving:**
-
    - To prevent infinite loops and token bloat, you must clear the queue and
      archive the learnings.
    - **Verify and Finalize:** Programmatically verify that all Markdown KB

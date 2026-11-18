@@ -68,23 +68,23 @@ pipx install git+https://github.com/imMamdouhaboammar/anti-slop-engineering.git
 
 Runs on any git diff in under a second. No network access. No config files required.
 
-| Code | Severity | Pattern detected |
-|---|---|---|
-| `SKIPPED_TEST` | **blocker** | `@pytest.mark.skip`, `it.skip(`, `@Disabled`, `xit(` — test oracle tampered |
-| `WEAK_ASSERTION` | review | `assert True`, `expect(true).toBe(true)` — assertion theater |
-| `SECURITY_BYPASS_CANDIDATE` | review | `verify=False`, `rejectUnauthorized: false`, `--no-verify` |
-| `ERROR_SWALLOW_CANDIDATE` | review | `except Exception: pass`, empty `catch {}` blocks |
-| `TYPE_CHECK_SUPPRESSION` | review | `@ts-ignore`, `@ts-nocheck`, `type: ignore` |
-| `SRE_YAGNI_DEAD_FLAG` | **blocker** | `if False:`, `if (false)` — speculative dead branches |
-| `SRE_SCALE_FLAT_RETRY` | review | Retry loop with fixed `sleep(N)` — thundering herd risk |
-| `SRE_SCALE_SLEEP_BAND_AID` | review | `time.sleep()` used as async synchronization |
-| `SRE_SCALE_UNBOUNDED_CONCURRENCY` | review | `Promise.all(items.map(...))`, `asyncio.gather(*tasks)` without semaphore |
-| `DEV_NOTE_IN_UI` | **blocker** | Agent/dev notes inside `<p>`, `<span>`, `<div>` — leaking into user-facing surfaces |
-| `PATRONIZING_UI_COPY` | review | "Please enter your email", "Click here to submit" under self-evident controls |
-| `TRIVIAL_COMMENT_NARRATION` | review | `// return result`, `// increment count` — syntax play-by-play |
-| `SPECULATIVE_SUBMISSION_DOSSIER` | review | `docs/*submission*.md`, `docs/*dossier*.md` — unrequested platform guides |
-| `AFFORDANCE_NARRATION` | review | "The following table shows", "Click to expand" — meta-preamble in docs |
-| `LARGE_DIFF_SCOPE` | review | Added lines exceed 400 — prompts scope review |
+| Code                              | Severity    | Pattern detected                                                                    |
+| --------------------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| `SKIPPED_TEST`                    | **blocker** | `@pytest.mark.skip`, `it.skip(`, `@Disabled`, `xit(` — test oracle tampered         |
+| `WEAK_ASSERTION`                  | review      | `assert True`, `expect(true).toBe(true)` — assertion theater                        |
+| `SECURITY_BYPASS_CANDIDATE`       | review      | `verify=False`, `rejectUnauthorized: false`, `--no-verify`                          |
+| `ERROR_SWALLOW_CANDIDATE`         | review      | `except Exception: pass`, empty `catch {}` blocks                                   |
+| `TYPE_CHECK_SUPPRESSION`          | review      | `@ts-ignore`, `@ts-nocheck`, `type: ignore`                                         |
+| `SRE_YAGNI_DEAD_FLAG`             | **blocker** | `if False:`, `if (false)` — speculative dead branches                               |
+| `SRE_SCALE_FLAT_RETRY`            | review      | Retry loop with fixed `sleep(N)` — thundering herd risk                             |
+| `SRE_SCALE_SLEEP_BAND_AID`        | review      | `time.sleep()` used as async synchronization                                        |
+| `SRE_SCALE_UNBOUNDED_CONCURRENCY` | review      | `Promise.all(items.map(...))`, `asyncio.gather(*tasks)` without semaphore           |
+| `DEV_NOTE_IN_UI`                  | **blocker** | Agent/dev notes inside `<p>`, `<span>`, `<div>` — leaking into user-facing surfaces |
+| `PATRONIZING_UI_COPY`             | review      | "Please enter your email", "Click here to submit" under self-evident controls       |
+| `TRIVIAL_COMMENT_NARRATION`       | review      | `// return result`, `// increment count` — syntax play-by-play                      |
+| `SPECULATIVE_SUBMISSION_DOSSIER`  | review      | `docs/*submission*.md`, `docs/*dossier*.md` — unrequested platform guides           |
+| `AFFORDANCE_NARRATION`            | review      | "The following table shows", "Click to expand" — meta-preamble in docs              |
+| `LARGE_DIFF_SCOPE`                | review      | Added lines exceed 400 — prompts scope review                                       |
 
 ```bash
 # Standard pre-commit triage:
@@ -105,19 +105,19 @@ bunx anti-slop-engineering --base HEAD --fail-on-blocker
 
 Implements the four Google SRE engineering mandates (KISS, DRY, YAGNI, Fix Issues at Scale) as a static analysis pass over your diff or source files. Zero external dependencies — pure Python 3.9+ stdlib.
 
-| Pillar | Diagnostic code | What it flags |
-|---|---|---|
-| **KISS** | `KISS_DEEP_NESTING` | Control flow nested beyond 4 levels — flatten with guard clauses |
-| **KISS** | `KISS_FUNCTION_BLOAT` | Functions exceeding 80 lines — split into single-responsibility units |
-| **DRY** | `DRY_CODE_DUPLICATION` | Logic blocks of 4+ normalized lines duplicated across files |
-| **YAGNI** | `YAGNI_SPECULATIVE_COMMENT` | `TODO(future)`, `reserved for future use`, `placeholder for v2` |
-| **YAGNI** | `YAGNI_DEAD_SPECULATIVE_FLAG` | `if False:`, `if (false)` dead branches |
-| **YAGNI** | `YAGNI_SPECULATIVE_PARAMETER` | `_unused_param`, `future_kwargs` — phantom interface surface |
-| **Scale** | `SCALE_UNBOUNDED_OR_FLAT_RETRY` | Retry with `sleep(N)` — no exponential backoff, no full jitter |
-| **Scale** | `SCALE_SLEEP_BAND_AID` | Arbitrary `sleep()` as async synchronization |
-| **Scale** | `SCALE_UNBOUNDED_CONCURRENCY` | Unbound `Promise.all(map(...))`, `asyncio.gather(*tasks)` |
-| **Scale** | `SCALE_TOIL_ERROR_SWALLOW` | Silent exception swallowing — untracked fleet-wide failures |
-| **Scale** | `SCALE_MISLEADING_HEALTH_CHECK` | Static `200 OK` health endpoints — no dependency probing |
+| Pillar    | Diagnostic code                 | What it flags                                                         |
+| --------- | ------------------------------- | --------------------------------------------------------------------- |
+| **KISS**  | `KISS_DEEP_NESTING`             | Control flow nested beyond 4 levels — flatten with guard clauses      |
+| **KISS**  | `KISS_FUNCTION_BLOAT`           | Functions exceeding 80 lines — split into single-responsibility units |
+| **DRY**   | `DRY_CODE_DUPLICATION`          | Logic blocks of 4+ normalized lines duplicated across files           |
+| **YAGNI** | `YAGNI_SPECULATIVE_COMMENT`     | `TODO(future)`, `reserved for future use`, `placeholder for v2`       |
+| **YAGNI** | `YAGNI_DEAD_SPECULATIVE_FLAG`   | `if False:`, `if (false)` dead branches                               |
+| **YAGNI** | `YAGNI_SPECULATIVE_PARAMETER`   | `_unused_param`, `future_kwargs` — phantom interface surface          |
+| **Scale** | `SCALE_UNBOUNDED_OR_FLAT_RETRY` | Retry with `sleep(N)` — no exponential backoff, no full jitter        |
+| **Scale** | `SCALE_SLEEP_BAND_AID`          | Arbitrary `sleep()` as async synchronization                          |
+| **Scale** | `SCALE_UNBOUNDED_CONCURRENCY`   | Unbound `Promise.all(map(...))`, `asyncio.gather(*tasks)`             |
+| **Scale** | `SCALE_TOIL_ERROR_SWALLOW`      | Silent exception swallowing — untracked fleet-wide failures           |
+| **Scale** | `SCALE_MISLEADING_HEALTH_CHECK` | Static `200 OK` health endpoints — no dependency probing              |
 
 ```bash
 # Audit working-tree diff:
@@ -189,15 +189,15 @@ flowchart TD
     G6 -->|"BLOCK"| ABORT["Halt and flag violations"]
 ```
 
-| Gate | Phase | Contract |
-|---|---|---|
-| **0** | Discover | Inspect root configs, lockfiles, conventions. Identify official CLI installers. Never improvise repo habits. |
-| **1** | Contract | Define what changes, what must not change, invariants, and rollback requirements. |
-| **2** | Lock Oracle | Baseline existing tests. Protect assertions. Write red-state repro before modifying production code. |
-| **3** | Implement | Minimum justified complexity. Official scaffolding only. Pin latest stable dependencies. No duplicate layers. |
-| **4** | Verify | Execute real tests beyond green badges. Test negative boundaries, concurrency, and contract seams. |
-| **5** | Audit Diff | Run `diff_guard.py` as a skeptical reviewer. Flag scope expansions, test modifications, and hidden leaks. |
-| **6** | Evidence | Issue structured report: `BLOCK`, `REWORK`, `REVIEW`, or `PASS` with exact `file:line` citations. |
+| Gate  | Phase       | Contract                                                                                                      |
+| ----- | ----------- | ------------------------------------------------------------------------------------------------------------- |
+| **0** | Discover    | Inspect root configs, lockfiles, conventions. Identify official CLI installers. Never improvise repo habits.  |
+| **1** | Contract    | Define what changes, what must not change, invariants, and rollback requirements.                             |
+| **2** | Lock Oracle | Baseline existing tests. Protect assertions. Write red-state repro before modifying production code.          |
+| **3** | Implement   | Minimum justified complexity. Official scaffolding only. Pin latest stable dependencies. No duplicate layers. |
+| **4** | Verify      | Execute real tests beyond green badges. Test negative boundaries, concurrency, and contract seams.            |
+| **5** | Audit Diff  | Run `diff_guard.py` as a skeptical reviewer. Flag scope expansions, test modifications, and hidden leaks.     |
+| **6** | Evidence    | Issue structured report: `BLOCK`, `REWORK`, `REVIEW`, or `PASS` with exact `file:line` citations.             |
 
 ---
 
@@ -205,12 +205,12 @@ flowchart TD
 
 The [Decision Guard module](skills/decision-guard/SKILL.md) addresses two decisions the code diff cannot catch: deriving an answer that already exists directly, and choosing a familiar technology stack without testing the product's actual requirements and future operating costs.
 
-| Situation | Agent behavior |
-| --- | --- |
-| Seven metrics infer a value present in a source field | Verify the field's semantics and propose using the direct answer |
+| Situation                                                            | Agent behavior                                                        |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Seven metrics infer a value present in a source field                | Verify the field's semantics and propose using the direct answer      |
 | A logged-in app triggers an automatic Next.js/Vercel/database bundle | Separate rendering, jobs, hosting, persistence and operations choices |
-| VPS appears cheaper than managed infrastructure | Compare recovery, maintenance, on-call, migration and actual workload |
-| New evidence invalidates days of prior work | Interrupt, explain the change and offer the smallest corrected path |
+| VPS appears cheaper than managed infrastructure                      | Compare recovery, maintenance, on-call, migration and actual workload |
+| New evidence invalidates days of prior work                          | Interrupt, explain the change and offer the smallest corrected path   |
 
 The module is loaded selectively during Gate 0/1 for consequential decisions. It includes a portable skill, two focused workflows, decision references, nine evaluation scenarios and a standard-library JSON record checker.
 
@@ -228,12 +228,12 @@ Exit `0` means the record is structurally complete, `2` means required decision 
 
 The [Root-Fix Gate module](skills/root-fix-gate/SKILL.md) interrupts scattered symptom patches before they harden into permanent architecture. It traces the source-of-truth owner, compares a coherent boundary correction against repeated consumer workarounds, and checks whether the eventual change surface matches the causal plan.
 
-| Situation | Agent action |
-| --- | --- |
-| Email hidden separately in twenty profile controllers | Inspect the identity, checkout and serialization contracts before editing consumers |
-| A proposed `User.email = null` fix could affect account recovery | Test auth and data boundaries, and pause destructive changes without authority |
-| A valid migration touches many consumers and tests | Keep necessary changes; explain each path instead of enforcing a file-count limit |
-| A narrow, reversible change already has a verified owner | Skip the extra protocol and resume BUILD/FIX |
+| Situation                                                        | Agent action                                                                        |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Email hidden separately in twenty profile controllers            | Inspect the identity, checkout and serialization contracts before editing consumers |
+| A proposed `User.email = null` fix could affect account recovery | Test auth and data boundaries, and pause destructive changes without authority      |
+| A valid migration touches many consumers and tests               | Keep necessary changes; explain each path instead of enforcing a file-count limit   |
+| A narrow, reversible change already has a verified owner         | Skip the extra protocol and resume BUILD/FIX                                        |
 
 ```bash
 node bin/cli.js root-fix audit skills/root-fix-gate/examples/email-checkout-record.json --json
@@ -249,12 +249,12 @@ The JSON checker uses only Python standard library and Git when diff inspection 
 
 The [Future-Scale Gate](skills/future-scale-gate/SKILL.md) protects long-lived systems against two opposite failures: locking a core contract to today's workload, and implementing expensive infrastructure for an unverified hypothetical future.
 
-| Question | Required evidence |
-| --- | --- |
-| What changes over the product's lifetime? | Credible scenarios with sources, stress axes and failure consequences |
-| Which foundation would be costly to change later? | Reversal cost, alternative designs and migration/exit path |
-| What must be established now? | Small stable boundary and a representative evolution test |
-| What should wait? | Deferred capacity with a concrete revisit trigger |
+| Question                                          | Required evidence                                                     |
+| ------------------------------------------------- | --------------------------------------------------------------------- |
+| What changes over the product's lifetime?         | Credible scenarios with sources, stress axes and failure consequences |
+| Which foundation would be costly to change later? | Reversal cost, alternative designs and migration/exit path            |
+| What must be established now?                     | Small stable boundary and a representative evolution test             |
+| What should wait?                                 | Deferred capacity with a concrete revisit trigger                     |
 
 Examples include a simulation language keeping its semantics portable across runtimes, a versioned public data format, or a future tenant-isolation constraint. The Gate does not require microservices, Rust, distributed systems or a provider bundle by default.
 
@@ -270,12 +270,12 @@ The bundled example intentionally recommends `pause` because its alternate-engin
 
 The [Paranoid Principal Architect](skills/paranoid-principal-architect/SKILL.md) skill enforces an uncompromising, zero-trust engineering posture designed for day-one 10,000,000 concurrent user scale. It rejects optimistic "happy-path" code generation, unparsed inputs, unbounded async loops, hot-key lock contention, and client authority.
 
-| Pillar | Strict Enforcement |
-| --- | --- |
-| **10M Concurrent Users Axiom** | Little's Law capacity budgeting, 16-shard counters, keyset cursor pagination (`LIMIT <= 100`), semaphore worker pools |
-| **The Internet is a Battlefield** | Parse don't validate (Zod/Valibot `.strict()`), data-layer ownership checks in queries, constant-time `crypto.timingSafeEqual` |
-| **Murphy's Law by Default** | Mandatory `Idempotency-Key` headers on mutations, `AbortSignal.timeout(ms)` on all outbound I/O, exponential backoff with full jitter |
-| **Modern Web Standards** | Native platform primitives (`structuredClone`, Web Streams, `URLSearchParams`), native `<dialog>` modals, strict branded types |
+| Pillar                            | Strict Enforcement                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **10M Concurrent Users Axiom**    | Little's Law capacity budgeting, 16-shard counters, keyset cursor pagination (`LIMIT <= 100`), semaphore worker pools                 |
+| **The Internet is a Battlefield** | Parse don't validate (Zod/Valibot `.strict()`), data-layer ownership checks in queries, constant-time `crypto.timingSafeEqual`        |
+| **Murphy's Law by Default**       | Mandatory `Idempotency-Key` headers on mutations, `AbortSignal.timeout(ms)` on all outbound I/O, exponential backoff with full jitter |
+| **Modern Web Standards**          | Native platform primitives (`structuredClone`, Web Streams, `URLSearchParams`), native `<dialog>` modals, strict branded types        |
 
 Audit architectural threat records:
 
@@ -324,33 +324,33 @@ Follow the procedure in [install-anti-slop](skills/install-anti-slop/SKILL.md) t
 ```ts
 // oxlint.config.ts or .oxlintrc.json
 export default {
-  ignorePatterns: [
-    ".agent/**",
-    ".agents/**",
-    ".claude/**",
-    ".gemini/**",
-    "tools/oxlint/anti-slop/**"
-  ],
-  jsPlugins: [
-    { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" }
-  ],
-  rules: {
-    "anti-slop/no-chained-type-assertions": "error",
-    "anti-slop/no-conditional-empty-object-spread": "error",
-    "anti-slop/no-known-value-widening": "error",
-    "anti-slop/no-module-mocking": "error",
-    "anti-slop/no-object-parameters": "error",
-    "anti-slop/no-reflect-apply": "error",
-    "anti-slop/no-reflect-get": "error",
-    "anti-slop/no-runtime-typeof": "error",
-    "anti-slop/no-shape-in-symbol-names": "error",
-    "anti-slop/no-unknown-parameters": "error",
-    "anti-slop/no-unknown-returns": "error",
-    "anti-slop/no-unknown-type-aliases": "error",
-    "anti-slop/no-unsafe-dictionary-type": "error",
-    "anti-slop/no-widen-then-assert": "error",
-    "anti-slop/require-safety-comment-for-type-assertion": "error"
-  }
+	ignorePatterns: [
+		".agent/**",
+		".agents/**",
+		".claude/**",
+		".gemini/**",
+		"tools/oxlint/anti-slop/**",
+	],
+	jsPlugins: [
+		{ name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
+	],
+	rules: {
+		"anti-slop/no-chained-type-assertions": "error",
+		"anti-slop/no-conditional-empty-object-spread": "error",
+		"anti-slop/no-known-value-widening": "error",
+		"anti-slop/no-module-mocking": "error",
+		"anti-slop/no-object-parameters": "error",
+		"anti-slop/no-reflect-apply": "error",
+		"anti-slop/no-reflect-get": "error",
+		"anti-slop/no-runtime-typeof": "error",
+		"anti-slop/no-shape-in-symbol-names": "error",
+		"anti-slop/no-unknown-parameters": "error",
+		"anti-slop/no-unknown-returns": "error",
+		"anti-slop/no-unknown-type-aliases": "error",
+		"anti-slop/no-unsafe-dictionary-type": "error",
+		"anti-slop/no-widen-then-assert": "error",
+		"anti-slop/require-safety-comment-for-type-assertion": "error",
+	},
 };
 ```
 
@@ -360,14 +360,14 @@ export default {
 
 The real-time execution guard interceptor enforces boundaries before agent actions run. Inspired by Stop-That-Shit boundary control, it intercepts PreToolUse actions, parses active directives, gates unauthorized file mutations, blocks unverified dependency creep, caps concurrent subagent fanout, and evaluates declarative pairwise test cases:
 
-| Feature | Enforcement |
-| --- | --- |
-| **Directive Parser** | `$anti-slop [mode] [level] [files=...] [hash=...] [deps=...] [agents=N] -- [task]` |
-| **File Boundary Lock** | Rejects edits outside declared contract paths (`PATH_OUTSIDE_CONTRACT`) |
-| **Read-Only Mode Gate** | Blocks mutating tools (`write_file`, `edit_file`, mutating shell commands) in `review`/`answer`/`monitor` modes |
-| **Dependency Gate** | Flags unapproved package installations; issues single-use runner tickets when `deps=ask` |
-| **Subagent Concurrency** | Halts subagent invocations when `active_subagents >= agents` budget |
-| **Pairwise Case Runner** | 16 declarative Good/Bad test cases verifying SHIT boundary invariants |
+| Feature                  | Enforcement                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Directive Parser**     | `$anti-slop [mode] [level] [files=...] [hash=...] [deps=...] [agents=N] -- [task]`                              |
+| **File Boundary Lock**   | Rejects edits outside declared contract paths (`PATH_OUTSIDE_CONTRACT`)                                         |
+| **Read-Only Mode Gate**  | Blocks mutating tools (`write_file`, `edit_file`, mutating shell commands) in `review`/`answer`/`monitor` modes |
+| **Dependency Gate**      | Flags unapproved package installations; issues single-use runner tickets when `deps=ask`                        |
+| **Subagent Concurrency** | Halts subagent invocations when `active_subagents >= agents` budget                                             |
+| **Pairwise Case Runner** | 16 declarative Good/Bad test cases verifying SHIT boundary invariants                                           |
 
 ```bash
 # Check guard status & active directives:
@@ -388,13 +388,13 @@ The agent skill wires Anti-Slop Engineering into your AI coding agent's context.
 
 **Supported environments:**
 
-| Environment | Skill directory |
-|---|---|
-| Claude Code and Desktop | `~/.claude/skills/anti-slop-engineering` |
-| Antigravity / Gemini CLI | `~/.gemini/config/skills/anti-slop-engineering` |
-| Codex / OpenCode | `~/.codex/skills/anti-slop-engineering` |
-| Universal Agent Kernel | `~/.agents/skills/anti-slop-engineering` |
-| Cursor / Windsurf | `.cursor/rules/anti-slop.mdc` or `.cursor/skills/` |
+| Environment              | Skill directory                                    |
+| ------------------------ | -------------------------------------------------- |
+| Claude Code and Desktop  | `~/.claude/skills/anti-slop-engineering`           |
+| Antigravity / Gemini CLI | `~/.gemini/config/skills/anti-slop-engineering`    |
+| Codex / OpenCode         | `~/.codex/skills/anti-slop-engineering`            |
+| Universal Agent Kernel   | `~/.agents/skills/anti-slop-engineering`           |
+| Cursor / Windsurf        | `.cursor/rules/anti-slop.mdc` or `.cursor/skills/` |
 
 ```bash
 npx skills add imMamdouhaboammar/anti-slop-engineering

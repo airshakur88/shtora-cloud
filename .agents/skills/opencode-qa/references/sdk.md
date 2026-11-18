@@ -23,16 +23,19 @@ Root and v2 entries export `createOpencode()`, `createOpencodeClient(...)`, `cre
 ## Two ways to connect
 
 ```ts
-import { createOpencodeClient, createOpencodeServer } from "@opencode-ai/sdk/v2"
+import {
+	createOpencodeClient,
+	createOpencodeServer,
+} from "@opencode-ai/sdk/v2";
 
 // A) embedded server (spawns opencode serve)
-const server = await createOpencodeServer()
-const client = createOpencodeClient({ baseUrl: server.url })
+const server = await createOpencodeServer();
+const client = createOpencodeClient({ baseUrl: server.url });
 // ... use client ...
-server.close()
+server.close();
 
 // B) connect to an already-running server
-const client2 = createOpencodeClient({ baseUrl: "http://127.0.0.1:4096" })
+const client2 = createOpencodeClient({ baseUrl: "http://127.0.0.1:4096" });
 ```
 
 ## Client namespaces
@@ -56,28 +59,31 @@ auth, app, global, event, config, experimental, tool, worktree, find, file, inst
 Arg shapes may differ by version. Treat this as a starting point, not a contract.
 
 ```ts
-import { createOpencodeClient, createOpencodeServer } from "@opencode-ai/sdk/v2"
+import {
+	createOpencodeClient,
+	createOpencodeServer,
+} from "@opencode-ai/sdk/v2";
 
-const server = await createOpencodeServer()
-const client = createOpencodeClient({ baseUrl: server.url })
+const server = await createOpencodeServer();
+const client = createOpencodeClient({ baseUrl: server.url });
 
 try {
-  const session = await client.session.create({ title: "QA session" })
-  await client.session.promptAsync({
-    sessionID: session.id,
-    parts: [{ type: "text", text: "Say hello in one line." }],
-  })
+	const session = await client.session.create({ title: "QA session" });
+	await client.session.promptAsync({
+		sessionID: session.id,
+		parts: [{ type: "text", text: "Say hello in one line." }],
+	});
 
-  const sessions = await client.session.list({ limit: 10 })
-  console.log(sessions[0]?.title)
+	const sessions = await client.session.list({ limit: 10 });
+	console.log(sessions[0]?.title);
 
-  const messages = await client.v2.session.messages({
-    sessionID: session.id,
-    limit: 20,
-  })
-  console.log(messages.items.length)
+	const messages = await client.v2.session.messages({
+		sessionID: session.id,
+		limit: 20,
+	});
+	console.log(messages.items.length);
 } finally {
-  server.close()
+	server.close();
 }
 ```
 

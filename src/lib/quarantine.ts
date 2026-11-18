@@ -28,10 +28,6 @@ export interface QuarantineRow {
 	source: string;
 }
 
-interface CooldownRow {
-	failure_count: number;
-}
-
 interface QuarantineJoinRow {
 	id: number;
 	platform: string;
@@ -56,46 +52,94 @@ export async function reportFailure(
 		retryAfterMs?: number;
 	},
 ): Promise<void> {
-	const existing = await db
-		.prepare(
-			"SELECT failure_count FROM provider_rate_limit_cooldowns WHERE platform = ? AND model_id = ? AND key_id = ?",
-		)
-		.bind(input.platform, input.modelId, input.keyId)
-		.first<CooldownRow>();
-	const failureCount = (existing?.failure_count ?? 0) + 1;
-	let durationMs: number =
-		input.source === "payment" || input.source === "tier"
-			? DAY_MS
-			: COOLDOWN_LADDER_MS[
-					Math.min(failureCount - 1, COOLDOWN_LADDER_MS.length - 1)
-				];
-	if (
-		input.retryAfterMs !== undefined &&
-		input.source !== "payment" &&
-		input.source !== "tier"
-	) {
-		durationMs = Math.min(DAY_MS, Math.max(durationMs, input.retryAfterMs));
+	const now = Date.now();
+	const isLongCooldown = input.source === "payment" || input.source === "tier";
+
+	if (isLongCooldown) {
+		// Payment/tier failures always get a full-day cooldown regardless of count.
+		await db
+			.prepare(
+				`INSERT INTO provider_rate_limit_cooldowns
+				 (platform, model_id, key_id, failure_count, cooldown_until_ms, reason, source)
+				 VALUES (?, ?, ?, 1, ?, ?, ?)
+				 ON CONFLICT(platform, model_id, key_id) DO UPDATE SET
+				   failure_count = failure_count + 1,
+				   cooldown_until_ms = excluded.cooldown_until_ms,
+				   reason = excluded.reason,
+				   source = excluded.source`,
+			)
+			.bind(
+				input.platform,
+				input.modelId,
+				input.keyId,
+				now + DAY_MS,
+				input.reason ?? null,
+				input.source,
+			)
+			.run();
+		return;
 	}
+
+	// Ladder duration is based on the NEW failure_count after increment.
+	// In the INSERT case new count = 1 → ladder[0] = 90 000 ms.
+	// In the UPDATE case the existing failure_count (before +1) is used in
+	// the CASE so MIN(failure_count, 6) maps to ladder index 1-7.
+	// retryAfterMs from the upstream Retry-After header takes precedence when
+	// it exceeds the ladder value, capped to one day.
+	const ladderSql = `CASE MIN(failure_count, 6)
+		WHEN 0 THEN 120000
+		WHEN 1 THEN 300000
+		WHEN 2 THEN 600000
+		WHEN 3 THEN 1800000
+		WHEN 4 THEN 3600000
+		WHEN 5 THEN 14400000
+		ELSE 86400000
+	END`;
+
+	const retryMs = input.retryAfterMs;
+	const cooldownExpr =
+		retryMs !== undefined
+			? `MIN(${DAY_MS}, MAX(? + ${ladderSql}, ?))`
+			: `? + ${ladderSql}`;
+	const initialCooldown =
+		retryMs !== undefined
+			? Math.min(DAY_MS, Math.max(COOLDOWN_LADDER_MS[0], retryMs))
+			: COOLDOWN_LADDER_MS[0];
+
+	const binds: (string | number | null)[] =
+		retryMs !== undefined
+			? [
+					input.platform,
+					input.modelId,
+					input.keyId,
+					now + initialCooldown,
+					input.reason ?? null,
+					input.source,
+					now,
+					now + retryMs,
+				]
+			: [
+					input.platform,
+					input.modelId,
+					input.keyId,
+					now + initialCooldown,
+					input.reason ?? null,
+					input.source,
+					now,
+				];
+
 	await db
 		.prepare(
 			`INSERT INTO provider_rate_limit_cooldowns
 			 (platform, model_id, key_id, failure_count, cooldown_until_ms, reason, source)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)
+			 VALUES (?, ?, ?, 1, ?, ?, ?)
 			 ON CONFLICT(platform, model_id, key_id) DO UPDATE SET
-			   failure_count = excluded.failure_count,
-			   cooldown_until_ms = excluded.cooldown_until_ms,
+			   failure_count = failure_count + 1,
+			   cooldown_until_ms = ${cooldownExpr},
 			   reason = excluded.reason,
 			   source = excluded.source`,
 		)
-		.bind(
-			input.platform,
-			input.modelId,
-			input.keyId,
-			failureCount,
-			Date.now() + durationMs,
-			input.reason ?? null,
-			input.source,
-		)
+		.bind(...binds)
 		.run();
 }
 

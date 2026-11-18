@@ -5,6 +5,7 @@
 ## When to Use This Guide
 
 **Migrate to GraphQL when:**
+
 - Multiple round-trips required for complex UI views
 - Over-fetching or under-fetching data is problematic
 - Supporting diverse client needs (mobile, web, desktop)
@@ -14,6 +15,7 @@
 - API versioning complexity is growing
 
 **Success indicators:**
+
 - Client applications make many sequential REST calls
 - Different clients need different data shapes
 - Mobile apps suffer from bandwidth constraints
@@ -23,6 +25,7 @@
 ## When NOT to Use GraphQL
 
 **Stick with REST when:**
+
 - Simple CRUD operations with stable clients
 - File upload/download is primary use case
 - HTTP caching is critical (CDN, browser cache)
@@ -32,6 +35,7 @@
 - Query complexity would create security risks
 
 **Warning signs:**
+
 - Team of 1-2 developers (operational overhead)
 - Primarily server-to-server communication
 - Static content delivery is the main requirement
@@ -41,24 +45,24 @@
 
 ## Concept Mapping: REST to GraphQL
 
-| REST Concept | GraphQL Equivalent | Notes |
-|--------------|-------------------|-------|
-| GET /users | Query users | Read operations |
-| GET /users/:id | Query user(id: ID!) | Single entity fetch |
-| POST /users | Mutation createUser | Create operations |
-| PUT /users/:id | Mutation updateUser | Update operations |
-| DELETE /users/:id | Mutation deleteUser | Delete operations |
-| PATCH /users/:id | Mutation updateUserPartial | Partial updates |
-| Query params (?filter=...) | Field arguments | Filtering/sorting |
-| URL path segments | Nested field selection | Data relationships |
-| Multiple endpoints | Single query | Eliminate round-trips |
-| Webhook callbacks | Subscriptions | Real-time updates |
-| HTTP status codes | Errors array + data | Partial success model |
-| API versioning | Schema evolution | Deprecation over versions |
-| /users?include=posts | users { posts } | Eager loading control |
-| Offset pagination | Cursor-based connections | Relay specification |
-| Accept header | Operation selection | Content negotiation |
-| OAuth/JWT tokens | Context authentication | Same auth patterns |
+| REST Concept               | GraphQL Equivalent         | Notes                     |
+| -------------------------- | -------------------------- | ------------------------- |
+| GET /users                 | Query users                | Read operations           |
+| GET /users/:id             | Query user(id: ID!)        | Single entity fetch       |
+| POST /users                | Mutation createUser        | Create operations         |
+| PUT /users/:id             | Mutation updateUser        | Update operations         |
+| DELETE /users/:id          | Mutation deleteUser        | Delete operations         |
+| PATCH /users/:id           | Mutation updateUserPartial | Partial updates           |
+| Query params (?filter=...) | Field arguments            | Filtering/sorting         |
+| URL path segments          | Nested field selection     | Data relationships        |
+| Multiple endpoints         | Single query               | Eliminate round-trips     |
+| Webhook callbacks          | Subscriptions              | Real-time updates         |
+| HTTP status codes          | Errors array + data        | Partial success model     |
+| API versioning             | Schema evolution           | Deprecation over versions |
+| /users?include=posts       | users { posts }            | Eager loading control     |
+| Offset pagination          | Cursor-based connections   | Relay specification       |
+| Accept header              | Operation selection        | Content negotiation       |
+| OAuth/JWT tokens           | Context authentication     | Same auth patterns        |
 
 ---
 
@@ -69,32 +73,32 @@
 ```typescript
 // GET /api/users/:id
 interface UserResponse {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  posts: Array<{
-    id: string;
-    title: string;
-    published: boolean;
-  }>;
+	id: string;
+	name: string;
+	email: string;
+	created_at: string;
+	posts: Array<{
+		id: string;
+		title: string;
+		published: boolean;
+	}>;
 }
 
-app.get('/api/users/:id', async (req, res) => {
-  const user = await db.users.findById(req.params.id);
-  const posts = await db.posts.findByUserId(user.id); // N+1 risk
+app.get("/api/users/:id", async (req, res) => {
+	const user = await db.users.findById(req.params.id);
+	const posts = await db.posts.findByUserId(user.id); // N+1 risk
 
-  res.json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    created_at: user.createdAt.toISOString(),
-    posts: posts.map(p => ({
-      id: p.id,
-      title: p.title,
-      published: p.published
-    }))
-  });
+	res.json({
+		id: user.id,
+		name: user.name,
+		email: user.email,
+		created_at: user.createdAt.toISOString(),
+		posts: posts.map((p) => ({
+			id: p.id,
+			title: p.title,
+			published: p.published,
+		})),
+	});
 });
 ```
 
@@ -102,28 +106,28 @@ app.get('/api/users/:id', async (req, res) => {
 
 ```graphql
 type User {
-  id: ID!
-  name: String!
-  email: String!
-  createdAt: DateTime!
-  posts: [Post!]!
+	id: ID!
+	name: String!
+	email: String!
+	createdAt: DateTime!
+	posts: [Post!]!
 }
 
 type Post {
-  id: ID!
-  title: String!
-  published: Boolean!
-  author: User!
+	id: ID!
+	title: String!
+	published: Boolean!
+	author: User!
 }
 
 type Query {
-  user(id: ID!): User
-  users(filter: UserFilter, limit: Int = 20): [User!]!
+	user(id: ID!): User
+	users(filter: UserFilter, limit: Int = 20): [User!]!
 }
 
 input UserFilter {
-  nameContains: String
-  createdAfter: DateTime
+	nameContains: String
+	createdAfter: DateTime
 }
 
 scalar DateTime
@@ -132,84 +136,84 @@ scalar DateTime
 ### GraphQL Resolver with DataLoader
 
 ```typescript
-import DataLoader from 'dataloader';
-import { IResolvers } from '@graphql-tools/utils';
+import DataLoader from "dataloader";
+import { IResolvers } from "@graphql-tools/utils";
 
 // Batch loading to prevent N+1 queries
 const createPostsByUserIdLoader = (db: Database) =>
-  new DataLoader<string, Post[]>(async (userIds) => {
-    const posts = await db.posts.findByUserIds([...userIds]);
+	new DataLoader<string, Post[]>(async (userIds) => {
+		const posts = await db.posts.findByUserIds([...userIds]);
 
-    // Group posts by userId
-    const postsByUserId = userIds.map(id =>
-      posts.filter(post => post.userId === id)
-    );
+		// Group posts by userId
+		const postsByUserId = userIds.map((id) =>
+			posts.filter((post) => post.userId === id),
+		);
 
-    return postsByUserId;
-  });
+		return postsByUserId;
+	});
 
 const createUserByIdLoader = (db: Database) =>
-  new DataLoader<string, User>(async (ids) => {
-    const users = await db.users.findByIds([...ids]);
+	new DataLoader<string, User>(async (ids) => {
+		const users = await db.users.findByIds([...ids]);
 
-    // Maintain order matching input ids
-    return ids.map(id => users.find(user => user.id === id));
-  });
+		// Maintain order matching input ids
+		return ids.map((id) => users.find((user) => user.id === id));
+	});
 
 interface Context {
-  db: Database;
-  loaders: {
-    userById: DataLoader<string, User>;
-    postsByUserId: DataLoader<string, Post[]>;
-  };
+	db: Database;
+	loaders: {
+		userById: DataLoader<string, User>;
+		postsByUserId: DataLoader<string, Post[]>;
+	};
 }
 
 const resolvers: IResolvers<any, Context> = {
-  Query: {
-    user: async (_, { id }, { loaders }) => {
-      return loaders.userById.load(id);
-    },
+	Query: {
+		user: async (_, { id }, { loaders }) => {
+			return loaders.userById.load(id);
+		},
 
-    users: async (_, { filter, limit }, { db }) => {
-      return db.users.find(filter, { limit });
-    },
-  },
+		users: async (_, { filter, limit }, { db }) => {
+			return db.users.find(filter, { limit });
+		},
+	},
 
-  User: {
-    posts: async (user, _, { loaders }) => {
-      // DataLoader batches and caches these calls
-      return loaders.postsByUserId.load(user.id);
-    },
-  },
+	User: {
+		posts: async (user, _, { loaders }) => {
+			// DataLoader batches and caches these calls
+			return loaders.postsByUserId.load(user.id);
+		},
+	},
 
-  Post: {
-    author: async (post, _, { loaders }) => {
-      return loaders.userById.load(post.userId);
-    },
-  },
+	Post: {
+		author: async (post, _, { loaders }) => {
+			return loaders.userById.load(post.userId);
+		},
+	},
 };
 
 // Apollo Server setup
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
 
 const server = new ApolloServer<Context>({
-  typeDefs,
-  resolvers,
+	typeDefs,
+	resolvers,
 });
 
 const { url } = await startStandaloneServer(server, {
-  context: async ({ req }) => {
-    const db = createDatabaseConnection();
+	context: async ({ req }) => {
+		const db = createDatabaseConnection();
 
-    return {
-      db,
-      loaders: {
-        userById: createUserByIdLoader(db),
-        postsByUserId: createPostsByUserIdLoader(db),
-      },
-    };
-  },
+		return {
+			db,
+			loaders: {
+				userById: createUserByIdLoader(db),
+				postsByUserId: createPostsByUserIdLoader(db),
+			},
+		};
+	},
 });
 ```
 
@@ -270,27 +274,27 @@ const DASHBOARD_DATA = gql`
 
 ```typescript
 // POST /api/users
-app.post('/api/users', async (req, res) => {
-  const { name, email, password } = req.body;
+app.post("/api/users", async (req, res) => {
+	const { name, email, password } = req.body;
 
-  if (!name || !email) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+	if (!name || !email) {
+		return res.status(400).json({ error: "Missing required fields" });
+	}
 
-  const user = await db.users.create({ name, email, password });
-  res.status(201).json(user);
+	const user = await db.users.create({ name, email, password });
+	res.status(201).json(user);
 });
 
 // PUT /api/users/:id
-app.put('/api/users/:id', async (req, res) => {
-  const user = await db.users.update(req.params.id, req.body);
-  res.json(user);
+app.put("/api/users/:id", async (req, res) => {
+	const user = await db.users.update(req.params.id, req.body);
+	res.json(user);
 });
 
 // DELETE /api/users/:id
-app.delete('/api/users/:id', async (req, res) => {
-  await db.users.delete(req.params.id);
-  res.status(204).send();
+app.delete("/api/users/:id", async (req, res) => {
+	await db.users.delete(req.params.id);
+	res.status(204).send();
 });
 ```
 
@@ -298,49 +302,49 @@ app.delete('/api/users/:id', async (req, res) => {
 
 ```graphql
 type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
-  updateUser(input: UpdateUserInput!): UpdateUserPayload!
-  deleteUser(id: ID!): DeleteUserPayload!
+	createUser(input: CreateUserInput!): CreateUserPayload!
+	updateUser(input: UpdateUserInput!): UpdateUserPayload!
+	deleteUser(id: ID!): DeleteUserPayload!
 }
 
 input CreateUserInput {
-  name: String!
-  email: String!
-  password: String!
+	name: String!
+	email: String!
+	password: String!
 }
 
 type CreateUserPayload {
-  user: User
-  errors: [UserError!]!
+	user: User
+	errors: [UserError!]!
 }
 
 input UpdateUserInput {
-  id: ID!
-  name: String
-  email: String
+	id: ID!
+	name: String
+	email: String
 }
 
 type UpdateUserPayload {
-  user: User
-  errors: [UserError!]!
+	user: User
+	errors: [UserError!]!
 }
 
 type DeleteUserPayload {
-  deletedId: ID
-  errors: [UserError!]!
+	deletedId: ID
+	errors: [UserError!]!
 }
 
 type UserError {
-  field: String
-  message: String!
-  code: ErrorCode!
+	field: String
+	message: String!
+	code: ErrorCode!
 }
 
 enum ErrorCode {
-  VALIDATION_ERROR
-  NOT_FOUND
-  UNAUTHORIZED
-  INTERNAL_ERROR
+	VALIDATION_ERROR
+	NOT_FOUND
+	UNAUTHORIZED
+	INTERNAL_ERROR
 }
 ```
 
@@ -348,94 +352,102 @@ enum ErrorCode {
 
 ```typescript
 const resolvers: IResolvers<any, Context> = {
-  Mutation: {
-    createUser: async (_, { input }, { db, user }) => {
-      try {
-        // Validation
-        if (!isValidEmail(input.email)) {
-          return {
-            user: null,
-            errors: [{
-              field: 'email',
-              message: 'Invalid email format',
-              code: 'VALIDATION_ERROR',
-            }],
-          };
-        }
+	Mutation: {
+		createUser: async (_, { input }, { db, user }) => {
+			try {
+				// Validation
+				if (!isValidEmail(input.email)) {
+					return {
+						user: null,
+						errors: [
+							{
+								field: "email",
+								message: "Invalid email format",
+								code: "VALIDATION_ERROR",
+							},
+						],
+					};
+				}
 
-        // Check for duplicate
-        const existing = await db.users.findByEmail(input.email);
-        if (existing) {
-          return {
-            user: null,
-            errors: [{
-              field: 'email',
-              message: 'Email already registered',
-              code: 'VALIDATION_ERROR',
-            }],
-          };
-        }
+				// Check for duplicate
+				const existing = await db.users.findByEmail(input.email);
+				if (existing) {
+					return {
+						user: null,
+						errors: [
+							{
+								field: "email",
+								message: "Email already registered",
+								code: "VALIDATION_ERROR",
+							},
+						],
+					};
+				}
 
-        const hashedPassword = await bcrypt.hash(input.password, 10);
-        const newUser = await db.users.create({
-          name: input.name,
-          email: input.email,
-          password: hashedPassword,
-        });
+				const hashedPassword = await bcrypt.hash(input.password, 10);
+				const newUser = await db.users.create({
+					name: input.name,
+					email: input.email,
+					password: hashedPassword,
+				});
 
-        return {
-          user: newUser,
-          errors: [],
-        };
-      } catch (error) {
-        return {
-          user: null,
-          errors: [{
-            message: 'Failed to create user',
-            code: 'INTERNAL_ERROR',
-          }],
-        };
-      }
-    },
+				return {
+					user: newUser,
+					errors: [],
+				};
+			} catch (error) {
+				return {
+					user: null,
+					errors: [
+						{
+							message: "Failed to create user",
+							code: "INTERNAL_ERROR",
+						},
+					],
+				};
+			}
+		},
 
-    updateUser: async (_, { input }, { db, user }) => {
-      if (!user || user.id !== input.id) {
-        return {
-          user: null,
-          errors: [{
-            message: 'Unauthorized',
-            code: 'UNAUTHORIZED',
-          }],
-        };
-      }
+		updateUser: async (_, { input }, { db, user }) => {
+			if (!user || user.id !== input.id) {
+				return {
+					user: null,
+					errors: [
+						{
+							message: "Unauthorized",
+							code: "UNAUTHORIZED",
+						},
+					],
+				};
+			}
 
-      const updated = await db.users.update(input.id, {
-        ...(input.name && { name: input.name }),
-        ...(input.email && { email: input.email }),
-      });
+			const updated = await db.users.update(input.id, {
+				...(input.name && { name: input.name }),
+				...(input.email && { email: input.email }),
+			});
 
-      return {
-        user: updated,
-        errors: [],
-      };
-    },
+			return {
+				user: updated,
+				errors: [],
+			};
+		},
 
-    deleteUser: async (_, { id }, { db, user }) => {
-      if (!user || user.id !== id) {
-        return {
-          deletedId: null,
-          errors: [{ message: 'Unauthorized', code: 'UNAUTHORIZED' }],
-        };
-      }
+		deleteUser: async (_, { id }, { db, user }) => {
+			if (!user || user.id !== id) {
+				return {
+					deletedId: null,
+					errors: [{ message: "Unauthorized", code: "UNAUTHORIZED" }],
+				};
+			}
 
-      await db.users.delete(id);
+			await db.users.delete(id);
 
-      return {
-        deletedId: id,
-        errors: [],
-      };
-    },
-  },
+			return {
+				deletedId: id,
+				errors: [],
+			};
+		},
+	},
 };
 ```
 
@@ -464,21 +476,21 @@ const CREATE_USER = gql`
 const [createUser] = useMutation(CREATE_USER);
 
 const handleSubmit = async (formData) => {
-  const { data } = await createUser({
-    variables: {
-      input: formData,
-    },
-  });
+	const { data } = await createUser({
+		variables: {
+			input: formData,
+		},
+	});
 
-  if (data.createUser.errors.length > 0) {
-    // Handle validation errors
-    data.createUser.errors.forEach(error => {
-      setFieldError(error.field, error.message);
-    });
-  } else {
-    // Success - use the returned user
-    navigate(`/users/${data.createUser.user.id}`);
-  }
+	if (data.createUser.errors.length > 0) {
+		// Handle validation errors
+		data.createUser.errors.forEach((error) => {
+			setFieldError(error.field, error.message);
+		});
+	} else {
+		// Success - use the returned user
+		navigate(`/users/${data.createUser.user.id}`);
+	}
 };
 ```
 
@@ -490,27 +502,27 @@ const handleSubmit = async (formData) => {
 
 ```typescript
 // GET /api/posts?page=2&limit=20
-app.get('/api/posts', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const offset = (page - 1) * limit;
+app.get("/api/posts", async (req, res) => {
+	const page = parseInt(req.query.page) || 1;
+	const limit = parseInt(req.query.limit) || 20;
+	const offset = (page - 1) * limit;
 
-  const posts = await db.posts.find({
-    limit,
-    offset,
-  });
+	const posts = await db.posts.find({
+		limit,
+		offset,
+	});
 
-  const total = await db.posts.count();
+	const total = await db.posts.count();
 
-  res.json({
-    data: posts,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  });
+	res.json({
+		data: posts,
+		pagination: {
+			page,
+			limit,
+			total,
+			totalPages: Math.ceil(total / limit),
+		},
+	});
 });
 ```
 
@@ -518,110 +530,110 @@ app.get('/api/posts', async (req, res) => {
 
 ```graphql
 type Query {
-  posts(
-    first: Int
-    after: String
-    last: Int
-    before: String
-    filter: PostFilter
-  ): PostConnection!
+	posts(
+		first: Int
+		after: String
+		last: Int
+		before: String
+		filter: PostFilter
+	): PostConnection!
 }
 
 type PostConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
+	edges: [PostEdge!]!
+	pageInfo: PageInfo!
+	totalCount: Int!
 }
 
 type PostEdge {
-  node: Post!
-  cursor: String!
+	node: Post!
+	cursor: String!
 }
 
 type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
+	endCursor: String
 }
 
 input PostFilter {
-  published: Boolean
-  authorId: ID
-  titleContains: String
+	published: Boolean
+	authorId: ID
+	titleContains: String
 }
 ```
 
 ### Cursor Pagination Resolver
 
 ```typescript
-import { encodeCursor, decodeCursor } from './cursor-utils';
+import { encodeCursor, decodeCursor } from "./cursor-utils";
 
 const resolvers: IResolvers = {
-  Query: {
-    posts: async (_, args, { db }) => {
-      const { first, after, last, before, filter } = args;
+	Query: {
+		posts: async (_, args, { db }) => {
+			const { first, after, last, before, filter } = args;
 
-      // Validate pagination args
-      if (first && last) {
-        throw new Error('Cannot specify both first and last');
-      }
+			// Validate pagination args
+			if (first && last) {
+				throw new Error("Cannot specify both first and last");
+			}
 
-      const limit = first || last || 20;
-      const isForward = !!first || !last;
+			const limit = first || last || 20;
+			const isForward = !!first || !last;
 
-      // Decode cursor to get offset
-      let offset = 0;
-      if (after) {
-        offset = decodeCursor(after) + 1;
-      } else if (before) {
-        offset = Math.max(0, decodeCursor(before) - limit);
-      }
+			// Decode cursor to get offset
+			let offset = 0;
+			if (after) {
+				offset = decodeCursor(after) + 1;
+			} else if (before) {
+				offset = Math.max(0, decodeCursor(before) - limit);
+			}
 
-      // Fetch one extra to determine hasNextPage
-      const posts = await db.posts.find({
-        filter,
-        limit: limit + 1,
-        offset,
-        orderBy: { createdAt: isForward ? 'DESC' : 'ASC' },
-      });
+			// Fetch one extra to determine hasNextPage
+			const posts = await db.posts.find({
+				filter,
+				limit: limit + 1,
+				offset,
+				orderBy: { createdAt: isForward ? "DESC" : "ASC" },
+			});
 
-      const hasMore = posts.length > limit;
-      const nodes = hasMore ? posts.slice(0, limit) : posts;
+			const hasMore = posts.length > limit;
+			const nodes = hasMore ? posts.slice(0, limit) : posts;
 
-      if (!isForward) {
-        nodes.reverse();
-      }
+			if (!isForward) {
+				nodes.reverse();
+			}
 
-      const edges = nodes.map((post, index) => ({
-        node: post,
-        cursor: encodeCursor(offset + index),
-      }));
+			const edges = nodes.map((post, index) => ({
+				node: post,
+				cursor: encodeCursor(offset + index),
+			}));
 
-      const totalCount = await db.posts.count(filter);
+			const totalCount = await db.posts.count(filter);
 
-      return {
-        edges,
-        pageInfo: {
-          hasNextPage: isForward ? hasMore : offset > 0,
-          hasPreviousPage: !isForward ? hasMore : offset > 0,
-          startCursor: edges[0]?.cursor,
-          endCursor: edges[edges.length - 1]?.cursor,
-        },
-        totalCount,
-      };
-    },
-  },
+			return {
+				edges,
+				pageInfo: {
+					hasNextPage: isForward ? hasMore : offset > 0,
+					hasPreviousPage: !isForward ? hasMore : offset > 0,
+					startCursor: edges[0]?.cursor,
+					endCursor: edges[edges.length - 1]?.cursor,
+				},
+				totalCount,
+			};
+		},
+	},
 };
 
 // cursor-utils.ts
 export const encodeCursor = (offset: number): string => {
-  return Buffer.from(`cursor:${offset}`).toString('base64');
+	return Buffer.from(`cursor:${offset}`).toString("base64");
 };
 
 export const decodeCursor = (cursor: string): number => {
-  const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
-  return parseInt(decoded.replace('cursor:', ''));
+	const decoded = Buffer.from(cursor, "base64").toString("utf-8");
+	return parseInt(decoded.replace("cursor:", ""));
 };
 ```
 
@@ -701,103 +713,103 @@ const PostList = () => {
 ```typescript
 // REST middleware
 app.use(async (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+	const token = req.headers.authorization?.replace("Bearer ", "");
 
-  if (token) {
-    try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await db.users.findById(payload.userId);
-    } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-  }
+	if (token) {
+		try {
+			const payload = jwt.verify(token, process.env.JWT_SECRET);
+			req.user = await db.users.findById(payload.userId);
+		} catch (error) {
+			return res.status(401).json({ error: "Invalid token" });
+		}
+	}
 
-  next();
+	next();
 });
 ```
 
 ### GraphQL Authentication Context
 
 ```typescript
-import { ApolloServer } from '@apollo/server';
-import { GraphQLError } from 'graphql';
+import { ApolloServer } from "@apollo/server";
+import { GraphQLError } from "graphql";
 
 interface AuthContext {
-  user: User | null;
-  requireAuth: () => User;
+	user: User | null;
+	requireAuth: () => User;
 }
 
 const server = new ApolloServer<AuthContext>({
-  typeDefs,
-  resolvers,
+	typeDefs,
+	resolvers,
 });
 
 await startStandaloneServer(server, {
-  context: async ({ req }) => {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    let user: User | null = null;
+	context: async ({ req }) => {
+		const token = req.headers.authorization?.replace("Bearer ", "");
+		let user: User | null = null;
 
-    if (token) {
-      try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
-        user = await db.users.findById(payload.userId);
-      } catch (error) {
-        // Token invalid - continue with user = null
-      }
-    }
+		if (token) {
+			try {
+				const payload = jwt.verify(token, process.env.JWT_SECRET);
+				user = await db.users.findById(payload.userId);
+			} catch (error) {
+				// Token invalid - continue with user = null
+			}
+		}
 
-    return {
-      user,
-      db,
-      loaders: createLoaders(db),
+		return {
+			user,
+			db,
+			loaders: createLoaders(db),
 
-      // Helper to enforce authentication
-      requireAuth: (): User => {
-        if (!user) {
-          throw new GraphQLError('Authentication required', {
-            extensions: { code: 'UNAUTHENTICATED' },
-          });
-        }
-        return user;
-      },
-    };
-  },
+			// Helper to enforce authentication
+			requireAuth: (): User => {
+				if (!user) {
+					throw new GraphQLError("Authentication required", {
+						extensions: { code: "UNAUTHENTICATED" },
+					});
+				}
+				return user;
+			},
+		};
+	},
 });
 ```
 
 ### Field-Level Authorization
 
 ```typescript
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver } from "graphql";
 
 // Authorization directive
 const resolvers: IResolvers = {
-  Query: {
-    me: (_, __, { requireAuth }) => {
-      const user = requireAuth();
-      return user;
-    },
+	Query: {
+		me: (_, __, { requireAuth }) => {
+			const user = requireAuth();
+			return user;
+		},
 
-    users: (_, __, { user }) => {
-      // Optional auth - different data based on auth state
-      if (user?.role === 'ADMIN') {
-        return db.users.findAll();
-      }
+		users: (_, __, { user }) => {
+			// Optional auth - different data based on auth state
+			if (user?.role === "ADMIN") {
+				return db.users.findAll();
+			}
 
-      // Public view - limited fields
-      return db.users.findPublic();
-    },
-  },
+			// Public view - limited fields
+			return db.users.findPublic();
+		},
+	},
 
-  User: {
-    email: (user, _, { user: currentUser }) => {
-      // Field-level privacy
-      if (currentUser?.id === user.id || currentUser?.role === 'ADMIN') {
-        return user.email;
-      }
-      return null;
-    },
-  },
+	User: {
+		email: (user, _, { user: currentUser }) => {
+			// Field-level privacy
+			if (currentUser?.id === user.id || currentUser?.role === "ADMIN") {
+				return user.email;
+			}
+			return null;
+		},
+	},
 };
 ```
 
@@ -809,11 +821,11 @@ const resolvers: IResolvers = {
 
 ```typescript
 // Schema stitching for different clients
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from "@graphql-tools/stitch";
 
 // Mobile-optimized schema
 const mobileSchema = makeExecutableSchema({
-  typeDefs: `
+	typeDefs: `
     type Query {
       # Denormalized for fewer round-trips
       dashboard: MobileDashboard!
@@ -826,12 +838,12 @@ const mobileSchema = makeExecutableSchema({
       # All data needed for mobile home screen
     }
   `,
-  resolvers: mobileResolvers,
+	resolvers: mobileResolvers,
 });
 
 // Web-optimized schema
 const webSchema = makeExecutableSchema({
-  typeDefs: `
+	typeDefs: `
     type Query {
       # Granular for efficient caching
       user(id: ID!): User
@@ -839,29 +851,29 @@ const webSchema = makeExecutableSchema({
       notifications(unreadOnly: Boolean): [Notification!]!
     }
   `,
-  resolvers: webResolvers,
+	resolvers: webResolvers,
 });
 
 // Client-specific servers
 const mobileServer = new ApolloServer({
-  schema: mobileSchema,
-  introspection: true,
+	schema: mobileSchema,
+	introspection: true,
 });
 
 const webServer = new ApolloServer({
-  schema: webSchema,
-  introspection: true,
+	schema: webSchema,
+	introspection: true,
 });
 
 // Route based on client header
-app.use('/graphql', (req, res) => {
-  const client = req.headers['x-client-type'];
+app.use("/graphql", (req, res) => {
+	const client = req.headers["x-client-type"];
 
-  if (client === 'mobile') {
-    return mobileServer.handleRequest(req, res);
-  }
+	if (client === "mobile") {
+		return mobileServer.handleRequest(req, res);
+	}
 
-  return webServer.handleRequest(req, res);
+	return webServer.handleRequest(req, res);
 });
 ```
 
@@ -874,13 +886,13 @@ app.use('/graphql', (req, res) => {
 ```typescript
 // Wrap existing REST endpoints with GraphQL
 const resolvers: IResolvers = {
-  Query: {
-    user: async (_, { id }) => {
-      // Call existing REST API internally
-      const response = await fetch(`http://localhost:3000/api/users/${id}`);
-      return response.json();
-    },
-  },
+	Query: {
+		user: async (_, { id }) => {
+			// Call existing REST API internally
+			const response = await fetch(`http://localhost:3000/api/users/${id}`);
+			return response.json();
+		},
+	},
 };
 
 // Allows GraphQL adoption without backend rewrites
@@ -893,30 +905,30 @@ const resolvers: IResolvers = {
 // Implement GraphQL resolvers with direct DB access
 // Keep REST endpoints running
 const resolvers: IResolvers = {
-  Query: {
-    user: async (_, { id }, { db }) => {
-      // New implementation - direct database
-      return db.users.findById(id);
-    },
-  },
+	Query: {
+		user: async (_, { id }, { db }) => {
+			// New implementation - direct database
+			return db.users.findById(id);
+		},
+	},
 };
 
 // Feature flag to route traffic
-const USE_GRAPHQL = process.env.GRAPHQL_ENABLED === 'true';
+const USE_GRAPHQL = process.env.GRAPHQL_ENABLED === "true";
 
-app.get('/api/users/:id', async (req, res) => {
-  if (USE_GRAPHQL) {
-    // Forward to GraphQL
-    const result = await graphqlServer.executeOperation({
-      query: `query GetUser($id: ID!) { user(id: $id) { ... } }`,
-      variables: { id: req.params.id },
-    });
-    return res.json(result.data?.user);
-  }
+app.get("/api/users/:id", async (req, res) => {
+	if (USE_GRAPHQL) {
+		// Forward to GraphQL
+		const result = await graphqlServer.executeOperation({
+			query: `query GetUser($id: ID!) { user(id: $id) { ... } }`,
+			variables: { id: req.params.id },
+		});
+		return res.json(result.data?.user);
+	}
 
-  // Legacy REST implementation
-  const user = await db.users.findById(req.params.id);
-  res.json(user);
+	// Legacy REST implementation
+	const user = await db.users.findById(req.params.id);
+	res.json(user);
 });
 ```
 
@@ -924,15 +936,15 @@ app.get('/api/users/:id', async (req, res) => {
 
 ```typescript
 // Gradual client migration with monitoring
-import { setContext } from '@apollo/client/link/context';
+import { setContext } from "@apollo/client/link/context";
 
 const migrationLink = setContext((_, { headers }) => {
-  return {
-    headers: {
-      ...headers,
-      'x-graphql-migration': 'phase-3',
-    },
-  };
+	return {
+		headers: {
+			...headers,
+			"x-graphql-migration": "phase-3",
+		},
+	};
 });
 
 // A/B test GraphQL vs REST in production
@@ -943,13 +955,13 @@ const migrationLink = setContext((_, { headers }) => {
 
 ```typescript
 // Deprecate REST endpoints gradually
-app.get('/api/users/:id', (req, res) => {
-  res.status(410).json({
-    error: 'This endpoint is deprecated',
-    message: 'Please use GraphQL endpoint at /graphql',
-    migrationGuide: 'https://docs.example.com/graphql-migration',
-    sunsetDate: '2025-06-01',
-  });
+app.get("/api/users/:id", (req, res) => {
+	res.status(410).json({
+		error: "This endpoint is deprecated",
+		message: "Please use GraphQL endpoint at /graphql",
+		migrationGuide: "https://docs.example.com/graphql-migration",
+		sunsetDate: "2025-06-01",
+	});
 });
 
 // Eventually remove REST entirely
@@ -964,22 +976,22 @@ app.get('/api/users/:id', (req, res) => {
 ```typescript
 // BAD - Causes N+1 queries
 const resolvers = {
-  User: {
-    posts: async (user, _, { db }) => {
-      // Called once per user - N queries if you fetch N users
-      return db.posts.findByUserId(user.id);
-    },
-  },
+	User: {
+		posts: async (user, _, { db }) => {
+			// Called once per user - N queries if you fetch N users
+			return db.posts.findByUserId(user.id);
+		},
+	},
 };
 
 // GOOD - Use DataLoader
 const resolvers = {
-  User: {
-    posts: async (user, _, { loaders }) => {
-      // Batched and cached
-      return loaders.postsByUserId.load(user.id);
-    },
-  },
+	User: {
+		posts: async (user, _, { loaders }) => {
+			// Batched and cached
+			return loaders.postsByUserId.load(user.id);
+		},
+	},
 };
 ```
 
@@ -1007,40 +1019,40 @@ type User {
 ```typescript
 // BAD - Errors kill entire response
 const resolvers = {
-  Query: {
-    dashboard: async () => {
-      const user = await fetchUser();     // Throws on error
-      const posts = await fetchPosts();   // Never reached if user fails
-      return { user, posts };
-    },
-  },
+	Query: {
+		dashboard: async () => {
+			const user = await fetchUser(); // Throws on error
+			const posts = await fetchPosts(); // Never reached if user fails
+			return { user, posts };
+		},
+	},
 };
 
 // GOOD - Partial success model
 const resolvers = {
-  Query: {
-    dashboard: async () => {
-      return {};  // Return empty object
-    },
-  },
+	Query: {
+		dashboard: async () => {
+			return {}; // Return empty object
+		},
+	},
 
-  Dashboard: {
-    user: async (_, __, context) => {
-      try {
-        return await fetchUser();
-      } catch (error) {
-        return null;  // Client still gets posts
-      }
-    },
+	Dashboard: {
+		user: async (_, __, context) => {
+			try {
+				return await fetchUser();
+			} catch (error) {
+				return null; // Client still gets posts
+			}
+		},
 
-    posts: async () => {
-      try {
-        return await fetchPosts();
-      } catch (error) {
-        return [];  // Graceful degradation
-      }
-    },
-  },
+		posts: async () => {
+			try {
+				return await fetchPosts();
+			} catch (error) {
+				return []; // Graceful degradation
+			}
+		},
+	},
 };
 ```
 
@@ -1051,18 +1063,18 @@ const resolvers = {
 // Client can write expensive queries that DOS the server
 
 // GOOD - Implement complexity limits
-import { createComplexityLimitRule } from 'graphql-validation-complexity';
+import { createComplexityLimitRule } from "graphql-validation-complexity";
 
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  validationRules: [
-    createComplexityLimitRule(1000, {
-      onCost: (cost) => {
-        console.log('Query cost:', cost);
-      },
-    }),
-  ],
+	typeDefs,
+	resolvers,
+	validationRules: [
+		createComplexityLimitRule(1000, {
+			onCost: (cost) => {
+				console.log("Query cost:", cost);
+			},
+		}),
+	],
 });
 
 // Assign costs to fields
@@ -1105,12 +1117,14 @@ type User {
 ## Cross-References
 
 **Related Skills:**
+
 - **graphql-architect/references/schema-design.md** - Type system patterns and schema structure
 - **graphql-architect/references/federation-guide.md** - Multi-service GraphQL architecture
 - **backend-developer** - REST API implementation patterns
 - **api-designer** - API design principles and consistency
 
 **When to Escalate:**
+
 - Federation across microservices → See federation-guide.md
 - Schema design questions → See schema-design.md
 - Complex subscription requirements → Consult graphql-architect
@@ -1134,6 +1148,7 @@ type User {
 - [ ] Plan REST endpoint sunset timeline
 
 **Migration complete when:**
+
 - All critical paths use GraphQL
 - REST endpoints deprecated with sunset dates
 - Client applications fully migrated

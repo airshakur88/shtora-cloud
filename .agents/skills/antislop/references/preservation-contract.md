@@ -6,12 +6,12 @@ Load this reference for drafting with missing author material, revising, transfo
 
 Pick the operation the request implies and stay inside its authority:
 
-| Operation | Authority | Boundary |
-|---|---|---|
-| Draft | Create prose only from supplied facts and allowed research. | A voice sample contributes style traits only (vocabulary, rhythm, punctuation, paragraph shape, formality). It cannot donate claims, memories, preferences, or experiences to the target. |
-| Revise | Make the least invasive change that satisfies the request. | Preserve every inventory item below or report an authorized change. Never strengthen causality or certainty beyond the source. |
-| Audit | Report findings without changing the artifact. | Produce no rewritten passage or file change unless the user separately requests it. |
-| Transform | May change shape while preserving the source inventory. | Disclose structural changes and still pass the fidelity gate. |
+| Operation | Authority                                                   | Boundary                                                                                                                                                                                  |
+| --------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Draft     | Create prose only from supplied facts and allowed research. | A voice sample contributes style traits only (vocabulary, rhythm, punctuation, paragraph shape, formality). It cannot donate claims, memories, preferences, or experiences to the target. |
+| Revise    | Make the least invasive change that satisfies the request.  | Preserve every inventory item below or report an authorized change. Never strengthen causality or certainty beyond the source.                                                            |
+| Audit     | Report findings without changing the artifact.              | Produce no rewritten passage or file change unless the user separately requests it.                                                                                                       |
+| Transform | May change shape while preserving the source inventory.     | Disclose structural changes and still pass the fidelity gate.                                                                                                                             |
 
 Before Revise or Transform, inventory the source: claims, facts, quantities, dates, modality, causality, negation, conditions, attribution, quotes, citations, links, placeholders, markup, accessibility structure, required terminology, and author-owned statements. A voice sample supplies style traits only.
 

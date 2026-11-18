@@ -1,4 +1,5 @@
 ---
+
 title: Design Multi-Step Commands for Crash-Only Recovery
 impact: MEDIUM-HIGH
 impactDescription: prevents stuck-state requiring manual intervention
@@ -57,6 +58,7 @@ step_3_restart_service  # safe to call on a running service
 ```
 
 **Benefits:**
+
 - Agent can retry after any failure without human intervention
 - Stale locks never block indefinitely — they clear on next run
 - Each step checks desired state, so re-running is a no-op when already done

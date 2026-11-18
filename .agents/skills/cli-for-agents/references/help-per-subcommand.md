@@ -1,4 +1,5 @@
 ---
+
 title: Every Subcommand Owns Its Own --help
 impact: HIGH
 impactDescription: reduces loaded help context by 80-95%
@@ -55,6 +56,7 @@ Usage: mycli deploy [options]
 ```
 
 **Benefits:**
+
 - Agent loads ~15 lines to pick a subcommand, then ~40 for that subcommand's detail — not 400
 - Every subcommand's help is self-contained and copy-pasteable
 - New subcommands don't inflate the top-level help page

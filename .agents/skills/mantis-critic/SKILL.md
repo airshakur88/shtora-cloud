@@ -1,9 +1,10 @@
 ---
+
 name: mantis-critic
 description: >-
-  Assesses the production viability of findings, filtering out debug-only features and assertion traps.
-  Use when findings have been validated and you need to confirm they are triggerable in production release builds (with assertions disabled).
-  Don't use for writing reproduction scripts or patches.
+Assesses the production viability of findings, filtering out debug-only features and assertion traps.
+Use when findings have been validated and you need to confirm they are triggerable in production release builds (with assertions disabled).
+Don't use for writing reproduction scripts or patches.
 ---
 
 # Critic (/mantis-critic)
@@ -155,7 +156,6 @@ Execute the critic evaluation as follows:
    **KB freshness gate — REQUIRED before any blanket mass-mark (3-state rule):**
    Determine the snapshot the KB was built against. Read it from ONE of these
    sources (try in order, first match wins):
-
    1. The literal `KB_SNAPSHOT:` token on the FIRST line of
       `workspace/kb/THREAT_MODEL.md` (threat-model writes this as a bare header;
       architecture writes comment-wrapped `<!-- KB_SNAPSHOT: ... -->` on each KB
@@ -166,7 +166,6 @@ Execute the critic evaluation as follows:
       architecture writes in its state-stamp step).
    3. Else `""` (no prior KB provenance). The blanket mass-mark below is gated
       as follows:
-
    - **MODE-OFF** (no `active_snapshot` in state — no `--sync`): SKIP the
      freshness gate entirely. The blanket `SAMPLE_OR_TEST` mass-mark is
      permitted as today (byte-for-byte today's behavior) — the KB was built
@@ -252,7 +251,6 @@ Execute the critic evaluation as follows:
    to Steps 4-5.
 
 4. **Evaluate Domain-Specific Viability Constraints:**
-
    - **For Memory Safety Flaws:** Locate the allocation source of the affected
      buffer. Determine if it is allocated with safety margins or trailing
      padding. If the out-of-bounds access is contained within physical padding,
@@ -264,7 +262,6 @@ Execute the critic evaluation as follows:
 
 5. **Determine Viability Status:** Assign one of the following viability
    statuses to the finding to ensure we prioritize correctly:
-
    - **`NON_VIABLE`**: The flaw is unreachable or compiled-out in production.
      This includes:
      - **Disabled Assertions (Memory Flaws):** Bugs that rely on standard
@@ -291,7 +288,6 @@ Execute the critic evaluation as follows:
    `workspace/findings/<id>.json` file.
 
    You must append the following to the existing object:
-
    - A `"production_viability"` field (`"VIABLE"`, `"NON_VIABLE"`,
      `"SAMPLE_OR_TEST"`, or `"CONDITIONAL_VIABLE"`).
    - A `"critic_reasoning"` field explaining your evaluation.
@@ -318,7 +314,6 @@ Execute the critic evaluation as follows:
    database file named `workspace/learnings.jsonl` (using append mode). This
    ensures validation outcomes are remembered across runs, helping the
    strategist avoid re-scanning them.
-
    - **Memory Entry Format:**
      `{"title": "[security_flaw_title]", "code_paths": ["[path1:line1]"], "status": "[VIABLE / CONDITIONAL_VIABLE / NON_VIABLE / SAMPLE_OR_TEST / FALSE_POSITIVE / NEEDS_RESEARCH]", "snapshot": "[current SNAPSHOT_ID, or omit in MODE-OFF]"}`
 

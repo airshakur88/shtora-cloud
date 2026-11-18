@@ -9,28 +9,28 @@ Complete guide for measuring, optimizing, and maintaining high test coverage.
 Add to `vitest.config.ts`:
 
 ```typescript
-import { defineWorkersConfig } from '@cloudflare/vitest-pool-workers/config';
+import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersConfig({
-  test: {
-    coverage: {
-      provider: 'v8', // Use V8 coverage (recommended for Workers)
-      reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/**/*.ts'],
-      exclude: [
-        'src/**/*.test.ts',
-        'src/**/*.spec.ts',
-        'src/types/**',
-        'node_modules/**'
-      ],
-      thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 75,
-        statements: 80
-      }
-    }
-  }
+	test: {
+		coverage: {
+			provider: "v8", // Use V8 coverage (recommended for Workers)
+			reporter: ["text", "json", "html", "lcov"],
+			include: ["src/**/*.ts"],
+			exclude: [
+				"src/**/*.test.ts",
+				"src/**/*.spec.ts",
+				"src/types/**",
+				"node_modules/**",
+			],
+			thresholds: {
+				lines: 80,
+				functions: 80,
+				branches: 75,
+				statements: 80,
+			},
+		},
+	},
 });
 ```
 
@@ -59,6 +59,7 @@ bunx vitest run --coverage --reporter=text
 ```
 
 Output:
+
 ```
 --------------------|---------|----------|---------|---------|-------------------
 File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
@@ -101,20 +102,21 @@ Generates `coverage/lcov.info` for upload to Codecov, Coveralls, etc.
 
 ```typescript
 export default defineWorkersConfig({
-  test: {
-    coverage: {
-      thresholds: {
-        lines: 80,      // At least 80% of lines covered
-        functions: 80,  // At least 80% of functions covered
-        branches: 75,   // At least 75% of branches covered
-        statements: 80  // At least 80% of statements covered
-      }
-    }
-  }
+	test: {
+		coverage: {
+			thresholds: {
+				lines: 80, // At least 80% of lines covered
+				functions: 80, // At least 80% of functions covered
+				branches: 75, // At least 75% of branches covered
+				statements: 80, // At least 80% of statements covered
+			},
+		},
+	},
 });
 ```
 
 **Fails CI if thresholds not met**:
+
 ```bash
 bunx vitest run --coverage
 # ERROR: Coverage for lines (78%) does not meet global threshold (80%)
@@ -124,15 +126,15 @@ bunx vitest run --coverage
 
 ```typescript
 export default defineWorkersConfig({
-  test: {
-    coverage: {
-      perFile: true, // Apply thresholds per file
-      thresholds: {
-        lines: 90, // Each file must have 90%+ coverage
-        autoUpdate: true // Update thresholds automatically
-      }
-    }
-  }
+	test: {
+		coverage: {
+			perFile: true, // Apply thresholds per file
+			thresholds: {
+				lines: 90, // Each file must have 90%+ coverage
+				autoUpdate: true, // Update thresholds automatically
+			},
+		},
+	},
 });
 ```
 
@@ -145,6 +147,7 @@ bunx vitest run --coverage --reporter=text
 ```
 
 Look for "Uncovered Line #s" column:
+
 ```
 File          | % Lines | Uncovered Line #s
 --------------|---------|-------------------
@@ -167,46 +170,50 @@ open coverage/index.html
 ### 1. Test All Branches
 
 **Before** (50% branch coverage):
+
 ```typescript
 function validateEmail(email: string): boolean {
-  if (!email) return false; // Tested
-  return email.includes('@'); // Not tested
+	if (!email) return false; // Tested
+	return email.includes("@"); // Not tested
 }
 
 // Test
-it('rejects empty email', () => {
-  expect(validateEmail('')).toBe(false); // ✅ Line 2 covered
+it("rejects empty email", () => {
+	expect(validateEmail("")).toBe(false); // ✅ Line 2 covered
 });
 ```
 
 **After** (100% branch coverage):
+
 ```typescript
 // Add test for positive case
-it('validates email format', () => {
-  expect(validateEmail('user@example.com')).toBe(true); // ✅ Line 3 covered
+it("validates email format", () => {
+	expect(validateEmail("user@example.com")).toBe(true); // ✅ Line 3 covered
 });
 ```
 
 ### 2. Test Error Paths
 
 **Before** (60% coverage):
+
 ```typescript
 async function createUser(data: any) {
-  try {
-    return await env.DB.prepare('INSERT INTO users ...').bind(data).run();
-  } catch (error) {
-    throw new Error('Database error'); // Not tested
-  }
+	try {
+		return await env.DB.prepare("INSERT INTO users ...").bind(data).run();
+	} catch (error) {
+		throw new Error("Database error"); // Not tested
+	}
 }
 ```
 
 **After** (100% coverage):
+
 ```typescript
-it('handles database errors', async () => {
-  // Trigger error (e.g., duplicate key)
-  await expect(createUser({ email: 'duplicate@example.com' }))
-    .rejects
-    .toThrow('Database error'); // ✅ Catch block covered
+it("handles database errors", async () => {
+	// Trigger error (e.g., duplicate key)
+	await expect(createUser({ email: "duplicate@example.com" })).rejects.toThrow(
+		"Database error",
+	); // ✅ Catch block covered
 });
 ```
 
@@ -214,24 +221,24 @@ it('handles database errors', async () => {
 
 ```typescript
 function paginate(page: number, limit: number) {
-  if (page < 1) page = 1; // Edge case 1
-  if (limit < 1) limit = 10; // Edge case 2
-  if (limit > 100) limit = 100; // Edge case 3
-  return { offset: (page - 1) * limit, limit };
+	if (page < 1) page = 1; // Edge case 1
+	if (limit < 1) limit = 10; // Edge case 2
+	if (limit > 100) limit = 100; // Edge case 3
+	return { offset: (page - 1) * limit, limit };
 }
 
-describe('paginate', () => {
-  it('handles negative page', () => {
-    expect(paginate(-1, 10)).toEqual({ offset: 0, limit: 10 });
-  });
+describe("paginate", () => {
+	it("handles negative page", () => {
+		expect(paginate(-1, 10)).toEqual({ offset: 0, limit: 10 });
+	});
 
-  it('handles negative limit', () => {
-    expect(paginate(1, -5)).toEqual({ offset: 0, limit: 10 });
-  });
+	it("handles negative limit", () => {
+		expect(paginate(1, -5)).toEqual({ offset: 0, limit: 10 });
+	});
 
-  it('caps limit at 100', () => {
-    expect(paginate(1, 200)).toEqual({ offset: 0, limit: 100 });
-  });
+	it("caps limit at 100", () => {
+		expect(paginate(1, 200)).toEqual({ offset: 0, limit: 100 });
+	});
 });
 ```
 
@@ -274,6 +281,7 @@ jobs:
 ### Coverage Badge
 
 Add to README.md:
+
 ```markdown
 [![Coverage](https://codecov.io/gh/user/repo/branch/main/graph/badge.svg)](https://codecov.io/gh/user/repo)
 ```
@@ -293,9 +301,9 @@ Add to README.md:
 
 ```typescript
 // ❌ BAD: Pointless test just for coverage
-it('increases coverage', () => {
-  const x = 1 + 1;
-  expect(x).toBe(2);
+it("increases coverage", () => {
+	const x = 1 + 1;
+	expect(x).toBe(2);
 });
 ```
 
@@ -303,10 +311,10 @@ it('increases coverage', () => {
 
 ```typescript
 // ❌ BAD: Testing implementation details
-import { privateHelper } from '../src/utils';
+import { privateHelper } from "../src/utils";
 
-it('tests private function', () => {
-  expect(privateHelper('test')).toBe('TEST');
+it("tests private function", () => {
+	expect(privateHelper("test")).toBe("TEST");
 });
 ```
 
@@ -317,8 +325,8 @@ it('tests private function', () => {
 ```typescript
 // ❌ BAD: Marking lines as untested without fixing
 /* istanbul ignore next */
-if (rare-condition) {
-  // Untested code
+if (rare - condition) {
+	// Untested code
 }
 ```
 

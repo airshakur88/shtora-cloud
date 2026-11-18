@@ -1,4 +1,5 @@
 ---
+
 title: Avoid Relying on Decorative Output to Convey State
 impact: MEDIUM
 impactDescription: prevents state from being lost when agents read raw bytes
@@ -12,18 +13,18 @@ Spinners, checkmark glyphs, progress bars, and box-drawing characters look great
 **Incorrect (spinner is the only success indicator):**
 
 ```javascript
-import ora from 'ora';
+import ora from "ora";
 
 async function deploy() {
-  const spinner = ora('Deploying...').start();
-  try {
-    await api.deploy();
-    spinner.succeed();          // ✓ glyph only, no text
-    // Agent reading stdout via non-TTY capture sees: empty string
-  } catch (err) {
-    spinner.fail();              // ✗ glyph only
-    process.exit(1);
-  }
+	const spinner = ora("Deploying...").start();
+	try {
+		await api.deploy();
+		spinner.succeed(); // ✓ glyph only, no text
+		// Agent reading stdout via non-TTY capture sees: empty string
+	} catch (err) {
+		spinner.fail(); // ✗ glyph only
+		process.exit(1);
+	}
 }
 
 deploy();
@@ -32,30 +33,31 @@ deploy();
 **Correct (spinner is sugar; plain text is the primary channel):**
 
 ```javascript
-import ora from 'ora';
+import ora from "ora";
 
 async function deploy() {
-  // NO_COLOR governs color, not motion — use isTTY + CI detection instead
-  const useSpinner = process.stdout.isTTY && !process.env.CI;
-  const spinner = useSpinner ? ora('Deploying...').start() : null;
+	// NO_COLOR governs color, not motion — use isTTY + CI detection instead
+	const useSpinner = process.stdout.isTTY && !process.env.CI;
+	const spinner = useSpinner ? ora("Deploying...").start() : null;
 
-  try {
-    const result = await api.deploy();
-    spinner?.stop();
-    // Plain text is always emitted, TTY or not
-    console.log(`deployed ${result.id} in ${result.duration}ms`);
-  } catch (err) {
-    spinner?.stop();
-    console.error(`Error: deploy failed: ${err.message}`);
-    console.error('  mycli deploy --tag v1.2.3 --debug   # for details');
-    process.exit(1);
-  }
+	try {
+		const result = await api.deploy();
+		spinner?.stop();
+		// Plain text is always emitted, TTY or not
+		console.log(`deployed ${result.id} in ${result.duration}ms`);
+	} catch (err) {
+		spinner?.stop();
+		console.error(`Error: deploy failed: ${err.message}`);
+		console.error("  mycli deploy --tag v1.2.3 --debug   # for details");
+		process.exit(1);
+	}
 }
 
 deploy();
 ```
 
 **Benefits:**
+
 - Agent capture (`mycli deploy 2>&1 | tee run.log`) always contains the state
 - Humans still get the spinner when running interactively
 - Line-based logs from CI/test runners correctly record success vs failure

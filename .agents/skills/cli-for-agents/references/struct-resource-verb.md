@@ -1,4 +1,5 @@
 ---
+
 title: Use a Consistent Resource-Verb Command Shape
 impact: MEDIUM
 impactDescription: prevents re-reading help for every new subcommand
@@ -42,24 +43,25 @@ mycli logs tail --service api
 **Implementation (commander.js nested commands):**
 
 ```typescript
-import { Command } from 'commander';
+import { Command } from "commander";
 
-const program = new Command('mycli');
+const program = new Command("mycli");
 
-const service = program.command('service');
-service.command('list').action(listServices);
-service.command('get <name>').action(getService);
-service.command('delete <name>').action(deleteService);
+const service = program.command("service");
+service.command("list").action(listServices);
+service.command("get <name>").action(getService);
+service.command("delete <name>").action(deleteService);
 
-const config = program.command('config');
-config.command('list').action(listConfig);
-config.command('get <key>').action(getConfig);
-config.command('set <key> <value>').action(setConfig);
+const config = program.command("config");
+config.command("list").action(listConfig);
+config.command("get <key>").action(getConfig);
+config.command("set <key> <value>").action(setConfig);
 
 program.parse();
 ```
 
 **Benefits:**
+
 - Agents learn one pattern and apply it across all resources
 - New commands slot into the existing shape, no special-casing
 - Tab-completion and `--help` are predictable at every level

@@ -4,9 +4,9 @@ Guidance for running an eval-driven search whose central goal is **reducing cost
 equal-or-better quality) for a Claude-powered app - typically during a migration from an
 older model and prompt to a current one. This is the procedure the hillclimb loop
 (`eval-hillclimb.md`) follows when the user's Step 1 goal is cost; it assumes there is an
-eval to measure quality against. Without one, use `shared/cost-optimization.md` instead - 
+eval to measure quality against. Without one, use `shared/cost-optimization.md` instead -
 the no-eval checklist (caching -> input trim -> agent-loop hygiene -> output -> batch -> effort ->
-model last). The lever order differs on purpose: with an eval you can *detect* that a
+model last). The lever order differs on purpose: with an eval you can _detect_ that a
 stronger model at lower effort is the cheaper cell, so the model × effort walk comes early
 here; without one, a model swap is the riskiest change and belongs last. Where this file states a number, it
 reflects measured behavior on representative benchmark evals except where a
@@ -50,19 +50,19 @@ be re-authored before any comparison could run at all; the period-correct form t
 does run everywhere inflates cost instead of crashing, which is worse, because nothing
 forces you to notice it. Newer models follow
 legacy scaffolding MORE literally, so a model swap judged under a dated prompt can
-mis-rank models - and can even *add* cost. The audit is cheap, runs once, and de-noises
+mis-rank models - and can even _add_ cost. The audit is cheap, runs once, and de-noises
 everything after it. Run `prompt-audit` (the procedure ships as
 shared/prompt-audit.md), and check request parameters against the current API
 surface (see the model-migration guide), before any measurement you intend to keep.
 
 **Step 2 - Model × effort: walk the staircase, don't sweep the grid.**
-The cheapest configuration is frequently a *stronger* model at *lower* effort: the
+The cheapest configuration is frequently a _stronger_ model at _lower_ effort: the
 stronger model tends to spend fewer tokens on the same task (a measured direction,
 not a fixed magnitude), so it can win on cost as well as score. That
 configuration is invisible to any procedure that fixes the model at default effort and
 then tunes effort - and a full factorial grid finds it only by paying for every cell,
 most of them in the expensive corner. Treat model × effort as one surface and search
-it with a *staircase walk*: lay the cells out with model tier on one axis and effort
+it with a _staircase walk_: lay the cells out with model tier on one axis and effort
 on the other. Cost rises with effort within each row - across tiers the measured
 cost bands can overlap (see the bottom-up exception below) - and quality rises
 (weakly) along both axes, so the cells that clear a pre-registered quality floor
@@ -75,31 +75,31 @@ one measured program's full grid cost ~$20 all-in.) Scope note: the "stronger mo
 prices on ordinary-sized tasks and is benchmark-dependent - the walk verifies it on
 the user's own eval rather than assuming it.
 
-*Set up the grid.* Rows are model tiers ordered by capability; columns are effort
+_Set up the grid._ Rows are model tiers ordered by capability; columns are effort
 notches (low -> high). Two regularities make the walk work, and one of them is the
 load-bearing assumption to name in the plan: within a row, cost rises with effort
 (measured in every row of both programs behind this guide); and at fixed effort,
 quality rises with tier (held in every measured pair - where it bends, the walk
 mis-prunes, which is part of what the registered confirm exists to catch). Quality
-along the *effort* axis is only weakly monotone - in one measured family the high
+along the _effort_ axis is only weakly monotone - in one measured family the high
 notch drew below low on single-run screens (a tie within the measured ~±6 noise
 band, while costing 1.7× the tokens) - so the walk never leans on it. The frontier tier above the
-default top row, where one exists, sits *outside* the grid as an extension: it has
+default top row, where one exists, sits _outside_ the grid as an extension: it has
 repeatedly priced above the top row's medium cell (~7× the eventual winner in one
 measured migration), so treat it as a quality probe, not a cost candidate - the
 cost-plausibility screen below is the test that decides this per workload.
 
-*Round-0 diagnostic (before the grid spends anything).* From the baseline repeats
+_Round-0 diagnostic (before the grid spends anything)._ From the baseline repeats
 already run for the noise bar, read two signals out of the transcripts: output-token
 share and turns per task. The third signal - effort sensitivity - costs one or two
-cheap cells on the *old* model at a different effort. Output-heavy, multi-turn, and
+cheap cells on the _old_ model at a different effort. Output-heavy, multi-turn, and
 effort-sensitive -> expect the winner near the top rows' low cells and budget repeats
 there. Input-heavy, single-shot, effort-flat -> the exception class, where per-token
 price dominates; the entry cell is the same, but expect to step down quickly and
 budget repeats for the bottom rows. The diagnostic sets where repeats get spent,
 never where the walk enters.
 
-*Cost-plausibility screen (what "cost-plausible" means).* Project each candidate
+_Cost-plausibility screen (what "cost-plausible" means)._ Project each candidate
 tier's low cell from billing texture at matched effort - the tier's token prices
 times a low-effort texture, which the round-0 diagnostic already bought on the old
 model; if only the baseline's own-effort texture exists, discount it by the measured
@@ -119,26 +119,26 @@ tier's cheapest cell, and a fail prunes a whole column) while exclusion errors a
 silent (only the on-fail extension trigger can catch one). Record the screen's
 verdict and its basis in the pre-registration.
 
-*Enter at the highest cost-plausible new-generation tier at low effort.* Three
+_Enter at the highest cost-plausible new-generation tier at low effort._ Three
 reasons. Only the top-left corner gives an unambiguous walk - a pass prunes in one
 direction and a fail prunes in the other, while from the bottom-left corner a fail
 leaves two uphill directions and no way to choose without probing both. The entry
 probe is the top tier's cheapest cell, so it is budget-bounded. And it doubles as the
 regime test: if the whole top row fails the floor, the eval sits at or above the
 models' capability frontier - upgrading is a quality story, not a cost story; stop
-searching for savings and say so. (One honest cost: the top row *before the first
-pass* has no incumbent, so its rightward walk is cost-unbounded by construction.
+searching for savings and say so. (One honest cost: the top row _before the first
+pass_ has no incumbent, so its rightward walk is cost-unbounded by construction.
 That is the regime probe's price.)
 
-*The walk.*
+_The walk._
 
 - **Pass at (tier k, effort e):** record the cell as the incumbent with cost c*, drop
-  the rest of row k, and step *down* a tier - from here on, only into cells projected
+  the rest of row k, and step _down_ a tier - from here on, only into cells projected
   under c*. The row-drop needs no quality assumption at all: every cell rightward of
   a pass costs more than the pass, so it cannot beat the incumbent whether or not it
   clears the floor. That makes the rule robust to effort non-monotonicity.
 - **Fail at (tier k, effort e):** presume every lower tier at effort e also fails
-  (the tier-monotonicity assumption above) and step *right*. Once an incumbent
+  (the tier-monotonicity assumption above) and step _right_. Once an incumbent
   exists, step only into cells projected under c*, and cap the rightward walk at one
   or two notches - quality in effort is too weakly monotone to chase further.
 - **Overlap probes:** after a fail-then-pass on tier k, cells of tier k-1 projected
@@ -156,7 +156,7 @@ effort; step down on pass, right on fail; prune by incumbent cost; the frontier
 tier's low cell is the on-fail extension above the grid, and the old model at low is
 the round-0 diagnostic below it.
 
-*Decision machinery the walk cannot run without.*
+_Decision machinery the walk cannot run without._
 
 1. **The floor is pre-registered before round 1** - for example the baseline's best
    repeat, with the rationale stated - never the baseline mean read after the fact.
@@ -165,7 +165,7 @@ the round-0 diagnostic below it.
    below baseline as at it - such a read is not admissible evidence of parity.
 2. **Promotion needs n >= 2 near the floor.** Any cell about to become the incumbent
    whose margin over the floor is inside the noise bar gets a second run before c*
-   moves. The errors are asymmetric and the expensive one is the false *pass*: a
+   moves. The errors are asymmetric and the expensive one is the false _pass_: a
    lucky pass sets c* and prunes the true winner, a lower tier failing says nothing
    about whether the pass above it was real, and the final confirm catches the error
    only after the pruned cells are gone. (Measured: a winner that passed at 11 of 20
@@ -181,10 +181,10 @@ the round-0 diagnostic below it.
    an incumbent-at-higher-effort basis, and the effort-matched projection reversed
    the verdict to cheaper-than-incumbent) - and never from priors alone: early
    projections in one measured program ran ~2× optimistic, and optimistic
-   projections *under*-prune. A pruned cell is deferred; re-admit it if the
+   projections _under_-prune. A pruned cell is deferred; re-admit it if the
    projections recalibrate.
 
-*What the walk looks like on real evals.* Replaying the two measured migrations
+_What the walk looks like on real evals._ Replaying the two measured migrations
 behind this guide: on the ordinary-workload eval the walk reaches the eventual winner
 in two cells - the entry cell passes at low, and the tier below passes at low once
 the prompt is clean (under the surviving cruft it failed there, and was rescued by
@@ -214,11 +214,11 @@ be the confirm's number, not the selection round's. Which regime you are in deci
 whether upgrading is a cost lever or a quality lever; the entry cell is what tells
 you, in one bounded probe.
 
-*Per-cell honesty rules (they apply to every probe in the walk):*
+_Per-cell honesty rules (they apply to every probe in the walk):_
 
 - **Single-run reads are pass/fail evidence, not rankings.** A single eval pass can
   swing several points on sampling alone (a recorded small-set example: ~8 points,
-  ±6 across repeats). The honest single-run signals are *telemetry* - realized
+  ±6 across repeats). The honest single-run signals are _telemetry_ - realized
   thinking tokens, output tokens, and tool rounds per case - not small score deltas.
   Measure the noise bar BEFORE the walk (repeat runs of the incumbent config, or
   pass@k over existing results files), so the floor margin and the promotion rule
@@ -241,14 +241,14 @@ you, in one bounded probe.
   the ledger prices cache reads and writes before quoting absolute costs; ratios
   between cells on the same basis are more robust than absolutes.
 
-*Declare a quality probe, or the ceiling goes unmeasured.* By construction the walk
+_Declare a quality probe, or the ceiling goes unmeasured._ By construction the walk
 never fires the expensive corner, so a migration that passes early never learns what
 the top tier at high effort would have bought. If that number is wanted - it usually
 is, once - run the top-right cell, or the above-grid frontier tier at low, as ONE
 declared quality-reference cell outside the cost walk, marked as such in the plan.
 Skippable on tight budgets.
 
-*When entering from the bottom is defensible.* Two cases. (1) Steady-state tuning - 
+_When entering from the bottom is defensible._ Two cases. (1) Steady-state tuning -
 already on a current-generation model with a tuned prompt, just trimming: sweep
 effort downward from where you are, but ALWAYS add the single next-tier-up-at-low
 probe. The blind spot it closes: a bottom-up sweep that finds quality fine and cost
@@ -275,7 +275,7 @@ prompt-addressable at all. Hillclimbing the prompt before the model is frozen wa
 the climb. Run the loop per the hillclimb guide, with the cost-specific rules below.
 
 Do not assume the prompt is where the cost lives. The Step 1 audit tells you what is
-*wrong* with a prompt; only measurement tells you what the wrongness *costs*. In one
+_wrong_ with a prompt; only measurement tells you what the wrongness _costs_. In one
 measured case a dated opener full of turn-inflating ritual (forced plan files,
 re-read-after-every-edit, full test suite after every change) audited as an obvious
 cost win - and the cleaned opener failed to save anything: both cleanup cells landed
@@ -316,8 +316,8 @@ thinking may not hold at lower effort - the joint confirm is the insurance.)
 
 **Step 6 - Multi-model topologies only behind a task-shape preflight - usually never.**
 Across every measured comparison, one strong model at the right effort beat every team
-shape on the cost-score plane: cheap tokens pay by *substitution* (the cheap model does
-the work instead), never by *addition* (a helper alongside a strong lead) - a strong
+shape on the cost-score plane: cheap tokens pay by _substitution_ (the cheap model does
+the work instead), never by _addition_ (a helper alongside a strong lead) - a strong
 lead pays roughly an order of magnitude in its own tokens to consume cheap help. The
 bar for any topology candidate is the model×effort frontier from Step 2 ("does this
 beat what the effort dial gives for free?"). Documented exceptions worth a preflight:
@@ -335,7 +335,7 @@ pre-registered gates pass:
    band before running).
 2. **Cost margin** - strictly cheaper beyond a registered margin, measured at the
    stated pricing basis.
-3. **Mechanism** - the *predicted* mechanism appears in the measurements (e.g. "this
+3. **Mechanism** - the _predicted_ mechanism appears in the measurements (e.g. "this
    edit removes duplicate lookups" must show up as fewer tool calls, not just a lower
    bill). A cost tie with the right mechanism and a cost win with the wrong mechanism
    are both rejections: the first is an edit that didn't bite, the second is an
@@ -353,7 +353,7 @@ headline.
   feed the round-0 diagnostic of the model×effort walk (Step 2): read output-token
   share and turns per task out of their transcripts while measuring the bar. If the tuned artifact is
   itself a stochastic generation (e.g. a built index or wiki, not a fixed prompt),
-  measure *build* variance with a no-change rebuild control before judging any edit.
+  measure _build_ variance with a no-change rebuild control before judging any edit.
 - **Selection set != holdout.** The split whose score picks winners each round is a
   selection set, even if the guide calls it "test". Pre-register confirm runs for the
   headline and expect train->holdout shrinkage.
@@ -365,12 +365,12 @@ headline.
   it can exclude whole configurations with zero eval runs.
 - **Register cost in the objective.** An optimizer optimizes exactly what is
   registered: a quality-only climb raised cost per deliverable by 75% in one measured
-  search. If the goal is cost-subject-to-quality, the gates above ARE the objective - 
+  search. If the goal is cost-subject-to-quality, the gates above ARE the objective -
   write them into the plan sign-off.
 - **One lever per round, frozen arm.** Move exactly one axis per round so wins and
   regressions are attributable.
 - **Make the optimizer predict before it measures.** Require, in each round's
-  proposal, a point estimate and an 80% interval for every cell - on score AND cost - 
+  proposal, a point estimate and an 80% interval for every cell - on score AND cost -
   plus named falsifiers ("if X happens, the lever is dead; say so"). Compare outcomes
   to intervals after each round, and shift and widen the next round's intervals after
   misses. This turns every round into a correction of the optimizer's own predictions: in
@@ -378,7 +378,7 @@ headline.
   intervals; it said so, re-centered, and the falsifier it registered for round 3 is
   what caught the prompt-lever no-win cleanly.
 - **Verify serving identity and wiring before believing any arm.** Record the model id
-  from the *response*, not the config; confirm usage fields are present per case; run
+  from the _response_, not the config; confirm usage fields are present per case; run
   on an eval surface that reports them; disable any auto-retry scoring that passes on
   either attempt. A result without wiring receipts is not evidence.
 - **Audit graders before believing persistent failures.** Re-grading has shrunk a
@@ -393,7 +393,7 @@ headline.
 
 - **Cost scales with extra actions triggered, not prompt length.** In one measured
   decomposition, a single extra tool round added roughly a third of the per-case
-  cost, while longer-but-inert prompt text was nearly free - *when cached*.
+  cost, while longer-but-inert prompt text was nearly free - _when cached_.
 - **Census engagement before trimming.** Before editing scaffold instructions, count
   in existing transcripts the artifacts each instruction demands (plan-file writes,
   forced reasoning blocks, capped or repeated reads, per-edit suite runs, narration
@@ -429,7 +429,7 @@ headline.
 - **Prompt rounds:** wins come in rounds 1-2; stop when two consecutive variants fail
   to beat the incumbent beyond the noise band; cap at ~3-4 rounds per model.
 - **Effort:** savings saturate stepwise (each step down saves less while variance
-  grows). Stop inside the noise band. Remember lowered effort doesn't fail fixed cases - 
+  grows). Stop inside the noise band. Remember lowered effort doesn't fail fixed cases -
   failures MOVE between runs ("shallower thinking fails wherever the margin is thin"),
   so effort-cut decisions need aggregate non-inferiority over multiple runs, never
   per-case reads.

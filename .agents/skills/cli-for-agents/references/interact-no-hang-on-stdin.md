@@ -1,4 +1,5 @@
 ---
+
 title: Avoid Blocking on stdin When a TTY Is Attached
 impact: HIGH
 impactDescription: prevents indefinite hangs when no pipe is provided
@@ -50,6 +51,7 @@ main();
 ```
 
 **When NOT to use this pattern:**
+
 - Tools explicitly designed to read from stdin (e.g., `jq`, `grep`) can block on stdin as their primary mode — but they print usage to stderr when invoked interactively without a pipe.
 
 Reference: [clig.dev — Handle missing stdin gracefully](https://clig.dev/#the-basics)

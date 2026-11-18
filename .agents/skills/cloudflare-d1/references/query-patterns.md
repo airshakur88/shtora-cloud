@@ -18,11 +18,11 @@
 
 ## D1 API Methods Overview
 
-| Method | Use Case | Returns Results | Safe for User Input |
-|--------|----------|-----------------|---------------------|
-| `.prepare().bind()` | **Primary method** for queries | Yes | ✅ Yes (prevents SQL injection) |
-| `.batch()` | Multiple queries in one round trip | Yes | ✅ Yes (if using prepare) |
-| `.exec()` | Raw SQL execution | No | ❌ No (SQL injection risk) |
+| Method              | Use Case                           | Returns Results | Safe for User Input             |
+| ------------------- | ---------------------------------- | --------------- | ------------------------------- |
+| `.prepare().bind()` | **Primary method** for queries     | Yes             | ✅ Yes (prevents SQL injection) |
+| `.batch()`          | Multiple queries in one round trip | Yes             | ✅ Yes (if using prepare)       |
+| `.exec()`           | Raw SQL execution                  | No              | ❌ No (SQL injection risk)      |
 
 ---
 
@@ -41,32 +41,32 @@ const result = await bound.all(); // or .first(), .run()
 ### Method Chaining (Most Common)
 
 ```typescript
-const result = await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
-  .bind(userId)
-  .first();
+const result = await env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+	.bind(userId)
+	.first();
 ```
 
 ### Parameter Binding
 
 ```typescript
 // Single parameter
-const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?')
-  .bind('user@example.com')
-  .first();
+const user = await env.DB.prepare("SELECT * FROM users WHERE email = ?")
+	.bind("user@example.com")
+	.first();
 
 // Multiple parameters
 const posts = await env.DB.prepare(
-  'SELECT * FROM posts WHERE user_id = ? AND published = ? LIMIT ?'
+	"SELECT * FROM posts WHERE user_id = ? AND published = ? LIMIT ?",
 )
-.bind(userId, 1, 10)
-.all();
+	.bind(userId, 1, 10)
+	.all();
 
 // Use null for optional values (NEVER undefined)
 const updated = await env.DB.prepare(
-  'UPDATE users SET bio = ?, avatar_url = ? WHERE user_id = ?'
+	"UPDATE users SET bio = ?, avatar_url = ? WHERE user_id = ?",
 )
-.bind(bio || null, avatarUrl || null, userId)
-.run();
+	.bind(bio || null, avatarUrl || null, userId)
+	.run();
 ```
 
 ### Why use prepare()?
@@ -85,24 +85,22 @@ const updated = await env.DB.prepare(
 Returns all matching rows as an array.
 
 ```typescript
-const { results, meta } = await env.DB.prepare('SELECT * FROM users')
-  .all();
+const { results, meta } = await env.DB.prepare("SELECT * FROM users").all();
 
-console.log(results);  // Array of row objects
-console.log(meta);     // { duration, rows_read, rows_written }
+console.log(results); // Array of row objects
+console.log(meta); // { duration, rows_read, rows_written }
 ```
 
 **With Type Safety:**
 
 ```typescript
 interface User {
-  user_id: number;
-  email: string;
-  username: string;
+	user_id: number;
+	email: string;
+	username: string;
 }
 
-const { results } = await env.DB.prepare('SELECT * FROM users')
-  .all<User>();
+const { results } = await env.DB.prepare("SELECT * FROM users").all<User>();
 
 // results is now typed as User[]
 ```
@@ -143,9 +141,9 @@ if (!user) {
 **With Type Safety:**
 
 ```typescript
-const user = await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
-  .bind(userId)
-  .first<User>();
+const user = await env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+	.bind(userId)
+	.first<User>();
 
 // user is typed as User | null
 ```
@@ -154,9 +152,9 @@ const user = await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
 
 ```typescript
 // ✅ Better: Add LIMIT 1 yourself
-const user = await env.DB.prepare('SELECT * FROM users WHERE email = ? LIMIT 1')
-  .bind(email)
-  .first();
+const user = await env.DB.prepare("SELECT * FROM users WHERE email = ? LIMIT 1")
+	.bind(email)
+	.first();
 ```
 
 ---
@@ -167,20 +165,22 @@ Returns the value of a specific column from the first row.
 
 ```typescript
 // Get count
-const total = await env.DB.prepare('SELECT COUNT(*) as total FROM users')
-  .first('total');
+const total = await env.DB.prepare("SELECT COUNT(*) as total FROM users").first(
+	"total",
+);
 
-console.log(total);  // 42 (just the number, not an object)
+console.log(total); // 42 (just the number, not an object)
 
 // Get specific field
-const email = await env.DB.prepare('SELECT email FROM users WHERE user_id = ?')
-  .bind(userId)
-  .first('email');
+const email = await env.DB.prepare("SELECT email FROM users WHERE user_id = ?")
+	.bind(userId)
+	.first("email");
 
-console.log(email);  // 'user@example.com'
+console.log(email); // 'user@example.com'
 ```
 
 **Use Cases:**
+
 - Counting rows
 - Checking existence (SELECT 1)
 - Getting single values (MAX, MIN, AVG)
@@ -193,13 +193,13 @@ Used for INSERT, UPDATE, DELETE when you don't need the data back.
 
 ```typescript
 const { success, meta } = await env.DB.prepare(
-  'INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)'
+	"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
 )
-.bind(email, username, Date.now())
-.run();
+	.bind(email, username, Date.now())
+	.run();
 
-console.log(success);           // true/false
-console.log(meta.last_row_id);  // ID of inserted row
+console.log(success); // true/false
+console.log(meta.last_row_id); // ID of inserted row
 console.log(meta.rows_written); // Number of rows affected
 ```
 
@@ -239,22 +239,22 @@ if (result.meta.rows_written === 0) {
 
 ```typescript
 const [users, posts, comments] = await env.DB.batch([
-  env.DB.prepare('SELECT * FROM users LIMIT 10'),
-  env.DB.prepare('SELECT * FROM posts LIMIT 10'),
-  env.DB.prepare('SELECT * FROM comments LIMIT 10')
+	env.DB.prepare("SELECT * FROM users LIMIT 10"),
+	env.DB.prepare("SELECT * FROM posts LIMIT 10"),
+	env.DB.prepare("SELECT * FROM comments LIMIT 10"),
 ]);
 
-console.log(users.results);     // User rows
-console.log(posts.results);     // Post rows
-console.log(comments.results);  // Comment rows
+console.log(users.results); // User rows
+console.log(posts.results); // Post rows
+console.log(comments.results); // Comment rows
 ```
 
 ### Batch with Parameters
 
 ```typescript
-const stmt1 = env.DB.prepare('SELECT * FROM users WHERE user_id = ?').bind(1);
-const stmt2 = env.DB.prepare('SELECT * FROM users WHERE user_id = ?').bind(2);
-const stmt3 = env.DB.prepare('SELECT * FROM posts WHERE user_id = ?').bind(1);
+const stmt1 = env.DB.prepare("SELECT * FROM users WHERE user_id = ?").bind(1);
+const stmt2 = env.DB.prepare("SELECT * FROM users WHERE user_id = ?").bind(2);
+const stmt3 = env.DB.prepare("SELECT * FROM posts WHERE user_id = ?").bind(1);
 
 const results = await env.DB.batch([stmt1, stmt2, stmt3]);
 ```
@@ -263,19 +263,20 @@ const results = await env.DB.batch([stmt1, stmt2, stmt3]);
 
 ```typescript
 const users = [
-  { email: 'user1@example.com', username: 'user1' },
-  { email: 'user2@example.com', username: 'user2' },
-  { email: 'user3@example.com', username: 'user3' }
+	{ email: "user1@example.com", username: "user1" },
+	{ email: "user2@example.com", username: "user2" },
+	{ email: "user3@example.com", username: "user3" },
 ];
 
-const inserts = users.map(u =>
-  env.DB.prepare('INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)')
-    .bind(u.email, u.username, Date.now())
+const inserts = users.map((u) =>
+	env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
+	).bind(u.email, u.username, Date.now()),
 );
 
 const results = await env.DB.batch(inserts);
 
-const successCount = results.filter(r => r.success).length;
+const successCount = results.filter((r) => r.success).length;
 console.log(`Inserted ${successCount} users`);
 ```
 
@@ -285,21 +286,25 @@ console.log(`Inserted ${successCount} users`);
 // All statements execute sequentially
 // If one fails, remaining statements don't execute
 await env.DB.batch([
-  // Deduct credits from user 1
-  env.DB.prepare('UPDATE users SET credits = credits - ? WHERE user_id = ?')
-    .bind(100, userId1),
+	// Deduct credits from user 1
+	env.DB.prepare(
+		"UPDATE users SET credits = credits - ? WHERE user_id = ?",
+	).bind(100, userId1),
 
-  // Add credits to user 2
-  env.DB.prepare('UPDATE users SET credits = credits + ? WHERE user_id = ?')
-    .bind(100, userId2),
+	// Add credits to user 2
+	env.DB.prepare(
+		"UPDATE users SET credits = credits + ? WHERE user_id = ?",
+	).bind(100, userId2),
 
-  // Record transaction
-  env.DB.prepare('INSERT INTO transactions (from_user, to_user, amount) VALUES (?, ?, ?)')
-    .bind(userId1, userId2, 100)
+	// Record transaction
+	env.DB.prepare(
+		"INSERT INTO transactions (from_user, to_user, amount) VALUES (?, ?, ?)",
+	).bind(userId1, userId2, 100),
 ]);
 ```
 
 **Batch Behavior:**
+
 - Executes statements **sequentially** (in order)
 - Each statement commits individually (auto-commit mode)
 - If one fails, **remaining statements don't execute**
@@ -310,16 +315,14 @@ await env.DB.batch([
 ```typescript
 // ❌ BAD: 10 separate queries = 10 network round trips
 for (let i = 0; i < 10; i++) {
-  await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
-    .bind(i)
-    .first();
+	await env.DB.prepare("SELECT * FROM users WHERE user_id = ?").bind(i).first();
 }
 // ~500ms total latency
 
 // ✅ GOOD: 1 batch query = 1 network round trip
 const userIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const queries = userIds.map(id =>
-  env.DB.prepare('SELECT * FROM users WHERE user_id = ?').bind(id)
+const queries = userIds.map((id) =>
+	env.DB.prepare("SELECT * FROM users WHERE user_id = ?").bind(id),
 );
 const results = await env.DB.batch(queries);
 // ~50ms total latency
@@ -334,7 +337,7 @@ const results = await env.DB.batch(queries);
 ### Basic Exec
 
 ```typescript
-const result = await env.DB.exec('SELECT * FROM users');
+const result = await env.DB.exec("SELECT * FROM users");
 
 console.log(result);
 // { count: 1, duration: 2.5 }
@@ -363,9 +366,7 @@ const email = userInput;
 await env.DB.exec(`SELECT * FROM users WHERE email = '${email}'`);
 
 // ✅ ALWAYS: Use prepared statements instead
-await env.DB.prepare('SELECT * FROM users WHERE email = ?')
-  .bind(email)
-  .first();
+await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
 ```
 
 ### ✅ ONLY Use exec() For:
@@ -396,23 +397,23 @@ if (exists) {
 
 ```typescript
 // Try to find user
-let user = await env.DB.prepare('SELECT * FROM users WHERE email = ?')
-  .bind(email)
-  .first<User>();
+let user = await env.DB.prepare("SELECT * FROM users WHERE email = ?")
+	.bind(email)
+	.first<User>();
 
 // Create if doesn't exist
 if (!user) {
-  const result = await env.DB.prepare(
-    'INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)'
-  )
-  .bind(email, username, Date.now())
-  .run();
+	const result = await env.DB.prepare(
+		"INSERT INTO users (email, username, created_at) VALUES (?, ?, ?)",
+	)
+		.bind(email, username, Date.now())
+		.run();
 
-  const userId = result.meta.last_row_id;
+	const userId = result.meta.last_row_id;
 
-  user = await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
-    .bind(userId)
-    .first<User>();
+	user = await env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+		.bind(userId)
+		.first<User>();
 }
 ```
 
@@ -456,26 +457,26 @@ await env.DB.prepare(`
     language = excluded.language,
     updated_at = unixepoch()
 `)
-.bind(userId, theme, language)
-.run();
+	.bind(userId, theme, language)
+	.run();
 ```
 
 ### Bulk Upsert
 
 ```typescript
 const settings = [
-  { user_id: 1, theme: 'dark', language: 'en' },
-  { user_id: 2, theme: 'light', language: 'es' }
+	{ user_id: 1, theme: "dark", language: "en" },
+	{ user_id: 2, theme: "light", language: "es" },
 ];
 
-const upserts = settings.map(s =>
-  env.DB.prepare(`
+const upserts = settings.map((s) =>
+	env.DB.prepare(`
     INSERT INTO user_settings (user_id, theme, language)
     VALUES (?, ?, ?)
     ON CONFLICT(user_id) DO UPDATE SET
       theme = excluded.theme,
       language = excluded.language
-  `).bind(s.user_id, s.theme, s.language)
+  `).bind(s.user_id, s.theme, s.language),
 );
 
 await env.DB.batch(upserts);
@@ -489,20 +490,22 @@ await env.DB.batch(upserts);
 
 ```typescript
 // ❌ Bad: Fetches all columns
-const users = await env.DB.prepare('SELECT * FROM users').all();
+const users = await env.DB.prepare("SELECT * FROM users").all();
 
 // ✅ Good: Only fetch needed columns
-const users = await env.DB.prepare('SELECT user_id, email, username FROM users').all();
+const users = await env.DB.prepare(
+	"SELECT user_id, email, username FROM users",
+).all();
 ```
 
 ### Always Use LIMIT
 
 ```typescript
 // ❌ Bad: Could return millions of rows
-const posts = await env.DB.prepare('SELECT * FROM posts').all();
+const posts = await env.DB.prepare("SELECT * FROM posts").all();
 
 // ✅ Good: Limit result set
-const posts = await env.DB.prepare('SELECT * FROM posts LIMIT 100').all();
+const posts = await env.DB.prepare("SELECT * FROM posts LIMIT 100").all();
 ```
 
 ### Use Indexes
@@ -517,7 +520,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_published_created
 ```typescript
 // Query will use the index
 const posts = await env.DB.prepare(
-  'SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC LIMIT 10'
+	"SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC LIMIT 10",
 ).all();
 ```
 
@@ -533,14 +536,14 @@ EXPLAIN QUERY PLAN SELECT * FROM posts WHERE published = 1;
 ```typescript
 // ❌ Bad: Multiple network round trips
 for (const id of userIds) {
-  const user = await env.DB.prepare('SELECT * FROM users WHERE user_id = ?')
-    .bind(id)
-    .first();
+	const user = await env.DB.prepare("SELECT * FROM users WHERE user_id = ?")
+		.bind(id)
+		.first();
 }
 
 // ✅ Good: One network round trip
-const queries = userIds.map(id =>
-  env.DB.prepare('SELECT * FROM users WHERE user_id = ?').bind(id)
+const queries = userIds.map((id) =>
+	env.DB.prepare("SELECT * FROM users WHERE user_id = ?").bind(id),
 );
 const results = await env.DB.batch(queries);
 ```
@@ -561,6 +564,7 @@ efficiency = rows_returned / rows_read
 ```
 
 **Efficiency Values**:
+
 - **1.0 (100%)** = Perfect - every row scanned is returned
 - **0.5 (50%)** = Good - half the scanned rows are useful
 - **0.1 (10%)** = Poor - reading 10x more data than needed
@@ -571,21 +575,22 @@ efficiency = rows_returned / rows_read
 Every D1 query returns metadata with `rows_read` and results count:
 
 ```typescript
-const result = await env.DB.prepare('SELECT * FROM posts WHERE user_id = ?')
-  .bind(userId)
-  .all();
+const result = await env.DB.prepare("SELECT * FROM posts WHERE user_id = ?")
+	.bind(userId)
+	.all();
 
 const efficiency = result.results.length / result.meta.rows_read;
 
 console.log({
-  rowsReturned: result.results.length,  // 50 posts
-  rowsRead: result.meta.rows_read,      // 100,000 (full table scan!)
-  efficiency: efficiency.toFixed(4),     // 0.0005 (0.05% - CRITICAL)
-  duration: result.meta.duration         // 450ms (slow!)
+	rowsReturned: result.results.length, // 50 posts
+	rowsRead: result.meta.rows_read, // 100,000 (full table scan!)
+	efficiency: efficiency.toFixed(4), // 0.0005 (0.05% - CRITICAL)
+	duration: result.meta.duration, // 450ms (slow!)
 });
 ```
 
 **Red Flags**:
+
 - Efficiency < 0.1 (10%) → Add index immediately
 - Efficiency < 0.01 (1%) → Critical performance issue
 - `rows_read` >> `rows_returned` → Missing or unused index
@@ -593,17 +598,20 @@ console.log({
 ### Using wrangler d1 insights (Experimental)
 
 **Command**:
+
 ```bash
 wrangler d1 insights my-database
 ```
 
 **What It Shows**:
+
 - Slow queries (P95 latency > 200ms)
 - Inefficient queries (efficiency < 0.1)
 - Query frequency (executions/day)
 - Suggested indexes
 
 **Example Output**:
+
 ```
 Top 5 Slow Queries (by P95 latency):
 
@@ -623,6 +631,7 @@ Top 5 Slow Queries (by P95 latency):
 ```
 
 **Flags Available**:
+
 ```bash
 # Show only slow queries (P95 > 200ms)
 wrangler d1 insights my-database --slow
@@ -643,16 +652,20 @@ EXPLAIN QUERY PLAN SELECT * FROM posts WHERE user_id = 123;
 ```
 
 **Without Index** (Inefficient):
+
 ```
 SCAN TABLE posts
 ```
+
 - Scans entire table (all rows)
 - Efficiency: rows_returned / total_rows (typically < 0.01)
 
 **With Index** (Efficient):
+
 ```
 SEARCH TABLE posts USING INDEX idx_posts_user_id (user_id=?)
 ```
+
 - Uses index to find matching rows
 - Efficiency: ~1.0 (only scans matching rows)
 
@@ -662,19 +675,20 @@ SEARCH TABLE posts USING INDEX idx_posts_user_id (user_id=?)
 
 ```typescript
 // Query without index
-const result = await env.DB.prepare('SELECT * FROM orders WHERE user_id = ?')
-  .bind(userId)
-  .all();
+const result = await env.DB.prepare("SELECT * FROM orders WHERE user_id = ?")
+	.bind(userId)
+	.all();
 
 console.log({
-  rowsReturned: 50,
-  rowsRead: 100000,      // Full table scan
-  efficiency: 0.0005,     // 0.05% - CRITICAL
-  duration: 450          // 450ms - SLOW
+	rowsReturned: 50,
+	rowsRead: 100000, // Full table scan
+	efficiency: 0.0005, // 0.05% - CRITICAL
+	duration: 450, // 450ms - SLOW
 });
 ```
 
 **EXPLAIN QUERY PLAN**:
+
 ```sql
 EXPLAIN QUERY PLAN SELECT * FROM orders WHERE user_id = ?;
 -- Output: SCAN TABLE orders
@@ -690,19 +704,20 @@ PRAGMA optimize;
 
 ```typescript
 // Same query, now using index
-const result = await env.DB.prepare('SELECT * FROM orders WHERE user_id = ?')
-  .bind(userId)
-  .all();
+const result = await env.DB.prepare("SELECT * FROM orders WHERE user_id = ?")
+	.bind(userId)
+	.all();
 
 console.log({
-  rowsReturned: 50,
-  rowsRead: 50,          // Index seek (exact match)
-  efficiency: 1.0,        // 100% - PERFECT
-  duration: 15           // 15ms - FAST (97% improvement!)
+	rowsReturned: 50,
+	rowsRead: 50, // Index seek (exact match)
+	efficiency: 1.0, // 100% - PERFECT
+	duration: 15, // 15ms - FAST (97% improvement!)
 });
 ```
 
 **EXPLAIN QUERY PLAN**:
+
 ```sql
 EXPLAIN QUERY PLAN SELECT * FROM orders WHERE user_id = ?;
 -- Output: SEARCH TABLE orders USING INDEX idx_orders_user_id (user_id=?)
@@ -714,25 +729,25 @@ EXPLAIN QUERY PLAN SELECT * FROM orders WHERE user_id = ?;
 
 ```typescript
 // Monitor all queries
-app.use('*', async (c, next) => {
-  const start = Date.now();
-  await next();
+app.use("*", async (c, next) => {
+	const start = Date.now();
+	await next();
 
-  // Log slow or inefficient queries
-  if (c.get('queryMeta')) {
-    const meta = c.get('queryMeta');
-    const efficiency = meta.rowsReturned / meta.rows_read;
+	// Log slow or inefficient queries
+	if (c.get("queryMeta")) {
+		const meta = c.get("queryMeta");
+		const efficiency = meta.rowsReturned / meta.rows_read;
 
-    if (efficiency < 0.1 || meta.duration > 100) {
-      console.warn({
-        endpoint: c.req.path,
-        efficiency: efficiency.toFixed(4),
-        duration: meta.duration,
-        rowsRead: meta.rows_read,
-        rowsReturned: meta.rowsReturned
-      });
-    }
-  }
+		if (efficiency < 0.1 || meta.duration > 100) {
+			console.warn({
+				endpoint: c.req.path,
+				efficiency: efficiency.toFixed(4),
+				duration: meta.duration,
+				rowsRead: meta.rows_read,
+				rowsReturned: meta.rowsReturned,
+			});
+		}
+	}
 });
 ```
 
@@ -769,8 +784,10 @@ For queries with multiple filters or ORDER BY:
 ```typescript
 // Query with WHERE + ORDER BY
 const posts = await env.DB.prepare(
-  'SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT 10'
-).bind(userId).all();
+	"SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT 10",
+)
+	.bind(userId)
+	.all();
 
 // Without composite index:
 // Efficiency: 0.08 (8%), Duration: 220ms
@@ -778,6 +795,7 @@ const posts = await env.DB.prepare(
 ```
 
 **Create Composite Index**:
+
 ```sql
 -- Index covers both WHERE and ORDER BY
 CREATE INDEX idx_posts_user_created
@@ -787,6 +805,7 @@ PRAGMA optimize;
 ```
 
 **EXPLAIN Analysis**:
+
 ```sql
 EXPLAIN QUERY PLAN
 SELECT * FROM posts
@@ -801,6 +820,7 @@ LIMIT 10;
 ```
 
 **Result**:
+
 ```typescript
 // With composite index:
 // Efficiency: 1.0 (100%), Duration: 12ms
@@ -811,6 +831,7 @@ LIMIT 10;
 ### Efficiency Best Practices
 
 ✅ **DO**:
+
 - Monitor query efficiency in production
 - Use `wrangler d1 insights` to find slow queries
 - Run EXPLAIN QUERY PLAN before adding indexes
@@ -819,6 +840,7 @@ LIMIT 10;
 - Run `PRAGMA optimize` after creating indexes
 
 ❌ **DON'T**:
+
 - Ignore queries with efficiency < 0.1
 - Add indexes without measuring impact
 - Create too many indexes (slows writes)
@@ -829,12 +851,12 @@ LIMIT 10;
 
 Based on Cloudflare's January 2025 performance update:
 
-| Query Type | Target Efficiency | Target P95 Latency |
-|------------|-------------------|-------------------|
-| Primary key lookup | > 0.95 | < 20ms |
-| Indexed WHERE | > 0.80 | < 40ms |
-| Indexed JOIN | > 0.50 | < 80ms |
-| Aggregation (COUNT, SUM) | N/A | < 100ms |
+| Query Type               | Target Efficiency | Target P95 Latency |
+| ------------------------ | ----------------- | ------------------ |
+| Primary key lookup       | > 0.95            | < 20ms             |
+| Indexed WHERE            | > 0.80            | < 40ms             |
+| Indexed JOIN             | > 0.50            | < 80ms             |
+| Aggregation (COUNT, SUM) | N/A               | < 100ms            |
 
 If queries fall below these targets, investigate with EXPLAIN QUERY PLAN.
 
@@ -857,9 +879,11 @@ Every D1 query returns a `meta` object with execution details:
 ### Using Meta for Debugging
 
 ```typescript
-const result = await env.DB.prepare('SELECT * FROM large_table WHERE status = ?')
-  .bind('active')
-  .all();
+const result = await env.DB.prepare(
+	"SELECT * FROM large_table WHERE status = ?",
+)
+	.bind("active")
+	.all();
 
 console.log(`Query took ${result.meta.duration}ms`);
 console.log(`Scanned ${result.meta.rows_read} rows`);
@@ -867,7 +891,7 @@ console.log(`Returned ${result.results.length} rows`);
 
 // If rows_read is much higher than results.length, add an index!
 if (result.meta.rows_read > result.results.length * 10) {
-  console.warn('Query is inefficient - consider adding an index');
+	console.warn("Query is inefficient - consider adding an index");
 }
 ```
 

@@ -6,13 +6,20 @@ import { fileURLToPath } from "node:url";
 const skillRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = resolve(skillRoot, "assets/anti-slop");
 const arguments_ = process.argv.slice(2);
-const targetArgument = arguments_.find((argument) => !argument.startsWith("--"));
-const target = resolve(process.cwd(), targetArgument ?? "tools/oxlint/anti-slop");
+const targetArgument = arguments_.find(
+	(argument) => !argument.startsWith("--"),
+);
+const target = resolve(
+	process.cwd(),
+	targetArgument ?? "tools/oxlint/anti-slop",
+);
 const force = arguments_.includes("--force");
 
 if (existsSync(target) && !force) {
-  console.error(`Refusing to overwrite ${target}. Re-run with --force only after reviewing the existing files.`);
-  process.exit(1);
+	console.error(
+		`Refusing to overwrite ${target}. Re-run with --force only after reviewing the existing files.`,
+	);
+	process.exit(1);
 }
 
 mkdirSync(dirname(target), { recursive: true });

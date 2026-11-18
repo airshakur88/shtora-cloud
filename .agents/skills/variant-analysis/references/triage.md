@@ -16,7 +16,7 @@ of every value involved, then look specifically for the thing that makes it safe
 
 A candidate survives only if you looked for these and did not find them.
 
-Note what is *not* on that list: having no callers. Code that nothing reaches today is
+Note what is _not_ on that list: having no callers. Code that nothing reaches today is
 still unprotected code, and a variant hunt is exactly the search that finds it before a
 caller arrives. Report it at lower severity — see Exploitability below — rather than
 refuting it as dead.
@@ -30,7 +30,7 @@ For a surviving candidate, establish:
 - **Unprotected** — is the protection named in the root cause genuinely absent here?
 
 A candidate that is reachable and controllable but has a different protection in place is a
-false positive worth recording, not a finding. A candidate that is unreachable *today* but
+false positive worth recording, not a finding. A candidate that is unreachable _today_ but
 unprotected is a real finding at lower severity: say so explicitly, and say what would make
 it reachable.
 
@@ -87,6 +87,6 @@ Separate the two axes:
 
 ## Recording False Positives
 
-When a candidate is ruled out, record *why* it was safe. Grouped by reason, these become the
+When a candidate is ruled out, record _why_ it was safe. Grouped by reason, these become the
 false-positive table in the report, and they are what lets the next stage refine the
 pattern instead of re-triaging the same matches.

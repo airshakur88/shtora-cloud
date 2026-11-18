@@ -28,14 +28,14 @@ The issue is drafted from the conversation, so remove the following before draft
 
 ## Issue body
 
-| Field | Value |
-|-------|-------|
-| Type | `bug` (incorrect guidance), `outdated`, `missing`, or `improvement` |
-| Skill | `wrangler` |
-| Source | File and section, e.g. `SKILL.md` > "Section name" or `references/<file>.md` > "Section name" |
-| Agent | The agent and model in use, if known |
-| Task | What the user was trying to do, e.g. "deploy a preview" |
-| Expected | What should have happened, e.g. "Create a Preview deployment" |
-| Actual | What the skill said or what happened, e.g. "Unknown option: --preview" |
-| Impact | The effect on the user, e.g. "Time spent finding the correct syntax" |
-| Suggested fix | How the skill should change; leave blank if unsure |
+| Field         | Value                                                                                         |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| Type          | `bug` (incorrect guidance), `outdated`, `missing`, or `improvement`                           |
+| Skill         | `wrangler`                                                                                    |
+| Source        | File and section, e.g. `SKILL.md` > "Section name" or `references/<file>.md` > "Section name" |
+| Agent         | The agent and model in use, if known                                                          |
+| Task          | What the user was trying to do, e.g. "deploy a preview"                                       |
+| Expected      | What should have happened, e.g. "Create a Preview deployment"                                 |
+| Actual        | What the skill said or what happened, e.g. "Unknown option: --preview"                        |
+| Impact        | The effect on the user, e.g. "Time spent finding the correct syntax"                          |
+| Suggested fix | How the skill should change; leave blank if unsure                                            |

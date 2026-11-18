@@ -74,7 +74,7 @@ catalogs:
     unbuild: ^3.0.0
   lint:
     eslint: ^9.0.0
-    '@antfu/eslint-config': ^4.0.0
+    "@antfu/eslint-config": ^4.0.0
   test:
     vitest: ^3.0.0
   types:
@@ -97,12 +97,12 @@ Organize dependencies by purpose (from antfu's blog post):
 
 ```json
 {
-  "devDependencies": {
-    "tsdown": "catalog:build",
-    "eslint": "catalog:lint",
-    "vitest": "catalog:test",
-    "typescript": "catalog:types"
-  }
+	"devDependencies": {
+		"tsdown": "catalog:build",
+		"eslint": "catalog:lint",
+		"vitest": "catalog:test",
+		"typescript": "catalog:types"
+	}
 }
 ```
 
@@ -114,13 +114,13 @@ pnpm add -D eslint @antfu/eslint-config
 
 ```typescript
 // eslint.config.ts
-import antfu from '@antfu/eslint-config'
+import antfu from "@antfu/eslint-config";
 
 export default antfu({
-  type: 'lib',
-  pnpm: true,
-  formatters: true,
-})
+	type: "lib",
+	pnpm: true,
+	formatters: true,
+});
 ```
 
 ## Git Hooks
@@ -131,9 +131,9 @@ pnpm add -D simple-git-hooks lint-staged
 
 ```json
 {
-  "simple-git-hooks": { "pre-commit": "pnpm lint-staged" },
-  "lint-staged": { "*": "eslint --fix" },
-  "scripts": { "prepare": "simple-git-hooks" }
+	"simple-git-hooks": { "pre-commit": "pnpm lint-staged" },
+	"lint-staged": { "*": "eslint --fix" },
+	"scripts": { "prepare": "simple-git-hooks" }
 }
 ```
 
@@ -143,15 +143,15 @@ Run `pnpm prepare` after adding.
 
 ```json
 {
-  "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "release": "bumpp",
-    "prepublishOnly": "pnpm build"
-  }
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest",
+		"release": "bumpp",
+		"prepublishOnly": "pnpm build"
+	}
 }
 ```

@@ -24,8 +24,8 @@
 
 > As you complete each section, tag every gap explicitly. Do not invent facts, data, approvals, or commitments.
 >
-> - **🔶 Assumption** — You filled this in based on inference, analogy, or incomplete data. It is plausible but unvalidated. Every assumption is a risk until confirmed. *(e.g., "🔶 Assumption: 60% of churned users leave due to onboarding friction — based on exit survey sample of 43 respondents, not full-cohort analysis.")*
-> - **🔵 Open Question** — You don't know this yet and need to find out. The answer requires discovery, a stakeholder conversation, or data you don't have. *(e.g., "🔵 Open Question: What is the current baseline for time-to-first-action? Analytics team has not confirmed.")*
+> - **🔶 Assumption** — You filled this in based on inference, analogy, or incomplete data. It is plausible but unvalidated. Every assumption is a risk until confirmed. _(e.g., "🔶 Assumption: 60% of churned users leave due to onboarding friction — based on exit survey sample of 43 respondents, not full-cohort analysis.")_
+> - **🔵 Open Question** — You don't know this yet and need to find out. The answer requires discovery, a stakeholder conversation, or data you don't have. _(e.g., "🔵 Open Question: What is the current baseline for time-to-first-action? Analytics team has not confirmed.")_
 >
 > Tag inline, right where the gap appears — not just in Section 10. Section 10 collects them, but each section should surface its own unknowns so reviewers see them in context.
 
@@ -33,25 +33,25 @@
 
 > To make the PRD a **living, decision-making tool**, teams engage in structured exercises that drive clarity, alignment, and measurable outcomes. The skills below are primary inputs — each one feeds a specific section of this document.
 >
-> | Skill | Primary Input To |
-> |---|---|
-> | **Problem Framing Canvas** (`problem-framing-canvas`) | Section 2 — Problem Statement |
-> | **Problem Statement** (`problem-statement`) | Section 2 — Problem Statement |
-> | **Proto-Persona** (`proto-persona`) | Section 3 — Target Users & Personas |
-> | **Jobs-to-Be-Done** (`jobs-to-be-done`) | Section 3 — Target Users & Personas |
-> | **Customer Journey Map** (`customer-journey-map`) | Section 3 — Target Users & Personas |
-> | **TAM/SAM/SOM Calculator** (`tam-sam-som-calculator`) | Section 4 — Strategic Context |
-> | **Positioning Statement** (`positioning-statement`) | Section 4 — Strategic Context |
-> | **Opportunity Solution Tree** (`opportunity-solution-tree`) | Section 1 — Executive Summary; Section 5 — Solution Overview |
-> | **User Story Mapping Workshop** (`user-story-mapping-workshop`) | Section 5 — Solution Overview; Section 7 — User Stories |
-> | **PESTEL Analysis** (`pestel-analysis`) | Section 9 — Dependencies & Risks |
-> | **Epic Hypothesis** (`epic-hypothesis`) | Section 7 — User Stories & Requirements |
-> | **Epic Breakdown Advisor** (`epic-breakdown-advisor`) | Section 7 — User Stories & Requirements |
-> | **User Story** (`user-story`) | Section 7 — User Stories & Requirements |
-> | **Recommendation Canvas** (`recommendation-canvas`) | Stakeholder alignment (pre-PRD or appendix) |
-> | **Stakeholder Mapping** (`stakeholder-mapping`) | Stakeholder alignment (pre-PRD or appendix) |
+> | Skill                                                           | Primary Input To                                             |
+> | --------------------------------------------------------------- | ------------------------------------------------------------ |
+> | **Problem Framing Canvas** (`problem-framing-canvas`)           | Section 2 — Problem Statement                                |
+> | **Problem Statement** (`problem-statement`)                     | Section 2 — Problem Statement                                |
+> | **Proto-Persona** (`proto-persona`)                             | Section 3 — Target Users & Personas                          |
+> | **Jobs-to-Be-Done** (`jobs-to-be-done`)                         | Section 3 — Target Users & Personas                          |
+> | **Customer Journey Map** (`customer-journey-map`)               | Section 3 — Target Users & Personas                          |
+> | **TAM/SAM/SOM Calculator** (`tam-sam-som-calculator`)           | Section 4 — Strategic Context                                |
+> | **Positioning Statement** (`positioning-statement`)             | Section 4 — Strategic Context                                |
+> | **Opportunity Solution Tree** (`opportunity-solution-tree`)     | Section 1 — Executive Summary; Section 5 — Solution Overview |
+> | **User Story Mapping Workshop** (`user-story-mapping-workshop`) | Section 5 — Solution Overview; Section 7 — User Stories      |
+> | **PESTEL Analysis** (`pestel-analysis`)                         | Section 9 — Dependencies & Risks                             |
+> | **Epic Hypothesis** (`epic-hypothesis`)                         | Section 7 — User Stories & Requirements                      |
+> | **Epic Breakdown Advisor** (`epic-breakdown-advisor`)           | Section 7 — User Stories & Requirements                      |
+> | **User Story** (`user-story`)                                   | Section 7 — User Stories & Requirements                      |
+> | **Recommendation Canvas** (`recommendation-canvas`)             | Stakeholder alignment (pre-PRD or appendix)                  |
+> | **Stakeholder Mapping** (`stakeholder-mapping`)                 | Stakeholder alignment (pre-PRD or appendix)                  |
 
-***
+---
 
 ## Document Information
 
@@ -71,12 +71,12 @@
 ### Change Log
 
 | Version | Date       | Author          | Change Description     |
-|---------|------------|-----------------|------------------------|
+| ------- | ---------- | --------------- | ---------------------- |
 | 0.1     | YYYY-MM-DD | [Your Name]     | Initial draft          |
 | 0.2     | YYYY-MM-DD | [Reviewer Name] | Feedback incorporated  |
 | 1.0     | YYYY-MM-DD | [Approver Name] | Final version approved |
 
-***
+---
 
 ## Table of Contents
 
@@ -91,11 +91,11 @@
 9. [Dependencies & Risks](#9-dependencies--risks)
 10. [Open Questions](#10-open-questions)
 
-***
+---
 
 ## 1. Executive Summary
 
-*The Elevator Pitch for Skimmers*
+_The Elevator Pitch for Skimmers_
 
 ##### **Section Instructions:**
 
@@ -117,11 +117,11 @@
 > - **One-Sentence Test**: Can you state the summary in a single sentence using the format below? If not, the scope may be unclear.
 > - **Stakeholder Gut-Check**: Read the summary to someone outside the project. If they can't explain it back, simplify.
 
-***
+---
 
 **Format:** "We're building [solution] for [persona] to solve [problem], which will result in [impact]."
 
-- [Write a one-paragraph executive summary *(e.g., "We're building a guided onboarding checklist for non-technical small business owners to solve the problem of 60% drop-off in the first 24 hours due to lack of guidance, which will increase activation rate from 40% to 60% and reduce churn by 10%.")*]
+- [Write a one-paragraph executive summary _(e.g., "We're building a guided onboarding checklist for non-technical small business owners to solve the problem of 60% drop-off in the first 24 hours due to lack of guidance, which will increase activation rate from 40% to 60% and reduce churn by 10%.")_]
 
 ##### **Before moving on — Section 1 → Section 2:**
 
@@ -130,11 +130,11 @@
 > - Does the **persona** you named match a real customer segment you can describe in detail? If not, Section 3 will expose the gap — be ready for it.
 > - Is the **impact** a measurable outcome or a vague aspiration? If vague, Section 6 will force you to name a metric and a target.
 
-***
+---
 
 ## 2. Problem Statement
 
-*What Problem Are We Solving?*
+_What Problem Are We Solving?_
 
 ##### **Section Instructions:**
 
@@ -159,27 +159,27 @@
 > - **Evidence Gathering**: Search for supporting data across customer interviews, analytics dashboards, support tickets, and competitive research.
 > - **Problem Validation**: Review the problem statement with customers or customer-facing teams — if they wouldn't nod at it, it needs more work.
 
-***
+---
 
 ### Who Has This Problem?
 
-- [Describe the specific user or customer segment affected *(e.g., non-technical small business owners — solopreneurs and teams of 1–10 — who sign up for a SaaS product for the first time)*]
+- [Describe the specific user or customer segment affected _(e.g., non-technical small business owners — solopreneurs and teams of 1–10 — who sign up for a SaaS product for the first time)_]
 
 ### What Is the Problem?
 
-- [State the problem in concrete, observable terms *(e.g., 60% of users abandon onboarding within the first 24 hours because they don't know what to do first — they see an empty dashboard with no guidance, get overwhelmed by options, and leave)*]
+- [State the problem in concrete, observable terms _(e.g., 60% of users abandon onboarding within the first 24 hours because they don't know what to do first — they see an empty dashboard with no guidance, get overwhelmed by options, and leave)_]
 
 ### Why Is It Painful?
 
-- **User impact**: [Describe the consequence for the user *(e.g., wastes 30–60 minutes trying to figure out the product, never reaches the "aha moment," churns before experiencing value)*]
-- **Business impact**: [Describe the consequence for the business *(e.g., 60% activation failure drives high churn, low LTV, and poor word-of-mouth)*]
+- **User impact**: [Describe the consequence for the user _(e.g., wastes 30–60 minutes trying to figure out the product, never reaches the "aha moment," churns before experiencing value)_]
+- **Business impact**: [Describe the consequence for the business _(e.g., 60% activation failure drives high churn, low LTV, and poor word-of-mouth)_]
 
 ### Evidence
 
-- **Interviews**: [Cite discovery research *(e.g., 8 of 10 churned users said "I didn't know what to do first" — discovery interviews, Feb 2026)*]
-- **Analytics**: [Cite product data *(e.g., 60% of signups complete zero actions within 24 hours — Mixpanel, Jan 2026)*]
-- **Support signals**: [Cite support data *(e.g., "How do I get started?" is the #1 support question — 350 tickets/month)*]
-- **Customer quote**: [Include a verbatim quote *(e.g., "I logged in, saw an empty dashboard, and thought 'now what?' I gave up and went back to my spreadsheet.")*]
+- **Interviews**: [Cite discovery research _(e.g., 8 of 10 churned users said "I didn't know what to do first" — discovery interviews, Feb 2026)_]
+- **Analytics**: [Cite product data _(e.g., 60% of signups complete zero actions within 24 hours — Mixpanel, Jan 2026)_]
+- **Support signals**: [Cite support data _(e.g., "How do I get started?" is the #1 support question — 350 tickets/month)_]
+- **Customer quote**: [Include a verbatim quote _(e.g., "I logged in, saw an empty dashboard, and thought 'now what?' I gave up and went back to my spreadsheet.")_]
 
 ##### **Before moving on — Section 2 → Section 3:**
 
@@ -188,11 +188,11 @@
 > - Does your **evidence** include at least one direct customer quote or data point? If all four evidence slots are empty or tagged 🔶 Assumption, consider running `discovery-interview-prep` before continuing.
 > - Does the **business impact** connect to a metric your leadership actually tracks? If not, Section 4 (Strategic Context) will struggle to make the case.
 
-***
+---
 
 ## 3. Target Users & Personas
 
-*Who Are We Building For?*
+_Who Are We Building For?_
 
 ##### **Section Instructions:**
 
@@ -218,28 +218,28 @@
 > - **JTBD Canvas Session**: Identify pains, gains, and jobs-to-be-done for each primary persona.
 > - **Persona Validation**: Refine personas with cross-functional feedback — if sales, support, and UX don't recognise the persona, it's fiction.
 
-***
+---
 
 ### Primary Persona
 
 - **Name**: [A realistic individual name — not a job-title placeholder like "Startup Steve"]
-- **Role**: [Job title and responsibilities *(e.g., freelance consultant, solopreneur)*]
-- **Context**: [Company size, tech savviness, relevant constraints *(e.g., 1-person business, no IT support, uses email and spreadsheets)*]
-- **Goals**: [What they are trying to achieve *(e.g., get value from software fast without technical expertise)*]
-- **Pain points**: [What makes their current situation difficult *(e.g., overwhelmed by complex UIs, no time to watch tutorials, needs immediate value)*]
-- **Current behaviour**: [How they handle the problem today *(e.g., signs up for products, tries for 1 day, churns if not immediately useful)*]
+- **Role**: [Job title and responsibilities _(e.g., freelance consultant, solopreneur)_]
+- **Context**: [Company size, tech savviness, relevant constraints _(e.g., 1-person business, no IT support, uses email and spreadsheets)_]
+- **Goals**: [What they are trying to achieve _(e.g., get value from software fast without technical expertise)_]
+- **Pain points**: [What makes their current situation difficult _(e.g., overwhelmed by complex UIs, no time to watch tutorials, needs immediate value)_]
+- **Current behaviour**: [How they handle the problem today _(e.g., signs up for products, tries for 1 day, churns if not immediately useful)_]
 
 ### Secondary Personas (if applicable)
 
 - **Name**: [Realistic individual name]
-- **Role**: [Job title and responsibilities *(e.g., owner-operator managing a small team of 5–10)*]
-- **Differs from primary**: [Key differences in needs, tolerance, or behaviour *(e.g., more tolerant of complexity, willing to invest setup time, also needs to onboard team members)*]
+- **Role**: [Job title and responsibilities _(e.g., owner-operator managing a small team of 5–10)_]
+- **Differs from primary**: [Key differences in needs, tolerance, or behaviour _(e.g., more tolerant of complexity, willing to invest setup time, also needs to onboard team members)_]
 
 ### Jobs-to-Be-Done
 
-- **Functional job**: [What the user is trying to accomplish *(e.g., set up the product and complete a first meaningful task within 30 minutes)*]
-- **Emotional job**: [How the user wants to feel *(e.g., confident that the product is worth the investment, not stupid for not figuring it out)*]
-- **Social job**: [How the user wants to be perceived *(e.g., seen by their team as someone who picks good tools)*]
+- **Functional job**: [What the user is trying to accomplish _(e.g., set up the product and complete a first meaningful task within 30 minutes)_]
+- **Emotional job**: [How the user wants to feel _(e.g., confident that the product is worth the investment, not stupid for not figuring it out)_]
+- **Social job**: [How the user wants to be perceived _(e.g., seen by their team as someone who picks good tools)_]
 
 ##### **Before moving on — Section 3 → Section 4:**
 
@@ -248,11 +248,11 @@
 > - Is the persona **a real customer of your product**, or did you accidentally describe your own team, your PM audience, or a generic archetype? The persona is the person who uses or buys the product — not the person writing this PRD.
 > - Are the **jobs-to-be-done** grounded in observed behaviour or inferred? Tag any inferred JTBD as 🔶 Assumption.
 
-***
+---
 
 ## 4. Strategic Context
 
-*Why This, Why Now?*
+_Why This, Why Now?_
 
 ##### **Section Instructions:**
 
@@ -277,27 +277,27 @@
 > - **Competitive Landscape Review**: Identify how competitors address the same problem and where gaps exist.
 > - **Data Scavenger Hunt**: Surface supporting evidence from internal dashboards, annual reports, competitive research, or tools like JIRA.
 
-***
+---
 
 ### Business Goals
 
-- **Strategic alignment**: [How this supports company OKRs or strategic priorities *(e.g., "This initiative supports our Q1 OKR: Reduce churn from 15% to 8%. Improving onboarding activation directly impacts retention.")*]
-- **Revenue impact**: [Expected impact on revenue, retention, or cost *(e.g., reducing first-week churn by 10% represents $2.4M in recovered annual revenue)*]
+- **Strategic alignment**: [How this supports company OKRs or strategic priorities _(e.g., "This initiative supports our Q1 OKR: Reduce churn from 15% to 8%. Improving onboarding activation directly impacts retention.")_]
+- **Revenue impact**: [Expected impact on revenue, retention, or cost _(e.g., reducing first-week churn by 10% represents $2.4M in recovered annual revenue)_]
 
 ### Market Opportunity (optional)
 
-- **TAM**: [Total addressable market *(e.g., 50M small businesses globally)*]
-- **SAM**: [Serviceable addressable market *(e.g., 5M using SaaS tools in our category)*]
-- **SOM**: [Serviceable obtainable market *(e.g., 500K solopreneurs in target segments)*]
+- **TAM**: [Total addressable market _(e.g., 50M small businesses globally)_]
+- **SAM**: [Serviceable addressable market _(e.g., 5M using SaaS tools in our category)_]
+- **SOM**: [Serviceable obtainable market _(e.g., 500K solopreneurs in target segments)_]
 
 ### Competitive Landscape
 
-- **Current alternatives**: [How competitors or substitutes address this problem *(e.g., Competitor A and Competitor B both have guided onboarding. Our lack of guidance is cited as a churn reason in exit surveys.)*]
-- **Our gap**: [Where we are weaker or undifferentiated *(e.g., we are the only product in the category that drops users into an empty dashboard with no first-run experience)*]
+- **Current alternatives**: [How competitors or substitutes address this problem _(e.g., Competitor A and Competitor B both have guided onboarding. Our lack of guidance is cited as a churn reason in exit surveys.)_]
+- **Our gap**: [Where we are weaker or undifferentiated _(e.g., we are the only product in the category that drops users into an empty dashboard with no first-run experience)_]
 
 ### Why Now?
 
-- [Articulate the urgency *(e.g., "Churn spiked 15% in Q4. Onboarding is the #1 driver — 60% churn in first 30 days. Fixing this is critical to hitting our retention OKR.")*]
+- [Articulate the urgency _(e.g., "Churn spiked 15% in Q4. Onboarding is the #1 driver — 60% churn in first 30 days. Fixing this is critical to hitting our retention OKR.")_]
 
 ##### **Before moving on — Section 4 → Section 5:**
 
@@ -306,11 +306,11 @@
 > - Can you draw a straight line from **business goal → problem (Section 2) → persona (Section 3) → this initiative**? If any link is weak, the solution you're about to describe in Section 5 may not be the right one.
 > - If you included **TAM/SAM/SOM**, are the numbers sourced or estimated? Tag estimated figures as 🔶 Assumption.
 
-***
+---
 
 ## 5. Solution Overview
 
-*What Are We Building?*
+_What Are We Building?_
 
 ##### **Section Instructions:**
 
@@ -334,18 +334,18 @@
 > - **Story Mapping Workshop**: Decompose the solution into a user activity map to identify the thinnest viable slice for the first release.
 > - **Feasibility Check**: Review the proposed solution with engineering to surface constraints, dependencies, or technical risks early.
 
-***
+---
 
 ### Solution Description
 
-- [Write a high-level description of what you're building and how it works *(e.g., "We're building a guided onboarding checklist that walks new users through core workflows step-by-step when they first log in. A modal appears on first login showing 3 steps: Create your first project, Invite a teammate (optional), Complete a sample task. As each step is completed, the checklist updates with checkmarks and a progress bar.")*]
+- [Write a high-level description of what you're building and how it works _(e.g., "We're building a guided onboarding checklist that walks new users through core workflows step-by-step when they first log in. A modal appears on first login showing 3 steps: Create your first project, Invite a teammate (optional), Complete a sample task. As each step is completed, the checklist updates with checkmarks and a progress bar.")_]
 
 ### Key Features
 
-- [Feature 1 *(e.g., "Minimal: Only 3 core steps — not overwhelming")*]
-- [Feature 2 *(e.g., "Dismissible: Users can skip if they prefer to explore")*]
-- [Feature 3 *(e.g., "Progress tracking: Visual progress bar showing 1/3, 2/3, 3/3")*]
-- [Feature 4 *(e.g., "Celebration: Positive reinforcement modal on completion")*]
+- [Feature 1 _(e.g., "Minimal: Only 3 core steps — not overwhelming")_]
+- [Feature 2 _(e.g., "Dismissible: Users can skip if they prefer to explore")_]
+- [Feature 3 _(e.g., "Progress tracking: Visual progress bar showing 1/3, 2/3, 3/3")_]
+- [Feature 4 _(e.g., "Celebration: Positive reinforcement modal on completion")_]
 
 ### User Flows / Wireframes (optional)
 
@@ -362,11 +362,11 @@
 > - Is the solution **high-level enough** for this stage? If you've specified button labels, pixel dimensions, or implementation details, you've gone too far — pull back and let design own the UI.
 > - Can you name a **metric that will move** if this solution works? If not, Section 6 will be difficult — and that's a signal the solution may not be focused enough.
 
-***
+---
 
 ## 6. Success Metrics
 
-*How Will We Know It Worked?*
+_How Will We Know It Worked?_
 
 ##### **Section Instructions:**
 
@@ -391,24 +391,24 @@
 > - **Instrumentation Planning**: Define how each metric will be tracked, what events need to be instrumented, and which tools will be used.
 > - **Baseline Measurement**: Confirm current values for all metrics before development begins — you cannot measure improvement without a baseline.
 
-***
+---
 
 ### Primary Metric
 
-- **Metric**: [The ONE metric you're optimising for *(e.g., activation rate — % of users completing first action within 24 hours)*]
-- **Current**: [Baseline value *(e.g., 40%)*]
-- **Target**: [Goal value *(e.g., 60%)*]
-- **Timeline**: [When you'll measure *(e.g., 30 days after launch)*]
+- **Metric**: [The ONE metric you're optimising for _(e.g., activation rate — % of users completing first action within 24 hours)_]
+- **Current**: [Baseline value _(e.g., 40%)_]
+- **Target**: [Goal value _(e.g., 60%)_]
+- **Timeline**: [When you'll measure _(e.g., 30 days after launch)_]
 
 ### Secondary Metrics
 
-- [Metric 2 *(e.g., time-to-first-action: reduce from 3 days to 1 day)*]
-- [Metric 3 *(e.g., onboarding checklist completion rate: target 80%)*]
-- [Metric 4 *(e.g., support ticket volume for "How do I get started?": reduce from 350/month to 175/month)*]
+- [Metric 2 _(e.g., time-to-first-action: reduce from 3 days to 1 day)_]
+- [Metric 3 _(e.g., onboarding checklist completion rate: target 80%)_]
+- [Metric 4 _(e.g., support ticket volume for "How do I get started?": reduce from 350/month to 175/month)_]
 
 ### Guardrail Metrics
 
-- [Metric that must NOT regress *(e.g., sign-up conversion rate: maintain at 10% — don't add friction to the signup flow)*]
+- [Metric that must NOT regress _(e.g., sign-up conversion rate: maintain at 10% — don't add friction to the signup flow)_]
 
 ##### **Before moving on — Section 6 → Section 7:**
 
@@ -417,11 +417,11 @@
 > - Do you have a **current baseline** for every metric, or are baselines tagged 🔶 Assumption? Without a baseline, you cannot measure improvement — flag this for the analytics team now, not after launch.
 > - Is there at least one **guardrail metric**? Every initiative has side effects. If you can't name one thing that shouldn't get worse, you haven't thought about trade-offs.
 
-***
+---
 
 ## 7. User Stories & Requirements
 
-*What Exactly Are We Delivering?*
+_What Exactly Are We Delivering?_
 
 ##### **Section Instructions:**
 
@@ -448,11 +448,11 @@
 > - **Acceptance Criteria Review**: Review each story's acceptance criteria with engineering and QA to confirm they are testable and unambiguous.
 > - **Edge Case Identification**: Walk through failure modes, boundary conditions, and unexpected user behaviour.
 
-***
+---
 
 ### Epic Hypothesis
 
-- [Write the testable hypothesis *(e.g., "We believe that adding a guided onboarding checklist for non-technical users will increase activation rate from 40% to 60% because users currently drop off due to lack of guidance. We'll measure success by activation rate 30 days post-launch.")*]
+- [Write the testable hypothesis _(e.g., "We believe that adding a guided onboarding checklist for non-technical users will increase activation rate from 40% to 60% because users currently drop off due to lack of guidance. We'll measure success by activation rate 30 days post-launch.")_]
 
 ### User Stories
 
@@ -462,10 +462,10 @@ As a [persona], I want [capability], so that [outcome].
 
 **Acceptance Criteria:**
 
-- [ ] [Testable criterion *(e.g., when user logs in for the first time, modal appears with checklist)*]
-- [ ] [Testable criterion *(e.g., checklist shows 3 steps: "Create project," "Invite teammate," "Complete task")*]
-- [ ] [Testable criterion *(e.g., modal is dismissible via close button)*]
-- [ ] [Testable criterion *(e.g., if dismissed, checklist does not reappear — user preference saved)*]
+- [ ] [Testable criterion _(e.g., when user logs in for the first time, modal appears with checklist)_]
+- [ ] [Testable criterion _(e.g., checklist shows 3 steps: "Create project," "Invite teammate," "Complete task")_]
+- [ ] [Testable criterion _(e.g., modal is dismissible via close button)_]
+- [ ] [Testable criterion _(e.g., if dismissed, checklist does not reappear — user preference saved)_]
 
 **Story 2: [Short title]**
 
@@ -489,8 +489,8 @@ As a [persona], I want [capability], so that [outcome].
 
 ### Constraints & Edge Cases
 
-- **Technical constraints**: [Platform limitations, browser support, performance requirements *(e.g., must work on mobile web; checklist state must persist across sessions)*]
-- **Edge cases**: [Boundary conditions and unexpected behaviour *(e.g., what if user completes steps out of order? What if user skips optional steps?)*]
+- **Technical constraints**: [Platform limitations, browser support, performance requirements _(e.g., must work on mobile web; checklist state must persist across sessions)_]
+- **Edge cases**: [Boundary conditions and unexpected behaviour _(e.g., what if user completes steps out of order? What if user skips optional steps?)_]
 
 ##### **Before moving on — Section 7 → Section 8:**
 
@@ -499,11 +499,11 @@ As a [persona], I want [capability], so that [outcome].
 > - Do the **acceptance criteria** cover the edge cases, or are edge cases only listed at the bottom? Each story's AC should be testable on its own — QA shouldn't need to read the edge cases section to know what "done" means.
 > - Are any stories **too large** for a single sprint? If a story has more than 5–6 acceptance criteria, consider splitting it with `user-story-splitting`.
 
-***
+---
 
 ## 8. Out of Scope
 
-*What We Are NOT Building*
+_What We Are NOT Building_
 
 ##### **Section Instructions:**
 
@@ -520,17 +520,17 @@ As a [persona], I want [capability], so that [outcome].
 > - **Scope Boundary Workshop**: Review the solution overview with stakeholders and explicitly ask "What do you expect this to include?" — the gap between their answer and your plan is your out-of-scope list.
 > - **Prioritisation Review**: Use the Prioritization Advisor (`prioritization-advisor`) to validate that excluded items are genuinely lower priority, not just forgotten.
 
-***
+---
 
 ### Not Included in This Release
 
-- [Excluded feature + rationale *(e.g., "Advanced onboarding personalisation — different checklists per persona. Adds complexity; test the simple version first.")*]
-- [Excluded feature + rationale *(e.g., "Video tutorials embedded in checklist. Resource-intensive; validate the checklist concept first.")*]
-- [Excluded feature + rationale *(e.g., "Gamification — badges, points. Nice-to-have; focus on core workflow guidance.")*]
+- [Excluded feature + rationale _(e.g., "Advanced onboarding personalisation — different checklists per persona. Adds complexity; test the simple version first.")_]
+- [Excluded feature + rationale _(e.g., "Video tutorials embedded in checklist. Resource-intensive; validate the checklist concept first.")_]
+- [Excluded feature + rationale _(e.g., "Gamification — badges, points. Nice-to-have; focus on core workflow guidance.")_]
 
 ### Future Considerations
 
-- [Items that may be revisited *(e.g., "Mobile-optimised onboarding — desktop-first for now, mobile in a future release.")*]
+- [Items that may be revisited _(e.g., "Mobile-optimised onboarding — desktop-first for now, mobile in a future release.")_]
 
 ##### **Before moving on — Section 8 → Section 9:**
 
@@ -539,11 +539,11 @@ As a [persona], I want [capability], so that [outcome].
 > - Are any excluded items actually **dependencies in disguise**? If "mobile support" is out of scope but 40% of your persona's usage is mobile, that's a risk for Section 9, not just a scope boundary.
 > - Does the out-of-scope list **match the solution overview** in Section 5? Features mentioned in Section 5 should not also appear here. Features NOT mentioned in Section 5 but expected by stakeholders should appear here.
 
-***
+---
 
 ## 9. Dependencies & Risks
 
-*What Could Go Wrong, and What Do We Need?*
+_What Could Go Wrong, and What Do We Need?_
 
 ##### **Section Instructions:**
 
@@ -569,20 +569,20 @@ As a [persona], I want [capability], so that [outcome].
 > - **Risk Assessment Workshop**: Use Cagan's Four Risks (value, usability, feasibility, viability) as a framework to surface the riskiest assumptions. For each risk, ask: "Can we collapse this with a one-week experiment?"
 > - **Mitigation Planning**: For high-priority risks, assign an owner and a concrete next action.
 
-***
+---
 
 ### Dependencies
 
-- **Technical**: [Platform or infrastructure requirements *(e.g., no technical dependencies — uses existing modals framework)*]
-- **External**: [Third-party integrations or partnerships *(e.g., analytics provider must support custom event tracking for checklist interactions)*]
-- **Team**: [Cross-team handoffs *(e.g., design: wireframes for checklist UI, ETA Week 1)*]
+- **Technical**: [Platform or infrastructure requirements _(e.g., no technical dependencies — uses existing modals framework)_]
+- **External**: [Third-party integrations or partnerships _(e.g., analytics provider must support custom event tracking for checklist interactions)_]
+- **Team**: [Cross-team handoffs _(e.g., design: wireframes for checklist UI, ETA Week 1)_]
 
 ### Risks & Mitigations
 
-- **Risk**: [What could go wrong *(e.g., users dismiss the checklist immediately and never see it)*]
-  - **Mitigation**: [How you'll address it *(e.g., track dismissal rate; if >50%, iterate on messaging or timing)*]
-- **Risk**: [What could go wrong *(e.g., checklist steps are too generic and don't resonate with all personas)*]
-  - **Mitigation**: [How you'll address it *(e.g., start with primary persona, personalise later based on usage data)*]
+- **Risk**: [What could go wrong _(e.g., users dismiss the checklist immediately and never see it)_]
+  - **Mitigation**: [How you'll address it _(e.g., track dismissal rate; if >50%, iterate on messaging or timing)_]
+- **Risk**: [What could go wrong _(e.g., checklist steps are too generic and don't resonate with all personas)_]
+  - **Mitigation**: [How you'll address it _(e.g., start with primary persona, personalise later based on usage data)_]
 
 ##### **Before moving on — Section 9 → Section 10:**
 
@@ -591,11 +591,11 @@ As a [persona], I want [capability], so that [outcome].
 > - For each risk, is the **mitigation actionable** — with an owner and a trigger? "Monitor closely" is not a mitigation strategy.
 > - Do any of your 🔶 Assumptions from earlier sections appear here as risks? They should — an unvalidated assumption IS a risk. If they don't appear, either the assumption is low-stakes (fine) or you've lost track of it (not fine).
 
-***
+---
 
 ## 10. Open Questions
 
-*What We Haven't Decided Yet*
+_What We Haven't Decided Yet_
 
 ##### **Section Instructions:**
 
@@ -612,48 +612,48 @@ As a [persona], I want [capability], so that [outcome].
 > - **Open Questions Review**: Walk through the list with the team weekly to close items and surface new ones.
 > - **Decision Log**: As questions are resolved, move them from this section to a decision log (or inline in the relevant PRD section) with the rationale.
 
-***
+---
 
-| Question | Owner | Deadline | Status |
-|----------|-------|----------|--------|
-| [Unresolved question *(e.g., should the checklist be mandatory or optional?)*] | [Name] | [Date] | [Open / Resolved] |
-| [Unresolved question *(e.g., should we A/B test checklist vs. no checklist?)*] | [Name] | [Date] | [Open / Resolved] |
-| [Unresolved question *(e.g., what happens if the user completes steps out of order?)*] | [Name] | [Date] | [Open / Resolved] |
+| Question                                                                               | Owner  | Deadline | Status            |
+| -------------------------------------------------------------------------------------- | ------ | -------- | ----------------- |
+| [Unresolved question _(e.g., should the checklist be mandatory or optional?)_]         | [Name] | [Date]   | [Open / Resolved] |
+| [Unresolved question _(e.g., should we A/B test checklist vs. no checklist?)_]         | [Name] | [Date]   | [Open / Resolved] |
+| [Unresolved question _(e.g., what happens if the user completes steps out of order?)_] | [Name] | [Date]   | [Open / Resolved] |
 
-***
+---
 
 ## PRD Self-Assessment
 
-*Honest Diagnostics Before You Share This Document*
+_Honest Diagnostics Before You Share This Document_
 
 ##### **Section Instructions:**
 
 > Complete this section after finishing all 10 sections above. It turns the PRD from a deliverable into a diagnostic — surfacing where the document is strong, where it's weak, and what must be validated before committing to build. Share this assessment with reviewers alongside the PRD itself.
 
-***
+---
 
 ### Strongest Section
 
-- [Name the section you're most confident in and why *(e.g., "Section 2 — Problem Statement. Grounded in 10 discovery interviews and corroborated by support ticket data. The problem is real and well-evidenced.")*]
+- [Name the section you're most confident in and why _(e.g., "Section 2 — Problem Statement. Grounded in 10 discovery interviews and corroborated by support ticket data. The problem is real and well-evidenced.")_]
 
 ### Weakest Section
 
-- [Name the section that needs the most work and why *(e.g., "Section 4 — Strategic Context. The TAM/SAM/SOM numbers are rough estimates from a two-year-old analyst report. The 'why now' rationale is compelling internally but hasn't been validated with customers.")*]
+- [Name the section that needs the most work and why _(e.g., "Section 4 — Strategic Context. The TAM/SAM/SOM numbers are rough estimates from a two-year-old analyst report. The 'why now' rationale is compelling internally but hasn't been validated with customers.")_]
 
 ### Top Assumptions to Validate
 
 > Collect all 🔶 Assumption tags from throughout the document. List the ones that carry the highest risk if they turn out to be wrong.
 
-| # | Assumption | Section | Risk if Wrong | Proposed Validation |
-|---|------------|---------|---------------|---------------------|
-| 1 | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test — interview, data pull, experiment] |
-| 2 | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test] |
-| 3 | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test] |
+| #   | Assumption                  | Section     | Risk if Wrong                  | Proposed Validation                              |
+| --- | --------------------------- | ----------- | ------------------------------ | ------------------------------------------------ |
+| 1   | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test — interview, data pull, experiment] |
+| 2   | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test]                                    |
+| 3   | [Statement tagged 🔶 above] | [Section #] | [What breaks if this is false] | [How to test]                                    |
 
 ### Recommended Next Step
 
-- [What is the single most important thing to do before this PRD is ready for stakeholder review? *(e.g., "Run 3 discovery interviews with churned users to validate the onboarding friction assumption before presenting to the leadership team." or "Get baseline metrics from the analytics team for Section 6 — without baselines, we can't set credible targets.")*]
+- [What is the single most important thing to do before this PRD is ready for stakeholder review? _(e.g., "Run 3 discovery interviews with churned users to validate the onboarding friction assumption before presenting to the leadership team." or "Get baseline metrics from the analytics team for Section 6 — without baselines, we can't set credible targets.")_]
 
-***
+---
 
-*End of PRD Template*
+_End of PRD Template_

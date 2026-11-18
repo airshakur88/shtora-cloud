@@ -37,6 +37,7 @@ After reviewing script output, manually check these high-value locations:
 ### Pattern categories
 
 **Database connection strings:**
+
 ```
 postgresql://user:PASSWORD@host:5432/db
 mysql://user:PASSWORD@localhost/db
@@ -45,6 +46,7 @@ Server=host;Database=db;User Id=user;Password=PASSWORD
 ```
 
 **Cloud credentials:**
+
 ```
 AKIA[0-9A-Z]{16}                    # AWS Access Key ID
 aws_secret_access_key = [A-Za-z0-9/+=]{40}
@@ -57,6 +59,7 @@ ghs_[A-Za-z0-9]{36}                # GitHub Actions token
 ```
 
 **Authentication secrets:**
+
 ```python
 SECRET_KEY = "[non-trivial-string]"       # Django/Flask secret key
 JWT_SECRET = "[non-trivial-string]"
@@ -68,6 +71,7 @@ TOKEN = "[non-trivial-string]"
 ```
 
 **Private keys:**
+
 ```
 -----BEGIN RSA PRIVATE KEY-----
 -----BEGIN EC PRIVATE KEY-----
@@ -78,6 +82,7 @@ TOKEN = "[non-trivial-string]"
 
 **Weak / obviously insecure defaults:**
 These are still findings even if entropy is low:
+
 - `password = "password"`, `"admin"`, `"secret"`, `"changeme"`, `"12345"`, `"test"`
 - `SECRET_KEY = "development"`, `"dev"`, `"insecure"`, `"unsafe"`
 - `api_key = "your-api-key-here"` used literally in non-example code
@@ -85,6 +90,7 @@ These are still findings even if entropy is low:
 
 **Testing/probe tool hardcoded credentials that create real accounts:**
 This is a distinct, high-severity pattern from ordinary weak defaults. Flag any script or tool that:
+
 1. Creates or reactivates a **live, externally-loginable** account with a deterministic/predictable email and password
 2. Grants the account a privileged role (e.g., `PlatformSuperAdmin`, `OrgAdmin`)
 3. Provides no mandatory cleanup, rotation, or randomization
@@ -105,6 +111,7 @@ go run ./tools/api-security-probe \
 ```
 
 Treat hardcoded probe/seed credentials with privileged roles as **high** severity, not informational, because:
+
 - They are typically predictable and documented
 - Running the tool against staging/production leaves an unlocked backdoor account
 - The account may have broader access than any real user
@@ -125,6 +132,7 @@ Note this as a manual follow-up if the codebase is a git repository. Do not run 
 Before reporting each hit, verify it is a real secret:
 
 **Do not report:**
+
 - Placeholder examples: `"your-api-key"`, `"<YOUR_SECRET>"`, `"TODO: set this"`
 - Test fixtures with obviously fake values: `"test-password-123"` in `tests/` directories
 - Documentation examples with fake-looking data
@@ -133,6 +141,7 @@ Before reporting each hit, verify it is a real secret:
 - Environment variable references: `os.environ.get('API_KEY')` — this is correct, not a finding
 
 **Do report:**
+
 - Real-looking credentials: sufficient entropy, structured like real API keys for known services
 - Any private key material regardless of whether it looks "fake"
 - Connection strings with passwords that are not obviously placeholders
@@ -141,38 +150,38 @@ Before reporting each hit, verify it is a real secret:
 
 ## Phase 5: Severity classification
 
-| Finding | Severity |
-|---------|---------|
-| Production database password | Critical |
-| Cloud provider access key (AWS/GCP/Azure) | Critical |
-| Private key (.pem, RSA, EC) | Critical |
-| JWT signing secret | Critical |
-| OAuth client secret | High |
-| Stripe/payment processor key | Critical |
-| Internal API key (other services) | High |
-| GitHub/GitLab token | High |
-| SMTP password | High |
-| Slack/webhook URL with token | Medium-High |
-| Dev/test credential (if same in prod) | High |
-| Dev/test credential (clearly dev-only) | Medium |
-| Weak default password | Medium-High |
+| Finding                                   | Severity    |
+| ----------------------------------------- | ----------- |
+| Production database password              | Critical    |
+| Cloud provider access key (AWS/GCP/Azure) | Critical    |
+| Private key (.pem, RSA, EC)               | Critical    |
+| JWT signing secret                        | Critical    |
+| OAuth client secret                       | High        |
+| Stripe/payment processor key              | Critical    |
+| Internal API key (other services)         | High        |
+| GitHub/GitLab token                       | High        |
+| SMTP password                             | High        |
+| Slack/webhook URL with token              | Medium-High |
+| Dev/test credential (if same in prod)     | High        |
+| Dev/test credential (clearly dev-only)    | Medium      |
+| Weak default password                     | Medium-High |
 
 ## Output format
 
 ```json
 {
-  "file": "config/production.py",
-  "line": 14,
-  "category": "hardcoded_secret",
-  "secret_type": "database_password",
-  "title": "Hardcoded PostgreSQL password in production config",
-  "evidence": "DATABASE_URL = 'postgresql://appuser:Secr3tP@ss!@prod-db.internal:5432/appdb'",
-  "masked_evidence": "DATABASE_URL = 'postgresql://appuser:***@prod-db.internal:5432/appdb'",
-  "entropy": 4.8,
-  "confirmed": true,
-  "remediation": "Move to environment variable: DATABASE_URL = os.environ['DATABASE_URL']. Rotate the exposed credential immediately.",
-  "cwe": "CWE-798",
-  "severity": "critical"
+	"file": "config/production.py",
+	"line": 14,
+	"category": "hardcoded_secret",
+	"secret_type": "database_password",
+	"title": "Hardcoded PostgreSQL password in production config",
+	"evidence": "DATABASE_URL = 'postgresql://appuser:Secr3tP@ss!@prod-db.internal:5432/appdb'",
+	"masked_evidence": "DATABASE_URL = 'postgresql://appuser:***@prod-db.internal:5432/appdb'",
+	"entropy": 4.8,
+	"confirmed": true,
+	"remediation": "Move to environment variable: DATABASE_URL = os.environ['DATABASE_URL']. Rotate the exposed credential immediately.",
+	"cwe": "CWE-798",
+	"severity": "critical"
 }
 ```
 

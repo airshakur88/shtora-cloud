@@ -1,4 +1,5 @@
 ---
+
 title: Support a --no-input Flag to Force Non-Interactive Mode
 impact: HIGH
 impactDescription: prevents prompts inside harnesses that falsely report TTY
@@ -44,6 +45,7 @@ def deploy(env, no_input):
 ```
 
 **Benefits:**
+
 - Agents set `MYAPP_NO_INPUT=1` once and never hit a prompt again
 - `--no-input` is a well-known flag in the ecosystem (npm, terraform, gcloud)
 - Keeps the interactive UX intact for humans without a separate code path

@@ -27,6 +27,7 @@ Non-technical small business owners — solopreneurs and teams of 1–10 — who
 - **Customer quote**: "I logged in, saw an empty dashboard, and thought 'now what?' I gave up and went back to my spreadsheet."
 
 **Why this works:**
+
 - Evidence from three independent sources (interviews, analytics, support tickets)
 - Quantified business impact (60% activation failure, LTV consequences)
 - Verbatim customer quote grounds the problem in real experience
@@ -54,6 +55,7 @@ Non-technical small business owners — solopreneurs and teams of 1–10 — who
 - 🔵 **Open Question**: Should we also track session duration as a guardrail? If checklist completion inflates session time without delivering value, we could be measuring activity, not progress. Analytics team to confirm.
 
 **Why this works:**
+
 - Primary metric is directly tied to the problem in Section 2 (activation failure)
 - Assumptions are tagged inline with 🔶 so reviewers see them in context
 - Open questions are tagged with 🔵 and include who needs to resolve them
@@ -73,11 +75,11 @@ Section 4 — Strategic Context. The TAM/SAM/SOM numbers are rough estimates fro
 
 **Top Assumptions to Validate**
 
-| # | Assumption | Section | Risk if Wrong | Proposed Validation |
-|---|------------|---------|---------------|---------------------|
-| 1 | 60% target activation rate is achievable | Section 6 | Engineering builds to wrong success bar; initiative declared a failure at 55% | Survey 3 comparable SaaS companies for post-onboarding-redesign benchmarks |
-| 2 | Solopreneurs are the primary churning segment | Section 3 | Onboarding designed for wrong persona | Segment churn data by company size in Mixpanel; confirm with 5 exit interviews |
-| 3 | Checklist format is the right intervention | Section 5 | Build wrong solution; interactive tour or video might work better | Run `pol-probe` experiment: 50-user prototype test comparing checklist vs. tooltip tour |
+| #   | Assumption                                    | Section   | Risk if Wrong                                                                 | Proposed Validation                                                                     |
+| --- | --------------------------------------------- | --------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1   | 60% target activation rate is achievable      | Section 6 | Engineering builds to wrong success bar; initiative declared a failure at 55% | Survey 3 comparable SaaS companies for post-onboarding-redesign benchmarks              |
+| 2   | Solopreneurs are the primary churning segment | Section 3 | Onboarding designed for wrong persona                                         | Segment churn data by company size in Mixpanel; confirm with 5 exit interviews          |
+| 3   | Checklist format is the right intervention    | Section 5 | Build wrong solution; interactive tour or video might work better             | Run `pol-probe` experiment: 50-user prototype test comparing checklist vs. tooltip tour |
 
 **Recommended Next Step**
 
@@ -90,17 +92,21 @@ Run 3 discovery interviews with recently churned solopreneurs to validate the on
 A PRD that skips evidence, personas, metrics, and acceptance criteria — the kind that produces misalignment and wasted effort.
 
 **Problem Statement:**
+
 > "Users want better onboarding."
 
 **Solution:**
+
 > "Add onboarding."
 
 **Requirements:**
+
 > "1. Onboarding flow
 > 2. Tooltips
 > 3. Help docs"
 
 **Why this fails:**
+
 - No evidence (who wants this? how do we know?)
 - No personas (who is "users"?)
 - No success metrics (how do we measure "better"?)
@@ -110,6 +116,7 @@ A PRD that skips evidence, personas, metrics, and acceptance criteria — the ki
 - No self-assessment — no honest accounting of what's known vs. guessed
 
 **Fix with the PRD template:**
+
 - **Section 2**: Write a problem statement with evidence from discovery interviews — tag any unvalidated claims as 🔶 Assumption
 - **Section 3**: Define a persona (not "users" — a specific person with goals, pain points, and current behaviour)
 - **Section 6**: Define success metrics with baselines and targets (activation rate 40% → 60%)

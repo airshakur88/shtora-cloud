@@ -92,12 +92,9 @@ export async function sendChat(
 	signal?: AbortSignal,
 ): Promise<Response> {
 	const provider = getProviderConfig(input.platform);
-	const _baseUrl = await resolveBaseUrl(input, provider);
+	const baseUrl = await resolveBaseUrl(input, provider);
 
 	if (provider?.protocol === "anthropic_messages") {
-		// This requires the native messages request to be built first
-		// The actual call path for anthropic is handled elsewhere
-		// Return error for now - this path needs native request building
 		throw new ProviderError(
 			"Anthropic messages protocol not supported via sendChat",
 			0,
@@ -113,10 +110,5 @@ export async function sendChat(
 		return sendMoondream(input, provider, signal);
 	}
 
-	return sendOpenAICompatible(
-		input,
-		provider,
-		await resolveBaseUrl(input, provider),
-		signal,
-	);
+	return sendOpenAICompatible(input, provider, baseUrl, signal);
 }

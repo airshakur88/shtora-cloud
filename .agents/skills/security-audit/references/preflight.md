@@ -67,16 +67,16 @@ must produce; anything else — error, empty output, exit 0 with zero findings �
 BROKEN. Record the exact error. Parse the JSON and count findings yourself; exit codes
 lie (see "Never trust an exit code alone" in `sast-secrets.md`).
 
-| Tool | Canary command | Expected signal |
-|---|---|---|
-| semgrep | `semgrep scan --config p/security-audit --json $CANARY` | ≥1 result (subprocess/shell) |
-| bandit | `bandit -r $CANARY -f json` | ≥1 issue (B602/B604) |
-| gitleaks | `gitleaks dir -v $CANARY` | ≥2 leaks (AWS key, GitHub PAT) |
-| trufflehog | `trufflehog filesystem $CANARY --no-verification --json` | ≥1 result (GitHub detector) |
-| trivy secrets | `trivy fs --scanners secret $CANARY` | GitHub PAT flagged (AWS key is version-dependent — see below) |
-| trivy vuln | `trivy fs --scanners vuln $CANARY` | ≥1 CVE on requests 2.19.1 |
-| osv-scanner | `osv-scanner scan source -L $CANARY/requirements.txt` | ≥1 advisory, exit 1 |
-| gosec | `gosec ./...` from inside `$CANARY/go/` | ≥1 issue (G204) |
+| Tool          | Canary command                                           | Expected signal                                               |
+| ------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
+| semgrep       | `semgrep scan --config p/security-audit --json $CANARY`  | ≥1 result (subprocess/shell)                                  |
+| bandit        | `bandit -r $CANARY -f json`                              | ≥1 issue (B602/B604)                                          |
+| gitleaks      | `gitleaks dir -v $CANARY`                                | ≥2 leaks (AWS key, GitHub PAT)                                |
+| trufflehog    | `trufflehog filesystem $CANARY --no-verification --json` | ≥1 result (GitHub detector)                                   |
+| trivy secrets | `trivy fs --scanners secret $CANARY`                     | GitHub PAT flagged (AWS key is version-dependent — see below) |
+| trivy vuln    | `trivy fs --scanners vuln $CANARY`                       | ≥1 CVE on requests 2.19.1                                     |
+| osv-scanner   | `osv-scanner scan source -L $CANARY/requirements.txt`    | ≥1 advisory, exit 1                                           |
+| gosec         | `gosec ./...` from inside `$CANARY/go/`                  | ≥1 issue (G204)                                               |
 
 Two deliberate deviations, verified against the current tools:
 
@@ -106,15 +106,15 @@ Host installs rot — an ancient distro package, a Python packaging conflict —
 official image sidesteps the toolchain entirely. Ask before the first pull, then re-run
 the canary through the container: an image can be broken too.
 
-| Tool | One-liner |
-|---|---|
-| semgrep | `docker run --rm -v "$PWD:/src" semgrep/semgrep semgrep scan --config p/security-audit /src` |
-| gitleaks | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest git /repo` |
-| trufflehog | `docker run --rm -v "$PWD:/repo" trufflesecurity/trufflehog:latest git file:///repo --results=verified,unknown` |
-| bandit | `docker run --rm -v "$PWD:/src" ghcr.io/pycqa/bandit/bandit -r /src` |
-| trivy | `docker run --rm -v "$PWD:/repo" ghcr.io/aquasecurity/trivy:0.73.0 fs --scanners vuln /repo` |
-| osv-scanner | `docker run --rm -v "$PWD:/src" ghcr.io/google/osv-scanner:latest scan source -r /src` |
-| gosec | `docker run --rm -v "$PWD:/app" -w /app securego/gosec ./...` |
+| Tool        | One-liner                                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------------------------- |
+| semgrep     | `docker run --rm -v "$PWD:/src" semgrep/semgrep semgrep scan --config p/security-audit /src`                    |
+| gitleaks    | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest git /repo`                                    |
+| trufflehog  | `docker run --rm -v "$PWD:/repo" trufflesecurity/trufflehog:latest git file:///repo --results=verified,unknown` |
+| bandit      | `docker run --rm -v "$PWD:/src" ghcr.io/pycqa/bandit/bandit -r /src`                                            |
+| trivy       | `docker run --rm -v "$PWD:/repo" ghcr.io/aquasecurity/trivy:0.73.0 fs --scanners vuln /repo`                    |
+| osv-scanner | `docker run --rm -v "$PWD:/src" ghcr.io/google/osv-scanner:latest scan source -r /src`                          |
+| gosec       | `docker run --rm -v "$PWD:/app" -w /app securego/gosec ./...`                                                   |
 
 **Trivy: pin an explicit tag >= 0.70, pull from GHCR, and check `--version` after the
 pull.** Malicious images shipped as v0.69.5/v0.69.6 in the March 2026 compromise

@@ -80,7 +80,7 @@ The `it` factory wraps `bun:test` with three variants:
 `testEffect(layer)` builds an `it` bound to an Effect layer:
 
 ```typescript
-const it = testEffect(Layer.mergeAll(readLayer(), testInstanceStoreLayer))
+const it = testEffect(Layer.mergeAll(readLayer(), testInstanceStoreLayer));
 ```
 
 ## Instance and tmpdir fixtures (test/fixture/fixture.ts)
@@ -115,12 +115,15 @@ Isolation environment keys:
 Real example from `packages/opencode/test/cli/serve/serve-process.test.ts`:
 
 ```typescript
-cliIt.live("spawns serve and health responds", async ({ opencode, expectExit }) => {
-  const server = await opencode.serve()
-  expect(server.port).toBeGreaterThan(0)
-  const res = await fetch(`${server.url}/global/health`)
-  expect(res.status).toBe(200)
-})
+cliIt.live(
+	"spawns serve and health responds",
+	async ({ opencode, expectExit }) => {
+		const server = await opencode.serve();
+		expect(server.port).toBeGreaterThan(0);
+		const res = await fetch(`${server.url}/global/health`);
+		expect(res.status).toBe(200);
+	},
+);
 ```
 
 ## Fake LLM server (test/lib/llm-server.ts)
@@ -142,14 +145,14 @@ This is how tests avoid real provider calls.
 From `packages/opencode/test/tool/read.test.ts`:
 
 ```typescript
-const it = testEffect(Layer.mergeAll(readLayer(), testInstanceStoreLayer))
+const it = testEffect(Layer.mergeAll(readLayer(), testInstanceStoreLayer));
 
 it.instance("truncates large file over maxReadFileSize", () =>
-  Effect.gen(function* () {
-    const test = yield* TestInstance
-    // ... exercise the read tool, assert truncation
-  })
-)
+	Effect.gen(function* () {
+		const test = yield* TestInstance;
+		// ... exercise the read tool, assert truncation
+	}),
+);
 ```
 
 ### 2. Session/event test
@@ -158,11 +161,11 @@ From `packages/opencode/test/session/session.test.ts`:
 
 ```typescript
 test("session.created fires after session.create", async () => {
-  const deferred = Deferred.unsafeMake<void>(FiberId.none)
-  // ... listen for session.created event
-  await session.create({})
-  // ... assert deferred resolves
-})
+	const deferred = Deferred.unsafeMake<void>(FiberId.none);
+	// ... listen for session.created event
+	await session.create({});
+	// ... assert deferred resolves
+});
 ```
 
 ### 3. Plain unit test
@@ -170,11 +173,11 @@ test("session.created fires after session.create", async () => {
 From `packages/opencode/test/cli/run/runtime.boot.test.ts`:
 
 ```typescript
-import { describe, expect, mock, spyOn, test } from "bun:test"
+import { describe, expect, mock, spyOn, test } from "bun:test";
 
 test("boots runtime without errors", () => {
-  // ... standard assertions, no Effect
-})
+	// ... standard assertions, no Effect
+});
 ```
 
 ## App e2e (Playwright)

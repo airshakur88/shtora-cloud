@@ -2,12 +2,12 @@
 
 ## What's Shipped
 
-| Version | Date | What Changed |
-|---------|------|--------------|
-| v1.0 | 2026-01-01 | Initial creation from Write with AI prompt |
-| v1.1 | 2026-01-08 | Added docs/ folder (README, GUIDE, ROADMAP) |
-| v1.1.0 | 2026-01-15 | Directive instructions, positive framing, skill chaining section |
-| v1.2.0 | 2026-01-17 | Stop Slop integration: throat-clearing, emphasis crutches, dramatic fragmentation; +10 word substitutions; 13-point checklist |
+| Version | Date       | What Changed                                                                                                                  |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| v1.0    | 2026-01-01 | Initial creation from Write with AI prompt                                                                                    |
+| v1.1    | 2026-01-08 | Added docs/ folder (README, GUIDE, ROADMAP)                                                                                   |
+| v1.1.0  | 2026-01-15 | Directive instructions, positive framing, skill chaining section                                                              |
+| v1.2.0  | 2026-01-17 | Stop Slop integration: throat-clearing, emphasis crutches, dramatic fragmentation; +10 word substitutions; 13-point checklist |
 
 ## The Vision
 

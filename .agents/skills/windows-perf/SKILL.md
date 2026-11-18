@@ -1,4 +1,5 @@
 ---
+
 name: windows-perf
 description: "Optimize Windows 11 for performance, privacy, and developer productivity. Use this skill whenever the user wants to speed up Windows, remove bloatware, debloat their machine, tune Windows for development, clean up junk apps, optimize GPU/network/memory settings, disable telemetry, or generally make their Windows machine faster. Also trigger when users mention slow builds, Windows bloat, startup optimization, or anything about making Windows less annoying. Even if they just say 'my PC feels slow' or 'clean this machine up' on a Windows system - this skill applies."
 ---
@@ -28,6 +29,7 @@ powercfg /getactivescheme
 ```
 
 Also check elevation — many optimizations require admin:
+
 ```powershell
 ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 ```
@@ -38,25 +40,25 @@ If not admin, warn the user upfront: "I can apply user-level tweaks (UI, Explore
 
 Use AskUserQuestion to let the user pick what to optimize. Present the categories with descriptions so they can make an informed choice. The categories are:
 
-| Module | What it does | Needs Admin |
-|---|---|---|
-| power | Ultimate Performance plan, core parking off, idle states off | Yes |
-| services | Disable telemetry, Superfetch, Search indexer, etc. (10 services) | Yes |
-| network | Cloudflare DNS, Nagle off, TCP tuning, RSS, throttling off | Yes |
-| privacy | Telemetry zero, ads off, Bing removed, Copilot blocked, Edge nags killed | Partial |
-| ui | Zero menu delay, faster shutdown, reduced animations | Partial |
-| explorer | File extensions, hidden files, classic right-click, full paths | No |
-| taskbar | Remove Widgets, Task View, Chat, Copilot, Search box | No |
-| gaming | HW GPU scheduling, Game Mode, DVR off, NVIDIA max perf, TDR | Partial |
-| memory | Pagefile, TRIM, NTFS, hibernation off, large cache, compression off | Yes |
-| bloatware | Remove 30+ junk apps, block reinstall, deprovision | Partial |
-| onedrive | Full OneDrive removal | No |
-| developer | Git config, dev mode, long paths, UTF-8, NTFS 8.3 off, NODE_OPTIONS | Partial |
-| defender | Defender exclusions for dev folders/processes (huge build speed boost) | Yes |
-| input | Mouse acceleration off, Sticky/Filter/Toggle Keys prompts off | No |
-| misc | Dark mode, clipboard history, background apps off, lock screen off | Partial |
-| tasks | Disable telemetry/CEIP/diagnostic scheduled tasks | Yes |
-| wsl | WSL2 memory/CPU/swap optimization | No |
+| Module    | What it does                                                             | Needs Admin |
+| --------- | ------------------------------------------------------------------------ | ----------- |
+| power     | Ultimate Performance plan, core parking off, idle states off             | Yes         |
+| services  | Disable telemetry, Superfetch, Search indexer, etc. (10 services)        | Yes         |
+| network   | Cloudflare DNS, Nagle off, TCP tuning, RSS, throttling off               | Yes         |
+| privacy   | Telemetry zero, ads off, Bing removed, Copilot blocked, Edge nags killed | Partial     |
+| ui        | Zero menu delay, faster shutdown, reduced animations                     | Partial     |
+| explorer  | File extensions, hidden files, classic right-click, full paths           | No          |
+| taskbar   | Remove Widgets, Task View, Chat, Copilot, Search box                     | No          |
+| gaming    | HW GPU scheduling, Game Mode, DVR off, NVIDIA max perf, TDR              | Partial     |
+| memory    | Pagefile, TRIM, NTFS, hibernation off, large cache, compression off      | Yes         |
+| bloatware | Remove 30+ junk apps, block reinstall, deprovision                       | Partial     |
+| onedrive  | Full OneDrive removal                                                    | No          |
+| developer | Git config, dev mode, long paths, UTF-8, NTFS 8.3 off, NODE_OPTIONS      | Partial     |
+| defender  | Defender exclusions for dev folders/processes (huge build speed boost)   | Yes         |
+| input     | Mouse acceleration off, Sticky/Filter/Toggle Keys prompts off            | No          |
+| misc      | Dark mode, clipboard history, background apps off, lock screen off       | Partial     |
+| tasks     | Disable telemetry/CEIP/diagnostic scheduled tasks                        | Yes         |
+| wsl       | WSL2 memory/CPU/swap optimization                                        | No          |
 
 Also ask about DNS preference (Cloudflare 1.1.1.1, Google 8.8.8.8, Quad9 9.9.9.9, or keep current).
 
@@ -65,6 +67,7 @@ Offer a "Send it - do everything" option for users who just want the full treatm
 ### Step 3: Execute
 
 **If windows-perf.ps1 exists locally**, run it with the appropriate flags:
+
 ```powershell
 # Everything
 .\windows-perf.ps1
@@ -83,6 +86,7 @@ Offer a "Send it - do everything" option for users who just want the full treatm
 ```
 
 If admin is needed, launch elevated:
+
 ```powershell
 Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File .\windows-perf.ps1" -Verb RunAs
 ```
@@ -92,6 +96,7 @@ Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File .\windows-
 ### Step 4: Verify
 
 After applying changes, verify key optimizations took effect:
+
 ```powershell
 powercfg /getactivescheme  # Should show Ultimate Performance
 Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object { $_.ServerAddresses } | Select-Object InterfaceAlias, ServerAddresses
@@ -111,6 +116,7 @@ Always end with: "Restart required for full effect" — pagefile, GPU scheduling
 When the script isn't available, here are the exact commands for each module. Use Set-ItemProperty for registry changes, creating parent keys with New-Item -Force when they don't exist.
 
 ### Power
+
 ```powershell
 # Unlock and activate Ultimate Performance
 powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61
@@ -126,13 +132,16 @@ powercfg /setactive $guid
 ```
 
 ### Services (admin)
+
 Disable: DiagTrack, dmwappushservice, SysMain, WSearch, MapsBroker, lfsvc, RetailDemo, WerSvc, Fax, wisvc
+
 ```powershell
 $svcs = @('DiagTrack','dmwappushservice','SysMain','WSearch','MapsBroker','lfsvc','RetailDemo','WerSvc','Fax','wisvc')
 foreach ($s in $svcs) { Stop-Service $s -Force -EA SilentlyContinue; Set-Service $s -StartupType Disabled -EA SilentlyContinue }
 ```
 
 ### Network (admin)
+
 ```powershell
 # DNS (Cloudflare)
 $adapter = Get-NetAdapter | Where-Object { $_.Status -eq "Up" -and $_.InterfaceDescription -notmatch "Virtual|Loopback" } | Select-Object -First 1
@@ -153,7 +162,9 @@ Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization
 ```
 
 ### Privacy
+
 Key registry paths — set all values to 0 (DWord) unless noted:
+
 - `HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager` — SilentInstalledAppsEnabled, ContentDeliveryAllowed, all SubscribedContent-* keys
 - `HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo` — Enabled
 - `HKCU:\Software\Microsoft\Windows\CurrentVersion\Search` — BingSearchEnabled, CortanaConsent
@@ -163,6 +174,7 @@ Key registry paths — set all values to 0 (DWord) unless noted:
 - `HKLM:\SOFTWARE\Policies\Microsoft\Edge` — HideFirstRunExperience=1, DefaultBrowserSettingEnabled=0, HubsSidebarEnabled=0 (admin)
 
 ### UI Speed
+
 ```powershell
 Set-ItemProperty "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value "0" -Type String
 Set-ItemProperty "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Value "0" -Type String
@@ -174,6 +186,7 @@ Set-ItemProperty "HKCU:\Control Panel\Desktop" -Name "FontSmoothing" -Value "2" 
 ```
 
 ### Explorer
+
 ```powershell
 $adv = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 Set-ItemProperty $adv -Name "HideFileExt" -Value 0; Set-ItemProperty $adv -Name "Hidden" -Value 1
@@ -184,12 +197,14 @@ New-Item $ctx -Force | Out-Null; Set-ItemProperty $ctx -Name "(Default)" -Value 
 ```
 
 ### Bloatware
+
 ```powershell
 $apps = @("Microsoft.Copilot","Microsoft.YourPhone","Clipchamp.Clipchamp","Microsoft.BingNews","Microsoft.BingWeather","Microsoft.BingSearch","Microsoft.WindowsFeedbackHub","Microsoft.People","Microsoft.MicrosoftSolitaireCollection","Microsoft.MixedReality.Portal","Microsoft.Microsoft3DViewer","Microsoft.SkypeApp","Microsoft.ZuneMusic","Microsoft.ZuneVideo","Microsoft.Todos","MicrosoftCorporationII.QuickAssist","Microsoft.MicrosoftOfficeHub","Microsoft.Office.OneNote","Microsoft.WindowsMaps","Microsoft.Edge.GameAssist","MSTeams","MicrosoftWindows.CrossDevice","Microsoft.GetHelp","Microsoft.WindowsAlarms","Microsoft.OutlookForWindows","MicrosoftWindows.Client.WebExperience","Microsoft.WidgetsPlatformRuntime")
 foreach ($a in $apps) { Get-AppxPackage -Name $a -EA SilentlyContinue | Remove-AppxPackage -EA SilentlyContinue }
 ```
 
 ### Defender Exclusions (admin — biggest build speed win)
+
 ```powershell
 $paths = @("$env:USERPROFILE\source","$env:USERPROFILE\projects","$env:USERPROFILE\repos","$env:USERPROFILE\.cargo","$env:USERPROFILE\.rustup","$env:USERPROFILE\AppData\Local\Temp","C:\dev","D:\dev","E:\dev")
 $procs = @("node.exe","cargo.exe","rustc.exe","go.exe","python.exe","dotnet.exe","git.exe","Code.exe","pwsh.exe")
@@ -198,6 +213,7 @@ foreach ($p in $procs) { Add-MpPreference -ExclusionProcess $p -EA SilentlyConti
 ```
 
 ### Developer
+
 ```powershell
 # Dev mode
 Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord
@@ -212,6 +228,7 @@ Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "Long
 ```
 
 ### Gaming/GPU (admin)
+
 ```powershell
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2 -Type DWord
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "TdrDelay" -Value 10 -Type DWord
@@ -224,6 +241,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\GameBar" -Name "AutoGameModeEnabled" 
 ```
 
 ### Memory/Disk (admin)
+
 ```powershell
 $ramGB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
 # Pagefile off for 64GB+
@@ -239,6 +257,7 @@ if ($ramGB -ge 32) { Disable-MMAgent -MemoryCompression -EA SilentlyContinue }
 ```
 
 ### Input
+
 ```powershell
 # Mouse acceleration off
 Set-ItemProperty "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value "0" -Type String
@@ -251,6 +270,7 @@ Set-ItemProperty "HKCU:\Control Panel\Accessibility\ToggleKeys" -Name "Flags" -V
 ```
 
 ### Misc
+
 ```powershell
 # Dark mode
 Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -Type DWord
@@ -263,6 +283,7 @@ Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAcce
 ```
 
 ### WSL2
+
 ```powershell
 $ramGB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
 $wslRam = [math]::Floor($ramGB / 2)

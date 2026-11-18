@@ -1,10 +1,11 @@
 ---
+
 name: run-scan
 description: Run an OpenTaint scan on project and produces the SARIF report. Use whenever the user asks to scan or re-scan a project
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Run Scan

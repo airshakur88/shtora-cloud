@@ -118,9 +118,11 @@ It's fine to say: `Not tested on Windows yet`, `This is experimental`, `PRs welc
 ### Example 1 — Project description
 
 ❌ **AI slop:**
+
 > FastCache is a comprehensive, high-performance caching solution designed to seamlessly integrate with your existing Node.js infrastructure. By leveraging cutting-edge in-memory storage techniques, FastCache empowers developers to build scalable applications with minimal configuration.
 
 ✅ **Human:**
+
 > FastCache is a Node.js in-memory cache. It's a thin wrapper around a Map with TTL support and a dead-simple API. I wrote it because node-cache's API annoyed me.
 
 ---
@@ -128,12 +130,14 @@ It's fine to say: `Not tested on Windows yet`, `This is experimental`, `PRs welc
 ### Example 2 — Feature section
 
 ❌ **AI slop:**
+
 > ## Features
 > - 🚀 **Blazing Performance**: Optimized for maximum throughput
 > - 🔒 **Enterprise Security**: Built with security best practices
 > - 🎯 **Intuitive API**: Designed for developer experience
 
 ✅ **Human:**
+
 > ## What it does
 > - Sub-millisecond reads for hot keys (benchmarks in `/bench`)
 > - JWT validation baked in, no extra setup
@@ -144,12 +148,14 @@ It's fine to say: `Not tested on Windows yet`, `This is experimental`, `PRs welc
 ### Example 3 — Getting started
 
 ❌ **AI slop:**
+
 > ## Getting Started
 > Welcome to the getting started guide! Follow these simple steps to begin your journey with FastCache.
 > ### Prerequisites
 > Before you begin, ensure you have met the following requirements...
 
 ✅ **Human:**
+
 > ## Install
 > ```bash
 > npm install fastcache
@@ -175,9 +181,11 @@ The single biggest tell of AI writing is uniform sentence length. Every sentence
 Vary it deliberately.
 
 ❌ **AI rhythm (all sentences roughly equal length):**
+
 > FastCache provides an in-memory caching solution for Node.js applications. It supports TTL-based expiry and automatic eviction policies. The library includes a simple get/set/del API that developers can integrate quickly.
 
 ✅ **Human rhythm (short and long mixed):**
+
 > FastCache is a Node.js in-memory cache. Thin wrapper around a Map. Supports TTL and auto-eviction. I wrote it because every other cache library I tried had an API that felt like it was designed by committee — seven methods when you need three.
 
 Short sentences. Then a longer one that explains the why. Then short again.
@@ -187,6 +195,7 @@ Short sentences. Then a longer one that explains the why. Then short again.
 Real READMEs have gaps. They have opinions. They have a reason to exist.
 
 **Add at least one of these:**
+
 - Why the author built it: "I needed X, and nothing did Y"
 - Honest limitations: "Windows support is untested", "This is alpha software"
 - A specific tradeoff: "Chose X over Y because Z — if you need Z, use that instead"
@@ -212,5 +221,5 @@ Different project types have different expectations. Don't write a library READM
 - A "Vision" or "Mission" section for a utility library
 - An "Architecture Overview" with a 5-level diagram for a 200-line script
 - A "Contributing" section that's longer than the actual docs
-- "Star this repo if you find it useful!" 
+- "Star this repo if you find it useful!"
 - A changelog in the README

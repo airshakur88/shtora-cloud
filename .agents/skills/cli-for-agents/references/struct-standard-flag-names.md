@@ -1,4 +1,5 @@
 ---
+
 title: Use Standard Flag Names — --help, --version, --verbose, --quiet
 impact: MEDIUM
 impactDescription: prevents agents from guessing wrong flags
@@ -42,18 +43,19 @@ def mycli(verbose, quiet, force, dry_run, queue, config_file):
 
 **Standard short flags to respect:**
 
-| Short | Long | Meaning |
-|-------|------|---------|
-| `-h` | `--help` | Show help |
-| `-V` | `--version` | Show version (capital V; some tools use `-v`) |
-| `-v` | `--verbose` | Verbose output |
-| `-q` | `--quiet` | Suppress non-essential output |
-| `-f` | `--force` | Skip confirmations |
-| `-n` | `--dry-run` | Preview without applying |
-| `-o` | `--output` | Output file or format |
-| `-y` | `--yes` | Assume yes to prompts |
+| Short | Long        | Meaning                                       |
+| ----- | ----------- | --------------------------------------------- |
+| `-h`  | `--help`    | Show help                                     |
+| `-V`  | `--version` | Show version (capital V; some tools use `-v`) |
+| `-v`  | `--verbose` | Verbose output                                |
+| `-q`  | `--quiet`   | Suppress non-essential output                 |
+| `-f`  | `--force`   | Skip confirmations                            |
+| `-n`  | `--dry-run` | Preview without applying                      |
+| `-o`  | `--output`  | Output file or format                         |
+| `-y`  | `--yes`     | Assume yes to prompts                         |
 
 **Benefits:**
+
 - Agents guess right on the first try
 - Scripts that composed well with other tools continue to compose with yours
 - New domain-specific flags stay as long-form to avoid collisions

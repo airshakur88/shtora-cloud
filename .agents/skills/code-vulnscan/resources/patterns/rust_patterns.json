@@ -1,68 +1,320 @@
 {
-  "memory_safety": [
-    {"id": "rs-unsafe-001", "regex": "unsafe\\s*\\{", "vuln_type": "unsafe_code", "confidence": "possible", "description": "Unsafe block — review the concrete invariants for raw pointers, FFI, aliasing, initialization, and lifetimes"},
-    {"id": "rs-unsafe-002", "regex": "\\b(?:slice|std::slice)::from_raw_parts\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "slice::from_raw_parts requires a valid, aligned allocation and a sound length"},
-    {"id": "rs-unsafe-003", "regex": "\\b(?:slice|std::slice)::from_raw_parts_mut\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "slice::from_raw_parts_mut additionally requires exclusive mutable access"},
-    {"id": "rs-unsafe-004", "regex": "\\b(?:mem|std::mem)::transmute(?:\\s*::\\s*<[^>]+>)?\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "transmute can create invalid values or violate layout and lifetime invariants"},
-    {"id": "rs-unsafe-005", "regex": "\\b(?:ptr|std::ptr)::(?:read|write|copy|copy_nonoverlapping)\\s*\\(", "vuln_type": "memory_safety", "confidence": "possible", "description": "Raw-pointer operation — verify validity, alignment, overlap, initialization, and bounds"},
-    {"id": "rs-unsafe-006", "regex": "\\b(?:Box|Arc|Rc)::from_raw\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "from_raw retakes ownership and can cause double-free or allocator/refcount corruption"},
-    {"id": "rs-unsafe-007", "regex": "\\.unwrap_unchecked\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "unwrap_unchecked is undefined behavior when the value is None or Err"},
-    {"id": "rs-unsafe-008", "regex": "\\.set_len\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "Vec::set_len requires every newly exposed element to be initialized"},
-    {"id": "rs-unsafe-009", "regex": "\\bVec::from_raw_parts\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "Vec::from_raw_parts requires exact allocator, capacity, alignment, and initialization invariants"},
-    {"id": "rs-unsafe-010", "regex": "\\b(?:str|std::str)::from_utf8_unchecked\\s*\\(", "vuln_type": "memory_safety", "confidence": "likely", "description": "from_utf8_unchecked creates an invalid str if the input is not valid UTF-8"}
-  ],
-  "ffi": [
-    {"id": "rs-ffi-001", "regex": "extern\\s+[\"']C[\"']\\s*\\{", "vuln_type": "ffi", "confidence": "possible", "description": "C FFI boundary — validate ABI, ownership, lifetime, unwinding, and thread-safety assumptions"},
-    {"id": "rs-ffi-002", "regex": "\\bCStr::from_ptr\\s*\\(", "vuln_type": "ffi", "confidence": "possible", "description": "CStr::from_ptr requires a non-null, valid, NUL-terminated pointer with a sufficient lifetime"},
-    {"id": "rs-ffi-003", "regex": "\\bCString::from_raw\\s*\\(", "vuln_type": "ffi", "confidence": "likely", "description": "CString::from_raw must receive exactly one pointer produced by CString::into_raw"},
-    {"id": "rs-ffi-004", "regex": "\\b(?:libc::)?(?:strcpy|strcat|sprintf|gets)\\s*\\(", "vuln_type": "ffi", "confidence": "likely", "description": "Unbounded C string operation reachable through FFI — verify destination capacity and termination"}
-  ],
-  "integer_safety": [
-    {"id": "rs-int-001", "regex": "\\bunchecked_(?:add|sub|mul|div|rem|shl|shr)\\s*\\(", "vuln_type": "integer_overflow", "confidence": "likely", "description": "Unchecked arithmetic has caller-enforced overflow preconditions and can cause undefined behavior"},
-    {"id": "rs-int-002", "regex": "\\bas\\s+(?:u8|u16|u32|usize)\\b", "vuln_type": "integer_truncation", "confidence": "possible", "description": "Narrowing numeric cast truncates silently — validate range or use TryFrom/TryInto"},
-    {"id": "rs-int-003", "regex": "\\b(?:get_unchecked|get_unchecked_mut)\\s*\\(", "vuln_type": "bounds_check_bypass", "confidence": "likely", "description": "Unchecked indexing is undefined behavior when the index is out of bounds"},
-    {"id": "rs-int-004", "regex": "\\b(?:alloc|alloc_zeroed|Layout::from_size_align_unchecked)\\s*\\(", "vuln_type": "memory_safety", "confidence": "possible", "description": "Manual allocation — verify checked size arithmetic, alignment, null handling, initialization, and matching deallocation"}
-  ],
-  "crypto": [
-    {"id": "rs-crypto-001", "regex": "(?:use\\s+md5::|extern\\s+crate\\s+md5\\b)", "vuln_type": "weak_crypto", "confidence": "possible", "description": "MD5 is unsuitable for passwords, signatures, collision resistance, or adversarial integrity checks"},
-    {"id": "rs-crypto-002", "regex": "(?:use\\s+sha1::|extern\\s+crate\\s+sha1\\b)", "vuln_type": "weak_crypto", "confidence": "possible", "description": "SHA-1 is collision-broken and unsuitable for signatures or adversarial integrity checks"},
-    {"id": "rs-crypto-003", "regex": "(?:StdRng|SmallRng)::seed_from_u64\\s*\\(\\s*(?:0x[0-9a-f]+|[0-9]+)\\s*\\)", "vuln_type": "insecure_random", "confidence": "likely", "description": "Predictably seeded RNG — do not use deterministic seeds for tokens, keys, nonces, or reset secrets"},
-    {"id": "rs-crypto-004", "regex": "(?:SmallRng|StdRng)::from_seed\\s*\\(\\s*\\[[^]]+\\]", "vuln_type": "insecure_random", "confidence": "possible", "description": "Statically seeded RNG may make security-sensitive output predictable"},
-    {"id": "rs-crypto-005", "regex": "(?:aes::Aes.*Ecb|ecb::(?:Encryptor|Decryptor|Ecb)<)", "vuln_type": "weak_crypto", "confidence": "confirmed", "description": "AES-ECB is deterministic and leaks plaintext structure — use an authenticated mode such as AES-GCM"}
-  ],
-  "sql_injection": [
-    {"id": "rs-sqli-001", "regex": "sqlx::(?:query|query_as|query_scalar|raw_sql)\\s*\\(\\s*&?format!\\s*\\(", "vuln_type": "sqli", "confidence": "likely", "description": "SQLx query text built with format! — keep SQL structure fixed and bind values"},
-    {"id": "rs-sqli-002", "regex": "diesel::sql_query\\s*\\(\\s*&?format!\\s*\\(", "vuln_type": "sqli", "confidence": "likely", "description": "Diesel raw SQL built with format! — use typed query APIs or bind parameters"},
-    {"id": "rs-sqli-003", "regex": "\\.(?:query|execute|batch_execute)\\s*\\(\\s*&?format!\\s*\\(", "vuln_type": "sqli", "confidence": "likely", "description": "Database query assembled with format! — bind values instead of interpolating them"}
-  ],
-  "command_injection": [
-    {"id": "rs-cmdi-001", "regex": "Command::new\\s*\\(\\s*[\"'](?:sh|bash|zsh|cmd(?:\\.exe)?|powershell(?:\\.exe)?)[\"']\\s*\\)", "vuln_type": "cmdi", "confidence": "possible", "description": "Shell execution — trace every command string and argument to its trust boundary"},
-    {"id": "rs-cmdi-002", "regex": "Command::new\\s*\\(\\s*&?(?:cmd|command|program|executable|input)\\b", "vuln_type": "cmdi", "confidence": "likely", "description": "Potentially attacker-controlled executable selection — enforce an exact allowlist"}
-  ],
-  "ssrf": [
-    {"id": "rs-ssrf-001", "regex": "reqwest::get\\s*\\([^)]*(?:query|params|input|target|url)", "vuln_type": "ssrf", "confidence": "possible", "description": "reqwest GET uses a likely externally supplied URL — validate scheme, resolved address, port, and redirects"},
-    {"id": "rs-ssrf-002", "regex": "\\.(?:get|post|request)\\s*\\(\\s*&?(?:query|params|input|target|url)\\b", "vuln_type": "ssrf", "confidence": "possible", "description": "HTTP client uses a likely externally supplied URL — require a destination allowlist and redirect revalidation"},
-    {"id": "rs-ssrf-003", "regex": "(?:hyper::)?Uri::(?:from_str|try_from)\\s*\\(\\s*&?(?:query|params|input|target|url)\\b", "vuln_type": "ssrf", "confidence": "possible", "description": "Hyper URI is built from a likely untrusted string — validate the effective destination before connecting"}
-  ],
-  "path_traversal": [
-    {"id": "rs-pt-001", "regex": "(?:tokio::)?fs::(?:read|read_to_string|write|remove_file)\\s*\\(\\s*(?:format!\\s*\\(|&?(?:query|params|input|filename|path)\\b)", "vuln_type": "path_traversal", "confidence": "possible", "description": "Filesystem operation uses a likely external path — canonicalize against a trusted base and enforce containment"},
-    {"id": "rs-pt-002", "regex": "(?:File|NamedFile)::(?:open|create)\\s*\\(\\s*&?(?:query|params|input|filename|path)\\b", "vuln_type": "path_traversal", "confidence": "possible", "description": "File open uses a likely external path — enforce trusted-base containment and symlink policy"}
-  ],
-  "open_redirect": [
-    {"id": "rs-redirect-001", "regex": "Redirect::(?:to|temporary|permanent|found)\\s*\\(\\s*&?(?:query|params|input|next|target|url)\\b", "vuln_type": "open_redirect", "confidence": "possible", "description": "Redirect uses a likely external destination — allowlist normalized local destinations"},
-    {"id": "rs-redirect-002", "regex": "(?:LOCATION|header::LOCATION)\\s*,\\s*&?(?:query|params|input|next|target|url)\\b", "vuln_type": "open_redirect", "confidence": "possible", "description": "Location header uses a likely external destination — validate it before redirecting"}
-  ],
-  "output_injection": [
-    {"id": "rs-xss-001", "regex": "(?:axum::response::)?Html\\s*\\(\\s*format!\\s*\\(", "vuln_type": "xss", "confidence": "likely", "description": "Dynamically formatted raw HTML response — contextually encode every untrusted value"},
-    {"id": "rs-xss-002", "regex": "(?:content::)?RawHtml\\s*\\(\\s*format!\\s*\\(", "vuln_type": "xss", "confidence": "likely", "description": "Dynamically formatted Rocket RawHtml response — HTML-escape untrusted values"},
-    {"id": "rs-header-001", "regex": "HeaderValue::(?:from_bytes_unchecked|from_maybe_shared_unchecked)\\s*\\(", "vuln_type": "header_injection", "confidence": "likely", "description": "Unchecked HeaderValue construction bypasses CR/LF and header-byte validation"}
-  ],
-  "template_injection": [
-    {"id": "rs-ssti-001", "regex": "Tera::one_off\\s*\\(\\s*&?(?:query|params|input|template|source)\\b", "vuln_type": "ssti", "confidence": "likely", "description": "Runtime Tera template source may be attacker-controlled — render only trusted templates"},
-    {"id": "rs-ssti-002", "regex": "\\.(?:add_raw_template|register_template_string|add_template|render_str)\\s*\\([^,]+,?\\s*&?(?:query|params|input|template|source)\\b", "vuln_type": "ssti", "confidence": "possible", "description": "Runtime template compilation may consume attacker-controlled template source"}
-  ],
-  "deserialization": [
-    {"id": "rs-deser-001", "regex": "bincode::(?:deserialize|decode_from_slice)\\s*\\(", "vuln_type": "deserialization", "confidence": "possible", "description": "Unbounded binary deserialization can cause excessive allocation, recursion, or custom-visitor side effects"},
-    {"id": "rs-deser-002", "regex": "(?:rmp_serde::from_(?:slice|read)|postcard::from_bytes|serde_yaml::from_(?:str|slice|reader)|ron::from_str)\\s*\\(", "vuln_type": "deserialization", "confidence": "possible", "description": "Deserialize untrusted input only with strict body, depth, collection, and type limits"}
-  ]
+	"memory_safety": [
+		{
+			"id": "rs-unsafe-001",
+			"regex": "unsafe\\s*\\{",
+			"vuln_type": "unsafe_code",
+			"confidence": "possible",
+			"description": "Unsafe block — review the concrete invariants for raw pointers, FFI, aliasing, initialization, and lifetimes"
+		},
+		{
+			"id": "rs-unsafe-002",
+			"regex": "\\b(?:slice|std::slice)::from_raw_parts\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "slice::from_raw_parts requires a valid, aligned allocation and a sound length"
+		},
+		{
+			"id": "rs-unsafe-003",
+			"regex": "\\b(?:slice|std::slice)::from_raw_parts_mut\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "slice::from_raw_parts_mut additionally requires exclusive mutable access"
+		},
+		{
+			"id": "rs-unsafe-004",
+			"regex": "\\b(?:mem|std::mem)::transmute(?:\\s*::\\s*<[^>]+>)?\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "transmute can create invalid values or violate layout and lifetime invariants"
+		},
+		{
+			"id": "rs-unsafe-005",
+			"regex": "\\b(?:ptr|std::ptr)::(?:read|write|copy|copy_nonoverlapping)\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "possible",
+			"description": "Raw-pointer operation — verify validity, alignment, overlap, initialization, and bounds"
+		},
+		{
+			"id": "rs-unsafe-006",
+			"regex": "\\b(?:Box|Arc|Rc)::from_raw\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "from_raw retakes ownership and can cause double-free or allocator/refcount corruption"
+		},
+		{
+			"id": "rs-unsafe-007",
+			"regex": "\\.unwrap_unchecked\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "unwrap_unchecked is undefined behavior when the value is None or Err"
+		},
+		{
+			"id": "rs-unsafe-008",
+			"regex": "\\.set_len\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "Vec::set_len requires every newly exposed element to be initialized"
+		},
+		{
+			"id": "rs-unsafe-009",
+			"regex": "\\bVec::from_raw_parts\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "Vec::from_raw_parts requires exact allocator, capacity, alignment, and initialization invariants"
+		},
+		{
+			"id": "rs-unsafe-010",
+			"regex": "\\b(?:str|std::str)::from_utf8_unchecked\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "likely",
+			"description": "from_utf8_unchecked creates an invalid str if the input is not valid UTF-8"
+		}
+	],
+	"ffi": [
+		{
+			"id": "rs-ffi-001",
+			"regex": "extern\\s+[\"']C[\"']\\s*\\{",
+			"vuln_type": "ffi",
+			"confidence": "possible",
+			"description": "C FFI boundary — validate ABI, ownership, lifetime, unwinding, and thread-safety assumptions"
+		},
+		{
+			"id": "rs-ffi-002",
+			"regex": "\\bCStr::from_ptr\\s*\\(",
+			"vuln_type": "ffi",
+			"confidence": "possible",
+			"description": "CStr::from_ptr requires a non-null, valid, NUL-terminated pointer with a sufficient lifetime"
+		},
+		{
+			"id": "rs-ffi-003",
+			"regex": "\\bCString::from_raw\\s*\\(",
+			"vuln_type": "ffi",
+			"confidence": "likely",
+			"description": "CString::from_raw must receive exactly one pointer produced by CString::into_raw"
+		},
+		{
+			"id": "rs-ffi-004",
+			"regex": "\\b(?:libc::)?(?:strcpy|strcat|sprintf|gets)\\s*\\(",
+			"vuln_type": "ffi",
+			"confidence": "likely",
+			"description": "Unbounded C string operation reachable through FFI — verify destination capacity and termination"
+		}
+	],
+	"integer_safety": [
+		{
+			"id": "rs-int-001",
+			"regex": "\\bunchecked_(?:add|sub|mul|div|rem|shl|shr)\\s*\\(",
+			"vuln_type": "integer_overflow",
+			"confidence": "likely",
+			"description": "Unchecked arithmetic has caller-enforced overflow preconditions and can cause undefined behavior"
+		},
+		{
+			"id": "rs-int-002",
+			"regex": "\\bas\\s+(?:u8|u16|u32|usize)\\b",
+			"vuln_type": "integer_truncation",
+			"confidence": "possible",
+			"description": "Narrowing numeric cast truncates silently — validate range or use TryFrom/TryInto"
+		},
+		{
+			"id": "rs-int-003",
+			"regex": "\\b(?:get_unchecked|get_unchecked_mut)\\s*\\(",
+			"vuln_type": "bounds_check_bypass",
+			"confidence": "likely",
+			"description": "Unchecked indexing is undefined behavior when the index is out of bounds"
+		},
+		{
+			"id": "rs-int-004",
+			"regex": "\\b(?:alloc|alloc_zeroed|Layout::from_size_align_unchecked)\\s*\\(",
+			"vuln_type": "memory_safety",
+			"confidence": "possible",
+			"description": "Manual allocation — verify checked size arithmetic, alignment, null handling, initialization, and matching deallocation"
+		}
+	],
+	"crypto": [
+		{
+			"id": "rs-crypto-001",
+			"regex": "(?:use\\s+md5::|extern\\s+crate\\s+md5\\b)",
+			"vuln_type": "weak_crypto",
+			"confidence": "possible",
+			"description": "MD5 is unsuitable for passwords, signatures, collision resistance, or adversarial integrity checks"
+		},
+		{
+			"id": "rs-crypto-002",
+			"regex": "(?:use\\s+sha1::|extern\\s+crate\\s+sha1\\b)",
+			"vuln_type": "weak_crypto",
+			"confidence": "possible",
+			"description": "SHA-1 is collision-broken and unsuitable for signatures or adversarial integrity checks"
+		},
+		{
+			"id": "rs-crypto-003",
+			"regex": "(?:StdRng|SmallRng)::seed_from_u64\\s*\\(\\s*(?:0x[0-9a-f]+|[0-9]+)\\s*\\)",
+			"vuln_type": "insecure_random",
+			"confidence": "likely",
+			"description": "Predictably seeded RNG — do not use deterministic seeds for tokens, keys, nonces, or reset secrets"
+		},
+		{
+			"id": "rs-crypto-004",
+			"regex": "(?:SmallRng|StdRng)::from_seed\\s*\\(\\s*\\[[^]]+\\]",
+			"vuln_type": "insecure_random",
+			"confidence": "possible",
+			"description": "Statically seeded RNG may make security-sensitive output predictable"
+		},
+		{
+			"id": "rs-crypto-005",
+			"regex": "(?:aes::Aes.*Ecb|ecb::(?:Encryptor|Decryptor|Ecb)<)",
+			"vuln_type": "weak_crypto",
+			"confidence": "confirmed",
+			"description": "AES-ECB is deterministic and leaks plaintext structure — use an authenticated mode such as AES-GCM"
+		}
+	],
+	"sql_injection": [
+		{
+			"id": "rs-sqli-001",
+			"regex": "sqlx::(?:query|query_as|query_scalar|raw_sql)\\s*\\(\\s*&?format!\\s*\\(",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "SQLx query text built with format! — keep SQL structure fixed and bind values"
+		},
+		{
+			"id": "rs-sqli-002",
+			"regex": "diesel::sql_query\\s*\\(\\s*&?format!\\s*\\(",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Diesel raw SQL built with format! — use typed query APIs or bind parameters"
+		},
+		{
+			"id": "rs-sqli-003",
+			"regex": "\\.(?:query|execute|batch_execute)\\s*\\(\\s*&?format!\\s*\\(",
+			"vuln_type": "sqli",
+			"confidence": "likely",
+			"description": "Database query assembled with format! — bind values instead of interpolating them"
+		}
+	],
+	"command_injection": [
+		{
+			"id": "rs-cmdi-001",
+			"regex": "Command::new\\s*\\(\\s*[\"'](?:sh|bash|zsh|cmd(?:\\.exe)?|powershell(?:\\.exe)?)[\"']\\s*\\)",
+			"vuln_type": "cmdi",
+			"confidence": "possible",
+			"description": "Shell execution — trace every command string and argument to its trust boundary"
+		},
+		{
+			"id": "rs-cmdi-002",
+			"regex": "Command::new\\s*\\(\\s*&?(?:cmd|command|program|executable|input)\\b",
+			"vuln_type": "cmdi",
+			"confidence": "likely",
+			"description": "Potentially attacker-controlled executable selection — enforce an exact allowlist"
+		}
+	],
+	"ssrf": [
+		{
+			"id": "rs-ssrf-001",
+			"regex": "reqwest::get\\s*\\([^)]*(?:query|params|input|target|url)",
+			"vuln_type": "ssrf",
+			"confidence": "possible",
+			"description": "reqwest GET uses a likely externally supplied URL — validate scheme, resolved address, port, and redirects"
+		},
+		{
+			"id": "rs-ssrf-002",
+			"regex": "\\.(?:get|post|request)\\s*\\(\\s*&?(?:query|params|input|target|url)\\b",
+			"vuln_type": "ssrf",
+			"confidence": "possible",
+			"description": "HTTP client uses a likely externally supplied URL — require a destination allowlist and redirect revalidation"
+		},
+		{
+			"id": "rs-ssrf-003",
+			"regex": "(?:hyper::)?Uri::(?:from_str|try_from)\\s*\\(\\s*&?(?:query|params|input|target|url)\\b",
+			"vuln_type": "ssrf",
+			"confidence": "possible",
+			"description": "Hyper URI is built from a likely untrusted string — validate the effective destination before connecting"
+		}
+	],
+	"path_traversal": [
+		{
+			"id": "rs-pt-001",
+			"regex": "(?:tokio::)?fs::(?:read|read_to_string|write|remove_file)\\s*\\(\\s*(?:format!\\s*\\(|&?(?:query|params|input|filename|path)\\b)",
+			"vuln_type": "path_traversal",
+			"confidence": "possible",
+			"description": "Filesystem operation uses a likely external path — canonicalize against a trusted base and enforce containment"
+		},
+		{
+			"id": "rs-pt-002",
+			"regex": "(?:File|NamedFile)::(?:open|create)\\s*\\(\\s*&?(?:query|params|input|filename|path)\\b",
+			"vuln_type": "path_traversal",
+			"confidence": "possible",
+			"description": "File open uses a likely external path — enforce trusted-base containment and symlink policy"
+		}
+	],
+	"open_redirect": [
+		{
+			"id": "rs-redirect-001",
+			"regex": "Redirect::(?:to|temporary|permanent|found)\\s*\\(\\s*&?(?:query|params|input|next|target|url)\\b",
+			"vuln_type": "open_redirect",
+			"confidence": "possible",
+			"description": "Redirect uses a likely external destination — allowlist normalized local destinations"
+		},
+		{
+			"id": "rs-redirect-002",
+			"regex": "(?:LOCATION|header::LOCATION)\\s*,\\s*&?(?:query|params|input|next|target|url)\\b",
+			"vuln_type": "open_redirect",
+			"confidence": "possible",
+			"description": "Location header uses a likely external destination — validate it before redirecting"
+		}
+	],
+	"output_injection": [
+		{
+			"id": "rs-xss-001",
+			"regex": "(?:axum::response::)?Html\\s*\\(\\s*format!\\s*\\(",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Dynamically formatted raw HTML response — contextually encode every untrusted value"
+		},
+		{
+			"id": "rs-xss-002",
+			"regex": "(?:content::)?RawHtml\\s*\\(\\s*format!\\s*\\(",
+			"vuln_type": "xss",
+			"confidence": "likely",
+			"description": "Dynamically formatted Rocket RawHtml response — HTML-escape untrusted values"
+		},
+		{
+			"id": "rs-header-001",
+			"regex": "HeaderValue::(?:from_bytes_unchecked|from_maybe_shared_unchecked)\\s*\\(",
+			"vuln_type": "header_injection",
+			"confidence": "likely",
+			"description": "Unchecked HeaderValue construction bypasses CR/LF and header-byte validation"
+		}
+	],
+	"template_injection": [
+		{
+			"id": "rs-ssti-001",
+			"regex": "Tera::one_off\\s*\\(\\s*&?(?:query|params|input|template|source)\\b",
+			"vuln_type": "ssti",
+			"confidence": "likely",
+			"description": "Runtime Tera template source may be attacker-controlled — render only trusted templates"
+		},
+		{
+			"id": "rs-ssti-002",
+			"regex": "\\.(?:add_raw_template|register_template_string|add_template|render_str)\\s*\\([^,]+,?\\s*&?(?:query|params|input|template|source)\\b",
+			"vuln_type": "ssti",
+			"confidence": "possible",
+			"description": "Runtime template compilation may consume attacker-controlled template source"
+		}
+	],
+	"deserialization": [
+		{
+			"id": "rs-deser-001",
+			"regex": "bincode::(?:deserialize|decode_from_slice)\\s*\\(",
+			"vuln_type": "deserialization",
+			"confidence": "possible",
+			"description": "Unbounded binary deserialization can cause excessive allocation, recursion, or custom-visitor side effects"
+		},
+		{
+			"id": "rs-deser-002",
+			"regex": "(?:rmp_serde::from_(?:slice|read)|postcard::from_bytes|serde_yaml::from_(?:str|slice|reader)|ron::from_str)\\s*\\(",
+			"vuln_type": "deserialization",
+			"confidence": "possible",
+			"description": "Deserialize untrusted input only with strict body, depth, collection, and type limits"
+		}
+	]
 }

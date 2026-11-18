@@ -1,10 +1,11 @@
 ---
+
 name: mantis-structural-index
 description: >-
-  Builds a content-addressed semantic-unit index from source code for
-  structural context. Use when a pinned or live codebase is available and
-  structural cross-reference data would improve research quality. Don't use for
-  findings analysis, patching, or reporting.
+Builds a content-addressed semantic-unit index from source code for
+structural context. Use when a pinned or live codebase is available and
+structural cross-reference data would improve research quality. Don't use for
+findings analysis, patching, or reporting.
 ---
 
 # Structural Code Index Builder
@@ -367,28 +368,70 @@ workspace/kb/structural_index.jsonl  # Compatibility pointer
 
 ```json
 {
-  "schema_version": 1,
-  "snapshot_id": "<SNAPSHOT_ID or 'unknown'>",
-  "root_fingerprint": "<sha256 of sorted (path, content_sha256) for all source files>",
-  "status": "complete|partial|empty|failed",
-  "provider": {
-    "kind": "local-build|baseline+overlay|remote",
-    "catalog": "catalog.sqlite",
-    "backend_versions": {
-      "cpp": {"backend_name": "tree-sitter", "backend_version": "0.20.8", "precision": "ast"},
-      "go": {"backend_name": "scip-clangd", "backend_version": "0.2.3", "precision": "semantic"}
-    }
-  },
-  "units": {"total": 0, "reused": 0, "rebuild": 0, "failed": 0},
-  "coverage": {"total_files": 0, "indexed_files": 0, "failed_files": 0, "deferred_files": 0},
-  "shards": [{"id": "", "path": "", "checksum": "", "partition_key": "", "symbol_count": 0, "edge_count": 0}],
-  "deferred_units": [{"unit_id": "", "language": "", "files": [], "priority": 4, "reason": ""}],
-  "native_indexes": [{"kind": "scip", "path": "", "snapshot_id": "", "root_fingerprint": "", "language": "", "indexer": "", "precision": ""}],
-  "baseline": {"source": "ci|local|none", "snapshot_id": "", "manifest_path": ""},
-  "overlay": {"units_added": 0, "units_modified": 0, "files": []},
-  "compat_pointer": {"path": "structural_index.jsonl", "full_export": true, "symbol_count": 0},
-  "created_at": "<ISO 8601>",
-  "build_duration_ms": 0
+	"schema_version": 1,
+	"snapshot_id": "<SNAPSHOT_ID or 'unknown'>",
+	"root_fingerprint": "<sha256 of sorted (path, content_sha256) for all source files>",
+	"status": "complete|partial|empty|failed",
+	"provider": {
+		"kind": "local-build|baseline+overlay|remote",
+		"catalog": "catalog.sqlite",
+		"backend_versions": {
+			"cpp": {
+				"backend_name": "tree-sitter",
+				"backend_version": "0.20.8",
+				"precision": "ast"
+			},
+			"go": {
+				"backend_name": "scip-clangd",
+				"backend_version": "0.2.3",
+				"precision": "semantic"
+			}
+		}
+	},
+	"units": { "total": 0, "reused": 0, "rebuild": 0, "failed": 0 },
+	"coverage": {
+		"total_files": 0,
+		"indexed_files": 0,
+		"failed_files": 0,
+		"deferred_files": 0
+	},
+	"shards": [
+		{
+			"id": "",
+			"path": "",
+			"checksum": "",
+			"partition_key": "",
+			"symbol_count": 0,
+			"edge_count": 0
+		}
+	],
+	"deferred_units": [
+		{ "unit_id": "", "language": "", "files": [], "priority": 4, "reason": "" }
+	],
+	"native_indexes": [
+		{
+			"kind": "scip",
+			"path": "",
+			"snapshot_id": "",
+			"root_fingerprint": "",
+			"language": "",
+			"indexer": "",
+			"precision": ""
+		}
+	],
+	"baseline": {
+		"source": "ci|local|none",
+		"snapshot_id": "",
+		"manifest_path": ""
+	},
+	"overlay": { "units_added": 0, "units_modified": 0, "files": [] },
+	"compat_pointer": {
+		"path": "structural_index.jsonl",
+		"full_export": true,
+		"symbol_count": 0
+	},
+	"created_at": "<ISO 8601>",
+	"build_duration_ms": 0
 }
 ```
 
@@ -587,7 +630,7 @@ pointer is written. Large consumers MUST use the query interface.
 Line 1 — provenance header:
 
 ```json
-{"_provenance": true, "snapshot_id": "abc123", "tool": "tree-sitter"}
+{ "_provenance": true, "snapshot_id": "abc123", "tool": "tree-sitter" }
 ```
 
 Lines 2+ — structural records (one per line, `_type` discriminator):
@@ -652,20 +695,17 @@ NOT the query contract — it is a compatibility export only.
 
 1. `resolve_symbol(name, language?, file?, namespace?)` →
    `{results, total, ambiguous, coverage}`
-
    - Returns ALL matches — no silent selection among ambiguous symbols.
    - Caller MUST disambiguate before calling `find_callers` / `find_callees`.
 
 2. `find_callers(symbol_id, limit=100, offset=0)` →
    `{results, total, has_more, coverage}`
-
    - Bounded, paginated caller lookup.
    - Each result carries `precision`, `backend`, `edge_kind`.
    - Empty results carry `coverage.partition_status`.
 
 3. `find_callees(symbol_id, limit=100, offset=0)` →
    `{results, total, has_more, coverage}`
-
    - Same shape as `find_callers`.
 
 4. `get_function_boundary(file, line)` →

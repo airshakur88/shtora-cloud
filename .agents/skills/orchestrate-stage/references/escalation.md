@@ -7,6 +7,7 @@ Use when a leaf reports a rule or approximation it could not make work after its
 When the task supplies the failed scan `setup`, dispatch report-analyzer-issue.
 
 Inputs:
+
 - `setup` — the exact scan command, project model, rulesets, approximation dirs, final memory bound, current commit, and scan log path
 
 Expect `.opentaint/issues/<slug>.md`; return it to MAIN and stop this stage. There is no rule/approximation terminal mark for a scan-wide resource failure.
@@ -22,6 +23,7 @@ A scan-flagged created rule that fails to load, false-positives/negatives, or be
 Dispatch report-analyzer-issue before marking the item terminal.
 
 Inputs:
+
 - `artifact` — the rule's full id and ruleset, or the approximation target method(s)
 - `diagnosis` — the leaf's one-line cause
 - `name` (optional) — the known test-project unit/batch used for the failed check
@@ -36,7 +38,11 @@ The stage orchestrator writes the terminal mark after the reporting leaf returns
 - approximation method → append it to the known owning batch's `engine_issues`, quoting method and signature:
 
 ```yaml
-- { method: "cn.hutool.core.lang.Assert#notNull", signature: "(Ljava/lang/Object;Ljava/util/function/Supplier;)Ljava/lang/Object;", reason: "one-line engine limitation" }
+- {
+    method: "cn.hutool.core.lang.Assert#notNull",
+    signature: "(Ljava/lang/Object;Ljava/util/function/Supplier;)Ljava/lang/Object;",
+    reason: "one-line engine limitation",
+  }
 ```
 
 After an approximation mark, run `uv run <skill-dir>/scripts/generate.py merge-skipped` so `approximations/skipped.yaml` reflects the terminal item.

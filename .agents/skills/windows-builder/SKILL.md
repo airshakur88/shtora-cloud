@@ -1,8 +1,9 @@
 ---
+
 name: windows-builder
 description: Build Windows images with Packer using WinRM communicator and PowerShell provisioners. Use when creating Windows AMIs, Azure images, or VMware templates.
 metadata:
-  lifecycle-status: active
+lifecycle-status: active
 ---
 
 # Windows Builder
@@ -163,11 +164,13 @@ provisioner "powershell" {
 ## Common Issues
 
 **WinRM Timeout**
+
 - Increase `winrm_timeout` to 15m or more
 - Verify security group allows ports 5985/5986
 - Check user data script completed successfully
 
 **PowerShell Execution Policy**
+
 ```hcl
 provisioner "powershell" {
   inline = [
@@ -178,6 +181,7 @@ provisioner "powershell" {
 ```
 
 **Long Build Times**
+
 - Windows Updates can take 1-2 hours
 - Use pre-patched base images when available
 - Set provisioner `timeout = "2h"`

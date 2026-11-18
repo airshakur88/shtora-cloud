@@ -1,16 +1,19 @@
 ---
+
 name: firecrawl-seo-audit
 description: "Inspect a website's titles, meta descriptions, headings, canonicals, structured data and internal links for on-page and technical SEO issues. Use for SEO audits, page-source checks, broken-link reviews or comparing pages for target keywords, even without an explicit request to scrape. Return source-backed findings and prioritized fixes. Excludes generic SEO explanations, standalone copywriting and functional website testing."
 license: ISC
 metadata:
-  author: firecrawl
-  version: "0.1.1"
-  homepage: https://www.firecrawl.dev
-  source: https://github.com/firecrawl/firecrawl-workflows
+author: firecrawl
+version: "0.1.1"
+homepage: https://www.firecrawl.dev
+source: https://github.com/firecrawl/firecrawl-workflows
 inputs:
-  - name: FIRECRAWL_API_KEY
-    description: Firecrawl API key for hosted Firecrawl requests.
-    required: true
+
+- name: FIRECRAWL_API_KEY
+  description: Firecrawl API key for hosted Firecrawl requests.
+  required: true
+
 ---
 
 # Audit a site's SEO

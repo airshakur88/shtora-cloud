@@ -1,6 +1,6 @@
 # The AI Coding and Dirty Engineering Anti-Pattern Catalog
 
-**Purpose:** A selectively loaded field guide, not 150 mandatory checks for every change. Each entry is a *review hypothesis*. Confirm with repository evidence before calling it a defect. These failures can occur in human-authored work too. When deciding whether to act, follow the evidence rubric in [engineering judgment](engineering-judgment.md).
+**Purpose:** A selectively loaded field guide, not 150 mandatory checks for every change. Each entry is a _review hypothesis_. Confirm with repository evidence before calling it a defect. These failures can occur in human-authored work too. When deciding whether to act, follow the evidence rubric in [engineering judgment](engineering-judgment.md).
 
 Format: **ID | pattern | how to verify / safer alternative**. Numbers are stable identifiers, not severity ranks.
 
@@ -59,7 +59,7 @@ Format: **ID | pattern | how to verify / safer alternative**. Numbers are stable
 - **SIM-14 | Broad nullability.** `any`/unknown/nullable masks modeling errors; enforce meaningful types at boundaries.
 - **SIM-15 | Logorrhea and code narration.** Over-explaining every trivial statement with conversational comments narrating obvious syntax, bloated repetitive wrappers, or unnecessary boilerplate; write minimal, idiomatic, self-documenting code.
 - **SIM-16 | Tautological docstrings and symbol restatement.** Docstrings or type comments that merely restate function or variable names in sentence form without adding domain semantics, invariants, or constraints (e.g. `/** Gets the user id */ function getUserId()`, `/** The user email */ let userEmail`); omit docstrings when type signatures and domain names are self-evident.
-- **SIM-17 | Syntax play-by-play & obvious code narration.** Littering code with line-by-line syntax narration comments (e.g. `// increment counter`, `// return result`, `// initialize array`, `// check if null`, `// import react`); write clean, idiomatic code where comments explain non-obvious *why*, architectural constraints, or algorithmic invariants only.
+- **SIM-17 | Syntax play-by-play & obvious code narration.** Littering code with line-by-line syntax narration comments (e.g. `// increment counter`, `// return result`, `// initialize array`, `// check if null`, `// import react`); write clean, idiomatic code where comments explain non-obvious _why_, architectural constraints, or algorithmic invariants only.
 
 ## D. Database design, migrations, and data reliability
 

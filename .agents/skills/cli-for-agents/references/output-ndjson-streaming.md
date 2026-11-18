@@ -1,4 +1,5 @@
 ---
+
 title: Stream Large Result Sets as NDJSON
 impact: MEDIUM-HIGH
 impactDescription: prevents agent context blowup on large list commands
@@ -56,12 +57,14 @@ def list_deploys(as_json):
 ```
 
 **Benefits:**
+
 - Agent can `| head -n 50` to bound context cost without server-side pagination
 - `jq -c` / `jq --slurp` both work; NDJSON is a superset of the array form
 - No memory pressure on the client — works even for unbounded result sets
 - Each line is independently valid JSON, so a mid-stream failure doesn't corrupt earlier records
 
 **When NOT to use this pattern:**
+
 - For a single-object response (e.g., `mycli deploy show <id>`), emit the object directly — NDJSON is only for collections
 - Commands that return <100 records can also emit a top-level array; document which form is used per command
 

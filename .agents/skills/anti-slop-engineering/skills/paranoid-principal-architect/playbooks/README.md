@@ -16,17 +16,18 @@ skills/paranoid-principal-architect/playbooks/
 ```
 
 Companion Guard Engine:
+
 - `scripts/forensic_hunter.py` / `npx anti-slop-engineering hunter`
 
 ---
 
 ## 2. Navigation Matrix
 
-| Document | Primary Persona & Focus | Core Invariants | Canonical Artifact |
-| --- | --- | --- | --- |
-| **[The Paranoid Principal Architect](architect-playbook.md)** | Principal Architect: System design, high-concurrency invariants, zero-trust API boundaries, database access | 10M-Concurrent-Users Axiom, parse-don't-validate, transactional outbox, sharded counters, constant-time crypto | Architectural Pre-Mortem & Threat Record (`references/threat-record-contract.md`) |
-| **[Zero-Trust DevOps & Forensic Bug Hunter](devops-hunter-playbook.md)** | Senior DevOps & Forensic Auditor: Line-by-line code inspection, container security, CI/CD traps, runtime leaks | The 4 Pillars (Check, Clean, Improve, Document), The 6 Forensic Gates, PID 1 trap, weak-ref async GC | Forensic Report & Booby-Trap Ledger |
-| **[Stack-Specific Booby-Trap Catalog](references/stack-booby-traps.md)** | Technical Deep-Dive: Exact failure mechanics and code remedies for K8s, Docker, Python, TS, Bun, Rust, Go, React, SQL | `K8S-*`, `DCK-*`, `PY-*`, `TS-*`, `BUN-*`, `RS-*`, `GO-*`, `RCT-*`, `ARC-*` rules | Concrete hardened code blocks and manifest patches |
+| Document                                                                 | Primary Persona & Focus                                                                                               | Core Invariants                                                                                                | Canonical Artifact                                                                |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **[The Paranoid Principal Architect](architect-playbook.md)**            | Principal Architect: System design, high-concurrency invariants, zero-trust API boundaries, database access           | 10M-Concurrent-Users Axiom, parse-don't-validate, transactional outbox, sharded counters, constant-time crypto | Architectural Pre-Mortem & Threat Record (`references/threat-record-contract.md`) |
+| **[Zero-Trust DevOps & Forensic Bug Hunter](devops-hunter-playbook.md)** | Senior DevOps & Forensic Auditor: Line-by-line code inspection, container security, CI/CD traps, runtime leaks        | The 4 Pillars (Check, Clean, Improve, Document), The 6 Forensic Gates, PID 1 trap, weak-ref async GC           | Forensic Report & Booby-Trap Ledger                                               |
+| **[Stack-Specific Booby-Trap Catalog](references/stack-booby-traps.md)** | Technical Deep-Dive: Exact failure mechanics and code remedies for K8s, Docker, Python, TS, Bun, Rust, Go, React, SQL | `K8S-*`, `DCK-*`, `PY-*`, `TS-*`, `BUN-*`, `RS-*`, `GO-*`, `RCT-*`, `ARC-*` rules                              | Concrete hardened code blocks and manifest patches                                |
 
 ---
 

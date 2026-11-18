@@ -1,4 +1,5 @@
 ---
+
 title: Show Help When Invoked With Zero Arguments
 impact: HIGH
 impactDescription: prevents silent side effects from discovery attempts
@@ -52,6 +53,7 @@ if __name__ == '__main__':
 ```
 
 **Benefits:**
+
 - `mycli`, `mycli -h`, `mycli --help`, and `mycli help` all work
 - Zero-arg invocation is safe: never runs side-effectful commands
 - Exit code 0 signals "this is a successful discovery, not an error"

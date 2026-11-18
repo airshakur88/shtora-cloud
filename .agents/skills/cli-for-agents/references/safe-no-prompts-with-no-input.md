@@ -1,4 +1,5 @@
 ---
+
 title: Never Prompt When --no-input Is Set
 impact: HIGH
 impactDescription: prevents silent fallback to prompts in scripted mode
@@ -68,6 +69,7 @@ func main() {
 ```
 
 **Benefits:**
+
 - `--no-input` never silently proceeds past a guardrail
 - Agent gets a clear "add --yes" fix instead of a hang or a surprise delete
 - Non-TTY detection is folded into the same check for consistency

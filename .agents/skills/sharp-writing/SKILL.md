@@ -1,11 +1,12 @@
 ---
+
 name: sharp-writing
 description: Conventions for writing sharp, concise prose and Markdown, for human readers and AI agents. Read before writing or editing documentation, READMEs, instructions, agent skills, or any prose text.
 license: CC0 1.0
 metadata:
-  author: Paleo
-  version: "0.9.2"
-  repository: https://github.com/paleo/paleo-skills
+author: Paleo
+version: "0.9.2"
+repository: https://github.com/paleo/paleo-skills
 ---
 
 # Sharp Writing

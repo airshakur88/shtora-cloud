@@ -211,11 +211,11 @@ For REST+gRPC, use [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway
 
 ### When to Use Each Format
 
-| API Style | Format | Auto-generation |
-| --- | --- | --- |
-| REST/HTTP with Go handlers | OpenAPI 3.x | swaggo/swag from annotations |
-| REST/HTTP with framework | OpenAPI 3.x | Framework-specific (e.g., huma) |
-| gRPC services | Protobuf | Proto files are the source of truth |
-| gRPC + REST gateway | Protobuf + OpenAPI | grpc-gateway generates OpenAPI |
-| Message queues / events | AsyncAPI | Manual or code-gen |
-| GraphQL | SDL schema | Schema is the docs |
+| API Style                  | Format             | Auto-generation                     |
+| -------------------------- | ------------------ | ----------------------------------- |
+| REST/HTTP with Go handlers | OpenAPI 3.x        | swaggo/swag from annotations        |
+| REST/HTTP with framework   | OpenAPI 3.x        | Framework-specific (e.g., huma)     |
+| gRPC services              | Protobuf           | Proto files are the source of truth |
+| gRPC + REST gateway        | Protobuf + OpenAPI | grpc-gateway generates OpenAPI      |
+| Message queues / events    | AsyncAPI           | Manual or code-gen                  |
+| GraphQL                    | SDL schema         | Schema is the docs                  |

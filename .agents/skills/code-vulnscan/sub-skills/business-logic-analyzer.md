@@ -13,6 +13,7 @@ Find vulnerabilities that arise from incorrect assumptions about how users will 
 Multi-step workflows (checkout, registration, password reset, verification) must enforce step ordering server-side. Never trust the client to follow the intended sequence.
 
 Check every multi-step flow:
+
 1. Can a step be skipped by directly requesting the URL of a later step?
 2. Is completion of each previous step verified server-side before allowing the next?
 3. Can the flow be reversed or replayed after completion?
@@ -34,6 +35,7 @@ Map all object states and verify only valid transitions are permitted:
 Example: Order states: `draft → placed → paid → shipped → delivered → refunded`
 
 Check:
+
 - Can an order be refunded without being in `paid` or `shipped` state?
 - Can a draft order be marked `shipped` directly?
 - Can state be set via a request parameter instead of server-side logic?
@@ -68,6 +70,7 @@ if request.json['total'] < 0:   # negative total — refund to attacker
 ```
 
 Check:
+
 - Integer overflow / underflow: `uint` wrapping, very large quantities producing negative totals
 - Floating-point precision abuse: `0.1 + 0.2 != 0.3` exploited in financial calculations
 - Currency unit confusion: cents vs dollars, satoshi vs BTC
@@ -152,6 +155,7 @@ if 'editor' in user.roles:          # 'admin' role does not include this check
 ### Multi-tenant isolation
 
 In SaaS/multi-tenant systems:
+
 - Is every database query scoped by `tenant_id` / `organization_id`?
 - Can a user in tenant A access data from tenant B by guessing IDs?
 - Are tenant IDs validated server-side (not trusted from JWT payload without DB verification)?
@@ -184,6 +188,7 @@ records = Record.query.filter_by(tenant_id=tenant_id).all()
 When workflows require explicit approval before execution, verify the approval boundary is enforced on **every mutation that affects the approved scope**, not just on the execution trigger itself.
 
 Flag any endpoint that:
+
 - Creates or replaces a resource (target list, scope snapshot, parameter set) that was part of the approved state
 - Does not check that the parent object is still in a mutable pre-approval status (e.g., `draft` or `pending_approval`)
 - Allows the resource to be replaced **after** the parent is `approved` without triggering re-approval
@@ -229,10 +234,10 @@ When UI surfaces claim to require re-authentication before a sensitive mutation,
 ```typescript
 // Flag: reauth proof collected in the UI but never forwarded for server-side verification
 async function approveAction(formData: FormData) {
-  'use server'
-  const reauthProof = formData.get('reauth_proof')  // any non-empty string passes
-  // reauthProof is never sent to /api/v1/auth/verify-reauth or included in the mutation body
-  await campaignApi.approve(campaignId, { decision: 'approved' })
+	"use server";
+	const reauthProof = formData.get("reauth_proof"); // any non-empty string passes
+	// reauthProof is never sent to /api/v1/auth/verify-reauth or included in the mutation body
+	await campaignApi.approve(campaignId, { decision: "approved" });
 }
 ```
 
@@ -248,15 +253,15 @@ When a single job expands into many per-target child jobs (fanout), verify gover
 
 ```json
 {
-  "file": "app/services/payment.py",
-  "lines": "45-62",
-  "category": "race_condition",
-  "title": "Double-spend via concurrent balance deduction race condition",
-  "description": "balance check and deduction are non-atomic. Two concurrent /transfer requests can both read the same balance before either deduction runs, allowing double-spend.",
-  "reproduction": "Send two concurrent POST /api/transfer requests with the same payload. Both will pass the balance check before either updates the DB.",
-  "impact": "Users can spend the same balance multiple times, causing negative balances or financial loss.",
-  "remediation": "Use an atomic SQL UPDATE with balance constraint: UPDATE accounts SET balance = balance - %s WHERE id = %s AND balance >= %s. Check rows_affected == 1.",
-  "cwe": "CWE-362",
-  "severity": "high"
+	"file": "app/services/payment.py",
+	"lines": "45-62",
+	"category": "race_condition",
+	"title": "Double-spend via concurrent balance deduction race condition",
+	"description": "balance check and deduction are non-atomic. Two concurrent /transfer requests can both read the same balance before either deduction runs, allowing double-spend.",
+	"reproduction": "Send two concurrent POST /api/transfer requests with the same payload. Both will pass the balance check before either updates the DB.",
+	"impact": "Users can spend the same balance multiple times, causing negative balances or financial loss.",
+	"remediation": "Use an atomic SQL UPDATE with balance constraint: UPDATE accounts SET balance = balance - %s WHERE id = %s AND balance >= %s. Check rows_affected == 1.",
+	"cwe": "CWE-362",
+	"severity": "high"
 }
 ```

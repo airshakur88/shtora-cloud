@@ -1,4 +1,5 @@
 ---
+
 name: ios-accessibility
 description: "Build and audit SwiftUI, UIKit, and AppKit accessibility for VoiceOver, Voice Control, Switch Control, Full Keyboard Access, Dynamic Type, focus restoration, labels/traits/actions, traversal, custom rotors, NSAccessibility, XCTest checks, adaptive system preferences, and App Store accessibility declarations. Use when implementing accessible UI, fixing an accessibility audit, testing assistive-technology behavior, or substantiating App Store Accessibility Nutrition Labels."
 ---
@@ -275,6 +276,7 @@ var body: some View {
 ```
 
 Key guidelines:
+
 - Reduce visual complexity: fewer controls, larger tap targets, simpler navigation
 - Use clear, literal language for labels and instructions
 - Minimize the number of choices presented at once
@@ -315,37 +317,37 @@ Use stable accessibility identifiers to locate `XCUIElement` values, then assert
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---|---|
-| Trait assignment overwrites behavior | Insert/remove UIKit traits or use SwiftUI accessibility trait modifiers. |
-| Dismissal loses focus | Return accessibility focus to the trigger. |
-| Rows create excessive swipe stops | Group related children deliberately. |
-| Labels repeat control type or omit icon meaning | Use a concise, speakable action/name; traits announce type. |
+| Mistake                                               | Fix                                                                        |
+| ----------------------------------------------------- | -------------------------------------------------------------------------- |
+| Trait assignment overwrites behavior                  | Insert/remove UIKit traits or use SwiftUI accessibility trait modifiers.   |
+| Dismissal loses focus                                 | Return accessibility focus to the trigger.                                 |
+| Rows create excessive swipe stops                     | Group related children deliberately.                                       |
+| Labels repeat control type or omit icon meaning       | Use a concise, speakable action/name; traits announce type.                |
 | Motion, text size, contrast, or transparency is fixed | Respond to the matching accessibility preference and adaptive text styles. |
-| Targets are small or color-only | Provide a 44×44 target plus text, shape, or icon semantics. |
-| Custom overlay is not modal | Expose modal semantics, escape action, and restoration. |
+| Targets are small or color-only                       | Provide a 44×44 target plus text, shape, or icon semantics.                |
+| Custom overlay is not modal                           | Expose modal semantics, escape action, and restoration.                    |
 
 ## Review Checklist
 
 For every common task, record evidence for these gates:
 
 - [ ] Semantics: controls expose concise names, correct roles/states/values, and
-  alternatives for decorative, color-only, gesture-only, or adjustable content.
+      alternatives for decorative, color-only, gesture-only, or adjustable content.
 - [ ] Navigation: grouping and traversal are intentional; modals expose modal and
-  escape behavior; focus returns to the initiating control.
+      escape behavior; focus returns to the initiating control.
 - [ ] Input: Voice Control names are speakable and unique, Show Names/Numbers both
-  work, Switch Control exposes gesture alternatives, and Full Keyboard Access has
-  no unreachable controls, traps, or overridden system shortcuts.
+      work, Switch Control exposes gesture alternatives, and Full Keyboard Access has
+      no unreachable controls, traps, or overridden system shortcuts.
 - [ ] Adaptation: Dynamic Type, Reduce Motion, Reduce Transparency, Increase
-  Contrast, Bold Text, and 44x44-point targets are verified in representative
-  layouts and states.
+      Contrast, Bold Text, and 44x44-point targets are verified in representative
+      layouts and states.
 - [ ] Automation: XCTest covers stable identifiers, state, focus where available,
-  and every modal exit path without substituting for manual assistive-technology
-  testing.
+      and every modal exit path without substituting for manual assistive-technology
+      testing.
 - [ ] Concurrency: accessibility values and notification payloads crossing
-  isolation boundaries are `Sendable`.
+      isolation boundaries are `Sendable`.
 - [ ] Claims: each App Store accessibility declaration is supported by a completed
-  common-task evidence matrix for every declared device type.
+      common-task evidence matrix for every declared device type.
 
 ## References
 

@@ -1,4 +1,5 @@
 ---
+
 name: text-patterns
 description: Reference guide for detecting AI slop patterns in natural language text including overused phrases, buzzwords, and meta-commentary. Use as reference when reviewing text content for quality.
 ---
@@ -8,6 +9,7 @@ description: Reference guide for detecting AI slop patterns in natural language 
 This reference documents common "AI slop" patterns in natural language writing that should be avoided or cleaned up.
 
 ## Table of Contents
+
 - Overused Transition Phrases
 - Generic Hedge Language
 - Unnecessary Meta-Commentary
@@ -22,6 +24,7 @@ This reference documents common "AI slop" patterns in natural language writing t
 These phrases appear disproportionately in AI-generated text and signal low-quality content:
 
 ### High-Risk Phrases (Nearly Always Slop)
+
 - "delve into"
 - "dive deep into"
 - "unpack"
@@ -35,6 +38,7 @@ These phrases appear disproportionately in AI-generated text and signal low-qual
 - "in conclusion" (in contexts where it's obvious)
 
 ### Medium-Risk Phrases (Often Slop in Certain Contexts)
+
 - "however, it is important to"
 - "furthermore"
 - "moreover"
@@ -80,6 +84,7 @@ Self-referential statements that add no information:
 Excessive business jargon that obscures meaning:
 
 ### Meaningless Modifiers
+
 - "synergistic"
 - "holistic approach"
 - "paradigm shift"
@@ -93,6 +98,7 @@ Excessive business jargon that obscures meaning:
 - "utilize" (when "use" would work)
 
 ### Vague Action Phrases
+
 - "drive innovation"
 - "unlock potential"
 - "empower users"
@@ -131,20 +137,22 @@ Words that try to add emphasis but fail:
 ## Filler Constructions
 
 ### Wordy Phrases with Simple Alternatives
-| Wordy | Simple |
-|-------|--------|
-| "in order to" | "to" |
-| "due to the fact that" | "because" |
-| "at this point in time" | "now" |
-| "for the purpose of" | "for" |
-| "has the ability to" | "can" |
-| "is able to" | "can" |
-| "in spite of the fact that" | "although" |
-| "take into consideration" | "consider" |
-| "make a decision" | "decide" |
-| "conduct an investigation" | "investigate" |
+
+| Wordy                       | Simple        |
+| --------------------------- | ------------- |
+| "in order to"               | "to"          |
+| "due to the fact that"      | "because"     |
+| "at this point in time"     | "now"         |
+| "for the purpose of"        | "for"         |
+| "has the ability to"        | "can"         |
+| "is able to"                | "can"         |
+| "in spite of the fact that" | "although"    |
+| "take into consideration"   | "consider"    |
+| "make a decision"           | "decide"      |
+| "conduct an investigation"  | "investigate" |
 
 ### Existential Constructions
+
 - "There are many people who..." → "Many people..."
 - "It is important to..." → Just state the important thing
 - "There exists a need for..." → "We need..."
@@ -152,18 +160,21 @@ Words that try to add emphasis but fail:
 ## Detection Patterns
 
 ### Sentence-Level Red Flags
+
 1. Sentences starting with "It is important to note that"
 2. Sentences with 3+ hedge words ("might possibly perhaps")
 3. Sentences with both "navigate" and "landscape/complexity"
 4. Opening sentences that describe what the text will do instead of doing it
 
 ### Paragraph-Level Red Flags
+
 1. Opening paragraphs that are pure meta-commentary
 2. Paragraphs that restate the title in different words
 3. Closing paragraphs that say "in conclusion" then summarize without adding insight
 4. Every paragraph starting with a transition word
 
 ### Document-Level Red Flags
+
 1. High density of buzzwords (>5% of unique words)
 2. Excessive passive voice (>30% of sentences)
 3. High Flesch-Kincaid grade level without justification
@@ -172,19 +183,23 @@ Words that try to add emphasis but fail:
 ## Cleanup Strategies
 
 ### Immediate Cuts
+
 Remove entirely:
+
 - Meta-commentary about what you will discuss
 - Obvious transitions between clearly connected ideas
 - Redundant qualifiers
 - Empty intensifiers
 
 ### Rewrites
+
 - Turn passive voice to active
 - Replace buzzwords with specific terms
 - Replace hedge clusters with one precise statement
 - Replace wordy constructions with simple alternatives
 
 ### Structural Improvements
+
 - Lead with the actual point, not a preamble
 - Use concrete examples instead of abstract statements
 - Break up walls of uniform paragraph structure
@@ -199,4 +214,4 @@ Not all these patterns are always slop. Consider:
 - **Length**: Longer pieces need more transitions than short ones
 - **Domain**: Technical writing has different norms than creative writing
 
-The key is *overuse* and *unconscious repetition*, not the existence of these patterns.
+The key is _overuse_ and _unconscious repetition_, not the existence of these patterns.

@@ -31,14 +31,15 @@ When a BFF/API route handler constructs URLs for the browser (enrollment setup U
 ```typescript
 // Flag: internal upstream is http://api:8080; browser accesses via https://app.example.com
 function publicControlPlaneAddress(req: Request, upstreamURL: string): string {
-  const upstream = new URL(upstreamURL)
-  // BUG: overwrites the browser-visible host's scheme+port with internal upstream scheme+port
-  return `${upstream.protocol}//${req.headers.get('host')}:${upstream.port}`
-  // Returns: http://app.example.com:8080 — cleartext, wrong port
+	const upstream = new URL(upstreamURL);
+	// BUG: overwrites the browser-visible host's scheme+port with internal upstream scheme+port
+	return `${upstream.protocol}//${req.headers.get("host")}:${upstream.port}`;
+	// Returns: http://app.example.com:8080 — cleartext, wrong port
 }
 
 // Correct: use browser-visible origin; only fall back to upstream for explicitly public configs
-const publicOrigin = process.env.PUBLIC_API_BASE_URL ?? `https://${req.headers.get('host')}`
+const publicOrigin =
+	process.env.PUBLIC_API_BASE_URL ?? `https://${req.headers.get("host")}`;
 ```
 
 Generated setup commands, download URLs, and enrollment tokens embedded in these URLs are exposed over cleartext when the derived URL downgrades to HTTP. Flag any BFF function that blends the internal upstream scheme/port with the browser-visible host.
@@ -68,10 +69,13 @@ When a Next.js server component or server action reads URL query params (`search
 ```tsx
 // Flag: visiting this URL (top-level GET) causes an authenticated POST to /api/v1/graphs/query
 export default async function ReportsPage({ searchParams }) {
-  const view = searchParams.view  // attacker-controlled via URL
-  // runGraphQuery sends an authenticated POST during server render — triggered by GET navigation
-  const result = await runGraphQuery({ view, maxNodes: searchParams.max_nodes })
-  // Victim navigates to /<tenant>/reports?view=asset_exposure — their session triggers the POST
+	const view = searchParams.view; // attacker-controlled via URL
+	// runGraphQuery sends an authenticated POST during server render — triggered by GET navigation
+	const result = await runGraphQuery({
+		view,
+		maxNodes: searchParams.max_nodes,
+	});
+	// Victim navigates to /<tenant>/reports?view=asset_exposure — their session triggers the POST
 }
 ```
 
@@ -102,12 +106,14 @@ When a component attaches an `onCopy` handler to an element containing sensitive
 
 ```tsx
 // Flag: user selects one line; clipboard gets entire multi-line command including tokens
-<pre onCopy={(e) => {
-  e.preventDefault()
-  e.clipboardData.setData('text/plain', fullEnrollmentCommand)  // always the full secret command
-}}>
-  {enrollmentCommand}
-</pre>
+<pre
+	onCopy={(e) => {
+		e.preventDefault();
+		e.clipboardData.setData("text/plain", fullEnrollmentCommand); // always the full secret command
+	}}
+>
+	{enrollmentCommand}
+</pre>;
 ```
 
 This removes the user's ability to safely copy a partial, non-sensitive fragment (e.g., just the server URL). An operator copying a hostname for a ticket or chat gets the full enrollment token in their clipboard, risking accidental disclosure. Flag `onCopy` handlers that always substitute the full content regardless of what the user selected.
@@ -119,8 +125,8 @@ When a UI component renders sensitive operational data (task command lines, test
 ```tsx
 // Flag: uses raw command before checking the redacted variant
 const commandPreview =
-  latestDetectionRun?.command ??        // raw — may be unredacted
-  task.parameters.command               // fallback also raw
+	latestDetectionRun?.command ?? // raw — may be unredacted
+	task.parameters.command; // fallback also raw
 // Should be:
 //   latestDetectionRun?.command_redacted ?? task.parameters.command_preview
 ```
@@ -134,25 +140,29 @@ When a Next.js server action reads loop-bound values such as `variant_count`, `p
 ```tsx
 // Flag: hidden form fields control loop bounds — no upper bound enforced
 function readOptionalNumber(formData: FormData, key: string): number {
-  const val = formData.get(key)
-  return val ? parseInt(String(val), 10) : 0  // accepts any finite integer
+	const val = formData.get(key);
+	return val ? parseInt(String(val), 10) : 0; // accepts any finite integer
 }
 
 async function saveTtpDetailDraft(formData: FormData) {
-  'use server'
-  const variantCount = readOptionalNumber(formData, 'variant_count')   // client-controlled
-  const platformCount = readOptionalNumber(formData, 'platform_count') // client-controlled
-  for (let i = 0; i < variantCount; i++) {  // unbounded loop before auth check
-    await readTtpDetailVariantBasics(formData, i)
-  }
-  // Authorization check (createActionVersion) only reached after loop completes
+	"use server";
+	const variantCount = readOptionalNumber(formData, "variant_count"); // client-controlled
+	const platformCount = readOptionalNumber(formData, "platform_count"); // client-controlled
+	for (let i = 0; i < variantCount; i++) {
+		// unbounded loop before auth check
+		await readTtpDetailVariantBasics(formData, i);
+	}
+	// Authorization check (createActionVersion) only reached after loop completes
 }
 ```
 
 ```tsx
 // Correct: enforce a maximum before the loop
-const MAX_VARIANTS = 50
-const variantCount = Math.min(readOptionalNumber(formData, 'variant_count'), MAX_VARIANTS)
+const MAX_VARIANTS = 50;
+const variantCount = Math.min(
+	readOptionalNumber(formData, "variant_count"),
+	MAX_VARIANTS,
+);
 ```
 
 An authenticated user who can render the page can forge a server action request with an arbitrarily large count (e.g., `variant_count=1000000`) and tie up the Next.js server event loop processing the loop. Because server actions are invoked over HTTP, no browser-side enforcement applies. The work is proportional to the attacker-controlled count and completes before any upstream API authorization can reject the request, making this a denial-of-service independent of normal RBAC controls. CWE-400 (Uncontrolled Resource Consumption). Severity: medium.

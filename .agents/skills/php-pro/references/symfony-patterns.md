@@ -38,34 +38,34 @@ final readonly class UserService
 ```yaml
 # config/services.yaml
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-        bind:
-            string $projectDir: '%kernel.project_dir%'
-            bool $isDebug: '%kernel.debug%'
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    bind:
+      string $projectDir: "%kernel.project_dir%"
+      bool $isDebug: "%kernel.debug%"
 
-    App\:
-        resource: '../src/'
-        exclude:
-            - '../src/DependencyInjection/'
-            - '../src/Entity/'
-            - '../src/Kernel.php'
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
 
-    # Interface binding
-    App\Repository\UserRepositoryInterface:
-        class: App\Repository\DoctrineUserRepository
+  # Interface binding
+  App\Repository\UserRepositoryInterface:
+    class: App\Repository\DoctrineUserRepository
 
-    # Service with specific configuration
-    App\Service\PaymentService:
-        arguments:
-            $apiKey: '%env(PAYMENT_API_KEY)%'
-            $timeout: 30
+  # Service with specific configuration
+  App\Service\PaymentService:
+    arguments:
+      $apiKey: "%env(PAYMENT_API_KEY)%"
+      $timeout: 30
 
-    # Tagged services
-    App\EventSubscriber\:
-        resource: '../src/EventSubscriber/'
-        tags: ['kernel.event_subscriber']
+  # Tagged services
+  App\EventSubscriber\:
+    resource: "../src/EventSubscriber/"
+    tags: ["kernel.event_subscriber"]
 ```
 
 ## Controllers with Attributes
@@ -452,15 +452,15 @@ $this->messageBus->dispatch(new SendWelcomeEmail($user->getId()));
 
 ## Quick Reference
 
-| Component | Purpose | File Location |
-|-----------|---------|---------------|
-| Controller | HTTP handlers | `src/Controller/` |
-| Service | Business logic | `src/Service/` |
-| Repository | Data access | `src/Repository/` |
-| Event | Domain events | `src/Event/` |
-| EventSubscriber | Event handlers | `src/EventSubscriber/` |
-| Command | CLI commands | `src/Command/` |
-| Voter | Authorization | `src/Security/Voter/` |
-| Message | Async messages | `src/Message/` |
-| MessageHandler | Message handlers | `src/MessageHandler/` |
-| DTO | Data transfer | `src/DTO/` |
+| Component       | Purpose          | File Location          |
+| --------------- | ---------------- | ---------------------- |
+| Controller      | HTTP handlers    | `src/Controller/`      |
+| Service         | Business logic   | `src/Service/`         |
+| Repository      | Data access      | `src/Repository/`      |
+| Event           | Domain events    | `src/Event/`           |
+| EventSubscriber | Event handlers   | `src/EventSubscriber/` |
+| Command         | CLI commands     | `src/Command/`         |
+| Voter           | Authorization    | `src/Security/Voter/`  |
+| Message         | Async messages   | `src/Message/`         |
+| MessageHandler  | Message handlers | `src/MessageHandler/`  |
+| DTO             | Data transfer    | `src/DTO/`             |

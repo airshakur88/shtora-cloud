@@ -43,17 +43,17 @@ Python, JavaScript/TypeScript, Java/Kotlin, Go, PHP, Ruby, C/C++, C#, Rust, Swif
 
 ## IDE Compatibility
 
-| IDE | Target flag | Installed file |
-|-----|-------------|---------------|
-| Claude Code (CLI/Desktop) | `--target claude` | `~/.claude/skills/code-vulnscan/` |
-| Claude Code / Cowork (project/team) | `--target cowork` | `<project>/.claude/skills/code-vulnscan/` |
-| OpenAI Codex | `--target codex` | `~/.codex/skills/code-vulnscan/` |
-| Cursor AI | `--target cursor` | `<project>/.cursor/rules/code-vulnscan.mdc` |
-| Windsurf | `--target windsurf` | `<project>/.windsurf/rules/code-vulnscan.md` |
-| GitHub Copilot Chat | `--target copilot` | `<project>/.github/copilot-instructions.md` |
-| Cline (VS Code) | `--target cline` | `<project>/.clinerules` |
-| Continue.dev | `--target continue` | `<project>/.continue/prompts/vulnscan.prompt` |
-| Antigravity | `--target antigravity` | `<project>/.agent/skills/code-vulnscan/` |
+| IDE                                 | Target flag            | Installed file                                |
+| ----------------------------------- | ---------------------- | --------------------------------------------- |
+| Claude Code (CLI/Desktop)           | `--target claude`      | `~/.claude/skills/code-vulnscan/`             |
+| Claude Code / Cowork (project/team) | `--target cowork`      | `<project>/.claude/skills/code-vulnscan/`     |
+| OpenAI Codex                        | `--target codex`       | `~/.codex/skills/code-vulnscan/`              |
+| Cursor AI                           | `--target cursor`      | `<project>/.cursor/rules/code-vulnscan.mdc`   |
+| Windsurf                            | `--target windsurf`    | `<project>/.windsurf/rules/code-vulnscan.md`  |
+| GitHub Copilot Chat                 | `--target copilot`     | `<project>/.github/copilot-instructions.md`   |
+| Cline (VS Code)                     | `--target cline`       | `<project>/.clinerules`                       |
+| Continue.dev                        | `--target continue`    | `<project>/.continue/prompts/vulnscan.prompt` |
+| Antigravity                         | `--target antigravity` | `<project>/.agent/skills/code-vulnscan/`      |
 
 ## Installation
 
@@ -63,6 +63,7 @@ Release packages are verified against their published SHA-256 asset before extra
 ### Quick install (no cloning required)
 
 **Linux / macOS:**
+
 ```bash
 # Default: installs to every target at once
 curl -fsSL https://raw.githubusercontent.com/Bhanunamikaze/Code-VulnScan-Skill/main/install.sh | bash -s -- --online
@@ -78,6 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/Bhanunamikaze/Code-VulnScan-Skill/m
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 # Download installer and checksum, verify, then run with --online
 irm https://raw.githubusercontent.com/Bhanunamikaze/Code-VulnScan-Skill/main/install.ps1 -OutFile install.ps1
@@ -141,6 +143,7 @@ bash install.sh --target claude --install-deps
 ```
 
 **Windows (PowerShell) — from source:**
+
 ```powershell
 # Claude Code
 .\install.ps1 --target claude
@@ -153,6 +156,7 @@ bash install.sh --target claude --install-deps
 ```
 
 **Safer remote install (with checksum verification):**
+
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/Bhanunamikaze/Code-VulnScan-Skill/main/install.sh
 curl -fsSLO https://raw.githubusercontent.com/Bhanunamikaze/Code-VulnScan-Skill/main/install.sh.sha256
@@ -169,6 +173,7 @@ vulnscan scan /path/to/codebase
 ```
 
 Or naturally:
+
 ```
 Find security vulnerabilities in this codebase
 Scan for SQL injection and XSS in this Flask app

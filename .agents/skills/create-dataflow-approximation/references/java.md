@@ -81,12 +81,12 @@ Fix by the verdict it reports:
 
 ## Key patterns
 
-| Pattern | Usage |
-|---|---|
+| Pattern                           | Usage                                                                                                             |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `@Approximate(TargetClass.class)` | Link the approximation to its target class. Must be on the compile classpath (a project dependency or a JDK type) |
-| `(TargetClass) (Object) this` | Cast to reach the real object's methods |
-| `@ArgumentTypeContext` | On lambda / functional-interface parameters |
-| `OpentaintNdUtil.nextBool()` | Non-deterministic branch — the analyzer considers both paths |
+| `(TargetClass) (Object) this`     | Cast to reach the real object's methods                                                                           |
+| `@ArgumentTypeContext`            | On lambda / functional-interface parameters                                                                       |
+| `OpentaintNdUtil.nextBool()`      | Non-deterministic branch — the analyzer considers both paths                                                      |
 
 ## Constraints
 
@@ -97,5 +97,5 @@ Fix by the verdict it reports:
 - Method signatures must match the target class methods exactly
 - Built-in dataflow approximations are first-priority and presumed correct — you cannot override them locally
 - A custom dataflow approximation overrides a passThrough for the same method — use dataflow as the fallback when a faithful passThrough cannot express or restore the propagation
-- Built-in passThrough approximations, by contrast, a user config on the same method overrides. So a coarse built-in on a *related* method — a driver that invokes the callback you modelled, a wrapper the flow passes through — can silently suppress an otherwise-correct model. When a faithful model doesn't fire, suspect a built-in on a neighbouring method and model/override that method instead; debug-rule shows which model actually applied
+- Built-in passThrough approximations, by contrast, a user config on the same method overrides. So a coarse built-in on a _related_ method — a driver that invokes the callback you modelled, a wrapper the flow passes through — can silently suppress an otherwise-correct model. When a faithful model doesn't fire, suspect a built-in on a neighbouring method and model/override that method instead; debug-rule shows which model actually applied
 - Don't unpack or grep the analyzer JAR for built-in models or signatures — its internals aren't a stable API; go through the CLI

@@ -1,9 +1,10 @@
 ---
+
 name: mantis-threat-model
 description: >-
-  Synthesizes trust boundaries, attack surfaces, and attacker profiles into a living threat model.
-  Use as Stage B of the Knowledge Base generation process, reading architecture and entity definitions from the KB.
-  Don't use for analyzing source code or extracting raw learnings from JSONL files.
+Synthesizes trust boundaries, attack surfaces, and attacker profiles into a living threat model.
+Use as Stage B of the Knowledge Base generation process, reading architecture and entity definitions from the KB.
+Don't use for analyzing source code or extracting raw learnings from JSONL files.
 ---
 
 # Threat Modeler (/mantis-threat-model)
@@ -107,8 +108,8 @@ takes Block A step 0's FINDINGS-ONLY path: SKIP Block A steps 2–6, but STILL
 read `active_snapshot` from state for provenance, and NEVER stop merely because
 a code root is unset or unpinned.
 
-Maintain a high-level Threat Model that explicitly defines *who* the attackers
-are and *where* they can interact with the system, relying on the pre-processed
+Maintain a high-level Threat Model that explicitly defines _who_ the attackers
+are and _where_ they can interact with the system, relying on the pre-processed
 entities in the KB.
 
 Execute the threat modeling process as follows:
@@ -116,7 +117,6 @@ Execute the threat modeling process as follows:
 0. **Resolve Snapshot Provenance, Freshness, and Archive the Prior Model:**
 
    a. **Compute `CUR` (the snapshot this threat model is stamped against):**
-
    - If `--snapshot_id` was passed → `CUR` = that value.
    - Else if state `active_snapshot.snapshot_pinned` is true → `CUR` =
      `active_snapshot.snapshot_id`.
@@ -130,7 +130,6 @@ Execute the threat modeling process as follows:
 
    c. **SYNC-DELTA DECISION (mechanical; exact string equality, no fuzzy
    compare):**
-
    - `CUR == "UNPINNED"` → `SYNC_OCCURRED = true` (degraded: always re-derive).
    - else `PREV_TM == ""` → `SYNC_OCCURRED = true` (first run / legacy KB).
    - else `PREV_TM != CUR` → `SYNC_OCCURRED = true` (a sync or dirty edit
@@ -139,7 +138,6 @@ Execute the threat modeling process as follows:
      the last model).
 
    d. **Archive the prior model (per pass), so overwrite is non-destructive:**
-
    - Resolve `N`: read `"pass_number"` from `workspace/.mantis_state.json`. If
      missing or invalid, scan `workspace/archive/` for folders matching
      `findings_pass_N` or `loopN_findings` and set `N = max_found + 1`,
@@ -156,7 +154,6 @@ Execute the threat modeling process as follows:
    save.
 
 1. **Read the Synthesized KB:**
-
    - Read `workspace/kb/architecture.md` to understand the system's data flows
      and high-level design.
    - Read the files inside `workspace/kb/entities/` to understand the individual
@@ -164,13 +161,11 @@ Execute the threat modeling process as follows:
      to them by the `/mantis-architecture` stage.
 
 2. **Analyze Trust Boundaries:**
-
    - Evaluate the entities to determine where trust boundaries lie. Where does
      untrusted data cross into a trusted context? Which components are exposed
      to external input?
 
 3. **Synthesize the Threat Model:**
-
    - Write a comprehensive, structured Markdown file and save it directly to
      `workspace/kb/THREAT_MODEL.md` (overwriting the old one).
    - **Token Optimization:** Use your file-writing tools to write the file
@@ -179,7 +174,6 @@ Execute the threat modeling process as follows:
 
    Include the following sections to ensure downstream planning agents have
    sufficient context:
-
    - **System Overview Summary:** A concise summary derived from
      `architecture.md`.
 
@@ -193,7 +187,6 @@ Execute the threat modeling process as follows:
      ONLY IF ALL five checks are TRUE. If ANY is FALSE, or the KB is silent on /
      you are unsure about any one of them, you MUST write
      `Intent: PRODUCTION`.**
-
      1. NO entity in `workspace/kb/entities/*.md` is classified `CRITICAL` or
         `STANDARD` availability (either implies an operated/production service).
      2. `architecture.md` names NO externally-reachable service, daemon, server,
@@ -228,7 +221,6 @@ Execute the threat modeling process as follows:
    - **High-Risk Assets:** The data, execution privileges, or availability
      targets an attacker wants to compromise. **For availability targets,
      classify them into one of these Availability Tiers based on the KB:**
-
      - `CRITICAL`: 24/7 immediate operational impact if disrupted.
      - `STANDARD`: Important operations; short downtime is tolerable.
      - `LOW_CRITICALITY`: Non-blocking utilities; disruption is a mild

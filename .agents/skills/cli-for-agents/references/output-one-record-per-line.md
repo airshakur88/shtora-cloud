@@ -1,4 +1,5 @@
 ---
+
 title: Emit One Record Per Line for Grep-Able Human Output
 impact: MEDIUM
 impactDescription: prevents grep/awk/cut breakage on borders and wrapped cells
@@ -55,6 +56,7 @@ def list_services():
 ```
 
 **Benefits:**
+
 - Every UNIX line-based tool (grep, awk, cut, sort, uniq, wc) works out of the box
 - Stable tab-separated output can be imported into spreadsheets and data tools
 - Agent parsing is `.split('\t')` — no state machine needed

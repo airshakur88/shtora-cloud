@@ -1,4 +1,5 @@
 ---
+
 name: cli-design
 description: Unix-composable CLI design patterns. Use when building CLI tools, designing command trees, implementing output layers, or testing CLI behavior. Covers stream separation (stdout/stderr), format flags (--json/--plain), exit codes, TTY detection, composability, and error design. Language-agnostic principles; TypeScript implementation patterns in resources/. For API design (REST, HTTP), see api-design.
 ---
@@ -15,12 +16,12 @@ For API contract stability and Hyrum's Law, see the `api-design` skill. For conf
 
 **TypeScript implementation patterns** are in the `resources/` directory. Load them on demand when building a CLI in TypeScript:
 
-| Resource | Load when... |
-|----------|-------------|
-| `output-architecture.md` | Implementing Result types, entry point wiring, formatters, logger, JSON envelope schemas |
-| `testing-cli.md` | Writing Vitest tests for CLI behavior (streams, exit codes, pipes, contract tests) |
-| `stream-contracts.md` | Understanding Node.js buffering, NDJSON, signal handling, crash-only design |
-| `composability.md` | Designing or testing pipe behavior — worked shell examples (jq filtering, NDJSON streaming, stdin, chaining, `--fields`, parallel `xargs`) |
+| Resource                 | Load when...                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `output-architecture.md` | Implementing Result types, entry point wiring, formatters, logger, JSON envelope schemas                                                   |
+| `testing-cli.md`         | Writing Vitest tests for CLI behavior (streams, exit codes, pipes, contract tests)                                                         |
+| `stream-contracts.md`    | Understanding Node.js buffering, NDJSON, signal handling, crash-only design                                                                |
+| `composability.md`       | Designing or testing pipe behavior — worked shell examples (jq filtering, NDJSON streaming, stdin, chaining, `--fields`, parallel `xargs`) |
 
 ---
 
@@ -47,12 +48,12 @@ This separation is what makes `mycli --json | jq ...` work. One spinner characte
 
 ## The Unix Stream Contract
 
-| Content | Stream | Why |
-|---------|--------|-----|
-| Primary output (data, results, JSON) | stdout | Pipeable, buffered for throughput |
-| Progress bars, spinners, status | stderr, and only when stderr is a TTY (`process.stderr.isTTY`) — a piped stderr carries warnings and errors and nothing else | Not data — must not corrupt pipes, and a pipe consumer never wants a spinner |
-| Warnings, errors, diagnostics | stderr | Visible to user even when stdout is piped |
-| Debug/verbose output | stderr | Diagnostic, never data |
+| Content                              | Stream                                                                                                                       | Why                                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Primary output (data, results, JSON) | stdout                                                                                                                       | Pipeable, buffered for throughput                                            |
+| Progress bars, spinners, status      | stderr, and only when stderr is a TTY (`process.stderr.isTTY`) — a piped stderr carries warnings and errors and nothing else | Not data — must not corrupt pipes, and a pipe consumer never wants a spinner |
+| Warnings, errors, diagnostics        | stderr                                                                                                                       | Visible to user even when stdout is piped                                    |
+| Debug/verbose output                 | stderr                                                                                                                       | Diagnostic, never data                                                       |
 
 **Stream behavior:**
 
@@ -140,6 +141,7 @@ Three-tier output hierarchy:
 **Consistent envelopes:**
 
 Success on stdout:
+
 ```json
 { "ok": true, "data": { ... } }
 ```
@@ -149,8 +151,12 @@ live unchanged inside `data`, and a list of records goes in `data` rather than
 replacing the envelope with a bare array.
 
 Failure on stderr:
+
 ```json
-{ "ok": false, "error": { "code": "CONFIG_MISSING", "message": "...", "fix": "..." } }
+{
+	"ok": false,
+	"error": { "code": "CONFIG_MISSING", "message": "...", "fix": "..." }
+}
 ```
 
 ### NDJSON for Streaming
@@ -170,15 +176,15 @@ For NDJSON specification details, see `resources/stream-contracts.md`.
 
 ## Exit Codes
 
-| Code | Meaning | When |
-|------|---------|------|
-| 0 | Success | Operation completed as expected |
-| 1 | Domain failure | Tool-specific failure (e.g. quality threshold not met) |
-| 2 | Invalid usage | Bad flags, missing required args, validation error |
-| 78 | Configuration error | Invalid config file, missing required config |
-| 75 | Temporary, retry-safe failure | Failure occurred before dispatch, or the operation is documented and demonstrably safe to retry |
-| 130 | SIGINT | User pressed Ctrl-C (128 + 2) |
-| 143 | SIGTERM-style status | Optional documented status when preserving signal termination (128 + 15); a handled graceful shutdown may instead return 0 |
+| Code | Meaning                       | When                                                                                                                       |
+| ---- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Success                       | Operation completed as expected                                                                                            |
+| 1    | Domain failure                | Tool-specific failure (e.g. quality threshold not met)                                                                     |
+| 2    | Invalid usage                 | Bad flags, missing required args, validation error                                                                         |
+| 78   | Configuration error           | Invalid config file, missing required config                                                                               |
+| 75   | Temporary, retry-safe failure | Failure occurred before dispatch, or the operation is documented and demonstrably safe to retry                            |
+| 130  | SIGINT                        | User pressed Ctrl-C (128 + 2)                                                                                              |
+| 143  | SIGTERM-style status          | Optional documented status when preserving signal termination (128 + 15); a handled graceful shutdown may instead return 0 |
 
 **Rules:**
 
@@ -206,16 +212,16 @@ For NDJSON specification details, see `resources/stream-contracts.md`.
 
 Check priority order (first match wins):
 
-| Priority | Condition | Effect |
-|----------|-----------|--------|
-| 1 | `--format json` or `--json` flag | Non-interactive, no color, no animation |
-| 2 | `--no-color` flag | Disable color (output may still be interactive) |
-| 3 | `FORCE_COLOR` env | Empty, `1`, `2`, `3`, or `true` enables color; every other value (including `0`) disables it. Supported values override `NO_COLOR` and `NODE_DISABLE_COLORS` |
-| 4 | `NO_COLOR` (non-empty) or `NODE_DISABLE_COLORS` (defined), with `FORCE_COLOR` unset | Disable color |
-| 5 | `TERM=dumb` | Disable color and animations |
-| 6 | `CI=true` | No interactive prompts |
-| 7 | stdout is not a TTY (`!isatty(stdout)`) | Plain output, no animations on stdout |
-| 8 | Default | Full interactive with colors |
+| Priority | Condition                                                                           | Effect                                                                                                                                                       |
+| -------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1        | `--format json` or `--json` flag                                                    | Non-interactive, no color, no animation                                                                                                                      |
+| 2        | `--no-color` flag                                                                   | Disable color (output may still be interactive)                                                                                                              |
+| 3        | `FORCE_COLOR` env                                                                   | Empty, `1`, `2`, `3`, or `true` enables color; every other value (including `0`) disables it. Supported values override `NO_COLOR` and `NODE_DISABLE_COLORS` |
+| 4        | `NO_COLOR` (non-empty) or `NODE_DISABLE_COLORS` (defined), with `FORCE_COLOR` unset | Disable color                                                                                                                                                |
+| 5        | `TERM=dumb`                                                                         | Disable color and animations                                                                                                                                 |
+| 6        | `CI=true`                                                                           | No interactive prompts                                                                                                                                       |
+| 7        | stdout is not a TTY (`!isatty(stdout)`)                                             | Plain output, no animations on stdout                                                                                                                        |
+| 8        | Default                                                                             | Full interactive with colors                                                                                                                                 |
 
 **Resolve the output mode once, in the entry point, before anything is written.** Walk the table above — format flags, `--no-color`, `FORCE_COLOR`, `NO_COLOR`, `TERM`, `CI`, and each stream's TTY status (`isatty`/`isTTY`) — into a single mode value and pass it to the formatters. Write that check even when today's output has no color and no animation yet: it is what keeps the decision in one place the day either is added.
 
@@ -253,21 +259,21 @@ mycli copy --from myapp --to backup
 
 Always provide long forms. Short flags only for the most common operations.
 
-| Flag | Meaning |
-|------|---------|
-| `-h`, `--help` | Show help (this should only mean help) |
-| `--version` | Print version to stdout |
-| `-q`, `--quiet` | Suppress non-essential output |
-| `-v`, `--verbose` | More detail in human output |
-| `-d`, `--debug` | Diagnostic output to stderr |
-| `-f`, `--force` | Skip confirmation prompts |
+| Flag              | Meaning                                 |
+| ----------------- | --------------------------------------- |
+| `-h`, `--help`    | Show help (this should only mean help)  |
+| `--version`       | Print version to stdout                 |
+| `-q`, `--quiet`   | Suppress non-essential output           |
+| `-v`, `--verbose` | More detail in human output             |
+| `-d`, `--debug`   | Diagnostic output to stderr             |
+| `-f`, `--force`   | Skip confirmation prompts               |
 | `-n`, `--dry-run` | Show what would happen without doing it |
-| `--json` | Structured JSON output |
-| `--plain` | Stable, grep-friendly plain text |
-| `--no-color` | Disable color output |
-| `--no-input` | Disable all prompts/interactivity |
-| `-o`, `--output` | Output file |
-| `--fields` | Select output columns |
+| `--json`          | Structured JSON output                  |
+| `--plain`         | Stable, grep-friendly plain text        |
+| `--no-color`      | Disable color output                    |
+| `--no-input`      | Disable all prompts/interactivity       |
+| `-o`, `--output`  | Output file                             |
+| `--fields`        | Select output columns                   |
 
 ### Prompts and Interactivity
 
@@ -341,13 +347,13 @@ Errors are structured too — not just success responses:
 
 ```json
 {
-  "ok": false,
-  "error": {
-    "code": "CONFIG_MISSING",
-    "message": "No configuration file found at ./mycli.config.ts",
-    "fix": "Run `mycli init` to create a default configuration file",
-    "transient": false
-  }
+	"ok": false,
+	"error": {
+		"code": "CONFIG_MISSING",
+		"message": "No configuration file found at ./mycli.config.ts",
+		"fix": "Run `mycli init` to create a default configuration file",
+		"transient": false
+	}
 }
 ```
 
@@ -430,16 +436,16 @@ See `resources/composability.md` for the worked shell examples covering each of 
 
 **Stdout is a public API.** Breaking changes to stdout format are breaking changes to the CLI.
 
-| Change | Impact |
-|--------|--------|
-| Adding new optional JSON fields | Safe (additive) |
-| Adding new subcommands | Safe |
-| Adding new flags with preserving defaults | Safe |
-| Removing or renaming flags | **Breaking** |
-| Removing or renaming JSON fields | **Breaking** |
-| Changing exit codes | **Breaking** |
-| Changing default behavior | **Breaking** |
-| Changing human-readable output | Usually OK (not a contract) |
+| Change                                    | Impact                      |
+| ----------------------------------------- | --------------------------- |
+| Adding new optional JSON fields           | Safe (additive)             |
+| Adding new subcommands                    | Safe                        |
+| Adding new flags with preserving defaults | Safe                        |
+| Removing or renaming flags                | **Breaking**                |
+| Removing or renaming JSON fields          | **Breaking**                |
+| Changing exit codes                       | **Breaking**                |
+| Changing default behavior                 | **Breaking**                |
+| Changing human-readable output            | Usually OK (not a contract) |
 
 When in doubt, add alongside — don't modify. Deprecate with stderr warnings before removing — and once you can detect that users have migrated, stop warning.
 
@@ -455,19 +461,19 @@ When in doubt, add alongside — don't modify. Deprecate with stderr warnings be
 
 ## Anti-Patterns
 
-| # | Anti-Pattern | Why It's Wrong |
-|---|-------------|----------------|
-| 1 | Mixing data and diagnostics on stdout | Breaks every pipe: `mycli list \| jq .` fails if warnings are on stdout |
-| 2 | Colors/ANSI in piped output | ANSI sequences corrupt downstream parsing. Check `isatty(stdout)` + `NO_COLOR` |
-| 3 | Interactive prompts with no flag bypass | Agents can't type 'y'. Every prompt needs `--yes`/`--force`. Non-TTY without bypass = hang |
-| 4 | Printing nothing on success | Silence is ambiguous — show brief confirmation. Offer `-q` for scripts that want silence |
-| 5 | Designing for humans OR machines, not both | Detect context (TTY vs pipe), adapt automatically |
-| 6 | Output that doesn't guide the next action | Every output is a signpost: success = next command, failure = fix command |
-| 7 | Breaking existing CLI contracts | Flag names, exit codes, output shape are contracts. Add alongside, never modify |
-| 8 | `console.log` anywhere except the CLI adapter | Handlers must return data; only the presentation layer writes to streams |
-| 9 | Handlers that exit the process directly | Let the entry point decide. Handlers return errors as data |
-| 10 | Non-zero exit without stderr explanation | Scripts need both the code and the reason |
-| 11 | Verbose default output | A single test run can generate 419KB. Support `--fields`, `--quiet`, `--json` |
+| #   | Anti-Pattern                                  | Why It's Wrong                                                                             |
+| --- | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1   | Mixing data and diagnostics on stdout         | Breaks every pipe: `mycli list \| jq .` fails if warnings are on stdout                    |
+| 2   | Colors/ANSI in piped output                   | ANSI sequences corrupt downstream parsing. Check `isatty(stdout)` + `NO_COLOR`             |
+| 3   | Interactive prompts with no flag bypass       | Agents can't type 'y'. Every prompt needs `--yes`/`--force`. Non-TTY without bypass = hang |
+| 4   | Printing nothing on success                   | Silence is ambiguous — show brief confirmation. Offer `-q` for scripts that want silence   |
+| 5   | Designing for humans OR machines, not both    | Detect context (TTY vs pipe), adapt automatically                                          |
+| 6   | Output that doesn't guide the next action     | Every output is a signpost: success = next command, failure = fix command                  |
+| 7   | Breaking existing CLI contracts               | Flag names, exit codes, output shape are contracts. Add alongside, never modify            |
+| 8   | `console.log` anywhere except the CLI adapter | Handlers must return data; only the presentation layer writes to streams                   |
+| 9   | Handlers that exit the process directly       | Let the entry point decide. Handlers return errors as data                                 |
+| 10  | Non-zero exit without stderr explanation      | Scripts need both the code and the reason                                                  |
+| 11  | Verbose default output                        | A single test run can generate 419KB. Support `--fields`, `--quiet`, `--json`              |
 
 ---
 

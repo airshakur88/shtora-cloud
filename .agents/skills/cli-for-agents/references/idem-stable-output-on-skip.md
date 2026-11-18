@@ -1,4 +1,5 @@
 ---
+
 title: Return the Same Output Shape Whether Acting or Skipping
 impact: MEDIUM
 impactDescription: prevents downstream parser branching on did-anything-happen
@@ -71,6 +72,7 @@ new Command()
 ```
 
 **Benefits:**
+
 - Downstream commands work on both first and subsequent runs
 - `changed: true|false` lets agents still branch on "did work happen" when needed
 - Matches Terraform/Ansible's `changed` convention

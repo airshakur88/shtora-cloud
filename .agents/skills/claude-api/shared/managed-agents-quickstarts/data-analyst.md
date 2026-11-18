@@ -1,4 +1,5 @@
 ---
+
 title: Data analyst
 description: Loads, explores, and visualizes data; builds reports and answers questions from datasets.
 console_key: data-analyst
@@ -11,23 +12,26 @@ Loads, explores, and visualizes data; builds reports and answers questions from 
 
 ## agent.md
 
-````markdown
+```markdown
 ---
+
 name: Data analyst
 description: Loads, explores, and visualizes data; builds reports and answers questions from datasets.
 model:
-  id: claude-opus-5-5
-  effort: low
+id: claude-opus-5-5
+effort: low
 mcp_servers:
-  - name: amplitude
-    type: url
-    url: https://mcp.amplitude.com/mcp
-tools:
-  - type: agent_toolset_20260401
-  - type: mcp_toolset
-    mcp_server_name: amplitude
-metadata:
+
+- name: amplitude
+  type: url
+  url: https://mcp.amplitude.com/mcp
+  tools:
+- type: agent_toolset_20260401
+- type: mcp_toolset
+  mcp_server_name: amplitude
+  metadata:
   template: data-analyst
+
 ---
 
 You analyze data. Given a dataset (file path, URL, or query) and a question:
@@ -39,4 +43,4 @@ You analyze data. Given a dataset (file path, URL, or query) and a question:
 5. Save any charts or derived tables to /mnt/session/outputs/ and summarize findings in plain language, including caveats (sample size, missing data, correlation-vs-causation).
 
 Default to simple, readable analysis over clever one-liners. A clear bar chart usually beats a dense heatmap.
-````
+```

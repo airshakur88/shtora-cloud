@@ -16,22 +16,22 @@ Done when you can list every output field with its type, source location, and nu
 
 ```json
 {
-    "actorSpecification": 1,
-    "fields": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "properties": {},
-        "required": [],
-        "additionalProperties": true
-    },
-    "views": {
-        "overview": {
-            "title": "Overview",
-            "description": "Most important fields at a glance",
-            "transformation": { "fields": [] },
-            "display": { "component": "table", "properties": {} }
-        }
-    }
+	"actorSpecification": 1,
+	"fields": {
+		"$schema": "http://json-schema.org/draft-07/schema#",
+		"type": "object",
+		"properties": {},
+		"required": [],
+		"additionalProperties": true
+	},
+	"views": {
+		"overview": {
+			"title": "Overview",
+			"description": "Most important fields at a glance",
+			"transformation": { "fields": [] },
+			"display": { "component": "table", "properties": {} }
+		}
+	}
 }
 ```
 
@@ -39,12 +39,12 @@ Done when you can list every output field with its type, source location, and nu
 
 Rules for every field:
 
-| Rule | Detail |
-|------|--------|
-| `"type"` | Always present. AJV rejects `nullable` without `type` on the same field. A TypeScript union such as `Foo \| string` becomes `"type": ["object", "string"]`. |
-| `"nullable": true` | On every field. Websites and APIs drop values without warning. `nullable` is an Apify extension to draft-07. |
-| `"description"` and `"example"` | On every field. Examples are anonymized: `"exampleuser"`, `"Example Channel"`, ISO dates like `"2025-01-15T12:00:00.000Z"`, URLs in the platform's format with fake IDs of the right length. |
-| `"required": []` and `"additionalProperties": true` | On the top-level `fields` object **and** on every nested object inside `properties`. The nested level is the one most often missed. |
+| Rule                                                | Detail                                                                                                                                                                                       |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"type"`                                            | Always present. AJV rejects `nullable` without `type` on the same field. A TypeScript union such as `Foo \| string` becomes `"type": ["object", "string"]`.                                  |
+| `"nullable": true`                                  | On every field. Websites and APIs drop values without warning. `nullable` is an Apify extension to draft-07.                                                                                 |
+| `"description"` and `"example"`                     | On every field. Examples are anonymized: `"exampleuser"`, `"Example Channel"`, ISO dates like `"2025-01-15T12:00:00.000Z"`, URLs in the platform's format with fake IDs of the right length. |
+| `"required": []` and `"additionalProperties": true` | On the top-level `fields` object **and** on every nested object inside `properties`. The nested level is the one most often missed.                                                          |
 
 Two patterns cover the rest:
 
@@ -79,23 +79,23 @@ Group the writes by key pattern. A fixed key such as `"REPORT"` becomes a collec
 
 ```json
 {
-    "actorKeyValueStoreSchemaVersion": 1,
-    "title": "Scraped Files",
-    "description": "Downloaded files and screenshots",
-    "collections": {
-        "report": {
-            "title": "Report",
-            "description": "Final analysis report",
-            "key": "REPORT",
-            "contentTypes": ["application/json"]
-        },
-        "screenshots": {
-            "title": "Screenshots",
-            "description": "Page screenshots captured during scraping",
-            "keyPrefix": "screenshot-",
-            "contentTypes": ["image/png", "image/jpeg"]
-        }
-    }
+	"actorKeyValueStoreSchemaVersion": 1,
+	"title": "Scraped Files",
+	"description": "Downloaded files and screenshots",
+	"collections": {
+		"report": {
+			"title": "Report",
+			"description": "Final analysis report",
+			"key": "REPORT",
+			"contentTypes": ["application/json"]
+		},
+		"screenshots": {
+			"title": "Screenshots",
+			"description": "Page screenshots captured during scraping",
+			"keyPrefix": "screenshot-",
+			"contentTypes": ["image/png", "image/jpeg"]
+		}
+	}
 }
 ```
 
@@ -105,17 +105,17 @@ Group the writes by key pattern. A fixed key such as `"REPORT"` becomes a collec
 
 ```json
 {
-    "actorOutputSchemaVersion": 1,
-    "title": "Output of the <Actor name>",
-    "description": "One sentence describing the output data",
-    "properties": {
-        "dataset": {
-            "type": "string",
-            "title": "Results",
-            "description": "Dataset containing all scraped data",
-            "template": "{{links.apiDefaultDatasetUrl}}/items"
-        }
-    }
+	"actorOutputSchemaVersion": 1,
+	"title": "Output of the <Actor name>",
+	"description": "One sentence describing the output data",
+	"properties": {
+		"dataset": {
+			"type": "string",
+			"title": "Results",
+			"description": "Dataset containing all scraped data",
+			"template": "{{links.apiDefaultDatasetUrl}}/items"
+		}
+	}
 }
 ```
 

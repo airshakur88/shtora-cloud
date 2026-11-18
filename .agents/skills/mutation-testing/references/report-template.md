@@ -10,17 +10,17 @@
 
 ## Executive Summary
 
-| Metric | Value |
-|--------|-------|
-| Total mutants generated | [N] |
-| Mutants killed | [N] |
-| Mutants survived | [N] |
-| Equivalent mutants (false positives) | [N] |
-| Real surviving mutants | [N] |
-| Unresolved survivors | [N] |
-| Skipped or inconclusive mutants | [N] |
-| Mutation kill rate (raw) | [N]% |
-| Adjusted kill rate (excluding equivalent) | [N]% |
+| Metric                                    | Value |
+| ----------------------------------------- | ----- |
+| Total mutants generated                   | [N]   |
+| Mutants killed                            | [N]   |
+| Mutants survived                          | [N]   |
+| Equivalent mutants (false positives)      | [N]   |
+| Real surviving mutants                    | [N]   |
+| Unresolved survivors                      | [N]   |
+| Skipped or inconclusive mutants           | [N]   |
+| Mutation kill rate (raw)                  | [N]%  |
+| Adjusted kill rate (excluding equivalent) | [N]%  |
 
 ### Key Findings
 
@@ -28,12 +28,12 @@
 
 ### Severity Distribution
 
-| Severity Tier | Count | Percentage of Real Survivors |
-|---------------|-------|------------------------------|
-| Critical (Security-Sensitive) | [N] | [N]% |
-| High (Financial/State Integrity) | [N] | [N]% |
-| Medium (Business Logic) | [N] | [N]% |
-| Low (Observability) | [N] | [N]% |
+| Severity Tier                    | Count | Percentage of Real Survivors |
+| -------------------------------- | ----- | ---------------------------- |
+| Critical (Security-Sensitive)    | [N]   | [N]%                         |
+| High (Financial/State Integrity) | [N]   | [N]%                         |
+| Medium (Business Logic)          | [N]   | [N]%                         |
+| Low (Observability)              | [N]   | [N]%                         |
 
 ---
 
@@ -41,9 +41,9 @@
 
 [One to two sentences explaining what equivalent mutants are and how many were identified in this analysis.]
 
-| # | File | Line | Mutation | Equivalence Reason |
-|---|------|------|----------|-------------------|
-| 1 | [path/to/file] | [N] | `[original]` → `[mutated]` | [Brief explanation of why this is a false positive] |
+| #   | File           | Line | Mutation                   | Equivalence Reason                                  |
+| --- | -------------- | ---- | -------------------------- | --------------------------------------------------- |
+| 1   | [path/to/file] | [N]  | `[original]` → `[mutated]` | [Brief explanation of why this is a false positive] |
 
 ---
 
@@ -128,9 +128,9 @@ Organize all recommendations by test file, grouping related improvements across 
 
 ### Source Files with Surviving Mutants
 
-| File | Total Surviving | Critical | High | Medium | Low |
-|------|----------------|----------|------|--------|-----|
-| [path/to/file] | [N] | [N] | [N] | [N] | [N] |
+| File           | Total Surviving | Critical | High | Medium | Low |
+| -------------- | --------------- | -------- | ---- | ------ | --- |
+| [path/to/file] | [N]             | [N]      | [N]  | [N]    | [N] |
 
 ### Methodology
 

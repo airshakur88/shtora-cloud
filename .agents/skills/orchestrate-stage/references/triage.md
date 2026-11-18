@@ -17,6 +17,7 @@ It reads `.opentaint/results/report.sarif` and idempotently writes one `.opentai
 Fan out one leaf per pending finding file; a few files per leaf is fine.
 
 Inputs:
+
 - `language`
 - `findings`
 

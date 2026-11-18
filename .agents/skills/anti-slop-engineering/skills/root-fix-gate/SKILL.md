@@ -1,10 +1,11 @@
 ---
+
 name: root-fix-gate
 description: Use when a coding agent is about to patch the same symptom across controllers, views, endpoints or files; a small behavior change causes a wide diff; a workaround may hide a wrong model, schema or domain boundary; or a user proposes a shortcut with uncertain downstream effects. Trace the causal owner and compare a coherent root correction against distributed patches before implementation or review. Skip narrow, localized fixes with an already established owner.
 license: MIT
 metadata:
-  version: "0.1.0"
-  parent: anti-slop-engineering
+version: "0.1.0"
+parent: anti-slop-engineering
 ---
 
 # Root-Fix Gate
@@ -19,14 +20,14 @@ The target is a causal ownership decision before code, followed by focused imple
 
 ## Activation and boundaries
 
-| Signal | Action |
-| --- | --- |
-| Repeated filtering, masking, normalization, or validation across consumers | Trace where the rule should be owned before duplicating it |
-| Small request produces a cross-layer or unexpectedly wide diff | Compare source-of-truth correction with distributed patches |
-| Agent or user says “just change the model” without contract evidence | Examine actual boundaries and downstream dependencies |
-| Old fixes keep returning as new symptoms | Reopen the causal hypothesis with failed-probe evidence |
-| Owner known and change is narrow, reversible, fully specified | Use parent Anti-Slop BUILD/FIX directly; do not require a record |
-| New stack, vendor, or long-term architecture is undecided | Route to `decision-guard` first, then return for implementation ownership |
+| Signal                                                                     | Action                                                                    |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Repeated filtering, masking, normalization, or validation across consumers | Trace where the rule should be owned before duplicating it                |
+| Small request produces a cross-layer or unexpectedly wide diff             | Compare source-of-truth correction with distributed patches               |
+| Agent or user says “just change the model” without contract evidence       | Examine actual boundaries and downstream dependencies                     |
+| Old fixes keep returning as new symptoms                                   | Reopen the causal hypothesis with failed-probe evidence                   |
+| Owner known and change is narrow, reversible, fully specified              | Use parent Anti-Slop BUILD/FIX directly; do not require a record          |
+| New stack, vendor, or long-term architecture is undecided                  | Route to `decision-guard` first, then return for implementation ownership |
 
 Do not turn every CRUD edit into an architecture review. Do not insist that every rule belongs in an ORM model: ownership may be a domain service, schema constraint, serializer, policy layer, transport adapter, or the UI depending on the invariant.
 
@@ -49,14 +50,14 @@ Do not turn every CRUD edit into an architecture review. Do not insist that ever
 
 ### Decision router
 
-| Evidence | Decision | Next step |
-| --- | --- | --- |
-| Root boundary observed, no material dependent risk | `proceed` | Test that boundary; implement the smallest coherent change |
-| Root boundary plausible but auth/data/consumer effects unknown | `pause` on risky mutation | Read callers, add characterization probes, ask only for inaccessible facts |
-| Different contexts have distinct valid owners | `proceed` with scoped owners | Preserve separate invariants; reject a fake shared utility |
-| Root correction changes an authorized contract | `pause` for authority | State old/new contract, migration impact and user decision needed |
-| Original request is already satisfied by a source or standard capability | `stop` | Show evidence and avoid unnecessary code |
-| Diff is wider than expected | `review`, not automatic rejection | Reconcile paths against evidence and the change plan |
+| Evidence                                                                 | Decision                          | Next step                                                                  |
+| ------------------------------------------------------------------------ | --------------------------------- | -------------------------------------------------------------------------- |
+| Root boundary observed, no material dependent risk                       | `proceed`                         | Test that boundary; implement the smallest coherent change                 |
+| Root boundary plausible but auth/data/consumer effects unknown           | `pause` on risky mutation         | Read callers, add characterization probes, ask only for inaccessible facts |
+| Different contexts have distinct valid owners                            | `proceed` with scoped owners      | Preserve separate invariants; reject a fake shared utility                 |
+| Root correction changes an authorized contract                           | `pause` for authority             | State old/new contract, migration impact and user decision needed          |
+| Original request is already satisfied by a source or standard capability | `stop`                            | Show evidence and avoid unnecessary code                                   |
+| Diff is wider than expected                                              | `review`, not automatic rejection | Reconcile paths against evidence and the change plan                       |
 
 ### Mandatory checkpoints
 
@@ -75,15 +76,15 @@ For a persistent packet, run `python3 scripts/root_fix_guard.py audit <record.js
 
 ## Failure taxonomy
 
-| Failure | Signal | Recovery |
-| --- | --- | --- |
-| Symptom fan-out | Same transformation in many consumers | Trace upstream owner and test a single-boundary fix |
-| Model magnetism | Every policy forced into an ORM entity | Check domain, adapter and identity boundaries independently |
-| Domain conflation | Order contact email treated as login identity | Separate purposes and test migration/auth contracts |
-| False minimalism | One-line change silently breaks dependent callers | Expand the **necessary** test/migration surface |
-| Diff laundering | Unplanned paths explained after the fact | Compare original plan, sources and actual changes |
-| Authority bypass | “Clean up” deletes historical user data | Pause, request explicit decision and recovery plan |
-| Verification theater | Only UI-hidden symptom is tested | Test source invariant and dependent behaviors |
+| Failure              | Signal                                            | Recovery                                                    |
+| -------------------- | ------------------------------------------------- | ----------------------------------------------------------- |
+| Symptom fan-out      | Same transformation in many consumers             | Trace upstream owner and test a single-boundary fix         |
+| Model magnetism      | Every policy forced into an ORM entity            | Check domain, adapter and identity boundaries independently |
+| Domain conflation    | Order contact email treated as login identity     | Separate purposes and test migration/auth contracts         |
+| False minimalism     | One-line change silently breaks dependent callers | Expand the **necessary** test/migration surface             |
+| Diff laundering      | Unplanned paths explained after the fact          | Compare original plan, sources and actual changes           |
+| Authority bypass     | “Clean up” deletes historical user data           | Pause, request explicit decision and recovery plan          |
+| Verification theater | Only UI-hidden symptom is tested                  | Test source invariant and dependent behaviors               |
 
 ## Delegated Skills
 

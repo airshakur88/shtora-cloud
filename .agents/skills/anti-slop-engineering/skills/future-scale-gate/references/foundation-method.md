@@ -2,12 +2,12 @@
 
 ## Separate four kinds of investment
 
-| Investment | Example | Typical timing |
-| --- | --- | --- |
-| **Invariant** | Deterministic event ordering, tenant isolation, public API semantics | Before depending code/data uses the contract |
-| **Boundary** | Stable IR between language semantics and execution engine | When reversing the dependency later would require a public rewrite |
-| **Capacity** | More workers, indexes, caches, native engine, partitioning | When credible demand or bounded experiment justifies it |
-| **Operations** | Monitoring, replay, rollback, migration rehearsals | As needed to make the chosen boundary safe and verifiable |
+| Investment     | Example                                                              | Typical timing                                                     |
+| -------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Invariant**  | Deterministic event ordering, tenant isolation, public API semantics | Before depending code/data uses the contract                       |
+| **Boundary**   | Stable IR between language semantics and execution engine            | When reversing the dependency later would require a public rewrite |
+| **Capacity**   | More workers, indexes, caches, native engine, partitioning           | When credible demand or bounded experiment justifies it            |
+| **Operations** | Monitoring, replay, rollback, migration rehearsals                   | As needed to make the chosen boundary safe and verifiable          |
 
 Do not treat every early abstraction as a foundation. A named interface is useful only when it expresses a stable, testable responsibility across plausible consumers. A speculative adapter with no actual second use or representative spike can increase rather than reduce lifetime cost.
 
@@ -27,17 +27,17 @@ The envelope should cover each materially different stress axis that matters, no
 
 Assess each commitment independently:
 
-| Reversal | Signals | Evidence burden |
-| --- | --- | --- |
-| Low | One isolated adapter or UI component; no persistent format/public consumer | Local regression plus documented replacement path |
-| Medium | Multiple components, operational migration, limited downstream users | Representative integration/migration exercise |
-| High | Persistent schema, language semantics, protocol, identity boundary or unversioned external contract | Counterfactual implementation, compatibility proof, and authority checks |
+| Reversal | Signals                                                                                             | Evidence burden                                                          |
+| -------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Low      | One isolated adapter or UI component; no persistent format/public consumer                          | Local regression plus documented replacement path                        |
+| Medium   | Multiple components, operational migration, limited downstream users                                | Representative integration/migration exercise                            |
+| High     | Persistent schema, language semantics, protocol, identity boundary or unversioned external contract | Counterfactual implementation, compatibility proof, and authority checks |
 
 Evaluate the **cost of being wrong**, not how impressive an architecture sounds. Include upgrade downtime, data conversion, auth/security surface, operational owner, vendor exit, test and tooling migration, and failure modes. Do not invent precise dollar totals when price and staffing data are unknown. A range or qualitative ordering with assumptions is acceptable.
 
 ## Bounded fitness proof
 
-Specify a *falsifiable* capability before building the full production version:
+Specify a _falsifiable_ capability before building the full production version:
 
 1. Name the future consumer or stress and its invariant.
 2. Identify the minimal source/fixture/prototype needed to exercise the boundary.

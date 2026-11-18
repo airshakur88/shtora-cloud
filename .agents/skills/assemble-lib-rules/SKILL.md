@@ -1,10 +1,11 @@
 ---
+
 name: assemble-lib-rules
 description: Write the per-vuln-class security join rules that merge the created source/sink lib rules with the built-ins. Use to wire lib rules into project-level joins
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Assemble Lib Rules
@@ -65,8 +66,8 @@ rules:
         - rule: java/lib/spring/webclient-ssrf-sink.yaml#webclient-ssrf-sink
           as: sink
       on:
-        - 'servlet-source.$UNTRUSTED -> sink.$UNTRUSTED'
-        - 'webflux-source.$UNTRUSTED -> sink.$UNTRUSTED'
+        - "servlet-source.$UNTRUSTED -> sink.$UNTRUSTED"
+        - "webflux-source.$UNTRUSTED -> sink.$UNTRUSTED"
 ```
 
 The same class's built-in sink is a second file (e.g. `ssrf-java-ssrf-sink-lib-ext.yaml`), refing only the created sources → that built-in sink.

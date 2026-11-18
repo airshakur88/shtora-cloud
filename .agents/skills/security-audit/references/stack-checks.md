@@ -5,6 +5,7 @@ Phase 0 detected. Version floors move — treat every floor here as a lower boun
 confirm against the vendor advisory when a version is close to the line.
 
 ## Contents
+
 - [Run these first](#run-these-first)
 - [PostgreSQL](#postgresql)
 - [Redis](#redis)
@@ -138,7 +139,7 @@ redis-cli ACL LIST                   # "default on nopass ~* &* +@all" is wide o
 ```
 
 **Protected mode is not authentication.** It only refuses non-loopback connections when
-no password *and* no explicit bind are set. Setting `bind 0.0.0.0` disables its
+no password _and_ no explicit bind are set. Setting `bind 0.0.0.0` disables its
 protection while leaving `protected-mode yes` in the config, which reads as safe and is
 not.
 
@@ -209,7 +210,7 @@ Version policy: 16.2.x is Active LTS, 15.5.x is Maintenance LTS. **13.x and 14.x
 longer receive security patches.** Current floor: **16.2.11 or 15.5.21**.
 
 **This is the check most audits get wrong.** Only `>= 15.5.21` or `>= 16.2.11` carry
-*all* patches. Versions like 15.4.10, 15.3.8 and 15.0.7 received the December 2025
+_all_ patches. Versions like 15.4.10, 15.3.8 and 15.0.7 received the December 2025
 React2Shell fixes but **not** the May 2026 or July 2026 ones. Those release lines are
 permanently vulnerable — they must be **moved to a supported line, not bumped within
 their own**. A repo on 15.4.10 looks patched against React2Shell and is still exposed
@@ -248,8 +249,8 @@ rg -o --pcre2 'createServerReference\(\s*["\x27][0-9a-f]{40}' -g '*.js' .next/st
 
 **Do not grep for the word "auth" to decide whether a handler is protected.** A file
 containing `// TODO: add auth check` passes a keyword search while having no auth at
-all, and that comment is exactly what AI scaffolding emits. Require auth as a *call or
-import*, and check per function rather than per file — one guarded action masks
+all, and that comment is exactly what AI scaffolding emits. Require auth as a _call or
+import_, and check per function rather than per file — one guarded action masks
 unguarded siblings:
 
 ```bash
@@ -259,7 +260,7 @@ while read -r f; do
 done
 ```
 
-Every action body needs authentication *and* object-level authorization, the same as a
+Every action body needs authentication _and_ object-level authorization, the same as a
 route handler.
 
 **Also check `ignoreBuildErrors` and `ignoreDuringBuilds`**, which are near-universal in
@@ -321,7 +322,7 @@ rg -n 'http\.ListenAndServe\(' --type go
 rg -n 'ReadHeaderTimeout|ReadTimeout|WriteTimeout' --type go   # absence is the finding
 ```
 
-**G304 path traversal.** `filepath.Join` calls `Clean`, which *resolves* `..` — it does
+**G304 path traversal.** `filepath.Join` calls `Clean`, which _resolves_ `..` — it does
 not confine the result to the base directory. It looks like a sandbox and is not. Go
 1.24's `os.OpenRoot` is traversal-proof by construction; use it rather than hand-rolling
 containment checks.
@@ -338,7 +339,7 @@ rg -l '"math/rand' --type go | xargs rg -ln 'token|secret|key|session|otp|nonce'
 Runtime floor: Node 22.23.0 / 24.17.0 / 26.3.1. **Node 18 and 20 are EOL.**
 
 **CORS with a reflected origin and credentials.** The lethal combination is
-`origin: true` (which *reflects* the request Origin) together with `credentials: true`.
+`origin: true` (which _reflects_ the request Origin) together with `credentials: true`.
 Unlike `origin: '*'`, the browser does not block this, so any site can make
 authenticated cross-origin requests and read the responses.
 

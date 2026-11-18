@@ -32,6 +32,7 @@ Parse the line:
 ```
 
 Extract:
+
 - **base_path**: project base path (e.g., ".", "api", "frontend/src")
 - **type**: project type (backend, frontend, mobile, library)
 - **agent**: agent name (e.g., "injection")
@@ -68,6 +69,7 @@ Thoroughly explore the code to understand the vulnerability surface:
 6. **Call chain handling**: If multiple functions in the same call chain have the vulnerability (e.g., a caller and the helper it calls), report only the function where the fix would be applied — typically the deepest point for data-flow issues (injection, encoding), or the entry point / controller for access-control issues (authentication, authorization, MFA).
 
 **Efficiency rules:**
+
 - Read at most 5 files total (candidate + up to 4 related files)
 - Use Grep to find specific patterns rather than reading entire files
 - Stop exploring a lead if you find clear mitigations
@@ -77,12 +79,14 @@ Thoroughly explore the code to understand the vulnerability surface:
 A finding is genuine ONLY if **ALL** validation criteria from the vector's criteria list are satisfied.
 
 **For each finding, you must:**
+
 1. Analyze every criterion in the criteria list. If ANY criterion is not met, do NOT report it.
 2. Collect specific code evidence — exact lines, file paths, line numbers.
 3. Determine severity based on the severity descriptions provided. If the vector has no `severity` descriptions, assess severity from the demonstrated impact and state that basis in the description.
 4. Write remediation guidance specific to the code and framework.
 
 **Do NOT report:**
+
 - Theoretical vulnerabilities without concrete code evidence
 - Vulnerabilities mitigated by existing protections
 - Best-practice recommendations that aren't actual vulnerabilities
@@ -94,6 +98,7 @@ If a vulnerability is found, read the template at `<skill_dir>/prompts/template-
 **Finding filename**: `<scan_dir>/findings/<finding_id>.md`
 
 Where `finding_id` is: `<base_path_slug>--<agent>--<vector>--<class>--<method>`
+
 - `base_path_slug`: base_path with `/` replaced by `-`, `.` replaced by `root` (e.g., `root`, `api`, `frontend-src`)
 - `agent`: the agent name (e.g., `injection`, `authz`)
 - `vector`: the vector name (e.g., `sql-injection`, `bola`)
@@ -103,6 +108,7 @@ Where `finding_id` is: `<base_path_slug>--<agent>--<vector>--<class>--<method>`
 Examples: `root--injection--sql-injection--account-handler--get-account.md`, `api--authz--bola--user-controller--update-user.md`
 
 Populate the template with:
+
 - **ID**: the finding_id
 - **Project**: base_path (type)
 - **Project Type**: type
@@ -136,5 +142,6 @@ Edit `<scan_dir>/analyses.md` — replace your `- [ ]` line with `- [x]`:
 Output a short summary with no commentary. Format: `<file> | <agent>/<vector> — <result>`
 
 Examples:
+
 - `handlers/transfers.go | authz/bola — 1 finding`
 - `handlers/accounts.go | authz/bola — clean`

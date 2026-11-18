@@ -8,37 +8,37 @@ User account with authentication and profile information.
 All users must have a unique email address.
 """
 type User {
-  "Unique user identifier"
-  id: ID!
-  "User's email address (unique)"
-  email: String!
-  "Display name (optional)"
-  username: String
-  "Account creation timestamp"
-  createdAt: DateTime!
-  "User's posts (paginated)"
-  posts(first: Int = 10, after: String): PostConnection!
-  "User's profile (nullable if not completed)"
-  profile: Profile
+	"Unique user identifier"
+	id: ID!
+	"User's email address (unique)"
+	email: String!
+	"Display name (optional)"
+	username: String
+	"Account creation timestamp"
+	createdAt: DateTime!
+	"User's posts (paginated)"
+	posts(first: Int = 10, after: String): PostConnection!
+	"User's profile (nullable if not completed)"
+	profile: Profile
 }
 
 type Profile {
-  id: ID!
-  bio: String
-  avatarUrl: URL
-  website: URL
-  location: String
+	id: ID!
+	bio: String
+	avatarUrl: URL
+	website: URL
+	location: String
 }
 
 type Post {
-  id: ID!
-  title: String!
-  content: String!
-  author: User!
-  publishedAt: DateTime
-  status: PostStatus!
-  tags: [Tag!]!
-  comments(first: Int, after: String): CommentConnection!
+	id: ID!
+	title: String!
+	content: String!
+	author: User!
+	publishedAt: DateTime
+	status: PostStatus!
+	tags: [Tag!]!
+	comments(first: Int, after: String): CommentConnection!
 }
 ```
 
@@ -49,44 +49,44 @@ type Post {
 Common interface for all content that can be timestamped
 """
 interface Timestamped {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
+	id: ID!
+	createdAt: DateTime!
+	updatedAt: DateTime!
 }
 
 """
 Interface for searchable content
 """
 interface Searchable {
-  id: ID!
-  title: String!
-  description: String
+	id: ID!
+	title: String!
+	description: String
 }
 
 type Article implements Timestamped & Searchable {
-  id: ID!
-  title: String!
-  description: String
-  content: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  author: User!
+	id: ID!
+	title: String!
+	description: String
+	content: String!
+	createdAt: DateTime!
+	updatedAt: DateTime!
+	author: User!
 }
 
 type Video implements Timestamped & Searchable {
-  id: ID!
-  title: String!
-  description: String
-  url: URL!
-  duration: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  uploader: User!
+	id: ID!
+	title: String!
+	description: String
+	url: URL!
+	duration: Int!
+	createdAt: DateTime!
+	updatedAt: DateTime!
+	uploader: User!
 }
 
 # Query returning interface
 type Query {
-  search(query: String!): [Searchable!]!
+	search(query: String!): [Searchable!]!
 }
 ```
 
@@ -104,22 +104,22 @@ Notification types that users can receive
 union Notification = CommentNotification | LikeNotification | FollowNotification
 
 type CommentNotification {
-  id: ID!
-  comment: Comment!
-  post: Post!
-  createdAt: DateTime!
+	id: ID!
+	comment: Comment!
+	post: Post!
+	createdAt: DateTime!
 }
 
 type LikeNotification {
-  id: ID!
-  liker: User!
-  post: Post!
-  createdAt: DateTime!
+	id: ID!
+	liker: User!
+	post: Post!
+	createdAt: DateTime!
 }
 
 type Query {
-  searchContent(query: String!): [SearchResult!]!
-  notifications(first: Int): [Notification!]!
+	searchContent(query: String!): [SearchResult!]!
+	notifications(first: Int): [Notification!]!
 }
 ```
 
@@ -130,35 +130,32 @@ type Query {
 Post publication status
 """
 enum PostStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-  DELETED
+	DRAFT
+	PUBLISHED
+	ARCHIVED
+	DELETED
 }
 
 """
 User role for authorization
 """
 enum UserRole {
-  ADMIN
-  MODERATOR
-  USER
-  GUEST
+	ADMIN
+	MODERATOR
+	USER
+	GUEST
 }
 
 """
 Sort direction for queries
 """
 enum SortOrder {
-  ASC
-  DESC
+	ASC
+	DESC
 }
 
 type Query {
-  posts(
-    status: PostStatus
-    orderBy: SortOrder = DESC
-  ): [Post!]!
+	posts(status: PostStatus, orderBy: SortOrder = DESC): [Post!]!
 }
 ```
 
@@ -169,48 +166,48 @@ type Query {
 Input for creating a new user
 """
 input CreateUserInput {
-  email: String!
-  password: String!
-  username: String
-  profile: ProfileInput
+	email: String!
+	password: String!
+	username: String
+	profile: ProfileInput
 }
 
 input ProfileInput {
-  bio: String
-  avatarUrl: URL
-  website: URL
-  location: String
+	bio: String
+	avatarUrl: URL
+	website: URL
+	location: String
 }
 
 """
 Input for updating a post
 """
 input UpdatePostInput {
-  title: String
-  content: String
-  status: PostStatus
-  tags: [ID!]
+	title: String
+	content: String
+	status: PostStatus
+	tags: [ID!]
 }
 
 """
 Pagination and filtering input
 """
 input PostFilterInput {
-  status: PostStatus
-  authorId: ID
-  tags: [String!]
-  search: String
-  createdAfter: DateTime
-  createdBefore: DateTime
+	status: PostStatus
+	authorId: ID
+	tags: [String!]
+	search: String
+	createdAfter: DateTime
+	createdBefore: DateTime
 }
 
 type Mutation {
-  createUser(input: CreateUserInput!): User!
-  updatePost(id: ID!, input: UpdatePostInput!): Post!
+	createUser(input: CreateUserInput!): User!
+	updatePost(id: ID!, input: UpdatePostInput!): Post!
 }
 
 type Query {
-  posts(filter: PostFilterInput, first: Int, after: String): PostConnection!
+	posts(filter: PostFilterInput, first: Int, after: String): PostConnection!
 }
 ```
 
@@ -243,12 +240,12 @@ Positive integer
 scalar PositiveInt
 
 type User {
-  id: ID!
-  email: Email!
-  createdAt: DateTime!
-  website: URL
-  metadata: JSON
-  age: PositiveInt
+	id: ID!
+	email: Email!
+	createdAt: DateTime!
+	website: URL
+	metadata: JSON
+	age: PositiveInt
 }
 ```
 
@@ -259,30 +256,25 @@ type User {
 Cursor-based pagination (Relay specification)
 """
 type PostConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
+	edges: [PostEdge!]!
+	pageInfo: PageInfo!
+	totalCount: Int!
 }
 
 type PostEdge {
-  node: Post!
-  cursor: String!
+	node: Post!
+	cursor: String!
 }
 
 type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
+	endCursor: String
 }
 
 type Query {
-  posts(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): PostConnection!
+	posts(first: Int, after: String, last: Int, before: String): PostConnection!
 }
 ```
 
@@ -290,38 +282,38 @@ type Query {
 
 ```graphql
 type User {
-  # Non-nullable: guaranteed to exist
-  id: ID!
-  email: String!
-  createdAt: DateTime!
+	# Non-nullable: guaranteed to exist
+	id: ID!
+	email: String!
+	createdAt: DateTime!
 
-  # Nullable: optional or may not exist yet
-  username: String
-  bio: String
-  avatarUrl: URL
+	# Nullable: optional or may not exist yet
+	username: String
+	bio: String
+	avatarUrl: URL
 
-  # Non-null list of nullable items
-  # List always exists but can be empty, items can be null
-  tags: [String]!
+	# Non-null list of nullable items
+	# List always exists but can be empty, items can be null
+	tags: [String]!
 
-  # Non-null list of non-null items
-  # List always exists, all items guaranteed non-null
-  roles: [UserRole!]!
+	# Non-null list of non-null items
+	# List always exists, all items guaranteed non-null
+	roles: [UserRole!]!
 
-  # Nullable list of non-null items
-  # List may be null, but if exists, all items non-null
-  posts: [Post!]
+	# Nullable list of non-null items
+	# List may be null, but if exists, all items non-null
+	posts: [Post!]
 }
 
 type Query {
-  # Non-null: query always returns result (empty list if none)
-  users: [User!]!
+	# Non-null: query always returns result (empty list if none)
+	users: [User!]!
 
-  # Nullable: may return null if not found
-  user(id: ID!): User
+	# Nullable: may return null if not found
+	user(id: ID!): User
 
-  # Non-null: guaranteed to return result or error
-  currentUser: User!
+	# Non-null: guaranteed to return result or error
+	currentUser: User!
 }
 ```
 
@@ -329,17 +321,16 @@ type Query {
 
 ```graphql
 type User {
-  id: ID!
-  email: String!
+	id: ID!
+	email: String!
 
-  # Deprecated field with migration path
-  name: String @deprecated(reason: "Use 'username' instead")
-  username: String
+	# Deprecated field with migration path
+	name: String @deprecated(reason: "Use 'username' instead")
+	username: String
 
-  # Deprecated with specific date
-  legacyId: String @deprecated(
-    reason: "Migrating to UUID. Will be removed 2025-06-01"
-  )
+	# Deprecated with specific date
+	legacyId: String
+		@deprecated(reason: "Migrating to UUID. Will be removed 2025-06-01")
 }
 ```
 
@@ -353,18 +344,19 @@ Users can create posts, comments, and interact with content.
 Example query:
 ```
 query GetUser {
-  user(id: "123") {
-    email
-    username
-    posts(first: 10) {
-      edges {
-        node {
-          title
-        }
-      }
-    }
-  }
+user(id: "123") {
+email
+username
+posts(first: 10) {
+edges {
+node {
+title
 }
+}
+}
+}
+}
+
 ```
 """
 type User {

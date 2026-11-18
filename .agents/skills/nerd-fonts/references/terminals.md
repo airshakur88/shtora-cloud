@@ -10,15 +10,15 @@ Data: Nerd Fonts v3.5.1, retrieved 2026-08-28. Sources: upstream README "Font In
 
 ## Keep your text font, add the icons
 
-| App | How |
-|-----|-----|
-| Linux (fontconfig) | copy `10-nerd-font-symbols.conf` from `NerdFontsSymbolsOnly.zip` to `~/.config/fontconfig/conf.d/`, run `fc-cache -fv`; it prefers `Symbols Nerd Font` as fallback for `monospace` and every upstream family |
-| kitty | `symbol_map` (below) |
-| WezTerm | already bundled in the default fallback list; `font_with_fallback` (below) pins the order |
-| iTerm2 | Settings > Profiles > Text > "Use a different font for non-ASCII text" > `Symbols Nerd Font Mono` |
-| Ghostty | already bundled |
-| VS Code | put `'Symbols Nerd Font Mono'` after your font in `editor.fontFamily` |
-| Alacritty, GNOME Terminal, Konsole | no setting; the OS fallback applies (fontconfig on Linux, CoreText on macOS) |
+| App                                | How                                                                                                                                                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Linux (fontconfig)                 | copy `10-nerd-font-symbols.conf` from `NerdFontsSymbolsOnly.zip` to `~/.config/fontconfig/conf.d/`, run `fc-cache -fv`; it prefers `Symbols Nerd Font` as fallback for `monospace` and every upstream family |
+| kitty                              | `symbol_map` (below)                                                                                                                                                                                         |
+| WezTerm                            | already bundled in the default fallback list; `font_with_fallback` (below) pins the order                                                                                                                    |
+| iTerm2                             | Settings > Profiles > Text > "Use a different font for non-ASCII text" > `Symbols Nerd Font Mono`                                                                                                            |
+| Ghostty                            | already bundled                                                                                                                                                                                              |
+| VS Code                            | put `'Symbols Nerd Font Mono'` after your font in `editor.fontFamily`                                                                                                                                        |
+| Alacritty, GNOME Terminal, Konsole | no setting; the OS fallback applies (fontconfig on Linux, CoreText on macOS)                                                                                                                                 |
 
 ## Alignment
 
@@ -82,11 +82,11 @@ Settings > Profiles > Text > Font > `JetBrainsMono Nerd Font`. Restart iTerm2 af
 
 ```json
 {
-  "profiles": {
-    "defaults": {
-      "font": { "face": "JetBrainsMono Nerd Font" }
-    }
-  }
+	"profiles": {
+		"defaults": {
+			"font": { "face": "JetBrainsMono Nerd Font" }
+		}
+	}
 }
 ```
 
@@ -99,8 +99,8 @@ Settings > Profiles > Text > Font > `JetBrainsMono Nerd Font`. Restart iTerm2 af
 
 ```json
 {
-  "editor.fontFamily": "'JetBrainsMono Nerd Font', 'Symbols Nerd Font Mono', monospace",
-  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font"
+	"editor.fontFamily": "'JetBrainsMono Nerd Font', 'Symbols Nerd Font Mono', monospace",
+	"terminal.integrated.fontFamily": "JetBrainsMono Nerd Font"
 }
 ```
 
@@ -116,11 +116,11 @@ The font belongs to the local terminal emulator. Nothing to install on the remot
 
 ## Prompt tools
 
-| Tool | Command or setting |
-|------|--------------------|
-| starship | `starship preset nerd-font-symbols -o ~/.config/starship.toml`; custom modules use the literal glyph, for example `symbol = " "` (`nf-oct-git_branch` U+F418) |
-| powerlevel10k | `p10k configure` asks whether Nerd Font icons render and recommends its bundled `MesloLGS NF` |
-| oh-my-posh | `oh-my-posh font install meslo` (pick another name from `oh-my-posh font list`); themes use literal glyphs |
+| Tool          | Command or setting                                                                                                                                             |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| starship      | `starship preset nerd-font-symbols -o ~/.config/starship.toml`; custom modules use the literal glyph, for example `symbol = " "` (`nf-oct-git_branch` U+F418) |
+| powerlevel10k | `p10k configure` asks whether Nerd Font icons render and recommends its bundled `MesloLGS NF`                                                                  |
+| oh-my-posh    | `oh-my-posh font install meslo` (pick another name from `oh-my-posh font list`); themes use literal glyphs                                                     |
 
 ## Web
 
@@ -136,12 +136,19 @@ Self-hosted (production):
 
 ```css
 @font-face {
-  font-family: "Symbols Nerd Font";
-  src: url("/fonts/SymbolsNerdFont-Regular.ttf") format("truetype");
-  font-display: swap;
+	font-family: "Symbols Nerd Font";
+	src: url("/fonts/SymbolsNerdFont-Regular.ttf") format("truetype");
+	font-display: swap;
 }
-.nf { font-family: "Symbols Nerd Font"; font-style: normal; font-weight: normal; line-height: 1; }
-.nf-oct-mark_github::before { content: "\f408"; }
+.nf {
+	font-family: "Symbols Nerd Font";
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+}
+.nf-oct-mark_github::before {
+	content: "\f408";
+}
 ```
 
 `SymbolsNerdFont-Regular.ttf` and its `LICENSE` come from `NerdFontsSymbolsOnly.zip`; ship both. Decorative icons get `aria-hidden="true"`; icon-only controls get an accessible name.
@@ -149,8 +156,15 @@ Self-hosted (production):
 Alignment: the webfont class already sets `line-height: 1`; add `vertical-align` and tune it against your text font, or center icons in flex containers.
 
 ```css
-.nf { line-height: 1; vertical-align: -0.125em; }
-.icon-button { display: inline-flex; align-items: center; gap: 0.5em; }
+.nf {
+	line-height: 1;
+	vertical-align: -0.125em;
+}
+.icon-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5em;
+}
 ```
 
 Check a line that mixes text and icons before shipping.

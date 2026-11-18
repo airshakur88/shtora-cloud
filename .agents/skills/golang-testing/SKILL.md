@@ -1,8 +1,9 @@
 ---
+
 name: golang-testing
 description: Go testing patterns including table-driven tests, subtests, benchmarks, fuzzing, and test coverage. Follows TDD methodology with idiomatic Go practices. Use when writing Go tests — table-driven cases, subtests, benchmarks, fuzzing, or coverage.
 metadata:
-  origin: ECC
+origin: ECC
 ---
 
 # Go Testing Patterns
@@ -543,12 +544,12 @@ go test -race -coverprofile=coverage.out ./...
 
 ### Coverage Targets
 
-| Code Type | Target |
-|-----------|--------|
-| Critical business logic | 100% |
-| Public APIs | 90%+ |
-| General code | 80%+ |
-| Generated code | Exclude |
+| Code Type               | Target  |
+| ----------------------- | ------- |
+| Critical business logic | 100%    |
+| Public APIs             | 90%+    |
+| General code            | 80%+    |
+| Generated code          | Exclude |
 
 ### Excluding Generated Code from Coverage
 
@@ -682,6 +683,7 @@ go test -count=10 ./...
 ## Best Practices
 
 **DO:**
+
 - Write tests FIRST (TDD)
 - Use table-driven tests for comprehensive coverage
 - Test behavior, not implementation
@@ -691,6 +693,7 @@ go test -count=10 ./...
 - Use meaningful test names that describe the scenario
 
 **DON'T:**
+
 - Test private functions directly (test through public API)
 - Use `time.Sleep()` in tests (use channels or conditions)
 - Ignore flaky tests (fix or remove them)
@@ -707,7 +710,7 @@ test:
     - uses: actions/checkout@v4
     - uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: "1.22"
 
     - name: Run tests
       run: go test -race -coverprofile=coverage.out ./...

@@ -1,10 +1,11 @@
 ---
+
 name: accessibility
 description: Audit and improve web accessibility following WCAG 2.2 guidelines. Use when asked to "improve accessibility", "a11y audit", "WCAG compliance", "screen reader support", "keyboard navigation", or "make accessible".
 license: MIT
 metadata:
-  author: web-quality-skills
-  version: "2.0"
+author: web-quality-skills
+version: "2.0"
 ---
 
 # Accessibility (a11y)
@@ -24,20 +25,20 @@ If the live tools are unavailable, use Lighthouse CLI or axe for automated cover
 
 ## WCAG Principles: POUR
 
-| Principle | Description |
-|-----------|-------------|
-| **P**erceivable | Content can be perceived through different senses |
-| **O**perable | Interface can be operated by all users |
-| **U**nderstandable | Content and interface are understandable |
-| **R**obust | Content works with assistive technologies |
+| Principle          | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| **P**erceivable    | Content can be perceived through different senses |
+| **O**perable       | Interface can be operated by all users            |
+| **U**nderstandable | Content and interface are understandable          |
+| **R**obust         | Content works with assistive technologies         |
 
 ## Conformance levels
 
-| Level | Requirement | Target |
-|-------|-------------|--------|
-| **A** | Minimum accessibility | Must pass |
-| **AA** | Standard compliance | Should pass (legal requirement in many jurisdictions) |
-| **AAA** | Enhanced accessibility | Nice to have |
+| Level   | Requirement            | Target                                                |
+| ------- | ---------------------- | ----------------------------------------------------- |
+| **A**   | Minimum accessibility  | Must pass                                             |
+| **AA**  | Standard compliance    | Should pass (legal requirement in many jurisdictions) |
+| **AAA** | Enhanced accessibility | Nice to have                                          |
 
 ---
 
@@ -46,6 +47,7 @@ If the live tools are unavailable, use Lighthouse CLI or axe for automated cover
 ### Text alternatives (1.1)
 
 **Images require alt text:**
+
 ```html
 <!-- ❌ Missing alt -->
 <img src="chart.png">
@@ -67,6 +69,7 @@ If the live tools are unavailable, use Lighthouse CLI or axe for automated cover
 ```
 
 **Icon buttons need accessible names:**
+
 ```html
 <!-- ❌ No accessible name -->
 <button><svg><!-- menu icon --></svg></button>
@@ -84,49 +87,51 @@ If the live tools are unavailable, use Lighthouse CLI or axe for automated cover
 ```
 
 **Visually hidden class:**
+
 ```css
 .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 ```
 
 ### Color contrast (1.4.3, 1.4.6)
 
-| Text Size | AA minimum | AAA enhanced |
-|-----------|------------|--------------|
-| Normal text (< 18px / < 14px bold) | 4.5:1 | 7:1 |
-| Large text (≥ 18px / ≥ 14px bold) | 3:1 | 4.5:1 |
-| UI components & graphics | 3:1 | 3:1 |
+| Text Size                          | AA minimum | AAA enhanced |
+| ---------------------------------- | ---------- | ------------ |
+| Normal text (< 18px / < 14px bold) | 4.5:1      | 7:1          |
+| Large text (≥ 18px / ≥ 14px bold)  | 3:1        | 4.5:1        |
+| UI components & graphics           | 3:1        | 3:1          |
 
 ```css
 /* ❌ Low contrast (2.5:1) */
 .low-contrast {
-  color: #999;
-  background: #fff;
+	color: #999;
+	background: #fff;
 }
 
 /* ✅ Sufficient contrast (7:1) */
 .high-contrast {
-  color: #333;
-  background: #fff;
+	color: #333;
+	background: #fff;
 }
 
 /* ✅ Focus states need contrast too (3:1 against background, WCAG 1.4.11) */
 :focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
 }
 ```
 
 **Don't rely on color alone:**
+
 ```html
 <!-- ❌ Only color indicates error -->
 <input class="error-border">
@@ -182,14 +187,14 @@ If the live tools are unavailable, use Lighthouse CLI or axe for automated cover
 // ✅ When you MUST use a non-interactive element (e.g. div with role="button"),
 // make it focusable AND handle keyboard activation. Do NOT add this to a native
 // <button> — Enter/Space already fire click, so you'd double-trigger.
-element.setAttribute('role', 'button');
-element.setAttribute('tabindex', '0');
-element.addEventListener('click', handleAction);
-element.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    handleAction();
-  }
+element.setAttribute("role", "button");
+element.setAttribute("tabindex", "0");
+element.addEventListener("click", handleAction);
+element.addEventListener("keydown", (e) => {
+	if (e.key === "Enter" || e.key === " ") {
+		e.preventDefault();
+		handleAction();
+	}
 });
 ```
 
@@ -199,21 +204,23 @@ element.addEventListener('keydown', (e) => {
 
 ```css
 /* ❌ Never remove focus outlines */
-*:focus { outline: none; }
+*:focus {
+	outline: none;
+}
 
 /* ✅ Use :focus-visible for keyboard-only focus */
 :focus {
-  outline: none;
+	outline: none;
 }
 
 :focus-visible {
-  outline: 2px solid currentColor; /* inherits text color → already contrast-checked */
-  outline-offset: 2px;
+	outline: 2px solid currentColor; /* inherits text color → already contrast-checked */
+	outline-offset: 2px;
 }
 
 /* ✅ Or pick a brand color and verify ≥3:1 contrast against every background it lands on */
 button:focus-visible {
-  box-shadow: 0 0 0 3px rgba(0, 95, 204, 0.5);
+	box-shadow: 0 0 0 3px rgba(0, 95, 204, 0.5);
 }
 ```
 
@@ -224,13 +231,13 @@ When an element receives keyboard focus, it must not be entirely hidden by other
 ```css
 /* ✅ Account for sticky headers when scrolling to focused elements */
 :target {
-  scroll-margin-top: 80px;
+	scroll-margin-top: 80px;
 }
 
 /* ✅ Ensure focused items clear fixed/sticky bars */
 :focus {
-  scroll-margin-top: 80px;
-  scroll-margin-bottom: 60px;
+	scroll-margin-top: 80px;
+	scroll-margin-bottom: 60px;
 }
 ```
 
@@ -248,17 +255,17 @@ button,
 [role="button"],
 input[type="checkbox"] + label,
 input[type="radio"] + label {
-  min-width: 24px;
-  min-height: 24px;
+	min-width: 24px;
+	min-height: 24px;
 }
 
 /* ✅ Comfortable target size (recommended 44×44) */
 .touch-target {
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 ```
 
@@ -271,15 +278,15 @@ Any action that requires dragging must have a single-pointer alternative (e.g., 
 ```javascript
 // Allow users to extend time limits
 function showSessionWarning() {
-  const modal = createModal({
-    title: 'Session Expiring',
-    content: 'Your session will expire in 2 minutes.',
-    actions: [
-      { label: 'Extend session', action: extendSession },
-      { label: 'Log out', action: logout }
-    ],
-    timeout: 120000
-  });
+	const modal = createModal({
+		title: "Session Expiring",
+		content: "Your session will expire in 2 minutes.",
+		actions: [
+			{ label: "Extend session", action: extendSession },
+			{ label: "Log out", action: logout },
+		],
+		timeout: 120000,
+	});
 }
 ```
 
@@ -288,14 +295,14 @@ function showSessionWarning() {
 ```css
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 ```
 
@@ -360,6 +367,7 @@ Don't force users to re-enter information they already provided in the same sess
 ### Accessible authentication (3.3.8) — new in 2.2
 
 Login flows must not rely on cognitive function tests (e.g., remembering a password, solving a puzzle) unless at least one of:
+
 - A copy-paste or autofill mechanism is available
 - An alternative method exists (e.g., passkey, SSO, email link)
 - The test uses object recognition or personal content (AA only; AAA removes this exception)
@@ -380,6 +388,7 @@ Login flows must not rely on cognitive function tests (e.g., remembering a passw
 ### ARIA usage (4.1.2)
 
 **Prefer native elements:**
+
 ```html
 <!-- ❌ ARIA role on div -->
 <div role="button" tabindex="0">Click me</div>
@@ -434,6 +443,7 @@ See the [screen reader commands reference](references/A11Y-PATTERNS.md#screen-re
 ## Common issues by impact
 
 ### Critical (fix immediately)
+
 1. Missing form labels
 2. Missing image alt text
 3. Insufficient color contrast
@@ -441,6 +451,7 @@ See the [screen reader commands reference](references/A11Y-PATTERNS.md#screen-re
 5. No focus indicators
 
 ### Serious (fix before launch)
+
 1. Missing page language
 2. Missing heading structure
 3. Non-descriptive link text
@@ -448,6 +459,7 @@ See the [screen reader commands reference](references/A11Y-PATTERNS.md#screen-re
 5. Missing skip links
 
 ### Moderate (fix soon)
+
 1. Missing ARIA labels on icons
 2. Inconsistent navigation
 3. Missing error identification

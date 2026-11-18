@@ -1,9 +1,10 @@
 ---
+
 name: mantis-researcher
 description: >-
-  Audits production source code files based on the strategy in workspace/plan.json.
-  Use when a review plan exists and you need to perform static analysis and deep-dive reviews of targeted files.
-  Don't use for planning, deduplicating, or writing patches.
+Audits production source code files based on the strategy in workspace/plan.json.
+Use when a review plan exists and you need to perform static analysis and deep-dive reviews of targeted files.
+Don't use for planning, deduplicating, or writing patches.
 ---
 
 # Mantis Researcher (/mantis-researcher)
@@ -140,7 +141,6 @@ Execute the research stage as follows:
 2. **Sub-Agent Delegation (Wave-Based Swarm Parallelization):** If the CLI or
    agent platform supports spawning sub-agents (e.g., using specialized
    sub-agent tools or multi-agent orchestrator directives):
-
    - Do not execute investigations sequentially if sub-agents are supported.
      Split the investigations in `workspace/plan.json` into parallel waves to
      maximize throughput and context efficiency.
@@ -154,7 +154,7 @@ Execute the research stage as follows:
      Collect all files flagged in Wave 1. Spawn a wave of concurrent deep
      auditor sub-agents (e.g. up to 4-8 in parallel) to focus exclusively on
      those identified hotspots. For particularly complex files, spawn multiple
-     subagents targeting the *same* file using either different prompt
+     subagents targeting the _same_ file using either different prompt
      constraints or a diverse set of less expensive LLMs to explore parallel
      attack vectors. Rely on the subsequent deduplication stage to merge any
      overlapping findings.
@@ -186,9 +186,7 @@ Execute the research stage as follows:
      SUPPLEMENT the wave-based swarm above. The structural index decides ORDER,
      never MEMBERSHIP. It MUST NEVER replace the exhaustive Step-3 call-site
      sweep.
-
      - **Resolution-first protocol (MANDATORY before any structural query):**
-
        1. Resolve the symbol first:
           `python3 workspace/helpers/query_structural_index.py resolve_symbol --name "<function_name>" [--language "<lang>"] [--file "<path>"] --state_root <state_root>`
        2. If the response has `ambiguous: true`, investigate ALL matched symbols
@@ -199,7 +197,6 @@ Execute the research stage as follows:
 
      - **Coverage-aware interpretation:** Check `coverage.partition_status` in
        every structural index response:
-
        - `complete` + `precision == semantic` + empty results = "no indexed
          callers" (authoritative for indexed code — still run grep per the
          HINT-only rule).
@@ -230,7 +227,6 @@ Execute the research stage as follows:
    defines public or API functions (such as numeric parsers, decoders, encoders,
    or converters) that document explicit size constraints or safety requirements
    (e.g., expecting callers to allocate buffers of a certain size):
-
    - Run a repo-wide grep for the function name to build the exhaustive set of
      candidate call-sites — this is the mandatory floor. Then use the structural
      index query helper (`resolve_symbol` then `find_callers`) to RANK and
@@ -248,7 +244,6 @@ Execute the research stage as follows:
 4. **Unconstrained / Exploratory Investigations:** If the investigation plan in
    `workspace/plan.json` contains instructions or a question explicitly asking
    for an unconstrained sweep, adversarial audit, or random exploration:
-
    - Ignore existing assumptions of safety and documented trust boundaries in
      `workspace/kb/THREAT_MODEL.md`.
    - Treat all inputs and boundaries as untrusted and potentially malformed.
@@ -269,13 +264,11 @@ Execute the research stage as follows:
 
    For each finding, compute `signature`, `lineage_id`, and optionally `cwe`
    BEFORE writing the JSON file:
-
    1. **`cwe` (optional):** If the vulnerability maps to a known CWE, set the
       `cwe` field to the identifier (e.g., `"CWE-787"`, `"CWE-416"`). If no CWE
       applies, omit the field. This is an input to the signature.
 
    2. **Compute `signature` (deterministic content-identity hash):**
-
       - `normalized_title` = finding `title`, lowercased, with ALL
         non-alphanumeric characters stripped (ASCII `[a-zA-Z0-9]` only; all
         other characters including Unicode letters, punctuation, and spaces are
@@ -303,7 +296,6 @@ Execute the research stage as follows:
         edit, or invent it (same rule as `discovery_commit`).
 
    3. **Compute `lineage_id` (cross-pass lineage chain):**
-
       - Scan `workspace/archive/findings_pass_*/` and
         `workspace/archive/loop*_findings/` for any archived finding JSON whose
         `signature` field equals this finding's computed `signature`.

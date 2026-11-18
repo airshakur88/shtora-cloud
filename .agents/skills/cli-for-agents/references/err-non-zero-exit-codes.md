@@ -1,4 +1,5 @@
 ---
+
 title: Use Distinct Non-Zero Exit Codes for Distinct Failures
 impact: HIGH
 impactDescription: prevents silent failures and unnecessary retries
@@ -109,6 +110,7 @@ main "$@"
 ```
 
 **Benefits:**
+
 - Agents branch on exit code without parsing text
 - Code 2 (usage) signals "don't retry — fix the command"
 - Code 75 (`EX_TEMPFAIL`) signals "retry with backoff"; `EX_UNAVAILABLE` (69) is the related "service unavailable" hard failure

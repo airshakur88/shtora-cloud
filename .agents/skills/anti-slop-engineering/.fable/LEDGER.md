@@ -3,6 +3,7 @@
 ## Remediated Work Cards
 
 ### Card 1: CVE-2026-111497 (Node2Shell Brotli Vulnerability)
+
 - **Target:** `package.json`
 - **Rule:** `CVE-2026-111497`
 - **Severity:** High
@@ -12,6 +13,7 @@
 - **Test:** `test/security/redteam-healed.test.ts` (passing)
 
 ### Card 2: BK-AI-CIC-003 (Unpinned GitHub Actions)
+
 - **Target:** `.github/workflows/ci.yml`
 - **Rule:** `BK-AI-CIC-003`
 - **Severity:** Medium
@@ -21,6 +23,7 @@
 - **Test:** `test/security/redteam-healed.test.ts` (passing)
 
 ### Card 3: BK-AI-MEM-004 (Raw Pointer Dereference)
+
 - **Target:** `services/toil-guard-go/pkg/sre/complexity.go`
 - **Rule:** `BK-AI-MEM-004`
 - **Severity:** High
@@ -30,6 +33,7 @@
 - **Test:** `test/security/redteam-healed.test.ts` (passing) & Go test suite (18/18 passing)
 
 ### Card 4: BK-AI-LNG-025 (C sprintf / Memory Copy Pattern)
+
 - **Target:** `services/toil-guard-go` (`complexity.go`, `dry.go`, `toil.go`, `server.go`)
 - **Rule:** `BK-AI-LNG-025`
 - **Severity:** Critical
@@ -39,6 +43,7 @@
 - **Test:** Go test suite (18/18 passing) & `bk scan` (0 findings)
 
 ### Card 5: BK-AI-DOS-001 (Unbounded Traversal / Recursion)
+
 - **Target:** `scripts/decision_guard.py`, `bin/postinstall.js`, `.agents/.../teardown.mjs`
 - **Rule:** `BK-AI-DOS-001`
 - **Severity:** High
@@ -48,6 +53,7 @@
 - **Test:** `test/security/redteam-healed.test.ts` (passing) & Python test suite (47/47 passing)
 
 ### Card 6: BK-AI-WEB-003 (Insecure Regex HTML Tag Stripping)
+
 - **Target:** `.agents/skills/reverse-engineer-marketing/scripts/teardown.mjs`
 - **Rule:** `BK-AI-WEB-003`
 - **Severity:** High
@@ -57,6 +63,7 @@
 - **Test:** `test/security/redteam-healed.test.ts` (passing)
 
 ### Card 7: BK-AI-INJ-015 (Standard Library Regex Compilation Surface Heuristics)
+
 - **Target:** `scripts/diff_guard.py` & `scripts/sre_guard.py`
 - **Rule:** `BK-AI-INJ-015`
 - **Severity:** Medium
@@ -66,6 +73,7 @@
 - **Test:** Python test suite (47/47 passing), `diff_guard.py` & `sre_guard.py` self-checks (0 findings), `bk scan` (0 findings)
 
 ### Card 8: BK-AI-DOS-001 (Root-Fix Guard Unbounded Traversal in PR #3)
+
 - **Target:** `scripts/root_fix_guard.py`
 - **Rule:** `BK-AI-DOS-001`
 - **Severity:** High
@@ -77,6 +85,7 @@
 ---
 
 ## Attestation Record
+
 - **Cryptographic Attestation File:** `.fable/heal-attestation.json`
 - **Seal:** `e0b82f8a44d8b94ef1432f9ee80cb3c5f590204aa76329bb6d8a4361ca49e159`
 - **Remaining Surface Heuristics:** 0

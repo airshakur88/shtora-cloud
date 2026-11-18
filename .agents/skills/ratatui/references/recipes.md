@@ -277,6 +277,7 @@ use ratatui::backend::Backend;
 ```
 
 Requirements:
+
 - Global allocator (e.g., `alloc`)
 - Atomic types (use `portable-atomic` feature if needed)
 

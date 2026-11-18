@@ -11,6 +11,7 @@ Find authentication bypass paths, session management weaknesses, broken access c
 ### 1.1 Authentication entry points
 
 Find every place the application makes an authentication decision:
+
 - Login endpoints (password, OAuth, SSO, magic link, API key, certificate)
 - Password reset and account recovery flows
 - "Remember me" / persistent session tokens
@@ -23,6 +24,7 @@ For each: read the full logic, not just the happy path.
 ### 1.2 Authentication bypass patterns
 
 **Missing authentication check:**
+
 - Endpoint handler that accesses privileged data but never calls auth middleware
 - Middleware applied to a route group that misses specific sub-routes
 - Direct function call bypassing the auth decorator/middleware stack
@@ -35,21 +37,25 @@ def list_users():
 ```
 
 **Broken "remember me" or persistent tokens:**
+
 - Token stored in DB but not validated against current state (revoked, expired, changed password)
 - Token generated with predictable algorithm (timestamp, user ID, static secret)
 - Token not invalidated on logout or password change
 
 **Account enumeration:**
+
 - Login returns `"invalid username"` vs `"invalid password"` — allows username enumeration
 - Password reset returns different messages for registered vs unregistered emails
 - Response time difference for valid vs invalid usernames (timing oracle)
 
 **Credential stuffing exposure:**
+
 - No rate limiting on login endpoint
 - No account lockout after N failures
 - No CAPTCHA or bot detection
 
 **SQL/NoSQL injection in auth:**
+
 ```python
 # Direct SQLi in login
 cursor.execute(f"SELECT * FROM users WHERE username='{user}' AND password='{pwd}'")
@@ -58,7 +64,7 @@ cursor.execute(f"SELECT * FROM users WHERE username='{user}' AND password='{pwd}
 
 ```javascript
 // NoSQL injection in MongoDB login
-User.findOne({ username: req.body.username, password: req.body.password })
+User.findOne({ username: req.body.username, password: req.body.password });
 // With req.body.password = { $gt: "" } — always true
 ```
 
@@ -93,6 +99,7 @@ User.findOne({ username: req.body.username, password: req.body.password })
 A "verified MFA" gate that only checks whether an assertion field is non-empty (or syntactically safe) without cryptographically verifying it against an enrolled factor or challenge is a full MFA bypass.
 
 Check every elevated-privilege flow that documents an MFA requirement:
+
 - Does the server call a real factor verifier (TOTP, WebAuthn, SMS OTP) anywhere in the path? If `validateParams` only checks `len(assertion) > 0` or a regex, the gate is bypassed.
 - Does the BFF/middleware upstream any client-supplied `mfa_assertion` value verbatim — or substitute a hardcoded constant (e.g., `"mfa_scaffold_assertion"`, `"mfa_safe"`, `"placeholder"`)? If so, any password-authenticated user can bypass MFA entirely.
 - Is there a `TODO`/comment acknowledging MFA is not yet implemented while the code already creates sessions or issues tokens? Treat this as an active bypass if the endpoint is reachable.
@@ -110,12 +117,12 @@ func (s *Service) StartDelegatedSession(ctx context.Context, req *StartRequest) 
 
 ```typescript
 // Flag: BFF hardcodes MFA assertion — bypasses backend non-empty check
-const resp = await fetch('/api/v1/delegated-sessions/start', {
-  body: JSON.stringify({
-    ...req,
-    mfa_assertion: 'mfa_scaffold_assertion',  // constant; always passes non-empty check
-  }),
-})
+const resp = await fetch("/api/v1/delegated-sessions/start", {
+	body: JSON.stringify({
+		...req,
+		mfa_assertion: "mfa_scaffold_assertion", // constant; always passes non-empty check
+	}),
+});
 ```
 
 ### 1.7 Auth lifecycle — credentials surviving entity deletion/revocation
@@ -125,11 +132,13 @@ const resp = await fetch('/api/v1/delegated-sessions/start', {
 Soft-deleting an entity (tenant, user, membership, role binding) does NOT automatically revoke existing live credentials. Check every deletion/revocation path for all credential types:
 
 **Tenant deletion:**
+
 - Does the refresh-token rotation query join `tenants` and require `status='active' AND deleted_at IS NULL`? Missing this join lets revoked tenants extend access indefinitely via token rotation.
 - Do API key validation queries join `tenants` to check liveness? An API key from a deleted tenant should be rejected at the key-validation layer.
 - Are existing session rows row-invalidated at deletion time, or only blocked at new-login time?
 
 **Soft-deleted memberships:**
+
 - Does the login identity query include `AND tm.deleted_at IS NULL`? Missing this condition lets a soft-deleted member log in with their normal password.
 
 ```sql
@@ -142,6 +151,7 @@ WHERE tm.tenant_id = $1 AND u.email = $2
 ```
 
 **RBAC role-binding revocation:**
+
 - When a role binding is deleted, are all sessions and refresh tokens for the affected principal immediately invalidated? Without this, the principal's existing JWT retains the revoked role until expiry, and can use that window to recreate the binding.
 - Check whether `deleteRoleBinding` issues session-revocation for every subject type (user, service account, group member). Missing any subject type is a partial bypass.
 
@@ -152,6 +162,7 @@ WHERE tm.tenant_id = $1 AND u.email = $2
 A frontend that always reports logout success regardless of whether upstream revocation succeeded leaves server-side sessions and refresh tokens valid. An attacker who copied a refresh token before the user logs out can continue using it.
 
 Check the BFF logout route handler:
+
 - Does it inspect `upstream.ok` before returning `{ ok: true }` to the client?
 - Does it forward the upstream error (e.g., 401 when the access token has expired but refresh is still valid) as a Problem Details response rather than swallowing it?
 - Does it still clear local HttpOnly cookies on failure as defense-in-depth, while surfacing the error?
@@ -187,6 +198,7 @@ if (!upstream.ok) {
 ### 2.2 Session cookie attributes
 
 Verify session cookies have:
+
 - `HttpOnly`: prevents JavaScript access → mitigates XSS session theft
 - `Secure`: only sent over HTTPS
 - `SameSite=Strict` or `SameSite=Lax`: CSRF mitigation
@@ -221,10 +233,11 @@ Can a low-privilege user reach high-privilege functionality?
 
 ```javascript
 // Express — role in JWT payload, not validated against DB
-app.post('/admin/delete-user', (req, res) => {
-  if (req.body.role === 'admin') { // attacker controls req.body.role
-    deleteUser(req.body.userId);
-  }
+app.post("/admin/delete-user", (req, res) => {
+	if (req.body.role === "admin") {
+		// attacker controls req.body.role
+		deleteUser(req.body.userId);
+	}
 });
 ```
 
@@ -233,6 +246,7 @@ app.post('/admin/delete-user', (req, res) => {
 Can a user access another user's resources by changing an ID?
 
 Flag any endpoint that:
+
 - Accepts a resource ID (user ID, order ID, document ID) in the request
 - Does not verify the requesting user owns or is authorized to access that resource
 
@@ -245,6 +259,7 @@ def get_order(order_id):
 ```
 
 Correct pattern requires ownership verification:
+
 ```python
 order = Order.query.filter_by(id=order_id, user_id=current_user.id).first_or_404()
 ```
@@ -275,6 +290,7 @@ jwt.decode(token, secret, algorithms=['HS256'], options={"verify_exp": False})
 ```
 
 Verify for each JWT endpoint:
+
 - `alg` header is validated against an allowlist
 - `exp` claim is checked
 - `aud` and `iss` claims are validated where applicable
@@ -286,14 +302,14 @@ For each auth/authz issue:
 
 ```json
 {
-  "file": "app/routes/admin.py",
-  "line": 34,
-  "category": "missing_authorization",
-  "title": "Admin endpoint accessible without role check",
-  "description": "The /admin/delete-user endpoint checks @login_required but does not verify admin role. Any authenticated user can delete accounts.",
-  "evidence": "Route decorator at line 32 is @login_required only. No role/permission check in handler body lines 34-40.",
-  "impact": "Authenticated users can delete any account, including admin accounts.",
-  "cwe": "CWE-285",
-  "severity": "critical"
+	"file": "app/routes/admin.py",
+	"line": 34,
+	"category": "missing_authorization",
+	"title": "Admin endpoint accessible without role check",
+	"description": "The /admin/delete-user endpoint checks @login_required but does not verify admin role. Any authenticated user can delete accounts.",
+	"evidence": "Route decorator at line 32 is @login_required only. No role/permission check in handler body lines 34-40.",
+	"impact": "Authenticated users can delete any account, including admin accounts.",
+	"cwe": "CWE-285",
+	"severity": "critical"
 }
 ```

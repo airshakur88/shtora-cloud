@@ -1,4 +1,5 @@
 ---
+
 name: swiftui-performance
 description: "Profile, diagnose, and remediate SwiftUI runtime performance using code review, Instruments, and repeatable measurements. Use when a SwiftUI screen renders slowly, scrolling or animations hitch, view bodies update excessively, list identity churns, layout work spikes, or broad Observation dependencies raise CPU cost. Covers evidence-based triage, SwiftUI Instruments lanes, lazy-container guardrails, state lifetime, and before/after verification."
 ---
@@ -68,6 +69,7 @@ that would resolve remaining uncertainty.
 ## 4. Remediate
 
 Apply targeted fixes:
+
 - Narrow state scope (`@State`/`@Observable` closer to leaf views).
 - Stabilize identities for `ForEach` and lists.
 - Move heavy work out of `body` into model-layer precomputation, an explicit derived
@@ -81,13 +83,13 @@ Apply targeted fixes:
 
 ## Common Code Smells (and Fixes)
 
-| Smell | Evidence to seek | Targeted fix |
-|---|---|---|
+| Smell                                        | Evidence to seek                                        | Targeted fix                                                       |
+| -------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
 | Formatter, sort, filter, or decode in `body` | Long/frequent body updates with matching call-tree cost | Recompute when inputs change; downsample/decode off the main actor |
-| `UUID()` or unstable `id: \.self` | Recreated rows, lost state, excess updates | Use stable model identity |
-| Root `if`/`else` swaps | State reset or update spikes when toggled | Localize conditional content/modifiers when semantics allow |
-| Broad model reads | Many unrelated views update together | Pass narrow values or move reads into focused child views |
-| Geometry writes during layout | Repeating layout/update cycle | Threshold changes or replace the feedback path with stable layout |
+| `UUID()` or unstable `id: \.self`            | Recreated rows, lost state, excess updates              | Use stable model identity                                          |
+| Root `if`/`else` swaps                       | State reset or update spikes when toggled               | Localize conditional content/modifiers when semantics allow        |
+| Broad model reads                            | Many unrelated views update together                    | Pass narrow values or move reads into focused child views          |
+| Geometry writes during layout                | Repeating layout/update cycle                           | Threshold changes or replace the feedback path with stable layout  |
 
 ## 5. Verify
 
@@ -97,6 +99,7 @@ Summarize the delta (CPU, frame drops, memory peak) if provided.
 ## Outputs
 
 Provide:
+
 - A short metrics table (before/after if available).
 - Top issues (ordered by impact).
 - Proposed fixes with estimated effort.

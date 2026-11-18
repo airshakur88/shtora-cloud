@@ -11,7 +11,7 @@ import vinext from "vinext";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [vinext()],
+	plugins: [vinext()],
 });
 ```
 
@@ -24,7 +24,7 @@ import vinext from "vinext";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [vinext()],
+	plugins: [vinext()],
 });
 ```
 
@@ -32,7 +32,7 @@ To disable auto-registration (e.g., Pages Router only project with an unused `ap
 
 ```ts
 export default defineConfig({
-  plugins: [vinext({ rsc: false })],
+	plugins: [vinext({ rsc: false })],
 });
 ```
 
@@ -44,7 +44,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [vinext(), cloudflare()],
+	plugins: [vinext(), cloudflare()],
 });
 ```
 
@@ -59,12 +59,12 @@ import vinext from "vinext";
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
-  plugins: [
-    vinext(),
-    cloudflare({
-      viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-    }),
-  ],
+	plugins: [
+		vinext(),
+		cloudflare({
+			viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+		}),
+	],
 });
 ```
 
@@ -81,20 +81,20 @@ registers it for you. Only register it yourself after passing `rsc: false` to `v
 import { bindings, defineConfig, defineWorker } from "cf/config";
 
 export default defineConfig({
-  worker: defineWorker({
-    name: "my-app",
-    entrypoint: "vinext/server/fetch-handler",
-    compatibilityDate: "2026-11-02",
-    compatibilityFlags: ["nodejs_compat"],
-    assets: {
-      htmlHandling: "none",
-      notFoundHandling: "none",
-      runWorkerFirst: ["/*", "!/_next/static/*", "!/*/_next/static/*"],
-    },
-    env: {
-      ASSETS: bindings.assets(),
-    },
-  }),
+	worker: defineWorker({
+		name: "my-app",
+		entrypoint: "vinext/server/fetch-handler",
+		compatibilityDate: "2026-11-02",
+		compatibilityFlags: ["nodejs_compat"],
+		assets: {
+			htmlHandling: "none",
+			notFoundHandling: "none",
+			runWorkerFirst: ["/*", "!/_next/static/*", "!/*/_next/static/*"],
+		},
+		env: {
+			ASSETS: bindings.assets(),
+		},
+	}),
 });
 ```
 
@@ -111,8 +111,8 @@ Use `import { env } from "cloudflare:workers"` in server components, route handl
 import { env } from "cloudflare:workers";
 
 export default async function Page() {
-  const result = await env.DB.prepare("SELECT * FROM posts").all();
-  return <div>{JSON.stringify(result)}</div>;
+	const result = await env.DB.prepare("SELECT * FROM posts").all();
+	return <div>{JSON.stringify(result)}</div>;
 }
 ```
 
@@ -121,8 +121,8 @@ export default async function Page() {
 import { env } from "cloudflare:workers";
 
 export async function GET() {
-  const value = await env.CACHE.get("key");
-  return Response.json({ value });
+	const value = await env.CACHE.get("key");
+	return Response.json({ value });
 }
 ```
 
@@ -153,7 +153,7 @@ import vinext from "vinext";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
-  plugins: [vinext(), nitro()],
+	plugins: [vinext(), nitro()],
 });
 ```
 

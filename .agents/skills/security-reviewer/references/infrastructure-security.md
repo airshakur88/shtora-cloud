@@ -16,8 +16,8 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
       - uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          severity: 'CRITICAL,HIGH'
+          scan-type: "fs"
+          severity: "CRITICAL,HIGH"
 ```
 
 ### Infrastructure as Code Security
@@ -105,17 +105,17 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   containers:
-  - name: app
-    image: myapp:1.0
-    securityContext:
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop: [ALL]
-    resources:
-      limits:
-        memory: "128Mi"
-        cpu: "500m"
+    - name: app
+      image: myapp:1.0
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: [ALL]
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
 ---
 # Network Policy - Default deny
 apiVersion: networking.k8s.io/v1
@@ -125,8 +125,8 @@ metadata:
 spec:
   podSelector: {}
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
 ```
 
 ## Compliance Automation
@@ -224,10 +224,10 @@ spec:
   target:
     name: app-secrets
   data:
-  - secretKey: api_key
-    remoteRef:
-      key: secret/app/config
-      property: api_key
+    - secretKey: api_key
+      remoteRef:
+        key: secret/app/config
+        property: api_key
 ```
 
 ## Security Monitoring
@@ -236,12 +236,12 @@ spec:
 
 ```yaml
 filebeat.inputs:
-- type: log
-  paths:
-    - /var/log/auth.log
-    - /var/log/nginx/*.log
-  fields:
-    environment: production
+  - type: log
+    paths:
+      - /var/log/auth.log
+      - /var/log/nginx/*.log
+    fields:
+      environment: production
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
@@ -250,19 +250,19 @@ output.elasticsearch:
 
 ## Quick Reference
 
-| Area | Tool | Purpose |
-|------|------|---------|
-| Cloud Security | Prowler, ScoutSuite | AWS/Azure/GCP audit |
-| Container | Trivy, Clair | Image scanning |
-| IaC | Checkov, tfsec | Terraform/CloudFormation |
-| Secrets | Vault, Sealed Secrets | Secret management |
-| Compliance | InSpec, OpenSCAP | CIS benchmarks |
-| Monitoring | ELK, Splunk | SIEM |
+| Area           | Tool                  | Purpose                  |
+| -------------- | --------------------- | ------------------------ |
+| Cloud Security | Prowler, ScoutSuite   | AWS/Azure/GCP audit      |
+| Container      | Trivy, Clair          | Image scanning           |
+| IaC            | Checkov, tfsec        | Terraform/CloudFormation |
+| Secrets        | Vault, Sealed Secrets | Secret management        |
+| Compliance     | InSpec, OpenSCAP      | CIS benchmarks           |
+| Monitoring     | ELK, Splunk           | SIEM                     |
 
-| Framework | Focus | Key Controls |
-|-----------|-------|--------------|
-| SOC 2 | Security controls | Access, encryption, monitoring |
-| ISO 27001 | ISMS | Policy, risk, audit |
-| PCI DSS | Payment security | Network segmentation, encryption |
-| HIPAA | Healthcare | Encryption, access logs |
-| GDPR | Data privacy | Consent, retention, DLP |
+| Framework | Focus             | Key Controls                     |
+| --------- | ----------------- | -------------------------------- |
+| SOC 2     | Security controls | Access, encryption, monitoring   |
+| ISO 27001 | ISMS              | Policy, risk, audit              |
+| PCI DSS   | Payment security  | Network segmentation, encryption |
+| HIPAA     | Healthcare        | Encryption, access logs          |
+| GDPR      | Data privacy      | Consent, retention, DLP          |

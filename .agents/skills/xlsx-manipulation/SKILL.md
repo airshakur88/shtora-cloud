@@ -1,9 +1,13 @@
 ---
+
 # ═══════════════════════════════════════════════════════════════════════════════
+
 # CLAUDE OFFICE SKILL - Enhanced Metadata v2.0
+
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Basic Information
+
 name: xlsx-manipulation
 description: "Create, edit, and manipulate Excel spreadsheets programmatically using openpyxl"
 version: "1.0"
@@ -11,43 +15,43 @@ author: claude-office-skills
 license: MIT
 
 # Categorization
+
 category: spreadsheet
 tags:
-  - xlsx
-  - excel
-  - manipulation
-  - editing
-department: All
+
+- xlsx
+- excel
+- manipulation
+- editing
+  department: All
 
 # AI Model Compatibility
+
 models:
-  recommended:
-    - claude-sonnet-4
-    - claude-opus-4
-  compatible:
-    - claude-3-5-sonnet
-    - gpt-4
-    - gpt-4o
+recommended: - claude-sonnet-4 - claude-opus-4
+compatible: - claude-3-5-sonnet - gpt-4 - gpt-4o
 
 # MCP Tools Integration
+
 mcp:
-  server: office-mcp
-  tools:
-    - read_xlsx
-    - create_xlsx
-    - apply_formula
-    - create_chart
+server: office-mcp
+tools: - read_xlsx - create_xlsx - apply_formula - create_chart
 
 # Skill Capabilities
+
 capabilities:
-  - spreadsheet_creation
-  - formula_handling
-  - charting
+
+- spreadsheet_creation
+- formula_handling
+- charting
 
 # Language Support
+
 languages:
-  - en
-  - zh
+
+- en
+- zh
+
 ---
 
 # XLSX Manipulation Skill
@@ -63,6 +67,7 @@ This skill enables programmatic creation, editing, and manipulation of Microsoft
 3. I'll generate openpyxl code and execute it
 
 **Example prompts:**
+
 - "Create a budget spreadsheet with monthly tracking"
 - "Add conditional formatting to highlight values above threshold"
 - "Generate a pivot-table-like summary from this data"
@@ -87,6 +92,7 @@ ws = wb.active
 ```
 
 ### Workbook Structure
+
 ```
 Workbook
 ├── worksheets (sheets/tabs)
@@ -101,6 +107,7 @@ Workbook
 ### Working with Cells
 
 #### Basic Cell Operations
+
 ```python
 # By cell reference
 ws['A1'] = 'Header'
@@ -117,6 +124,7 @@ ws.append(['Row', 'Data', 'Here'])
 ```
 
 #### Reading Cells
+
 ```python
 # Single cell
 value = ws['A1'].value
@@ -133,6 +141,7 @@ for row in ws.iter_rows(min_row=1, max_row=10, min_col=1, max_col=3):
 ```
 
 ### Formulas
+
 ```python
 # Basic formulas
 ws['D1'] = '=SUM(A1:C1)'
@@ -152,6 +161,7 @@ ws['F1'] = '=SUM(SalesData)'
 ### Formatting
 
 #### Cell Styles
+
 ```python
 from openpyxl.styles import Font, Fill, PatternFill, Border, Side, Alignment
 
@@ -189,6 +199,7 @@ ws['A1'].alignment = Alignment(
 ```
 
 #### Number Formats
+
 ```python
 # Currency
 ws['B2'].number_format = '$#,##0.00'
@@ -204,6 +215,7 @@ ws['E2'].number_format = '#,##0.00 "units"'
 ```
 
 #### Conditional Formatting
+
 ```python
 from openpyxl.formatting.rule import ColorScaleRule, CellIsRule, FormulaRule
 from openpyxl.styles import PatternFill
@@ -222,6 +234,7 @@ ws.conditional_formatting.add('B1:B10', rule)
 ```
 
 ### Charts
+
 ```python
 from openpyxl.chart import BarChart, LineChart, PieChart, Reference
 
@@ -253,6 +266,7 @@ ws.add_chart(pie, "M1")
 ```
 
 ### Data Validation
+
 ```python
 from openpyxl.worksheet.datavalidation import DataValidation
 
@@ -279,6 +293,7 @@ dv_num.add('B1:B100')
 ```
 
 ### Sheet Operations
+
 ```python
 # Create new sheet
 ws2 = wb.create_sheet("Data")
@@ -296,6 +311,7 @@ target = wb.copy_worksheet(source)
 ```
 
 ### Row/Column Operations
+
 ```python
 # Set column width
 ws.column_dimensions['A'].width = 20
@@ -324,6 +340,7 @@ ws.auto_filter.ref = "A1:D100"
 ## Common Patterns
 
 ### Data Import
+
 ```python
 def import_csv_to_xlsx(csv_path, xlsx_path):
     import csv
@@ -339,6 +356,7 @@ def import_csv_to_xlsx(csv_path, xlsx_path):
 ```
 
 ### Report Template
+
 ```python
 def create_monthly_report(data, output_path):
     wb = Workbook()
@@ -373,6 +391,7 @@ def create_monthly_report(data, output_path):
 ## Examples
 
 ### Example 1: Budget Tracker
+
 ```python
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -430,6 +449,7 @@ wb.save('budget_2024.xlsx')
 ```
 
 ### Example 2: Sales Dashboard
+
 ```python
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, PieChart, Reference

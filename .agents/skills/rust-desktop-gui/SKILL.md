@@ -1,4 +1,5 @@
 ---
+
 name: rust-desktop-gui
 description: Native Rust desktop GUI guidance. Use when building, changing, testing, debugging, or packaging Windows, macOS, or Linux desktop applications with Iced, egui/eframe, Slint, or Tauri, including event loops, UI-thread work, widgets, themes, accessibility, background work, and native distribution.
 ---

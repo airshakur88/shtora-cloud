@@ -1,4 +1,5 @@
 ---
+
 name: web-component-design
 description: Master React, Vue, and Svelte component patterns including CSS-in-JS, composition strategies, and reusable component architecture. Use when building UI component libraries, designing component APIs, or implementing frontend design systems.
 ---
@@ -26,22 +27,22 @@ Build reusable, maintainable UI components using modern frameworks with clean co
 ```tsx
 // Usage
 <Select value={value} onChange={setValue}>
-  <Select.Trigger>Choose option</Select.Trigger>
-  <Select.Options>
-    <Select.Option value="a">Option A</Select.Option>
-    <Select.Option value="b">Option B</Select.Option>
-  </Select.Options>
-</Select>
+	<Select.Trigger>Choose option</Select.Trigger>
+	<Select.Options>
+		<Select.Option value="a">Option A</Select.Option>
+		<Select.Option value="b">Option B</Select.Option>
+	</Select.Options>
+</Select>;
 ```
 
 **Render Props**: Delegate rendering to parent
 
 ```tsx
 <DataFetcher url="/api/users">
-  {({ data, loading, error }) =>
-    loading ? <Spinner /> : <UserList users={data} />
-  }
-</DataFetcher>
+	{({ data, loading, error }) =>
+		loading ? <Spinner /> : <UserList users={data} />
+	}
+</DataFetcher>;
 ```
 
 **Slots (Vue/Svelte)**: Named content injection points
@@ -70,14 +71,14 @@ Build reusable, maintainable UI components using modern frameworks with clean co
 
 ```tsx
 interface ButtonProps {
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md" | "lg";
-  isLoading?: boolean;
-  isDisabled?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  children: React.ReactNode;
-  onClick?: () => void;
+	variant?: "primary" | "secondary" | "ghost";
+	size?: "sm" | "md" | "lg";
+	isLoading?: boolean;
+	isDisabled?: boolean;
+	leftIcon?: React.ReactNode;
+	rightIcon?: React.ReactNode;
+	children: React.ReactNode;
+	onClick?: () => void;
 }
 ```
 
@@ -96,46 +97,45 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50",
-  {
-    variants: {
-      variant: {
-        primary: "bg-blue-600 text-white hover:bg-blue-700",
-        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-        ghost: "hover:bg-gray-100 hover:text-gray-900",
-      },
-      size: {
-        sm: "h-8 px-3 text-sm",
-        md: "h-10 px-4 text-sm",
-        lg: "h-12 px-6 text-base",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-      size: "md",
-    },
-  },
+	"inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50",
+	{
+		variants: {
+			variant: {
+				primary: "bg-blue-600 text-white hover:bg-blue-700",
+				secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
+				ghost: "hover:bg-gray-100 hover:text-gray-900",
+			},
+			size: {
+				sm: "h-8 px-3 text-sm",
+				md: "h-10 px-4 text-sm",
+				lg: "h-12 px-6 text-base",
+			},
+		},
+		defaultVariants: {
+			variant: "primary",
+			size: "md",
+		},
+	},
 );
 
 interface ButtonProps
-  extends
-    ComponentPropsWithoutRef<"button">,
-    VariantProps<typeof buttonVariants> {
-  isLoading?: boolean;
+	extends ComponentPropsWithoutRef<"button">,
+		VariantProps<typeof buttonVariants> {
+	isLoading?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, isLoading, children, ...props }, ref) => (
-    <button
-      ref={ref}
-      className={cn(buttonVariants({ variant, size }), className)}
-      disabled={isLoading || props.disabled}
-      {...props}
-    >
-      {isLoading && <Spinner className="mr-2 h-4 w-4" />}
-      {children}
-    </button>
-  ),
+	({ className, variant, size, isLoading, children, ...props }, ref) => (
+		<button
+			ref={ref}
+			className={cn(buttonVariants({ variant, size }), className)}
+			disabled={isLoading || props.disabled}
+			{...props}
+		>
+			{isLoading && <Spinner className="mr-2 h-4 w-4" />}
+			{children}
+		</button>
+	),
 );
 Button.displayName = "Button";
 ```
@@ -148,56 +148,56 @@ Button.displayName = "Button";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 interface AccordionContextValue {
-  openItems: Set<string>;
-  toggle: (id: string) => void;
+	openItems: Set<string>;
+	toggle: (id: string) => void;
 }
 
 const AccordionContext = createContext<AccordionContextValue | null>(null);
 
 function useAccordion() {
-  const context = useContext(AccordionContext);
-  if (!context) throw new Error("Must be used within Accordion");
-  return context;
+	const context = useContext(AccordionContext);
+	if (!context) throw new Error("Must be used within Accordion");
+	return context;
 }
 
 export function Accordion({ children }: { children: ReactNode }) {
-  const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+	const [openItems, setOpenItems] = useState<Set<string>>(new Set());
 
-  const toggle = (id: string) => {
-    setOpenItems((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+	const toggle = (id: string) => {
+		setOpenItems((prev) => {
+			const next = new Set(prev);
+			next.has(id) ? next.delete(id) : next.add(id);
+			return next;
+		});
+	};
 
-  return (
-    <AccordionContext.Provider value={{ openItems, toggle }}>
-      <div className="divide-y">{children}</div>
-    </AccordionContext.Provider>
-  );
+	return (
+		<AccordionContext.Provider value={{ openItems, toggle }}>
+			<div className="divide-y">{children}</div>
+		</AccordionContext.Provider>
+	);
 }
 
 Accordion.Item = function AccordionItem({
-  id,
-  title,
-  children,
+	id,
+	title,
+	children,
 }: {
-  id: string;
-  title: string;
-  children: ReactNode;
+	id: string;
+	title: string;
+	children: ReactNode;
 }) {
-  const { openItems, toggle } = useAccordion();
-  const isOpen = openItems.has(id);
+	const { openItems, toggle } = useAccordion();
+	const isOpen = openItems.has(id);
 
-  return (
-    <div>
-      <button onClick={() => toggle(id)} className="w-full text-left py-3">
-        {title}
-      </button>
-      {isOpen && <div className="pb-3">{children}</div>}
-    </div>
-  );
+	return (
+		<div>
+			<button onClick={() => toggle(id)} className="w-full text-left py-3">
+				{title}
+			</button>
+			{isOpen && <div className="pb-3">{children}</div>}
+		</div>
+	);
 };
 ```
 

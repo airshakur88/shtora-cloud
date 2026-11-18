@@ -1,9 +1,10 @@
 ---
+
 name: mantis-reproduce
 description: >-
-  Generates and runs crash reproducers to verify security flaws.
-  Use when viable findings exist and you need to write and execute a script or payload to verify the crash.
-  Don't use for code auditing or patching.
+Generates and runs crash reproducers to verify security flaws.
+Use when viable findings exist and you need to write and execute a script or payload to verify the crash.
+Don't use for code auditing or patching.
 ---
 
 # Reproducer (/mantis-reproduce)
@@ -165,7 +166,6 @@ that reproduces a confirmed security flaw.
 Execute the reproduction stage under these constraints:
 
 1. **Load Viable Findings:**
-
    - If `--finding_id` is supplied:
      - Load only that finding's file
        (`state_root/workspace/findings/<uuid>.json`). Exit if it does not exist.
@@ -204,7 +204,6 @@ Execute the reproduction stage under these constraints:
    whether an AST call path exists from a public entrypoint to the vulnerable
    sink. Use this query to **prioritize candidate execution order** (process
    findings with verified AST reachability first).
-
    - **CRITICAL HINT-ONLY GUARDRAIL:** AST reachability is a ranking HINT ONLY.
      Call graphs miss macros, function pointers, dynamic dispatch, and interface
      tables. An absent call path MUST NEVER reject a finding, skip reproduction,
@@ -217,7 +216,6 @@ Execute the reproduction stage under these constraints:
    is MATCHED you may reuse an existing PoC.
 
 2. **Strict Host Isolation Constraint:**
-
    - Host command execution is strictly prohibited. Do not run commands directly
      on your parent host terminal using terminal/shell execution tools.
    - All reproducer executions must run isolated. Use the containerization or
@@ -280,7 +278,6 @@ Execute the reproduction stage under these constraints:
    (INV-2) or false `VERIFIED_SECURE` (INV-1). See Block G.
 
    **{TARGET_ROOT} token substitution (numbered step):**
-
    1. When writing `run_command` or `reattack_run_command`, use the literal
       token `{TARGET_ROOT}` for any path that references the target tree.
    2. At run time, reproduce substitutes `{TARGET_ROOT}` with the actual root:
@@ -296,9 +293,7 @@ Execute the reproduction stage under these constraints:
    or Firmadyne. If it's a binary, you may use dynamic instrumentation or
    standard execution. Use your best judgment to construct a working harness for
    the artifact.
-
-   - *Parallel Trajectory Search vs. Tiered Iterative Reproduction:*
-
+   - _Parallel Trajectory Search vs. Tiered Iterative Reproduction:_
      - **Parallel Trajectory Search (Breadth-First):** When subagents are
        available, deploy concurrent workers taking diverse logical approaches to
        reproduce the bug. If any trajectory succeeds, immediately adopt its
@@ -310,8 +305,7 @@ Execute the reproduction stage under these constraints:
        (Tier 1 -> Tier 2 -> Tier 3) to refine its trigger payload incrementally
        rather than attempting a single-shot end-to-end launch.
 
-   - *Tiered Iterative Execution Ladder:*
-
+   - _Tiered Iterative Execution Ladder:_
      - **Tier 1 (Micro-Harness / Sink Logic Validation):** Construct a
        lightweight test calling the vulnerable function/module directly to
        verify that the core bug hypothesis is sound in isolation.
@@ -325,7 +319,6 @@ Execute the reproduction stage under these constraints:
        `reproduced` verdict per Block F.
 
    - **CRITICAL STEP-4 TIER-1 HARD GATE (Fail-Closed):**
-
      - Tiers 1 and 2 are **internal stepping stones only**. You **MUST NEVER**
        record `repro_status = "reproduced"` or `"statically_confirmed"` based on
        a Tier-1 or Tier-2 execution.
@@ -336,8 +329,7 @@ Execute the reproduction stage under these constraints:
        `repro_status = "failed_to_reproduce"` with details citing
        `"Internal Invariant Protection"`.
 
-   - *Attempt Cap Accounting & Local Retries:*
-
+   - _Attempt Cap Accounting & Local Retries:_
      - **Sub-Tier-3 Stepping-Stone Sub-Budget:** Internal Tier-1 and Tier-2
        trial runs are bounded local execution steps (max 3 trial executions per
        conversation) and **DO NOT** increment the absolute per-finding attempt
@@ -368,7 +360,6 @@ findings on the first pass that runs variant hunting.
 
 - **Memory-safety bugs (buffer overflow, OOB read/write, UAF, integer
   overflow):** Author at least 3 of:
-
   - **Off-by-one:** `len = bound`, `len = bound + 1`, `len = bound - 1`.
   - **Size mutations:** `len ± 1`, `len = 0`, `len = SIZE_MAX`, sign flips on
     signed lengths.
@@ -380,7 +371,6 @@ findings on the first pass that runs variant hunting.
 
 - **Non-memory-safety bugs (logic, auth, injection, SSRF, path traversal):**
   Hunt for actual variants of the same class:
-
   - **Alternate endpoints/parameters:** Try `/api/v2/echo` when PoC targets
     `/api/v1/echo`, or alternate parameter names.
   - **Equivalent payloads:** `..%2fetc%2fpasswd`, `..\\..\\`, URL-encoding,
@@ -442,7 +432,6 @@ If ANY valid variant triggers the bug, set `reattack_status = "bypassed_patch"`
 and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
 
 - **Reproduction Status Classification:**
-
   - **`reproduced`**: The PoC successfully triggered the vulnerability.
   - **`failed_to_reproduce`**: The PoC was executed but did not trigger the
     vulnerability.
@@ -454,7 +443,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
     to infrastructure setup failure, timeouts, or explicit skip configuration).
 
 4. **Strict Public-API & Internal Invariant Constraints:**
-
    - Your crash reproducer should interact with the codebase through
      public-facing APIs wherever possible, or strictly respect the library's
      global execution invariants (such as allocator padding) to avoid generating
@@ -522,7 +510,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
    unpinned, negative result suppressed". This mirrors the authoritative-verdict
    prohibition that applies to all stages in HALT. (In MODE-OFF — no
    `active_snapshot` — classify negatives normally as today.)
-
    - **Logic & Authorization Bugs:** A successful reproducer is a functional
      unit test or script that explicitly demonstrates the logic failure (e.g.,
      an unauthorized request returns `200 OK`, or a test script successfully
@@ -553,7 +540,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
 
    Additionally, you must **Update the Reproduction Attempt Cache** to help the
    planner track attempts efficiently:
-
    - Maintain a JSON cache file at
      `state_root/workspace/archive/.repro_attempts.json`. Ensure the parent
      directory `state_root/workspace/archive/` exists (e.g.,
@@ -575,8 +561,8 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
        V: if V is a bare integer, treat count=V and last_snapshot=UNKNOWN; if V
        is an object, use V.count / V.last_snapshot (default UNKNOWN). Before
        incrementing, run Block B comparing the finding's snapshot to the current
-       SNAPSHOT_ID: reset `count=0` ONLY when Block B is NOT_MATCHED *because
-       the two snapshots are present and actually differ* (a genuine code change
+       SNAPSHOT_ID: reset `count=0` ONLY when Block B is NOT_MATCHED _because
+       the two snapshots are present and actually differ_ (a genuine code change
        earns a fresh budget). Do NOT reset on UNKNOWN (absent/`pass_`/unpinned)
        — that would make no-VCS targets retry forever. Additionally keep an
        absolute per-finding-id attempt counter that is NEVER reset, and stop
@@ -615,10 +601,8 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
        by exiting the `with` context manager).
 
    Depending on whether the `--reattack` flag is provided:
-
    - **If run normally (no `--reattack` flag):** You must append or update the
      following on the existing object:
-
      - `"repro_status"` (`"reproduced"`, `"statically_confirmed"`,
        `"not_attempted"`, or `"failed_to_reproduce"`).
 
@@ -665,7 +649,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
 
    - **If run with `--reattack`:** You must append or update the following on
      the existing object (do not touch `repro_*` or `status`):
-
      - `"reattack_status"` (`"bypassed_patch"`, `"failed_to_bypass"`,
        `"inconclusive_baseline_changed"`).
 
@@ -707,7 +690,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
        on the patched build, if `reattack_snapshot_id` != `repro_snapshot_id` (a
        genuine snapshot change, NOT a HALT-mode `live:` tree), FIRST
        re-establish the unpatched baseline:
-
        1. Run the reproducer against a FRESH UNPATCHED copy of the current
           snapshot — a fresh `mktemp -d` copy of `active_snapshot.root`, NOT the
           patched shadow. (This is the same unpatched baseline that
@@ -721,7 +703,6 @@ and apply INV-1 (downgrade `VERIFIED_SECURE` → `VERIFICATION_FAILED`).
        3. If the unpatched baseline DOES trigger: proceed with the attack
           (`bypassed_patch` or `failed_to_bypass`). Apply INV-1 (downgrade
           `VERIFIED_SECURE` -> `VERIFICATION_FAILED` if `bypassed_patch`).
-
        - **Sanitizer consistency:** the baseline re-run, attack, and re-attack
          MUST use the same sanitizer flags that made the original baseline
          trigger. If the baseline triggered via UBSan (exit 0), recompiling the

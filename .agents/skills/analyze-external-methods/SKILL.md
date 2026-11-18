@@ -1,10 +1,11 @@
 ---
+
 name: analyze-external-methods
 description: Analyze an OpenTaint scan's dropped external methods and decide which of them are propagators and optionally sinks. Use when a dropped-external-methods.yaml needs classification for dropped method type
 license: Apache-2.0
 metadata:
-  author: opentaint
-  version: "0.3.0"
+author: opentaint
+version: "0.3.0"
 ---
 
 # Skill: Analyze External Methods
@@ -85,6 +86,7 @@ Short and concise report of what was done
 ### Batch classification
 
 `.opentaint/tracking/approximations/<batch>.yaml` — one batch's method classification, `<batch>` the plan's filename stem. Every method sits in exactly one verdict bucket, keyed with its `signature` (the JVM descriptor, always quoted so array types `[…` stay valid YAML) so overloads stay distinct:
+
 - `passthrough`, `dataflow` — modeled carriers; each entry `{ method, signature }`
 - `skipped` — terminal non-carriers; each `{ method, signature, reason }`
 - `engine_issues` — a separate bucket for carriers the engine provably can't propagate (built but still dropped); each `{ method, signature, reason }`. Terminal and treated just like `skipped` — the only difference is the reason. `merge-skipped` carries it into `skipped.yaml` as its own `engine_issues` group alongside the regular skipped `methods`.
@@ -95,14 +97,25 @@ Short and concise report of what was done
 passthrough:
   - { method: "com.foo.Wrapper#getValue", signature: "()Ljava/lang/String;" }
 dataflow:
-  - { method: "com.foo.Reactor#flatMap", signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;" }
+  - {
+      method: "com.foo.Reactor#flatMap",
+      signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;",
+    }
 skipped:
-  - { method: "org.slf4j.Logger#info", signature: "(Ljava/lang/String;)V", reason: "void side-effect" }
+  - {
+      method: "org.slf4j.Logger#info",
+      signature: "(Ljava/lang/String;)V",
+      reason: "void side-effect",
+    }
 engine_issues: []
 dependencies: []
 build:
   test_project:
-    - { method: "com.foo.Reactor#flatMap", signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;", status: done }
+    - {
+        method: "com.foo.Reactor#flatMap",
+        signature: "(Ljava/util/function/Function;)Lcom/foo/Reactor;",
+        status: done,
+      }
   done: []
 ```
 
@@ -116,7 +129,13 @@ This skill writes `passthrough`/`dataflow`/`skipped` and `dependencies`; leave t
 dependencies:
   - cn.hutool:hutool-core:5.8.20
 sinks:
-  - { method: cn.hutool.core.io.FileUtil#writeBytes, signature: "([BLjava/lang/String;)Ljava/io/File;", vuln_class: path-traversal, note: writes data to an untrusted path, rule_id: null }
+  - {
+      method: cn.hutool.core.io.FileUtil#writeBytes,
+      signature: "([BLjava/lang/String;)Ljava/io/File;",
+      vuln_class: path-traversal,
+      note: writes data to an untrusted path,
+      rule_id: null,
+    }
 stages:
   test_project: pending
   tests_passing: pending
