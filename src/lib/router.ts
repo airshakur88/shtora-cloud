@@ -24,7 +24,12 @@ import {
 	stripRouterPrefix,
 } from "./model-canonical";
 import { listProviders } from "./provider-catalog";
-import { ProviderError, sendChat, sendNativeMessages } from "./providers";
+import {
+	type FailureKind,
+	ProviderError,
+	sendChat,
+	sendNativeMessages,
+} from "./providers";
 import type { FailureSource } from "./quarantine";
 import {
 	isKeyQuarantined,
@@ -62,6 +67,23 @@ export interface RouteResult {
 	platform: string;
 	keyId: number;
 	attempts: number;
+	/**
+	 * One entry per upstream attempt that failed. Kept inside the
+	 * RouteResult only: the /v1 routes never serialize it, so provider
+	 * names and statuses stay out of public responses. The playground
+	 * route attaches it as debug info for the signed-in user.
+	 */
+	attemptLog?: RouteAttempt[];
+}
+
+/** A single failed upstream attempt, for debugging a dead request. */
+export interface RouteAttempt {
+	platform: string;
+	modelId: string;
+	status: number;
+	kind: FailureKind;
+	latencyMs: number;
+	phase: "member" | "fallback";
 }
 
 /** Structural view of DecryptedPlatformKey from ./key-store. */
@@ -759,6 +781,7 @@ export async function routeChatCompletion(args: {
 			platform: "",
 			keyId: 0,
 			attempts: 0,
+			attemptLog: [],
 		};
 	const { compatibleModels, providerConfigs } = resolved.chain;
 
@@ -815,6 +838,7 @@ export async function routeChatCompletion(args: {
 	// FALLBACK_ATTEMPT_CAP, so a spent member budget never blocks the
 	// fallback rows later in the chain.
 	let attempts = 0;
+	const attemptLog: RouteAttempt[] = [];
 	let memberAttempts = 0;
 	let fallbackAttempts = 0;
 	const alternativesTried: string[] = [];
@@ -984,12 +1008,21 @@ export async function routeChatCompletion(args: {
 						platform: model.platform,
 						keyId: key.id,
 						attempts,
+						attemptLog,
 					};
 				}
 				const providerError =
 					err instanceof ProviderError
 						? err
 						: new ProviderError("Upstream request failed", 0, "network");
+				attemptLog.push({
+					platform: model.platform,
+					modelId: model.model_id,
+					status: providerError.status,
+					kind: providerError.kind,
+					latencyMs: Date.now() - start,
+					phase: isFallback ? "fallback" : "member",
+				});
 				if (native) {
 					lastNativeError = providerError.nativeResponse;
 					// One failure, one quarantine report: an earlier
@@ -1052,6 +1085,7 @@ export async function routeChatCompletion(args: {
 					platform: model.platform,
 					keyId: key.id,
 					attempts,
+					attemptLog,
 				};
 			}
 			const latencyMs = Date.now() - start;
@@ -1205,6 +1239,7 @@ export async function routeChatCompletion(args: {
 				platform: model.platform,
 				keyId: key.id,
 				attempts,
+				attemptLog,
 			};
 		}
 	}
@@ -1229,6 +1264,7 @@ export async function routeChatCompletion(args: {
 			platform: "none",
 			keyId: 0,
 			attempts,
+			attemptLog,
 		};
 	if (throttled)
 		return {
@@ -1247,6 +1283,7 @@ export async function routeChatCompletion(args: {
 			platform: "none",
 			keyId: 0,
 			attempts,
+			attemptLog,
 		};
 	console.error(
 		JSON.stringify({ event: "route_exhausted", model: requested, attempts }),
@@ -1261,7 +1298,14 @@ export async function routeChatCompletion(args: {
 		}),
 		{ status: 502, headers: { "Content-Type": "application/json" } },
 	);
-	return { response, modelId: requested, platform: "none", keyId: 0, attempts };
+	return {
+		response,
+		modelId: requested,
+		platform: "none",
+		keyId: 0,
+		attempts,
+		attemptLog,
+	};
 }
 
 // ---------------------------------------------------------------------------

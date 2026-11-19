@@ -190,6 +190,36 @@ test("upstream exhaustion returns generic 502 and records each failed attempt", 
 	}
 });
 
+test("upstream exhaustion returns the failed attempts in the result log", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedDb(db);
+		fetchImpl = async () =>
+			new Response("internal upstream detail", { status: 500 });
+		const result = await routeChatCompletion({
+			db,
+			secret: SECRET,
+			user: USER,
+			request: {
+				model: "groq/model-a",
+				messages: [{ role: "user", content: "hi" }],
+			},
+		});
+		expect(result.response.status).toBe(502);
+		expect(result.attemptLog).toHaveLength(1);
+		expect(result.attemptLog?.[0]).toMatchObject({
+			platform: "groq",
+			modelId: "model-a",
+			status: 500,
+			kind: "server",
+			phase: "member",
+		});
+		expect(result.attemptLog?.[0]?.latencyMs).toBeGreaterThanOrEqual(0);
+	} finally {
+		db.close();
+	}
+});
+
 test("upstream 400 on a direct model returns 502 instead of serving a different model", async () => {
 	const db = await createParityDatabase();
 	try {

@@ -81,7 +81,9 @@ export function DashboardShell({
 						aria-label="Shtora Cloud, painel"
 					>
 						<Logo decorative className="size-8 shrink-0" />
-						<span className="group-data-[collapsible=icon]:hidden">shtora</span>
+						<span className="text-[22px] leading-8 font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+							SHTORA<span className="text-primary">.</span>cloud
+						</span>
 					</Link>
 				</SidebarHeader>
 				<SidebarRail />

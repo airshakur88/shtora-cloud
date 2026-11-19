@@ -4,6 +4,7 @@ import {
 	comboboxModelLabel,
 	displayModelName,
 	EXCLUDED_CANONICAL_MODELS,
+	formatContextWindow,
 } from "../src/lib/model-canonical";
 import { getVirtualRouter, isVirtualRouter } from "../src/lib/virtual-routers";
 
@@ -95,6 +96,38 @@ test("combobox label strips a trailing version date", () => {
 	expect(comboboxModelLabel("Qwen3Guard Gen 8B (OVH safety)")).toBe(
 		"Qwen3Guard Gen 8B (OVH safety)",
 	);
+});
+
+test("formats context windows as whole K/M units", () => {
+	expect(formatContextWindow(0)).toBe("—");
+	expect(formatContextWindow(null)).toBe("—");
+	expect(formatContextWindow(undefined)).toBe("—");
+	expect(formatContextWindow(1000)).toBe("1K");
+	expect(formatContextWindow(4000)).toBe("4K");
+	expect(formatContextWindow(4096)).toBe("4K");
+	expect(formatContextWindow(8000)).toBe("8K");
+	expect(formatContextWindow(8192)).toBe("8K");
+	expect(formatContextWindow(16000)).toBe("16K");
+	expect(formatContextWindow(16384)).toBe("16K");
+	expect(formatContextWindow(24000)).toBe("24K");
+	expect(formatContextWindow(32000)).toBe("32K");
+	expect(formatContextWindow(32768)).toBe("32K");
+	expect(formatContextWindow(33000)).toBe("33K");
+	expect(formatContextWindow(40000)).toBe("40K");
+	expect(formatContextWindow(62000)).toBe("62K");
+	expect(formatContextWindow(128000)).toBe("128K");
+	expect(formatContextWindow(131000)).toBe("131K");
+	expect(formatContextWindow(131042)).toBe("131K");
+	expect(formatContextWindow(131072)).toBe("131K");
+	expect(formatContextWindow(200000)).toBe("200K");
+	expect(formatContextWindow(256000)).toBe("256K");
+	expect(formatContextWindow(262000)).toBe("262K");
+	expect(formatContextWindow(262144)).toBe("262K");
+	expect(formatContextWindow(400000)).toBe("400K");
+	expect(formatContextWindow(524000)).toBe("524K");
+	expect(formatContextWindow(1000000)).toBe("1M");
+	expect(formatContextWindow(1048576)).toBe("1M");
+	expect(formatContextWindow(1050000)).toBe("1M");
 });
 
 test("virtual router membership", () => {

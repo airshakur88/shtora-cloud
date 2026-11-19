@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { CatalogModel, CatalogProvider } from "@/lib/dashboard-catalog";
 import { isCatalogResponse } from "@/lib/dashboard-catalog";
+import { formatContextWindow } from "@/lib/model-canonical";
 
 export default function DashboardModelsPage() {
 	const [models, setModels] = useState<CatalogModel[] | null>(null);
@@ -234,9 +235,7 @@ export default function DashboardModelsPage() {
 										{model.personalKeyCount.toLocaleString()}
 									</td>
 									<td className="px-4 py-3 text-right tabular-nums">
-										{model.contextWindow
-											? model.contextWindow.toLocaleString()
-											: "—"}
+										{formatContextWindow(model.contextWindow)}
 									</td>
 									<td className="px-4 py-3 text-right">
 										<span className="flex items-center justify-end gap-2 text-xs text-muted-foreground">

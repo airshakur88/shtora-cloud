@@ -122,3 +122,17 @@ export function displayModelName(
 export function comboboxModelLabel(name: string): string {
 	return name.replace(/\s*\(\d{2}-\d{4}\)$/, "");
 }
+
+/**
+ * Short context window for the models table: 1048576 becomes "1M",
+ * 262144 becomes "262K", 4096 becomes "4K". Whole units only, no
+ * decimals: the catalog stores raw token counts, so the label is the
+ * largest whole unit the count reaches. Zero or missing means the
+ * catalog has no window for the model.
+ */
+export function formatContextWindow(tokens: number | null | undefined): string {
+	if (!tokens) return "—";
+	if (tokens >= 1_000_000) return `${Math.floor(tokens / 1_000_000)}M`;
+	if (tokens >= 1_000) return `${Math.floor(tokens / 1_000)}K`;
+	return String(tokens);
+}

@@ -1,0 +1,98 @@
+/**
+ * shadcn/typeset, owned by this project and adjusted to its tokens.
+ *
+ * shadcn ships typeset as a single CSS file to copy into the project, not
+ * as a package, so this file is the local copy. It styles rendered
+ * markdown inside a `.typeset` container: headings, paragraphs, lists,
+ * links, code, tables. The chat preset keeps message text at the size
+ * the playground already used.
+ */
+.typeset {
+	--typeset-font-body: inherit;
+	--typeset-font-heading: var(--font-heading, inherit);
+	--typeset-font-mono: var(--font-mono, ui-monospace, monospace);
+	--typeset-size: 1em;
+	--typeset-leading: 1.75;
+	--typeset-flow: 1.25em;
+	font-size: var(--typeset-size);
+	line-height: var(--typeset-leading);
+	font-family: var(--typeset-font-body);
+}
+
+.typeset :where(h1, h2, h3, h4, h5, h6):not(.not-typeset) {
+	font-family: var(--typeset-font-heading);
+	font-weight: 600;
+	line-height: 1.25;
+	margin-block-start: var(--typeset-flow);
+}
+
+.typeset :where(p, ul, ol, blockquote, table, pre, hr):not(.not-typeset) {
+	margin-block-start: var(--typeset-flow);
+}
+
+.typeset :where(ul, ol):not(.not-typeset) {
+	padding-inline-start: 1.5em;
+}
+
+.typeset :where(ul):not(.not-typeset) {
+	list-style: disc;
+}
+
+.typeset :where(ol):not(.not-typeset) {
+	list-style: decimal;
+}
+
+.typeset :where(a):not(.not-typeset) {
+	color: var(--primary);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.typeset :where(code):not(.not-typeset) {
+	font-family: var(--typeset-font-mono);
+	font-size: 0.875em;
+	background: var(--muted);
+	padding: 0.125em 0.375em;
+	border-radius: var(--radius-sm);
+}
+
+.typeset :where(pre):not(.not-typeset) {
+	font-family: var(--typeset-font-mono);
+	background: var(--muted);
+	padding: 1em;
+	border-radius: var(--radius-lg);
+	overflow-x: auto;
+}
+
+.typeset :where(pre code):not(.not-typeset) {
+	background: transparent;
+	padding: 0;
+}
+
+.typeset :where(table):not(.not-typeset) {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9em;
+}
+
+.typeset :where(th, td):not(.not-typeset) {
+	border: 1px solid var(--border);
+	padding: 0.5em 0.75em;
+	text-align: start;
+}
+
+/* First direct child has no top margin: the container sets the flow. */
+.typeset > *:first-child:not(.not-typeset) {
+	margin-block-start: 0;
+}
+
+.typeset-chat {
+	--typeset-size: 0.875rem;
+	--typeset-flow: 1em;
+	--typeset-leading: 1.6;
+}
+
+.typeset-docs {
+	--typeset-size: 15px;
+	--typeset-flow: 1.5em;
+}

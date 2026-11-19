@@ -1,13 +1,67 @@
 import { transformSseStream } from "@/lib/providers/sse";
 
+/** One failed upstream attempt, as reported by the playground route. */
+export interface ChatAttempt {
+	platform: string;
+	modelId: string;
+	status: number;
+	kind: string;
+	latencyMs: number;
+	phase: "member" | "fallback";
+}
+
+/**
+ * A failed non-streamed chat response that carries the attempt log.
+ * Only the six attempt fields travel with it: no prompts, keys, or
+ * upstream bodies.
+ */
+export class ChatResponseError extends Error {
+	readonly attempts: ChatAttempt[];
+
+	constructor(message: string, attempts: ChatAttempt[]) {
+		super(message);
+		this.name = "ChatResponseError";
+		this.attempts = attempts;
+	}
+}
+
 interface ChatResponse {
 	error?: { message?: string } | string;
+	debug?: { attempts?: unknown };
 	choices?: {
 		index?: number;
 		delta?: { content?: string };
 		message?: { content?: string };
 		finish_reason?: string | null;
 	}[];
+}
+
+/** Accept only attempt entries with the six expected fields. */
+function parseAttempts(value: unknown): ChatAttempt[] | null {
+	if (!Array.isArray(value) || value.length === 0) return null;
+	const attempts: ChatAttempt[] = [];
+	for (const item of value) {
+		if (!item || typeof item !== "object") return null;
+		const entry = item as Record<string, unknown>;
+		if (
+			typeof entry.platform !== "string" ||
+			typeof entry.modelId !== "string" ||
+			typeof entry.status !== "number" ||
+			typeof entry.kind !== "string" ||
+			typeof entry.latencyMs !== "number" ||
+			(entry.phase !== "member" && entry.phase !== "fallback")
+		)
+			return null;
+		attempts.push({
+			platform: entry.platform,
+			modelId: entry.modelId,
+			status: entry.status,
+			kind: entry.kind,
+			latencyMs: entry.latencyMs,
+			phase: entry.phase,
+		});
+	}
+	return attempts;
 }
 
 export async function readChatResponse(
@@ -21,11 +75,13 @@ export async function readChatResponse(
 		const rawData = await response.json().catch(() => null);
 		const data = rawData ? (rawData as ChatResponse) : null;
 		if (data?.error) {
-			throw new Error(
+			const message =
 				typeof data.error === "string"
 					? data.error
-					: data.error.message || "The model could not complete this request.",
-			);
+					: data.error.message || "The model could not complete this request.";
+			const attempts = parseAttempts(data.debug?.attempts);
+			if (attempts) throw new ChatResponseError(message, attempts);
+			throw new Error(message);
 		}
 		if (!response.ok)
 			throw new Error(`Request failed (${response.status}). Please try again.`);

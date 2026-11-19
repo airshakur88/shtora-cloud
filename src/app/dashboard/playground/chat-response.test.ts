@@ -1,5 +1,9 @@
 import { expect, test } from "bun:test";
-import { readChatResponse } from "./chat-response";
+import {
+	type ChatAttempt,
+	ChatResponseError,
+	readChatResponse,
+} from "./chat-response";
 
 function streamResponse(text: string, chunkSize = 1) {
 	const bytes = new TextEncoder().encode(text);
@@ -93,4 +97,53 @@ test("reports non-JSON HTTP failures and empty completions", async () => {
 	await expect(
 		readChatResponse(streamResponse("data: [DONE]\n\n"), () => {}),
 	).rejects.toThrow("no text");
+});
+
+test("error bodies with a debug attempt log throw ChatResponseError", async () => {
+	const attempts: ChatAttempt[] = [
+		{
+			platform: "groq",
+			modelId: "model-a",
+			status: 500,
+			kind: "server",
+			latencyMs: 120,
+			phase: "member",
+		},
+	];
+	const response = Response.json(
+		{
+			error: { message: "All configured upstream providers are unavailable." },
+			debug: { attempts },
+		},
+		{ status: 502 },
+	);
+	let caught: unknown;
+	try {
+		await readChatResponse(response, () => {});
+	} catch (cause) {
+		caught = cause;
+	}
+	expect(caught).toBeInstanceOf(ChatResponseError);
+	expect((caught as ChatResponseError).attempts).toEqual(attempts);
+	expect((caught as Error).message).toBe(
+		"All configured upstream providers are unavailable.",
+	);
+});
+
+test("malformed debug attempts fall back to a plain error", async () => {
+	const response = Response.json(
+		{
+			error: { message: "All configured upstream providers are unavailable." },
+			debug: { attempts: [{ platform: "groq" }] },
+		},
+		{ status: 502 },
+	);
+	let caught: unknown;
+	try {
+		await readChatResponse(response, () => {});
+	} catch (cause) {
+		caught = cause;
+	}
+	expect(caught).toBeInstanceOf(Error);
+	expect(caught).not.toBeInstanceOf(ChatResponseError);
 });

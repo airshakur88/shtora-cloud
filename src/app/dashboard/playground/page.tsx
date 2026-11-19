@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AgentMarkdown } from "@/components/agent-markdown";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,14 @@ import {
 	ComboboxItem,
 	ComboboxList,
 } from "@/components/ui/combobox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -38,7 +47,11 @@ import {
 	DEFAULT_SESSION_NAME,
 	deriveSessionTitle,
 } from "@/lib/playground-sessions";
-import { readChatResponse } from "./chat-response";
+import {
+	type ChatAttempt,
+	ChatResponseError,
+	readChatResponse,
+} from "./chat-response";
 
 interface SessionSummary {
 	id: string;
@@ -76,6 +89,8 @@ interface Conversation {
 	draft: string;
 	partial: string;
 	error: string | null;
+	/** Failed upstream attempts behind the current error, if any. */
+	errorDetails: ChatAttempt[] | null;
 	attachments: Attachment[];
 }
 
@@ -84,6 +99,7 @@ const emptyConversation: Conversation = {
 	draft: "",
 	partial: "",
 	error: null,
+	errorDetails: null,
 	attachments: [],
 };
 
@@ -136,6 +152,7 @@ export default function PlaygroundPage() {
 	const [sessionName, setSessionName] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [deleteTarget, setDeleteTarget] = useState<SessionSummary | null>(null);
+	const [logsOpen, setLogsOpen] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const operation = useRef<AbortController | null>(null);
@@ -489,6 +506,7 @@ export default function PlaygroundPage() {
 			draft: "",
 			partial: "",
 			error: null,
+			errorDetails: null,
 			attachments: [],
 		});
 		try {
@@ -588,6 +606,8 @@ export default function PlaygroundPage() {
 						cause instanceof Error
 							? cause.message
 							: "Could not get a response. Please try again.",
+					errorDetails:
+						cause instanceof ChatResponseError ? cause.attempts : null,
 				});
 		} finally {
 			if (!controller.signal.aborted) {
@@ -878,9 +898,13 @@ export default function PlaygroundPage() {
 											<p className="mb-2 text-xs font-semibold text-muted-foreground">
 												{message.role === "user" ? "You" : "Assistant"}
 											</p>
-											<p className="whitespace-pre-wrap text-sm leading-7 text-foreground [overflow-wrap:anywhere]">
-												{message.content}
-											</p>
+											{message.role === "user" ? (
+												<p className="whitespace-pre-wrap text-sm leading-7 text-foreground [overflow-wrap:anywhere]">
+													{message.content}
+												</p>
+											) : (
+												<AgentMarkdown>{message.content}</AgentMarkdown>
+											)}
 										</li>
 									))}
 									{conversation.partial ? (
@@ -890,9 +914,7 @@ export default function PlaygroundPage() {
 													? "Assistant · Incomplete response"
 													: "Assistant"}
 											</p>
-											<p className="whitespace-pre-wrap text-sm leading-7 text-foreground [overflow-wrap:anywhere]">
-												{conversation.partial}
-											</p>
+											<AgentMarkdown>{conversation.partial}</AgentMarkdown>
 										</li>
 									) : null}
 								</ol>
@@ -925,16 +947,87 @@ export default function PlaygroundPage() {
 									>
 										{conversation.error}
 									</p>
-									<Button
-										variant="outline"
-										size="sm"
-										disabled={!canSend || !conversation.draft.trim()}
-										onClick={() => void submit()}
-									>
-										Retry message
-									</Button>
+									<div className="flex gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!conversation.errorDetails}
+											onClick={() => setLogsOpen(true)}
+										>
+											View logs
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!canSend || !conversation.draft.trim()}
+											onClick={() => void submit()}
+										>
+											Retry message
+										</Button>
+									</div>
 								</div>
 							) : null}
+							<Dialog
+								open={logsOpen && conversation.errorDetails !== null}
+								onOpenChange={setLogsOpen}
+							>
+								<DialogContent className="sm:max-w-lg">
+									<DialogHeader>
+										<DialogTitle>Error logs</DialogTitle>
+										<DialogDescription>
+											Attempts made before the request failed.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="max-h-80 overflow-y-auto">
+										<table className="w-full text-sm">
+											<thead>
+												<tr className="text-left text-xs text-muted-foreground">
+													<th className="py-2 pr-2 font-medium">#</th>
+													<th className="py-2 pr-2 font-medium">Provider</th>
+													<th className="py-2 pr-2 font-medium">Model</th>
+													<th className="py-2 pr-2 font-medium">Status</th>
+													<th className="py-2 pr-2 font-medium">Kind</th>
+													<th className="py-2 text-right font-medium">
+														Latency
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												{conversation.errorDetails?.map((attempt, index) => (
+													<tr
+														key={`${attempt.platform}-${attempt.modelId}-${attempt.status}-${attempt.latencyMs}-${attempt.phase}`}
+														className="border-t tabular-nums"
+													>
+														<td className="py-2 pr-2">{index + 1}</td>
+														<td className="py-2 pr-2">{attempt.platform}</td>
+														<td className="py-2 pr-2 break-all">
+															{attempt.modelId}
+														</td>
+														<td className="py-2 pr-2">
+															{attempt.status === 0
+																? "no response"
+																: attempt.status}
+														</td>
+														<td className="py-2 pr-2">{attempt.kind}</td>
+														<td className="py-2 text-right">
+															{attempt.latencyMs} ms
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+									<DialogFooter>
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => setLogsOpen(false)}
+										>
+											Close
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
 							<div className="mx-auto max-w-3xl">
 								<div className="mb-3 flex items-center justify-between gap-3">
 									<label

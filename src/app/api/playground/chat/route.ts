@@ -227,7 +227,13 @@ export async function POST(request: Request): Promise<Response> {
 
 		if (!isStream) {
 			const json = await resp.text();
-			return Response.json(JSON.parse(json), {
+			const body = JSON.parse(json) as Record<string, unknown>;
+			// Failed requests carry the attempt log so the playground can
+			// show what was tried. Streaming responses never get it: the
+			// body is already on its way to the client.
+			if (resp.status >= 400 && result.attemptLog?.length)
+				body.debug = { attempts: result.attemptLog };
+			return Response.json(body, {
 				headers: { "Cache-Control": "private, no-store" },
 			});
 		}
