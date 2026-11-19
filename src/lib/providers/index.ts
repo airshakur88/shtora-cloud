@@ -157,7 +157,7 @@ export async function sendChat(
 	// /chat/completions endpoint that does not exist, AI Horde lost its
 	// anonymous auth, and Anthropic got an OpenAI-shaped body.
 	if (provider?.protocol === "google_gemini") {
-		return sendGoogle(input, baseUrl, signal);
+		return sendGoogle(input, baseUrl, signal, provider);
 	}
 
 	if (provider?.protocol === "ai_horde") {
@@ -165,7 +165,7 @@ export async function sendChat(
 	}
 
 	if (provider?.protocol === "anthropic_messages") {
-		return sendAnthropic(input, baseUrl, signal);
+		return sendAnthropic(input, baseUrl, signal, provider);
 	}
 
 	if (provider?.protocol === "cloudflare_openai") {

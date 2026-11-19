@@ -16,10 +16,16 @@ import {
 	translateNativeResponse,
 	translateNativeStream,
 } from "./anthropic-response";
-import { anthropicError, readInferenceJson } from "./inference-http";
+import {
+	anthropicError,
+	InferenceHttpError,
+	readInferenceJson,
+} from "./inference-http";
+import { effectiveKeyLimits } from "./key-limits";
 import {
 	getEnabledKeysForPlatform,
 	maybeDisableKeyAfterAuthFailures,
+	maybeSuspendKeyAfterFailures,
 	updateKeyHealth,
 } from "./key-store";
 import {
@@ -27,6 +33,7 @@ import {
 	isRouterModel,
 	stripRouterPrefix,
 } from "./model-canonical";
+import { markModelSuspect } from "./model-suspect";
 import { listProviders } from "./provider-catalog";
 import {
 	type FailureKind,
@@ -34,13 +41,18 @@ import {
 	sendChat,
 	sendNativeMessages,
 } from "./providers";
+import {
+	checkReturnedModel,
+	isValidReturnedModel,
+} from "./providers/model-identity";
 import type { FailureSource } from "./quarantine";
 import {
 	isKeyQuarantined,
 	reportFailure,
 	resetKeyFailures,
 } from "./quarantine";
-import { canMakeRequest, finalizeUsage, recordUsage } from "./ratelimit";
+import { canMakeRequest, finalizeUsage, reserveUsage } from "./ratelimit";
+import { logRouteExhausted, type RouteSkipped } from "./route-exhausted";
 import { observeStreamUsage } from "./stream-usage";
 import {
 	completionOutputCharacters,
@@ -85,10 +97,12 @@ export interface RouteResult {
 export interface RouteAttempt {
 	platform: string;
 	modelId: string;
+	keyId: number;
 	status: number;
 	kind: FailureKind;
 	latencyMs: number;
 	phase: "member" | "fallback";
+	retryAfterMs?: number;
 }
 
 /** Structural view of DecryptedPlatformKey from ./key-store. */
@@ -100,6 +114,7 @@ interface PlatformKey {
 	tpmLimit: number | null;
 	rpdLimit: number | null;
 	tpdLimit: number | null;
+	suspendedUntilMs: number | null;
 }
 
 interface RouterModel {
@@ -110,6 +125,8 @@ interface RouterModel {
 	intelligence_rank: number | null;
 	supports_tools: number;
 	supports_vision: number;
+	modality: string;
+	suspectReason: string | null;
 }
 
 interface PlatformTally {
@@ -128,12 +145,26 @@ type Attribution =
 // ---------------------------------------------------------------------------
 
 const CHAIN_CAP = 6;
-const UPSTREAM_TIMEOUT_MS = 120_000;
 // Extra attempts reserved for the virtual-router fallback chain
 // (VIRTUAL_ROUTER_FALLBACK_MODELS): one per fallback model. The member
 // phase keeps its CHAIN_CAP budget; once it is spent, a virtual router
 // request may still try fallback models instead of failing outright.
 const FALLBACK_ATTEMPT_CAP = 5;
+// Global wall-clock budget for one request. The old per-attempt timer
+// was 120 s with up to 11 attempts, so a single request could run 22
+// minutes before answering. The deadline bounds it: no attempt starts
+// after it, and each attempt's timeout is the smaller of its own
+// budget and the time left. 75 s sits 15 s inside the 90 s timeout of
+// the user's model-test script, so the gateway answers (502 or 429)
+// before the client gives up on it. Exported for the F.1.7 tests.
+export const REQUEST_DEADLINE_MS = 75_000;
+// Per-attempt timeout, decreasing: the first attempt gets the most
+// time (it is the most likely to succeed), each later attempt 5 s
+// less, never below 10 s. The attempt timer is
+// min(this budget, time left to the deadline).
+export const ATTEMPT_TIMEOUT_FIRST_MS = 30_000;
+export const ATTEMPT_TIMEOUT_STEP_MS = 5_000;
+export const ATTEMPT_TIMEOUT_MIN_MS = 10_000;
 // Output tokens reserved when the caller sets no max_tokens. The model
 // may generate up to 100_000 tokens (chat-request.ts), but reserving
 // that for every request would spend the default 200k tpm budget in
@@ -164,11 +195,13 @@ const STRATEGY_WEIGHTS: Record<
 const SOURCE_BY_KIND: Record<string, FailureSource> = {
 	rate_limit: "rate_limit",
 	payment: "payment",
-	forbidden: "tier",
 	auth: "auth_error",
 	server: "server_error",
 	timeout: "timeout",
 	network: "server_error",
+	// No "forbidden" entry: handleFailure maps it to "tier" only for a
+	// real tier/billing problem (ProviderError.tierProblem), and to
+	// "server_error" for a plain 403.
 };
 
 const HEALTH_BY_KIND: Record<
@@ -208,6 +241,13 @@ function isMatch(model: RouterModel, requested: string): boolean {
 		}
 		return canonicalModelId(model.model_id) === canonicalModelId(bare);
 	}
+	// A bare request names a logical model, not a stored row id: match by
+	// canonical id, so "qwen3-8-flash" also finds a row stored as
+	// "free/qwen3-8-flash". Only for bare ids (no "/"): a "platform/model"
+	// request must stay pinned to that platform, or "groq/model-a"
+	// would also match "model-a" on every other provider.
+	if (!requested.includes("/"))
+		return canonicalModelId(model.model_id) === canonicalModelId(requested);
 	return false;
 }
 
@@ -545,49 +585,158 @@ interface KeyVerdict {
 	key: PlatformKey;
 	quarantined: boolean;
 	allowed: boolean;
+	/** Effective limits for this key (key → provider → gateway),
+	 * resolved once here and reused by the atomic reservation at
+	 * attempt time, so the check and the reservation agree. */
+	limits: { rpm: number; tpm: number; rpd: number; tpd: number };
 }
 
 /**
- * Quarantine + rate-limit verdicts for every key of one model, checked
- * in parallel: each check touches independent key rows, and checking
- * them one by one costs a round trip per key on every request. The
- * attempt loop below still walks the keys strictly in order and only
- * attempts keys whose verdict allows it; a key that is never reached
- * costs only its verdict queries. Quarantined keys are never
- * rate-checked, exactly as in the sequential loop.
+ * Timeout for one attempt: the decreasing per-attempt budget, capped
+ * by the time left to the request deadline. The deadline always wins:
+ * an attempt never runs past it. Exported for the F.1.7 tests.
+ */
+export function attemptTimeoutMs(
+	attemptIndex: number,
+	deadlineMs: number,
+): number {
+	const budget = Math.max(
+		ATTEMPT_TIMEOUT_MIN_MS,
+		ATTEMPT_TIMEOUT_FIRST_MS - attemptIndex * ATTEMPT_TIMEOUT_STEP_MS,
+	);
+	return Math.max(0, Math.min(budget, deadlineMs - Date.now()));
+}
+
+/**
+ * Read the first chunk of a stream body and return a body that replays
+ * it: the caller can tell a stream that fails before its first byte
+ * from one that fails mid-stream. The first chunk is held, not sent,
+ * so the router can still fail over when the read rejects.
+ */
+async function peekStreamHead(
+	body: ReadableStream<Uint8Array>,
+): Promise<ReadableStream<Uint8Array>> {
+	const reader = body.getReader();
+	let first: Awaited<ReturnType<typeof reader.read>>;
+	try {
+		first = await reader.read();
+	} catch (err) {
+		reader.releaseLock();
+		throw err;
+	}
+	if (first.done) {
+		reader.releaseLock();
+		return new ReadableStream<Uint8Array>({
+			start(controller) {
+				controller.close();
+			},
+		});
+	}
+	const head = first.value;
+	return new ReadableStream<Uint8Array>({
+		start(controller) {
+			controller.enqueue(head);
+		},
+		async pull(controller) {
+			const next = await reader.read();
+			if (next.done) {
+				reader.releaseLock();
+				controller.close();
+				return;
+			}
+			controller.enqueue(next.value);
+		},
+		async cancel(reason) {
+			try {
+				await reader.cancel(reason);
+			} catch {
+				// Cancellation already reached the upstream.
+			}
+			reader.releaseLock();
+		},
+	});
+}
+
+/**
+ * Quarantine + rate-limit verdicts for the keys of one model, in key
+ * order. Only the keys the attempt loop can still reach are verified:
+ * verification stops once enough allowed keys are found to fill the
+ * remaining attempt slots for this model (`maxAttempts`), in chunks
+ * of that size so the checks inside a chunk still run in parallel.
+ * A key that is never reached costs no verdict queries at all — the
+ * old code verified every key of every model in the chain, at ~5
+ * queries plus one AES-GCM decrypt per key. The verdicts are a
+ * snapshot taken before the attempts: a key suspended mid-request by
+ * a failure only leaves the pool on the next request, so the piso-2
+ * floor below is never cut short by a suspension recorded in this
+ * same request.
  */
 async function verifyModelKeys(
 	db: D1Database,
 	model: RouterModel,
 	keys: PlatformKey[],
 	estTokens: number,
+	providerLimits: {
+		rpmLimit?: number | null;
+		tpmLimit?: number | null;
+		rpdLimit?: number | null;
+		tpdLimit?: number | null;
+	},
+	maxAttempts: number,
 ): Promise<KeyVerdict[]> {
-	const quarantined = await Promise.all(
-		keys.map((key) =>
-			isKeyQuarantined(db, model.platform, model.model_id, key.id),
-		),
-	);
-	const allowed = await Promise.all(
-		keys.map((key, index) =>
-			quarantined[index]
-				? Promise.resolve(false)
-				: canMakeRequest(db, {
-						platform: model.platform,
-						modelId: model.model_id,
-						keyId: key.id,
-						estTokens,
-						rpmLimit: key.rpmLimit,
-						tpmLimit: key.tpmLimit,
-						rpdLimit: key.rpdLimit,
-						tpdLimit: key.tpdLimit,
-					}).then((result) => result.ok),
-		),
-	);
-	return keys.map((key, index) => ({
-		key,
-		quarantined: quarantined[index],
-		allowed: allowed[index],
-	}));
+	if (maxAttempts <= 0 || keys.length === 0) return [];
+	const verdicts: KeyVerdict[] = [];
+	let allowed = 0;
+	for (
+		let start = 0;
+		start < keys.length && allowed < maxAttempts;
+		start += maxAttempts
+	) {
+		const chunk = keys.slice(start, start + maxAttempts);
+		const limits = chunk.map((key) =>
+			effectiveKeyLimits(
+				{
+					rpmLimit: key.rpmLimit,
+					tpmLimit: key.tpmLimit,
+					rpdLimit: key.rpdLimit,
+					tpdLimit: key.tpdLimit,
+				},
+				providerLimits,
+			),
+		);
+		const quarantined = await Promise.all(
+			chunk.map((key) =>
+				isKeyQuarantined(db, model.platform, model.model_id, key.id),
+			),
+		);
+		const checks = await Promise.all(
+			chunk.map((key, index) => {
+				if (quarantined[index]) return Promise.resolve(false);
+				return canMakeRequest(db, {
+					platform: model.platform,
+					modelId: model.model_id,
+					keyId: key.id,
+					estTokens,
+					rpmLimit: limits[index].rpm,
+					tpmLimit: limits[index].tpm,
+					rpdLimit: limits[index].rpd,
+					tpdLimit: limits[index].tpd,
+				}).then((result) => result.ok);
+			}),
+		);
+		for (let index = 0; index < chunk.length; index += 1) {
+			const key = chunk[index];
+			const verdict: KeyVerdict = {
+				key,
+				quarantined: quarantined[index],
+				allowed: checks[index],
+				limits: limits[index],
+			};
+			verdicts.push(verdict);
+			if (!verdict.quarantined && verdict.allowed) allowed += 1;
+		}
+	}
+	return verdicts;
 }
 
 /**
@@ -640,13 +789,19 @@ function isEmptyContent(content: unknown): boolean {
 }
 
 /**
- * True when a non-stream completion carries no usable content and the
- * model stopped for a reason that means "nothing was produced", not
- * "the answer is empty on purpose": it hit the output limit, or it
- * spent the call reasoning (reasoning_content, or thinking blocks in
- * a native message). An empty reply with finish_reason "stop" and no
- * reasoning is a real, if empty, answer and stays a success, as does
- * a reply that only carries tool calls.
+ * True when a non-stream completion carries no usable content. On the
+ * OpenAI path that is any reply with no text and no tool calls,
+ * whatever the model stopped for — the old code only failed over on
+ * `length` or when the model had been reasoning, so an empty `stop`
+ * reply counted as a success while the caller's own script counted it
+ * as a failure. A reply that only carries tool calls is real work and
+ * stays a success.
+ *
+ * On the native path the gateway is a passthrough: a message of only
+ * thinking blocks (or redacted thinking) is a valid Anthropic
+ * message, so the old rule stays — empty only when the model stopped
+ * for `max_tokens` or spent the call reasoning, with no text and no
+ * tool use.
  */
 function isEmptyCompletion(parsed: unknown, native: boolean): boolean {
 	if (!native) {
@@ -661,11 +816,7 @@ function isEmptyCompletion(parsed: unknown, native: boolean): boolean {
 		const message = choice.message;
 		if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0)
 			return false;
-		if (!isEmptyContent(message.content)) return false;
-		const reasoning = message.reasoning_content;
-		const hasReasoning =
-			typeof reasoning === "string" && reasoning.trim() !== "";
-		return choice.finish_reason === "length" || hasReasoning;
+		return isEmptyContent(message.content);
 	}
 	if (!isRecord(parsed) || !Array.isArray(parsed.content)) return false;
 	let hasText = false;
@@ -691,6 +842,54 @@ function isEmptyCompletion(parsed: unknown, native: boolean): boolean {
 	return parsed.stop_reason === "max_tokens" || hasThinking;
 }
 
+/**
+ * True when the failure is the router's own attempt timer: the
+ * fetch rejected with the TimeoutError the timer aborted with, or the
+ * timer's signal carries that reason. A client abort never reaches
+ * here — it returns 499 above — so an aborted timer signal means the
+ * upstream took too long, not that the client hung up.
+ */
+function isAttemptTimeout(err: unknown, controller: AbortController): boolean {
+	if (err instanceof DOMException && err.name === "TimeoutError") return true;
+	const reason = controller.signal.reason;
+	return (
+		controller.signal.aborted &&
+		reason instanceof DOMException &&
+		reason.name === "TimeoutError"
+	);
+}
+
+/** True when a parsed non-stream body is a chat completion at all. */
+function hasChoices(parsed: unknown): boolean {
+	return (
+		isRecord(parsed) &&
+		Array.isArray(parsed.choices) &&
+		parsed.choices.length > 0
+	);
+}
+
+/** 429 for exhausted upstream rate limits, with Retry-After when known. */
+function upstreamRateLimitedResponse(
+	message: string,
+	retryAfterMs?: number,
+): Response {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
+	if (retryAfterMs !== undefined && retryAfterMs > 0)
+		headers["Retry-After"] = String(Math.ceil(retryAfterMs / 1000));
+	return new Response(
+		JSON.stringify({
+			error: {
+				message,
+				type: "rate_limit_error",
+				code: "rate_limited",
+			},
+		}),
+		{ status: 429, headers },
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
@@ -698,6 +897,62 @@ function isEmptyCompletion(parsed: unknown, native: boolean): boolean {
 interface ResolvedChain {
 	compatibleModels: RouterModel[];
 	providerConfigs: Map<string, ProviderCatalog>;
+}
+
+interface ModelQueryRow {
+	id: number;
+	platform: string;
+	model_id: string;
+	tier: number | null;
+	intelligence_rank: number | null;
+	supports_tools: number | null;
+	supports_vision: number | null;
+	modality?: string | null;
+	suspect_reason?: string | null;
+}
+
+/**
+ * Enabled catalog rows for the chain. Migration 0019 adds
+ * modality/suspect_reason; on a database without them the select
+ * throws "no such column" and the chain falls back to the old
+ * columns, treating every row as a chat model that was never flagged.
+ */
+async function listEnabledModels(db: D1Database): Promise<RouterModel[]> {
+	const columns =
+		"id, platform, model_id, tier, intelligence_rank, supports_tools, supports_vision";
+	try {
+		const rows = await db
+			.prepare(
+				`SELECT ${columns}, modality, suspect_reason FROM models WHERE enabled = 1`,
+			)
+			.all<ModelQueryRow>();
+		return rows.results.map(toRouterModel);
+	} catch (err) {
+		if (!(err instanceof Error) || !err.message.includes("no such column"))
+			throw err;
+		const rows = await db
+			.prepare(`SELECT ${columns} FROM models WHERE enabled = 1`)
+			.all<ModelQueryRow>();
+		return rows.results.map((row) => ({
+			...toRouterModel(row),
+			modality: "chat",
+			suspectReason: null,
+		}));
+	}
+}
+
+function toRouterModel(row: ModelQueryRow): RouterModel {
+	return {
+		id: row.id,
+		model_id: row.model_id,
+		platform: row.platform,
+		tier: row.tier ?? 1,
+		intelligence_rank: row.intelligence_rank ?? null,
+		supports_tools: Number(row.supports_tools ?? 0),
+		supports_vision: Number(row.supports_vision ?? 0),
+		modality: row.modality ?? "chat",
+		suspectReason: row.suspect_reason ?? null,
+	};
 }
 
 /**
@@ -715,21 +970,12 @@ async function resolveRequestChain(
 	request: ChatCompletionRequest,
 	native: NativeMessagesRequest | undefined,
 ): Promise<{ earlyResponse: Response } | { chain: ResolvedChain }> {
-	const requested = request.model;
-	const modelsResult = await db
-		.prepare(
-			"SELECT id, platform, model_id, tier, intelligence_rank, supports_tools, supports_vision FROM models WHERE enabled = 1",
-		)
-		.all<Record<string, unknown>>();
-	const models: RouterModel[] = modelsResult.results.map((row) => ({
-		id: row.id as number,
-		model_id: row.model_id as string,
-		platform: row.platform as string,
-		tier: (row.tier as number | null) ?? 1,
-		intelligence_rank: (row.intelligence_rank as number | null) ?? null,
-		supports_tools: Number(row.supports_tools ?? 0),
-		supports_vision: Number(row.supports_vision ?? 0),
-	}));
+	// A bare "auto" is the curated auto router: it redirects to
+	// "shtora/auto" instead of pinning to an upstream row whose id is
+	// "auto". The redirect happens here, once, so every path below
+	// (chain, native filters, 404s, logs) sees the router request.
+	const requested = request.model === "auto" ? "shtora/auto" : request.model;
+	const models = await listEnabledModels(db);
 	// Provider runtime config (base URL, protocol, ...) comes from the D1
 	// `providers` table; loaded once per request and reused by the chain
 	// filter and the attempt loop below.
@@ -747,13 +993,18 @@ async function resolveRequestChain(
 			message.content.some((part) => part.type === "image_url"),
 	);
 	const compatibleModels = models.filter((model) => {
+		// Chat completions only serve chat models that are not under
+		// catalog review: a non-chat row (image/audio) or a suspect row
+		// never enters a chain — direct, virtual-router member or
+		// fallback — so a dead row cannot burn attempts or 502.
+		if (model.modality !== "chat" || model.suspectReason !== null) return false;
 		if (native) {
 			const direct =
 				providerConfigs.get(model.platform)?.protocol === "anthropic_messages";
 			if (requested !== "auto" && !isMatch(model, requested)) return false;
 			if (
 				(native.operation === "count_tokens" || native.bound) &&
-				requested === "auto"
+				requested === "shtora/auto"
 			)
 				return false;
 			if (
@@ -770,9 +1021,10 @@ async function resolveRequestChain(
 	});
 	// A request that names one specific model only ever serves rows of
 	// that model: fan-out across the model's providers stays, but a
-	// different model is never a substitute. The bare `auto` pool and
-	// the virtual routers keep the full compatible chain, so their
-	// cross-model failover is untouched. The native filter above already
+	// different model is never a substitute. The virtual routers keep
+	// the full compatible chain, so their cross-model failover is
+	// untouched (a bare "auto" was redirected to "shtora/auto" above,
+	// so it behaves like the router). The native filter above already
 	// restricts to matching rows for a specific request; this is the
 	// same restriction for the OpenAI path.
 	const routableModels = isSpecificModelRequest(requested)
@@ -780,14 +1032,36 @@ async function resolveRequestChain(
 		: compatibleModels;
 	if (native) {
 		const selected = models.filter((model) => isMatch(model, requested));
-		const response =
-			requested !== "auto" && !selected.length
-				? anthropicError("Unknown or disabled model", 404, "not_found_error")
-				: !routableModels.length
-					? anthropicError(
-							"Requested model cannot preserve these native content blocks or options; token counting and bound state require an explicit model",
-						)
-					: null;
+		const usable = selected.filter(
+			(model) => model.modality === "chat" && model.suspectReason === null,
+		);
+		let response: Response | null = null;
+		if (requested !== "auto" && selected.length === 0) {
+			response = anthropicError(
+				"Unknown or disabled model",
+				404,
+				"not_found_error",
+			);
+		} else if (
+			isSpecificModelRequest(requested) &&
+			selected.length > 0 &&
+			usable.length === 0
+		) {
+			// The model exists, but only as non-chat rows (image/audio)
+			// or as rows under catalog review: a chat request for it is
+			// a client error, not a routing opportunity.
+			response = selected.some((model) => model.modality !== "chat")
+				? anthropicError(
+						"Model does not support chat completions",
+						404,
+						"not_found_error",
+					)
+				: anthropicError("Unknown or disabled model", 404, "not_found_error");
+		} else if (routableModels.length === 0) {
+			response = anthropicError(
+				"Requested model cannot preserve these native content blocks or options; token counting and bound state require an explicit model",
+			);
+		}
 		if (response) return { earlyResponse: response };
 	}
 	if (!native) {
@@ -811,6 +1085,43 @@ async function resolveRequestChain(
 					{ status: 404 },
 				),
 			};
+		}
+		if (isSpecificModelRequest(requested)) {
+			const matched = models.filter((model) => isMatch(model, requested));
+			const usable = matched.filter(
+				(model) => model.modality === "chat" && model.suspectReason === null,
+			);
+			if (usable.length === 0) {
+				// The model exists, but only as non-chat rows or as rows
+				// under catalog review: a chat request for it is a 404,
+				// not a 502 after an empty chain.
+				if (matched.some((model) => model.modality !== "chat")) {
+					return {
+						earlyResponse: Response.json(
+							{
+								error: {
+									message: "Model does not support chat completions",
+									type: "invalid_request_error",
+									code: null,
+								},
+							},
+							{ status: 404 },
+						),
+					};
+				}
+				return {
+					earlyResponse: Response.json(
+						{
+							error: {
+								message: "Unknown or disabled model",
+								type: "invalid_request_error",
+								code: "model_not_found",
+							},
+						},
+						{ status: 404 },
+					),
+				};
+			}
 		}
 		if ((needsTools || needsVision) && routableModels.length === 0) {
 			return {
@@ -840,7 +1151,9 @@ export async function routeChatCompletion(args: {
 	signal?: AbortSignal;
 }): Promise<RouteResult> {
 	const { db, secret, user, request } = args;
-	const requested = request.model;
+	// Same redirect as resolveRequestChain: a bare "auto" is the
+	// curated router, so logs and the returned modelId name it.
+	const requested = request.model === "auto" ? "shtora/auto" : request.model;
 	const stream = request.stream === true;
 	const native = args.native;
 
@@ -897,8 +1210,16 @@ export async function routeChatCompletion(args: {
 	const distinctModelCount = new Set(
 		chain.map((model) => canonicalModelId(model.model_id)),
 	).size;
+	// A virtual router's chain holds ~10-17 canonical models, so the
+	// fair share collapses to one attempt per member — the redundancy
+	// of a member with several keys is lost exactly where it matters
+	// most. Members of a virtual router get a floor of two attempts
+	// each; the CHAIN_CAP total still binds, so with many members only
+	// the first few get their second attempt.
+	const isVirtualRouterRequest =
+		isRouterModel(requested) && isVirtualRouter(requested);
 	const maxAttemptsPerModel = Math.max(
-		1,
+		isVirtualRouterRequest ? 2 : 1,
 		Math.floor(CHAIN_CAP / Math.max(1, distinctModelCount)),
 	);
 	const fallbackModelCount = new Set(
@@ -926,6 +1247,13 @@ export async function routeChatCompletion(args: {
 	const platformTallies = new Map<string, PlatformTally>();
 	let lastNativeError: Response | undefined;
 	let throttled = false;
+	// Keys skipped without an attempt, for the route_exhausted aggregate.
+	const skipped: RouteSkipped = {
+		noKey: 0,
+		quarantined: 0,
+		rateLimited: 0,
+		suspended: 0,
+	};
 
 	const estInputTokens = native
 		? estimateTokensFromCharacters(native.inputCharacters)
@@ -933,7 +1261,35 @@ export async function routeChatCompletion(args: {
 	const estTokens =
 		estInputTokens + (request.max_tokens ?? DEFAULT_OUTPUT_TOKENS);
 
+	// The global deadline: no attempt starts after it, and each
+	// attempt's timer is capped by the time left to it.
+	const deadlineMs = Date.now() + REQUEST_DEADLINE_MS;
+	let deadlineReached = false;
+	// (platform, canonical model) pairs the upstream answered with 404
+	// in this request: the model does not exist on that upstream, so
+	// the remaining keys of the same pair are a certain failure.
+	const modelNotFound = new Set<string>();
+	const notFoundKey = (platform: string, modelId: string): string =>
+		`${platform}\n${canonicalModelId(modelId)}`;
+	// One key listing per platform per request: the same platform
+	// recurs across chain rows (several providers serve one logical
+	// model), and each listing decrypts every key of the platform.
+	const keyCache = new Map<string, Promise<PlatformKey[]>>();
+	const getKeys = (platform: string): Promise<PlatformKey[]> => {
+		const cached = keyCache.get(platform);
+		if (cached) return cached;
+		const listed = getEnabledKeysForPlatform(
+			db,
+			user.id,
+			platform,
+			secret,
+		).catch(() => [] as PlatformKey[]);
+		keyCache.set(platform, listed);
+		return listed;
+	};
+
 	for (const model of chain) {
+		if (deadlineReached) break;
 		if (memberAttempts >= CHAIN_CAP && fallbackAttempts >= FALLBACK_ATTEMPT_CAP)
 			break;
 		const isFallback = isFallbackRow(model, requested, fallbackIndex);
@@ -946,44 +1302,98 @@ export async function routeChatCompletion(args: {
 				: memberAttempts >= CHAIN_CAP
 		)
 			continue;
+		if (modelNotFound.has(notFoundKey(model.platform, model.model_id)))
+			continue;
+		// A model that already spent its per-model budget is skipped
+		// before any key is listed or verified for it.
+		const canonicalId = canonicalModelId(model.model_id);
+		const perModelCap = isFallback
+			? maxFallbackAttemptsPerModel
+			: maxAttemptsPerModel;
+		if ((attemptsByModel.get(canonicalId) ?? 0) >= perModelCap) continue;
 
-		let keys: PlatformKey[] = [];
-		try {
-			keys = await getEnabledKeysForPlatform(
-				db,
-				user.id,
-				model.platform,
-				secret,
+		let keys = await getKeys(model.platform);
+		// A suspended key is never attempted and never logged as an
+		// attempt: it is out of the pool until its suspension expires
+		// (or the probe clears it early). Count it in the skip tally
+		// so a 502 with zero attempts stays attributable.
+		const nowMs = Date.now();
+		const suspendedCount = keys.filter(
+			(key) => key.suspendedUntilMs !== null && key.suspendedUntilMs > nowMs,
+		).length;
+		if (suspendedCount > 0) {
+			skipped.suspended += suspendedCount;
+			keys = keys.filter(
+				(key) => key.suspendedUntilMs === null || key.suspendedUntilMs <= nowMs,
 			);
-		} catch {
-			keys = [];
 		}
 		if (native?.bound) keys = keys.slice(0, 1);
 		if (keys.length === 0) {
+			if (suspendedCount === 0) skipped.noKey += 1;
 			if (!alternativesTried.includes(model.model_id))
 				alternativesTried.push(model.model_id);
 			continue;
 		}
-		const verdicts = await verifyModelKeys(db, model, keys, estTokens);
+		// Verify only the keys this model can still reach: the
+		// remaining per-model budget and the remaining phase budget.
+		const phaseRemaining = isFallback
+			? FALLBACK_ATTEMPT_CAP - fallbackAttempts
+			: CHAIN_CAP - memberAttempts;
+		const modelRemaining =
+			perModelCap - (attemptsByModel.get(canonicalId) ?? 0);
+		const verdicts = await verifyModelKeys(
+			db,
+			model,
+			keys,
+			estTokens,
+			providerConfigs.get(model.platform)?.limits ?? {},
+			Math.min(phaseRemaining, modelRemaining),
+		);
 
-		for (const { key, quarantined, allowed } of verdicts) {
+		for (const { key, quarantined, allowed, limits } of verdicts) {
+			if (deadlineReached) break;
 			if (
 				isFallback
 					? fallbackAttempts >= FALLBACK_ATTEMPT_CAP
 					: memberAttempts >= CHAIN_CAP
 			)
 				break;
-			const canonicalId = canonicalModelId(model.model_id);
-			if (
-				(attemptsByModel.get(canonicalId) ?? 0) >=
-				(isFallback ? maxFallbackAttemptsPerModel : maxAttemptsPerModel)
-			)
-				break;
-			if (quarantined) continue;
+			if ((attemptsByModel.get(canonicalId) ?? 0) >= perModelCap) break;
+			if (modelNotFound.has(notFoundKey(model.platform, model.model_id))) break;
+			if (quarantined) {
+				skipped.quarantined += 1;
+				continue;
+			}
 			if (!allowed) {
+				skipped.rateLimited += 1;
 				throttled = true;
 				continue;
 			}
+			if (Date.now() >= deadlineMs) {
+				deadlineReached = true;
+				break;
+			}
+			// Atomic reservation: the gate and the write are one
+			// statement, so two concurrent requests cannot both spend
+			// the same quota. A reservation that fails is a gateway
+			// rate limit on this key, not an attempt.
+			const reserved = await reserveUsage(db, {
+				platform: model.platform,
+				modelId: model.model_id,
+				keyId: key.id,
+				estTokens,
+				estInputTokens,
+				rpmLimit: limits.rpm,
+				tpmLimit: limits.tpm,
+				rpdLimit: limits.rpd,
+				tpdLimit: limits.tpd,
+			});
+			if (!reserved.ok) {
+				skipped.rateLimited += 1;
+				throttled = true;
+				continue;
+			}
+			const tokenReservation = reserved.reservation;
 
 			attempts += 1;
 			if (isFallback) fallbackAttempts += 1;
@@ -1000,13 +1410,110 @@ export async function routeChatCompletion(args: {
 			const signal = args.signal
 				? AbortSignal.any([args.signal, controller.signal])
 				: controller.signal;
+			// Decreasing per-attempt timeout, capped by the time left
+			// to the request deadline.
 			const timeout = setTimeout(
 				() =>
 					controller.abort(
 						new DOMException("Upstream timed out", "TimeoutError"),
 					),
-				UPSTREAM_TIMEOUT_MS,
+				attemptTimeoutMs(attempts - 1, deadlineMs),
 			);
+			// One failure path for the attempt: the sendChat catch
+			// below and the first-byte peek share it, so a stream
+			// that dies before its first byte is recorded exactly
+			// like a failed non-stream attempt. Returns the 499
+			// response when the client hung up, null otherwise (the
+			// caller then tries the next candidate).
+			const failAttempt = async (err: unknown): Promise<RouteResult | null> => {
+				clearTimeout(timeout);
+				if (args.signal?.aborted) {
+					if (native?.operation !== "count_tokens")
+						await insertRequest(db, {
+							user,
+							requested,
+							modelId: model.model_id,
+							platform: model.platform,
+							keyId: key.id,
+							status: "error",
+							statusCode: 499,
+							errorMessage: "Request cancelled",
+							inputTokens: null,
+							outputTokens: null,
+							inputTokensEstimated: null,
+							outputTokensEstimated: null,
+							latencyMs: Date.now() - start,
+							routingDecision,
+							failureAttribution: null,
+						});
+					return {
+						response: native
+							? anthropicError("Request cancelled", 499, "api_error")
+							: new Response(
+									JSON.stringify({
+										error: {
+											message: "Request cancelled",
+											type: "request_cancelled",
+											code: "request_cancelled",
+										},
+									}),
+									{
+										status: 499,
+										headers: { "Content-Type": "application/json" },
+									},
+								),
+						modelId: model.model_id,
+						platform: model.platform,
+						keyId: key.id,
+						attempts,
+						attemptLog,
+					};
+				}
+				// The timer abort used to land here as a generic network
+				// error (status 0): a timeout was invisible as a
+				// timeout in the log and the tally. An invalid upstream
+				// body is a server failure, not a network one either.
+				const providerError =
+					err instanceof ProviderError
+						? err
+						: err instanceof InferenceHttpError
+							? new ProviderError("Invalid upstream response", 502, "server")
+							: isAttemptTimeout(err, controller)
+								? new ProviderError("Upstream timed out", 504, "timeout")
+								: new ProviderError("Upstream request failed", 0, "network");
+				// A 404 says the model does not exist on this upstream:
+				// the remaining keys of the same (platform, model)
+				// pair are a certain failure, so the loop skips them.
+				if (providerError.status === 404)
+					modelNotFound.add(notFoundKey(model.platform, model.model_id));
+				attemptLog.push({
+					platform: model.platform,
+					modelId: model.model_id,
+					keyId: key.id,
+					status: providerError.status,
+					kind: providerError.kind,
+					latencyMs: Date.now() - start,
+					phase: isFallback ? "fallback" : "member",
+					retryAfterMs: providerError.retryAfterMs,
+				});
+				if (native) lastNativeError = providerError.nativeResponse;
+				// One failure, one quarantine report: an earlier
+				// second call here counted a single bad_request
+				// twice against the key.
+				await handleFailure(
+					db,
+					user,
+					requested,
+					model,
+					key,
+					providerError,
+					start,
+					routingDecision,
+					platformTallies,
+					native ? native.operation !== "count_tokens" : true,
+				);
+				return null;
+			};
 			try {
 				const input = {
 					platform: model.platform,
@@ -1029,9 +1536,27 @@ export async function routeChatCompletion(args: {
 				response = direct
 					? await sendNativeMessages(input, native, signal, db)
 					: await sendChat(input, signal, db);
-				clearTimeout(timeout);
+				// A stream keeps its timer armed until the first chunk
+				// arrives (the peek below); a non-stream reply is
+				// complete here.
+				if (!stream) clearTimeout(timeout);
 				if (native && !stream) {
 					const data = await readInferenceJson(response);
+					// The vendor echo, checked before the response is
+					// translated or returned: the native body is the
+					// vendor's own message (direct) or the sender's
+					// normalized completion (translated), and both
+					// carry the model that actually answered.
+					if (
+						native.operation !== "count_tokens" &&
+						isRecord(data) &&
+						typeof data.model === "string"
+					)
+						checkReturnedModel(
+							providerConfigs.get(model.platform),
+							model.model_id,
+							data.model,
+						);
 					if (direct) {
 						if (
 							!data ||
@@ -1063,103 +1588,14 @@ export async function routeChatCompletion(args: {
 					);
 				}
 			} catch (err) {
-				clearTimeout(timeout);
-				if (args.signal?.aborted) {
-					if (native?.operation !== "count_tokens")
-						await insertRequest(db, {
-							user,
-							requested,
-							modelId: model.model_id,
-							platform: model.platform,
-							keyId: key.id,
-							status: "error",
-							statusCode: 499,
-							errorMessage: "Request cancelled",
-							inputTokens: null,
-							outputTokens: null,
-							inputTokensEstimated: null,
-							outputTokensEstimated: null,
-							latencyMs: Date.now() - start,
-							routingDecision,
-							failureAttribution: null,
-						});
-					return {
-						response: anthropicError("Request cancelled", 499, "api_error"),
-						modelId: model.model_id,
-						platform: model.platform,
-						keyId: key.id,
-						attempts,
-						attemptLog,
-					};
-				}
-				const providerError =
-					err instanceof ProviderError
-						? err
-						: new ProviderError("Upstream request failed", 0, "network");
-				attemptLog.push({
-					platform: model.platform,
-					modelId: model.model_id,
-					status: providerError.status,
-					kind: providerError.kind,
-					latencyMs: Date.now() - start,
-					phase: isFallback ? "fallback" : "member",
-				});
-				if (native) {
-					lastNativeError = providerError.nativeResponse;
-					// One failure, one quarantine report: an earlier
-					// second call here counted a single bad_request
-					// twice against the key.
-					await handleFailure(
-						db,
-						user,
-						requested,
-						model,
-						key,
-						providerError,
-						start,
-						routingDecision,
-						platformTallies,
-						native.operation !== "count_tokens",
-					);
-					continue;
-				}
-				if (providerError.kind === "bad_request") {
-					// Record the failure and try the next provider/key instead
-					// of leaking an upstream-specific error to the client.
-					await handleFailure(
-						db,
-						user,
-						requested,
-						model,
-						key,
-						providerError,
-						start,
-						routingDecision,
-						platformTallies,
-					);
-					continue;
-				}
-				await handleFailure(
-					db,
-					user,
-					requested,
-					model,
-					key,
-					providerError,
-					start,
-					routingDecision,
-					platformTallies,
-				);
+				const cancelled = await failAttempt(err);
+				if (cancelled) return cancelled;
 				continue;
 			}
 
 			if (native?.operation === "count_tokens") {
-				await db
-					.prepare(
-						"INSERT INTO provider_rate_limit_usage (platform, model_id, key_id, kind, tokens, created_at_ms) VALUES (?, ?, ?, 'request', NULL, ?)",
-					)
-					.bind(model.platform, model.model_id, key.id, Date.now())
-					.run();
+				// The attempt reservation already recorded the request
+				// row for this call; nothing more is owed.
 				return {
 					response,
 					modelId: model.model_id,
@@ -1169,6 +1605,25 @@ export async function routeChatCompletion(args: {
 					attemptLog,
 				};
 			}
+			// A stream that fails before its first byte never reached
+			// the client: fail over to the next candidate instead of
+			// returning a truncated stream. After the first byte the
+			// client owns the stream, so a later failure only marks
+			// the record (see the observeStreamUsage callback below).
+			if (stream && response.body) {
+				try {
+					response = new Response(await peekStreamHead(response.body), {
+						status: response.status,
+						statusText: response.statusText,
+						headers: response.headers,
+					});
+				} catch (err) {
+					const cancelled = await failAttempt(err);
+					if (cancelled) return cancelled;
+					continue;
+				}
+			}
+			clearTimeout(timeout);
 			const latencyMs = Date.now() - start;
 
 			// Non-stream only: read the body for real usage (a stream body must
@@ -1179,6 +1634,7 @@ export async function routeChatCompletion(args: {
 			let inputTokensEstimated = 1;
 			let outputTokensEstimated = 1;
 			let parsed: unknown = null;
+			let parseFailed = false;
 			if (!stream) {
 				const body = await readBoundedBody(response);
 				out = new Response(body, {
@@ -1188,7 +1644,9 @@ export async function routeChatCompletion(args: {
 				try {
 					parsed = JSON.parse(new TextDecoder().decode(body));
 				} catch {
-					// Use the available text estimate when the response has no usable usage.
+					// Not a JSON body at all: the validity check below
+					// fails it over instead of recording a success.
+					parseFailed = true;
 				}
 				const counts = native
 					? nativeTokenCounts(
@@ -1226,15 +1684,88 @@ export async function routeChatCompletion(args: {
 				}
 			}
 
-			// An upstream 200 with no content is not a success when the
-			// model stopped for length or spent the call reasoning: the
-			// next attempt may produce an answer. The key is not blamed
-			// for an empty reply: no quarantine report, no health
-			// downgrade, and the key stays usable.
+			// A 200 that is not a chat completion at all — invalid JSON
+			// or no choices — is an upstream failure, not a success:
+			// fail over to the next key instead of recording a success
+			// with estimated tokens. Native responses are already
+			// shape-checked above, so this only guards the OpenAI path.
+			if (!stream && !native && (parseFailed || !hasChoices(parsed))) {
+				attemptLog.push({
+					platform: model.platform,
+					modelId: model.model_id,
+					keyId: key.id,
+					status: 502,
+					kind: "server",
+					latencyMs,
+					phase: isFallback ? "fallback" : "member",
+				});
+				await handleFailure(
+					db,
+					user,
+					requested,
+					model,
+					key,
+					new ProviderError("Invalid upstream response", 502, "server"),
+					start,
+					routingDecision,
+					platformTallies,
+				);
+				continue;
+			}
+
+			// The sender that already checks the echo (generic) throws
+			// before this point; this check covers the senders that
+			// relay or normalize the response (Google, Anthropic,
+			// Cloudflare, Moondream, AI Horde), whose echo the client
+			// would otherwise receive verbatim.
+			if (
+				!stream &&
+				!native &&
+				isRecord(parsed) &&
+				typeof parsed.model === "string" &&
+				!isValidReturnedModel(
+					providerConfigs.get(model.platform),
+					model.model_id,
+					parsed.model,
+				)
+			) {
+				attemptLog.push({
+					platform: model.platform,
+					modelId: model.model_id,
+					keyId: key.id,
+					status: 502,
+					kind: "model_mismatch",
+					latencyMs,
+					phase: isFallback ? "fallback" : "member",
+				});
+				await handleFailure(
+					db,
+					user,
+					requested,
+					model,
+					key,
+					new ProviderError(
+						"Upstream returned an unexpected model",
+						502,
+						"model_mismatch",
+					),
+					start,
+					routingDecision,
+					platformTallies,
+				);
+				continue;
+			}
+
+			// An upstream 200 with no content is not a success, whatever
+			// the model stopped for: the next attempt may produce an
+			// answer. The key is not blamed for an empty reply: no
+			// quarantine report, no health downgrade, and the key stays
+			// usable.
 			if (!stream && isEmptyCompletion(parsed, native !== undefined)) {
 				attemptLog.push({
 					platform: model.platform,
 					modelId: model.model_id,
+					keyId: key.id,
 					status: 200,
 					kind: "empty_response",
 					latencyMs,
@@ -1252,13 +1783,11 @@ export async function routeChatCompletion(args: {
 				continue;
 			}
 
-			const tokenReservation = await recordUsage(db, {
-				platform: model.platform,
-				modelId: model.model_id,
-				keyId: key.id,
-				inputTokens,
-				outputTokens,
-			});
+			// Finalize the reservation made before the attempt with the
+			// real token total. On failure the reservation rows stay:
+			// a failed attempt spent its input estimate and counts
+			// against the key's rpm/tpm.
+			await finalizeUsage(db, tokenReservation, inputTokens + outputTokens);
 			await updateKeyHealth(db, key.id, "healthy");
 			await resetKeyFailures(db, model.platform, model.model_id, key.id);
 			const requestId = await insertRequest(db, {
@@ -1294,12 +1823,24 @@ export async function routeChatCompletion(args: {
 								tokenReservation,
 								usage.inputTokens + (usage.outputTokens ?? 0),
 							);
-							if (
-								native &&
-								!usage.completed &&
+							// A stream that ends without completing is a
+							// key failure in both protocols: the OpenAI
+							// path used to fix the record to success
+							// unconditionally, so a truncated stream fed
+							// the reliability score as a success.
+							const incomplete =
+								!usage.completed && !usage.cancelled && !args.signal?.aborted;
+							// A stream that completes with no text and
+							// no tool calls is an empty reply, not a
+							// key failure: same treatment as a 200 with
+							// no content, without quarantine or a health
+							// downgrade.
+							const empty =
+								usage.completed &&
+								usage.emptyOutput &&
 								!usage.cancelled &&
-								!args.signal?.aborted
-							) {
+								!args.signal?.aborted;
+							if (incomplete) {
 								await updateKeyHealth(db, key.id, "error");
 								await reportFailure(db, {
 									platform: model.platform,
@@ -1314,7 +1855,8 @@ export async function routeChatCompletion(args: {
 									`UPDATE provider_requests
 									 SET input_tokens = ?, output_tokens = ?,
 									     input_tokens_estimated = ?, output_tokens_estimated = ?,
-									     ttft_ms = ?, status = ?, error_message = ?
+									     ttft_ms = ?, status = ?, error_message = ?,
+									     failure_attribution = ?
 									 WHERE request_id = ?`,
 								)
 								.bind(
@@ -1323,10 +1865,13 @@ export async function routeChatCompletion(args: {
 									Number(usage.inputTokensEstimated),
 									Number(usage.outputTokensEstimated),
 									native && !usage.completed ? null : usage.ttftMs,
-									native && !usage.completed ? "error" : "success",
-									native && !usage.completed
+									incomplete || empty ? "error" : "success",
+									incomplete
 										? "Upstream stream did not complete"
-										: null,
+										: empty
+											? "Upstream returned empty content"
+											: null,
+									empty ? "model_error" : null,
 									requestId,
 								)
 								.run();
@@ -1351,12 +1896,23 @@ export async function routeChatCompletion(args: {
 		}
 	}
 
-	// 3. Exhausted: no upstream accepted the request.
-	if (native)
+	// 3. Exhausted: no upstream accepted the request. Every branch
+	// logs and persists the aggregate (route_exhausted), so a 502
+	// with zero attempts stays attributable in D1 after the logs roll.
+	const exhausted = {
+		model: requested,
+		attempts,
+		skipped,
+		attemptLog,
+	};
+	if (native) {
+		const status =
+			lastNativeError?.status ?? (throttled && attempts === 0 ? 429 : 502);
+		await logRouteExhausted(db, { ...exhausted, status });
 		return {
 			response:
 				lastNativeError ??
-				(throttled
+				(throttled && attempts === 0
 					? anthropicError(
 							"Configured key rate limits prevent this request",
 							429,
@@ -1373,18 +1929,15 @@ export async function routeChatCompletion(args: {
 			attempts,
 			attemptLog,
 		};
-	if (throttled)
+	}
+	// A gateway rate limit only answers 429 when no real attempt
+	// happened: a request whose attempts failed with 500s is a 502,
+	// even if some other key was also rate-limited.
+	if (throttled && attempts === 0) {
+		await logRouteExhausted(db, { ...exhausted, status: 429 });
 		return {
-			response: new Response(
-				JSON.stringify({
-					error: {
-						message:
-							"All configured upstream keys are rate limited. Try again later.",
-						type: "rate_limit_error",
-						code: "rate_limited",
-					},
-				}),
-				{ status: 429, headers: { "Content-Type": "application/json" } },
+			response: upstreamRateLimitedResponse(
+				"All configured upstream keys are rate limited. Try again later.",
 			),
 			modelId: requested,
 			platform: "none",
@@ -1392,14 +1945,30 @@ export async function routeChatCompletion(args: {
 			attempts,
 			attemptLog,
 		};
-	console.error(
-		JSON.stringify({
-			event: "route_exhausted",
-			model: requested,
+	}
+	// Every real attempt failed on the upstream's rate limit: answer
+	// 429 with the longest Retry-After seen, not 502.
+	if (
+		attemptLog.length > 0 &&
+		attemptLog.every((attempt) => attempt.kind === "rate_limit")
+	) {
+		const retryAfterMs = Math.max(
+			...attemptLog.map((attempt) => attempt.retryAfterMs ?? 0),
+		);
+		await logRouteExhausted(db, { ...exhausted, status: 429 });
+		return {
+			response: upstreamRateLimitedResponse(
+				"All configured upstream providers are rate limited. Try again later.",
+				retryAfterMs > 0 ? retryAfterMs : undefined,
+			),
+			modelId: requested,
+			platform: "none",
+			keyId: 0,
 			attempts,
 			attemptLog,
-		}),
-	);
+		};
+	}
+	await logRouteExhausted(db, { ...exhausted, status: 502 });
 	const response = new Response(
 		JSON.stringify({
 			error: {
@@ -1481,7 +2050,15 @@ async function handleFailure(
 	platformTallies: Map<string, PlatformTally>,
 	persistAttempt = true,
 ): Promise<void> {
-	const source = SOURCE_BY_KIND[err.kind] ?? "server_error";
+	const source =
+		// A 403 is a 24 h tier cooldown only when the upstream body
+		// names a tier/billing problem; a plain forbidden takes the
+		// normal ladder from 90 s.
+		err.kind === "forbidden"
+			? err.tierProblem
+				? "tier"
+				: "server_error"
+			: (SOURCE_BY_KIND[err.kind] ?? "server_error");
 	const status = err.status;
 	// Generic message: no key label, no provider name, no secret material.
 	// A model mismatch keeps the provider error's own fixed message: it
@@ -1521,15 +2098,23 @@ async function handleFailure(
 					? "key_exhausted"
 					: "model_error";
 
-	await reportFailure(db, {
-		platform: model.platform,
-		modelId: model.model_id,
-		keyId: key.id,
-		source,
-		reason: errorMessage,
-		retryAfterMs: err.retryAfterMs,
-	});
-	await updateKeyHealth(db, key.id, HEALTH_BY_KIND[err.kind] ?? "error");
+	// bad_request (renamed/removed model) and model_mismatch (wrong
+	// model echoed) are catalog data problems, not key problems: they
+	// never quarantine the key or downgrade its health. The signal
+	// lands on the model row instead, for catalog review.
+	if (err.kind === "bad_request" || err.kind === "model_mismatch") {
+		await markModelSuspect(db, model.platform, model.model_id, err.kind);
+	} else {
+		await reportFailure(db, {
+			platform: model.platform,
+			modelId: model.model_id,
+			keyId: key.id,
+			source,
+			reason: errorMessage,
+			retryAfterMs: err.retryAfterMs,
+		});
+		await updateKeyHealth(db, key.id, HEALTH_BY_KIND[err.kind] ?? "error");
+	}
 	if (!persistAttempt) return;
 	await insertRequest(db, {
 		user,
@@ -1557,6 +2142,19 @@ async function handleFailure(
 	// disable it once its last recorded attempts are all 401/403.
 	// Only auth statuses count, and only attempts persisted above.
 	if (status === 401 || status === 403) {
-		await maybeDisableKeyAfterAuthFailures(db, model.platform, key.id);
+		const disabled = await maybeDisableKeyAfterAuthFailures(
+			db,
+			model.platform,
+			key.id,
+		);
+		// A disabled key is out of the pool already; only a key that
+		// survived the auth expurgo can be suspended for its auth
+		// streak (e.g. a catalog row sat between the auth failures).
+		if (!disabled)
+			await maybeSuspendKeyAfterFailures(db, model.platform, key.id);
+	} else {
+		// Any other run of key-blamed failures suspends the key for
+		// 24 h; catalog-attributed rows never count (see key-store).
+		await maybeSuspendKeyAfterFailures(db, model.platform, key.id);
 	}
 }

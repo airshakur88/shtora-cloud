@@ -6,6 +6,18 @@ import type { AppUser, D1Database } from "../src/lib/types";
 import { createParityDatabase } from "./utils/parity-database";
 
 const SECRET = "test-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
+
+// Keys in these routing tests carry explicit gateway-default limits so
+// the router's effective-limit reserve never throttles them: without
+// stored limits the provider catalog limit would apply (groq tpm 6000),
+// and a request without max_tokens reserves the 8192-token default
+// output. These tests exercise routing, not rate limits.
+const KEY_LIMITS = {
+	rpmLimit: 60,
+	tpmLimit: 200_000,
+	rpdLimit: 5_000,
+	tpdLimit: 5_000_000,
+} as const;
 const USER: AppUser = {
 	id: "u1",
 	name: "Test User",
@@ -42,6 +54,7 @@ async function seedDb(db: D1Database): Promise<void> {
 			platform: "groq",
 			keyLabel: "test",
 			rawKey: "sk-test-upstream-key",
+			...KEY_LIMITS,
 		},
 		SECRET,
 	);
@@ -59,7 +72,7 @@ afterAll(() => {
 	globalThis.fetch = originalFetch;
 });
 
-test("429 on a direct model returns 502 instead of serving a different model", async () => {
+test("429 on a direct model returns 429 with Retry-After instead of serving a different model", async () => {
 	const db = await createParityDatabase();
 	try {
 		await seedDb(db);
@@ -120,11 +133,12 @@ test("429 on a direct model returns 502 instead of serving a different model", a
 			.all<{ kind: string; tokens: number | null }>();
 
 		// A direct request names one model: a 429 on its only key is a
-		// 502, and model-b is never attempted.
-		expect(result.response.status).toBe(502);
-		expect(body.error.code).toBe("all_providers_failed");
+		// 429 with the upstream Retry-After, and model-b is never attempted.
+		expect(result.response.status).toBe(429);
+		expect(result.response.headers.get("Retry-After")).toBe("90");
+		expect(body.error.code).toBe("rate_limited");
 		expect(body.error.message).toBe(
-			"All configured upstream providers are unavailable.",
+			"All configured upstream providers are rate limited. Try again later.",
 		);
 		expect(calls).toBe(1);
 		expect(cooldowns.results).toHaveLength(1);
@@ -134,7 +148,12 @@ test("429 on a direct model returns 502 instead of serving a different model", a
 		expect(requests.results.map((row) => row.model_routed)).toEqual([
 			"model-a",
 		]);
-		expect(usage.results).toHaveLength(0);
+		// The atomic reservation leaves its rows behind: a failed
+		// attempt still consumes quota, so a dead key throttles itself
+		// instead of being retried without limit. One 'request' row
+		// and one 'tokens' row holding the estimated input tokens.
+		expect(usage.results.map((row) => row.kind)).toEqual(["request", "tokens"]);
+		expect(usage.results.filter((row) => row.tokens !== null)).toHaveLength(1);
 	} finally {
 		db.close();
 	}
@@ -250,19 +269,34 @@ test("upstream exhaustion logs route_exhausted with the full attempt log", async
 			event: string;
 			model: string;
 			attempts: number;
+			status: number;
+			skipped: Record<string, number>;
+			kinds: string[];
 			attemptLog: Record<string, unknown>[];
 		};
 		expect(Object.keys(log).sort()).toEqual([
 			"attemptLog",
 			"attempts",
 			"event",
+			"kinds",
 			"model",
+			"skipped",
+			"status",
 		]);
 		expect(log.event).toBe("route_exhausted");
 		expect(log.model).toBe("groq/model-a");
 		expect(log.attempts).toBe(1);
+		expect(log.status).toBe(502);
+		expect(log.skipped).toEqual({
+			noKey: 0,
+			quarantined: 0,
+			rateLimited: 0,
+			suspended: 0,
+		});
+		expect(log.kinds).toEqual(["server"]);
 		expect(log.attemptLog).toHaveLength(1);
 		expect(Object.keys(log.attemptLog[0]).sort()).toEqual([
+			"keyId",
 			"kind",
 			"latencyMs",
 			"modelId",
@@ -277,6 +311,7 @@ test("upstream exhaustion logs route_exhausted with the full attempt log", async
 			kind: "server",
 			phase: "member",
 		});
+		expect(typeof log.attemptLog[0].keyId).toBe("number");
 		expect(log.attemptLog[0].latencyMs).toBeGreaterThanOrEqual(0);
 		// The log carries only the six attempt fields: no upstream body,
 		// prompt, or key material.
@@ -375,6 +410,7 @@ test("direct request for a model with no enabled key returns 502 without calling
 				platform: "groq",
 				keyLabel: "test",
 				rawKey: "sk-test-upstream-key",
+				...KEY_LIMITS,
 			},
 			SECRET,
 		);
@@ -440,6 +476,7 @@ test("router request still fails over between members", async () => {
 				platform: "groq",
 				keyLabel: "test",
 				rawKey: "sk-test-upstream-key",
+				...KEY_LIMITS,
 			},
 			SECRET,
 		);

@@ -287,3 +287,43 @@ test("more than 20 sessions evict the oldest ones", async () => {
 	}
 	expect(await sessionCount("u-alice")).toBe(20);
 });
+
+test("the sixth registration from one IP in a day hits the 429 daily cap", async () => {
+	let last: Response | null = null;
+	for (let attempt = 0; attempt < 6; attempt += 1) {
+		last = await handleAuthRequest(
+			jsonRequest("register", {
+				username: `capuser${attempt}`,
+				password: PASSWORD,
+			}),
+		);
+	}
+	// The first five succeed; the per-IP daily cap (5/day) stops the sixth.
+	// The 20/hour burst limit is not hit, so the 429 comes from the cap.
+	expect(last?.status).toBe(429);
+	expect(await last?.json()).toEqual({ error: "rate_limited" });
+	expect(last?.headers.get("Retry-After")).not.toBeNull();
+});
+
+test("the global daily registration cap answers 429 at 100 and allows 99", async () => {
+	// The global counter lives in shtora_rate_limits under the SHA-256 of
+	// "register:global" (same digest as src/lib/auth.ts). Seeding the row
+	// avoids 100 real registrations in the test.
+	const { createHash } = await import("node:crypto");
+	const keyHash = createHash("sha256").update("register:global").digest("hex");
+	await db
+		.prepare(
+			"INSERT INTO shtora_rate_limits (key_hash, window_start_ms, count) VALUES (?, ?, ?)",
+		)
+		.bind(keyHash, Date.now(), 99)
+		.run();
+	const allowed = await handleAuthRequest(
+		jsonRequest("register", { username: "global99", password: PASSWORD }),
+	);
+	expect(allowed.status).toBe(200);
+	const blocked = await handleAuthRequest(
+		jsonRequest("register", { username: "global100", password: PASSWORD }),
+	);
+	expect(blocked.status).toBe(429);
+	expect(await blocked.json()).toEqual({ error: "rate_limited" });
+});

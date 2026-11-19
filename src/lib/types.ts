@@ -24,6 +24,7 @@ export interface D1Database {
 export interface ShtoraEnv {
 	DB?: D1Database;
 	ENCRYPTION_SECRET?: string;
+	CRON_SECRET?: string;
 	IMAGES_BUCKET?: R2Bucket;
 }
 
@@ -97,6 +98,9 @@ export interface ApiKeyRecord {
 	updated_at: string;
 	last_health_check_at: string | null;
 	last_health_check_status: string | null;
+	/** Temporary suspension (migration 0019): epoch ms, or null. */
+	suspended_until_ms: number | null;
+	suspension_reason: string | null;
 }
 
 export interface CreateApiKeyRequest {
@@ -205,6 +209,10 @@ export interface ChatMessage {
 	role: ChatRole;
 	content: ChatContent;
 	name?: string;
+	/** Reasoning the model produced before answering (Gemini thought
+	 * parts, Anthropic thinking blocks), preserved by the senders so
+	 * the router's empty check and clients can see it. */
+	reasoning_content?: string | null;
 	tool_calls?: Array<{
 		id: string;
 		type: "function";

@@ -61,7 +61,10 @@ function normalizeResponse(
 			typeof data.created === "number"
 				? data.created
 				: Math.floor(Date.now() / 1000),
-		model: input.modelId,
+		// The upstream echo, not the requested id, so the router's
+		// post-parse check can see what AI Horde actually served.
+		model:
+			typeof data.model === "string" && data.model ? data.model : input.modelId,
 		choices: [
 			{
 				index: 0,

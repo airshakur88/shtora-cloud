@@ -97,10 +97,11 @@ sessão. Ao enviar mensagem, o backend valida a sessão e roteia o request atrav
 do router independente do provedor original.
 
 O dashboard tem playground (sessões de chat com anexo de imagens no bucket R2
-`shtora-images`, máx. 10 MB e 10 imagens por mensagem), catálogo de modelos e
-gerenciamento de chaves. Não há área admin no painel: ela foi removida no
-commit 2e4a24f e não existe página de usuários, quarentena ou estatísticas no
-dashboard.
+`shtora-images`, máx. 10 MB e 10 imagens por mensagem), catálogo de modelos,
+gerenciamento de chaves e uma página de quarentena (`/dashboard/quarantine`)
+que lista as chaves em cooldown e permite liberá-las. Não há área admin no
+painel: ela foi removida no commit 2e4a24f e não existe página de usuários ou
+estatísticas no dashboard.
 As métricas de uso/latência/economia ficam em `src/lib/usage-metrics.ts`.
 
 - **Auth pages** (`/login`, `/register`) compartilham `src/components/auth-shell.tsx`

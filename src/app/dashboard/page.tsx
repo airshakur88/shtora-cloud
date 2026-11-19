@@ -987,7 +987,8 @@ export default function DashboardOverviewPage() {
 							<CardHeader>
 								<CardTitle>Usage by key</CardTitle>
 								<CardDescription>
-									All-time usage per key that served your requests
+									All-time usage per key that served your requests, summed
+									across all models. Rate limits are enforced per key and model
 								</CardDescription>
 							</CardHeader>
 							<CardContent>

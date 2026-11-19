@@ -110,10 +110,10 @@ const input = {
 	max_tokens: 128,
 	messages: [{ role: "user", content: "Hello" }],
 };
-function completion(usage?: Record<string, unknown>) {
+function completion(usage?: Record<string, unknown>, model = "common-model") {
 	return Response.json({
 		id: "chat-1",
-		model: "common-model",
+		model,
 		choices: [
 			{
 				index: 0,
@@ -740,11 +740,19 @@ test("direct native request with no key for its model returns 502 without callin
 	expect(calls).toBe(0);
 });
 
-test("unknown native IDs return404, explicit IDs stay pinned, auto alone uses the pool", async () => {
+test("unknown native IDs return 404, explicit IDs stay pinned, bare auto redirects to the shtora/auto router", async () => {
+	// The redirect needs a router member in the pool: the fixture only
+	// has groq/common-model (not a member), so seed one.
+	await db
+		.prepare(
+			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision) VALUES ('groq','qwen3-8-max','Qwen3 8 Max',32000,1,1)",
+		)
+		.run();
 	let calls = 0;
-	upstream(() => {
+	upstream((_url, init) => {
 		calls++;
-		return completion({ prompt_tokens: 4, completion_tokens: 2 });
+		const model = JSON.parse(String(init.body)).model as string;
+		return completion({ prompt_tokens: 4, completion_tokens: 2 }, model);
 	});
 	expect(
 		(await POST(request({ ...input, model: "missing-model" }))).status,

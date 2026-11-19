@@ -1,6 +1,7 @@
 import { KEYLESS_API_KEY } from "../provider-catalog";
 import type { ProviderCatalog } from "../types";
 import { ProviderError, toProviderError } from "./errors";
+import { checkReturnedModel } from "./model-identity";
 import { transformSseStream } from "./sse";
 import type { UpstreamChatInput } from "./types";
 
@@ -24,57 +25,12 @@ function requestModel(
 	return provider?.modelAliases?.[modelId] ?? modelId;
 }
 
-function validReturnedModel(
-	provider: ProviderCatalog,
-	requested: string,
-	returned: unknown,
-): boolean {
-	if (typeof returned !== "string" || returned.length === 0) return false;
-	switch (provider.modelIdentity) {
-		case "exact":
-			return returned === requested;
-		case "clod": {
-			const normalize = (model: string) =>
-				model
-					.split("/")
-					.at(-1)
-					?.toLowerCase()
-					.replace(/[\s._-]/g, "") ?? "";
-			return normalize(returned) === normalize(requested);
-		}
-		case "dreamprompting": {
-			if (requested === "auto") return true;
-			const withoutFreeSuffix = requested.replace(/:free$/, "");
-			const unprefixed = withoutFreeSuffix.includes("/")
-				? withoutFreeSuffix.slice(withoutFreeSuffix.indexOf("/") + 1)
-				: withoutFreeSuffix;
-			return [requested, withoutFreeSuffix, unprefixed].includes(returned);
-		}
-		case "simplellm":
-			return (
-				returned === requested ||
-				provider.modelAliases?.[requested] === returned
-			);
-		default:
-			return true;
-	}
-}
-
 function checkModel(
 	provider: ProviderCatalog | undefined,
 	requested: string,
 	returned: unknown,
 ): void {
-	if (
-		provider?.modelIdentity &&
-		!validReturnedModel(provider, requested, returned)
-	) {
-		throw new ProviderError(
-			"Upstream returned an unexpected model",
-			502,
-			"model_mismatch",
-		);
-	}
+	checkReturnedModel(provider, requested, returned);
 }
 
 async function validateJsonResponse(

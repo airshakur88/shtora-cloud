@@ -14,6 +14,7 @@ import type {
 	ChatFinishReason,
 	ChatMessage,
 	ChatTool,
+	ProviderCatalog,
 	TokenUsage,
 } from "../types";
 import {
@@ -23,6 +24,7 @@ import {
 	textFromContent,
 } from "./content";
 import { classifyStatus, ProviderError } from "./errors";
+import { checkReturnedModel } from "./model-identity";
 import { openAiChunk, openAiUsageChunk, sseResponse } from "./sse";
 import type { UpstreamChatInput } from "./types";
 
@@ -361,9 +363,12 @@ function normalizeGeminiResponse(
 			"server",
 		);
 	const text: string[] = [];
+	const reasoning: string[] = [];
 	const calls: NonNullable<ChatMessage["tool_calls"]> = [];
 	for (const part of candidate.content.parts) {
 		if (typeof part.text === "string" && !part.thought) text.push(part.text);
+		if (typeof part.text === "string" && part.thought)
+			reasoning.push(part.text);
 		const functionCall = part.functionCall;
 		if (functionCall?.name) {
 			const callId = functionCall.id ?? `call_${crypto.randomUUID()}`;
@@ -380,17 +385,26 @@ function normalizeGeminiResponse(
 	}
 	const reason = finishReason(candidate.finishReason);
 	const reportedUsage = usage(data);
+	// The upstream echo, not the requested id: the router's post-parse
+	// check compares this against the requested model (an alias request
+	// answers with the versioned id in `modelVersion`, which the shared
+	// validator accepts). The thinking parts the old code dropped are
+	// kept as `reasoning_content`, so the router's empty check can see
+	// that the model spent the call reasoning.
 	return {
 		id: `gemini-${crypto.randomUUID()}`,
 		object: "chat.completion",
 		created: Math.floor(Date.now() / 1000),
-		model: modelId,
+		model: data.modelVersion ?? modelId,
 		choices: [
 			{
 				index: 0,
 				message: {
 					role: "assistant",
 					content: text.join("") || null,
+					...(reasoning.length
+						? { reasoning_content: reasoning.join("") }
+						: {}),
 					...(calls.length ? { tool_calls: calls } : {}),
 				},
 				finish_reason: calls.length ? "tool_calls" : reason,
@@ -403,6 +417,7 @@ function normalizeGeminiResponse(
 function streamGeminiResponse(
 	input: UpstreamChatInput,
 	stream: AsyncIterable<GenerateContentResponse>,
+	provider?: ProviderCatalog,
 ): Response {
 	const id = `gemini-${crypto.randomUUID()}`;
 	const created = Math.floor(Date.now() / 1000);
@@ -413,6 +428,7 @@ function streamGeminiResponse(
 	let sawCall = false;
 	let emittedDone = false;
 	let emittedRole = false;
+	let echoChecked = false;
 	const body = new ReadableStream<Uint8Array>({
 		async start(controller) {
 			const emit = (text: string) => controller.enqueue(encoder.encode(text));
@@ -439,6 +455,13 @@ function streamGeminiResponse(
 			};
 			try {
 				for await (const chunk of stream) {
+					// The echo is checked before the first byte is
+					// emitted, so a mismatch errors the stream before
+					// the router commits to it and can still fail over.
+					if (!echoChecked && chunk.modelVersion !== undefined) {
+						echoChecked = true;
+						checkReturnedModel(provider, input.modelId, chunk.modelVersion);
+					}
 					emitRole();
 					const reportedUsage = streamingUsage(chunk);
 					if (reportedUsage) {
@@ -569,6 +592,7 @@ async function sendGeminiStream(
 	input: UpstreamChatInput,
 	baseUrl: string,
 	signal?: AbortSignal,
+	provider?: ProviderCatalog,
 ): Promise<Response> {
 	const client = googleClient(input, baseUrl);
 	const params = buildGenerateContentParams(input, signal);
@@ -579,14 +603,15 @@ async function sendGeminiStream(
 		if (error instanceof ApiError) throw toProviderError(error);
 		throw error;
 	}
-	return streamGeminiResponse(input, stream);
+	return streamGeminiResponse(input, stream, provider);
 }
 
 export async function sendGoogle(
 	input: UpstreamChatInput,
 	baseUrl: string,
 	signal?: AbortSignal,
+	provider?: ProviderCatalog,
 ): Promise<Response> {
 	if (!input.stream) return sendGeminiNonStream(input, baseUrl, signal);
-	return sendGeminiStream(input, baseUrl, signal);
+	return sendGeminiStream(input, baseUrl, signal, provider);
 }

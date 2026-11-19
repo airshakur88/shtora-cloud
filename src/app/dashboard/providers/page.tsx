@@ -1,6 +1,13 @@
 "use client";
 
-import { LoaderCircle, MoreVertical, Search, Trash2 } from "lucide-react";
+import {
+	Download,
+	LoaderCircle,
+	MoreVertical,
+	Search,
+	Trash2,
+	Upload,
+} from "lucide-react";
 import {
 	type FormEvent,
 	useCallback,
@@ -37,6 +44,7 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { apiErrorMessage } from "@/lib/api-error";
 import type { CatalogProvider } from "@/lib/dashboard-catalog";
@@ -144,6 +152,12 @@ export default function DashboardProvidersPage() {
 		useState<ProviderForm>(emptyProviderForm);
 	const [providerFormOpen, setProviderFormOpen] = useState(false);
 	const [providerSubmitting, setProviderSubmitting] = useState(false);
+	const [importOpen, setImportOpen] = useState(false);
+	const [importText, setImportText] = useState("");
+	const [importFileName, setImportFileName] = useState<string | null>(null);
+	const [importing, setImporting] = useState(false);
+	const [importError, setImportError] = useState<string | null>(null);
+	const [exporting, setExporting] = useState(false);
 
 	const loadProviders = useCallback(async (signal?: AbortSignal) => {
 		try {
@@ -399,6 +413,116 @@ export default function DashboardProvidersPage() {
 		}
 	}
 
+	// Export downloads the same JSON POST /api/keys/export returns. The
+	// export route is POST-only on purpose (a GET could be triggered by a
+	// top-level navigation with the session cookie attached).
+	async function handleExport() {
+		if (exporting) return;
+		setExporting(true);
+		try {
+			const response = await fetch("/api/keys/export", { method: "POST" });
+			const result: unknown = await response.json().catch(() => null);
+			if (!response.ok) {
+				toast.add({
+					title: "Error",
+					description: apiErrorMessage(result, "Could not export keys."),
+				});
+				return;
+			}
+			// Programmatic download: no rendered <a> is involved.
+			const blob = new Blob([JSON.stringify(result, null, 2)], {
+				type: "application/json",
+			});
+			const url = URL.createObjectURL(blob);
+			const anchor = document.createElement("a");
+			anchor.href = url;
+			anchor.download = "shtora-keys-export.json";
+			anchor.click();
+			URL.revokeObjectURL(url);
+			toast.add({
+				title: "Exported",
+				description: "Provider keys downloaded as JSON.",
+				type: "success",
+			});
+		} catch {
+			toast.add({
+				title: "Error",
+				description: "Network error. Check your connection.",
+			});
+		} finally {
+			setExporting(false);
+		}
+	}
+
+	async function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {
+		const file = event.target.files?.[0];
+		if (!file) return;
+		try {
+			setImportText(await file.text());
+			setImportFileName(file.name);
+			setImportError(null);
+		} catch {
+			setImportError("Could not read the file.");
+		}
+	}
+
+	async function submitImport(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		if (importing) return;
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(importText);
+		} catch {
+			setImportError("Invalid JSON. Paste an export file or choose one.");
+			return;
+		}
+		setImporting(true);
+		setImportError(null);
+		try {
+			const response = await fetch("/api/keys/import", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(parsed),
+			});
+			const result: unknown = await response.json().catch(() => null);
+			if (!response.ok) {
+				setImportError(apiErrorMessage(result, "Could not import keys."));
+				return;
+			}
+			const imported =
+				result &&
+				typeof result === "object" &&
+				"imported" in result &&
+				typeof result.imported === "number"
+					? result.imported
+					: 0;
+			const skipped =
+				result &&
+				typeof result === "object" &&
+				"skipped" in result &&
+				typeof result.skipped === "number"
+					? result.skipped
+					: 0;
+			toast.add({
+				title: "Import complete",
+				description: `${imported} key${imported === 1 ? "" : "s"} imported${skipped > 0 ? `, ${skipped} skipped` : ""}.`,
+				type: "success",
+			});
+			setImportText("");
+			setImportFileName(null);
+			setImportOpen(false);
+			await loadKeys();
+		} catch (cause) {
+			setImportError(
+				cause instanceof Error
+					? cause.message
+					: "Network error. Check your connection.",
+			);
+		} finally {
+			setImporting(false);
+		}
+	}
+
 	return (
 		<div className="space-y-6 p-6">
 			<div className="space-y-1">
@@ -482,13 +606,28 @@ export default function DashboardProvidersPage() {
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<h2 className="text-xl font-semibold">Provider API Keys</h2>
-							<Button onClick={() => setFormOpen(true)}>
-								Add Provider Key
-							</Button>
+							<div className="flex gap-2">
+								<Button
+									variant="outline"
+									onClick={() => void handleExport()}
+									disabled={exporting}
+								>
+									<Download aria-hidden="true" className="mr-2 h-4 w-4" />
+									{exporting ? "Exporting…" : "Export"}
+								</Button>
+								<Button variant="outline" onClick={() => setImportOpen(true)}>
+									<Upload aria-hidden="true" className="mr-2 h-4 w-4" />
+									Import
+								</Button>
+								<Button onClick={() => setFormOpen(true)}>
+									Add Provider Key
+								</Button>
+							</div>
 						</div>
 						<p className="text-sm text-muted-foreground">
-							Usage below is summed across all models for each key. Limits still
-							apply per model.
+							Usage is summed across all models for each key, but rate limits
+							are enforced per key + model, so this total is not the number the
+							limiter checks for any single model.
 						</p>
 
 						<Dialog open={formOpen} onOpenChange={setFormOpen}>
@@ -783,6 +922,73 @@ export default function DashboardProvidersPage() {
 												</>
 											) : (
 												"Add Provider"
+											)}
+										</Button>
+									</DialogFooter>
+								</form>
+							</DialogContent>
+						</Dialog>
+
+						<Dialog open={importOpen} onOpenChange={setImportOpen}>
+							<DialogContent className="sm:max-w-lg">
+								<DialogHeader>
+									<DialogTitle>Import Provider Keys</DialogTitle>
+									<DialogDescription>
+										Paste an export JSON or choose an export file. Keys are
+										added to your account; duplicates and unsupported providers
+										are skipped.
+									</DialogDescription>
+								</DialogHeader>
+								<form onSubmit={submitImport}>
+									<div className="grid gap-4 py-4">
+										<div className="space-y-2">
+											<Label htmlFor="import-file">Export file</Label>
+											<Input
+												id="import-file"
+												type="file"
+												accept=".json,application/json"
+												onChange={(event) => void handleImportFile(event)}
+											/>
+											{importFileName ? (
+												<p className="text-xs text-muted-foreground">
+													Loaded: {importFileName}
+												</p>
+											) : null}
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="import-text">Or paste the JSON</Label>
+											<Textarea
+												id="import-text"
+												value={importText}
+												onChange={(event) => setImportText(event.target.value)}
+												placeholder='{"version": 1, "keys": [...]}'
+												rows={8}
+												className="font-mono text-xs"
+											/>
+										</div>
+										{importError && (
+											<p className="text-sm text-destructive">{importError}</p>
+										)}
+									</div>
+									<DialogFooter>
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => setImportOpen(false)}
+										>
+											Cancel
+										</Button>
+										<Button
+											type="submit"
+											disabled={importing || !importText.trim()}
+										>
+											{importing ? (
+												<>
+													<LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+													Importing...
+												</>
+											) : (
+												"Import Keys"
 											)}
 										</Button>
 									</DialogFooter>

@@ -64,12 +64,13 @@ async function sha256Hex(value: string): Promise<string> {
  * cannot all slip through before any row is written. This is the same
  * single-statement pattern src/lib/auth.ts uses for login/register.
  *
- * Known limitation, NOT fixed here: the per-(key, model) enforcer above
- * (canMakeRequest + recordUsage) is still check-then-act — the check and
- * the reservation are separate calls made by src/lib/router.ts, so
- * concurrent requests can pass the check before any usage row exists.
- * Making that atomic needs the router call site to reserve in one
- * statement; router.ts belongs to another agent.
+ * The per-(key, model) enforcer below (canMakeRequest + recordUsage)
+ * is still check-then-act — the check and the reservation are separate
+ * calls made by src/lib/router.ts, so concurrent requests can pass the
+ * check before any usage row exists. The router closes that race with
+ * reserveUsage (one conditional INSERT that counts and writes in the
+ * same statement); canMakeRequest stays as the cheap pre-filter that
+ * keeps obviously over-quota keys out of the attempt loop.
  */
 export async function checkFixedWindowLimit(
 	db: D1Database,
@@ -274,6 +275,116 @@ export interface UsageReservation {
 	keyId: number;
 	platform: string;
 	modelId: string;
+}
+
+/**
+ * Atomic reservation for one upstream attempt, in the same
+ * single-statement pattern as checkFixedWindowLimit: one conditional
+ * INSERT writes the `request` row only when all four windows (rpm /
+ * tpm / rpd / tpd, with the caller's effective limits) still have room
+ * for the estimated tokens. Two concurrent requests for the same key
+ * cannot both slip through — the second one's subqueries see the
+ * first one's row, because SQLite runs the statement atomically.
+ *
+ * The `tokens` placeholder row holds the input estimate only: the
+ * output reserve (estTokens − estInputTokens) is counted by the gate
+ * but not written, so a failed attempt burns its input estimate, not
+ * a full 8k-token output reserve it never produced. On success the
+ * caller finalizes the placeholder with the real total via
+ * finalizeUsage; on failure the rows stay, so failed attempts count
+ * against the key's rpm/tpm — a dead key throttles itself instead of
+ * being retried without bound.
+ *
+ * Best-effort limit: the gate and the placeholder insert are two
+ * statements, so a crash between them leaves a `request` row with no
+ * `tokens` row (conservative: the request still counts toward rpm).
+ * The windows use the same bounds as canMakeRequest, so the gate and
+ * the pre-filter agree.
+ */
+export async function reserveUsage(
+	db: D1Database,
+	input: {
+		platform: string;
+		modelId: string;
+		keyId: number;
+		estTokens: number;
+		estInputTokens: number;
+		rpmLimit?: number | null;
+		tpmLimit?: number | null;
+		rpdLimit?: number | null;
+		tpdLimit?: number | null;
+	},
+): Promise<
+	| { ok: true; reservation: UsageReservation }
+	| { ok: false; reservation?: undefined }
+> {
+	const now = Date.now();
+	const { minuteStart, dayStart } = getRateLimitWindowStarts(now);
+	const rpm = input.rpmLimit ?? DEFAULT_RATE_LIMITS.rpm;
+	const tpm = input.tpmLimit ?? DEFAULT_RATE_LIMITS.tpm;
+	const rpd = input.rpdLimit ?? DEFAULT_RATE_LIMITS.rpd;
+	const tpd = input.tpdLimit ?? DEFAULT_RATE_LIMITS.tpd;
+	const requestWhere =
+		"platform = ? AND model_id = ? AND key_id = ? AND kind = 'request' AND created_at_ms > ?";
+	const tokensWhere =
+		"platform = ? AND model_id = ? AND key_id = ? AND kind = 'tokens' AND created_at_ms > ?";
+	const gated = await db
+		.prepare(
+			`INSERT INTO provider_rate_limit_usage (platform, model_id, key_id, kind, tokens, created_at_ms)
+			 SELECT ?, ?, ?, 'request', NULL, ?
+			  WHERE (SELECT COUNT(*) FROM provider_rate_limit_usage WHERE ${requestWhere}) < ?
+			    AND (SELECT COALESCE(SUM(tokens), 0) FROM provider_rate_limit_usage WHERE ${tokensWhere}) + ? <= ?
+			    AND (SELECT COUNT(*) FROM provider_rate_limit_usage WHERE ${requestWhere}) < ?
+			    AND (SELECT COALESCE(SUM(tokens), 0) FROM provider_rate_limit_usage WHERE ${tokensWhere}) + ? <= ?
+			 RETURNING rowid AS id`,
+		)
+		.bind(
+			input.platform,
+			input.modelId,
+			input.keyId,
+			now,
+			input.platform,
+			input.modelId,
+			input.keyId,
+			minuteStart,
+			rpm,
+			input.platform,
+			input.modelId,
+			input.keyId,
+			minuteStart,
+			input.estTokens,
+			tpm,
+			input.platform,
+			input.modelId,
+			input.keyId,
+			dayStart,
+			rpd,
+			input.platform,
+			input.modelId,
+			input.keyId,
+			dayStart,
+			input.estTokens,
+			tpd,
+		)
+		.first<{ id: number }>();
+	if (!gated) return { ok: false };
+	const row = await db
+		.prepare(
+			"INSERT INTO provider_rate_limit_usage (platform, model_id, key_id, kind, tokens, created_at_ms) VALUES (?, ?, ?, 'tokens', ?, ?) RETURNING rowid AS id",
+		)
+		.bind(input.platform, input.modelId, input.keyId, input.estInputTokens, now)
+		.first<{ id: number }>();
+	if (!row) throw new Error("Usage reservation unavailable");
+	return {
+		ok: true,
+		reservation: {
+			rowId: row.id,
+			createdAtMs: now,
+			keyId: input.keyId,
+			platform: input.platform,
+			modelId: input.modelId,
+		},
+	};
 }
 
 export async function finalizeUsage(

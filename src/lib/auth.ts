@@ -23,6 +23,18 @@ const AUTH_WINDOW_MS = 60_000;
 const REGISTER_IP_LIMIT = 20;
 const REGISTER_IP_WINDOW_MS = 60 * 60 * 1000;
 /**
+ * Registration caps (M1), on top of the 20/hour per-IP burst limit above:
+ * 5 registrations per IP per rolling 24 h window, and 100 registrations
+ * per rolling 24 h window across all IPs. Both reuse the shtora_rate_limits
+ * fixed-window counters — no new table, no new migration. Exceeding
+ * either answers 429. The checks run before the insert, so a registration
+ * attempt with a taken username also consumes quota, like the existing
+ * limiters; that keeps a taken-name probe from bypassing the caps.
+ */
+const REGISTER_IP_DAY_LIMIT = 5;
+const REGISTER_GLOBAL_DAY_LIMIT = 100;
+const REGISTER_DAY_WINDOW_MS = 24 * 60 * 60 * 1000;
+/**
  * Retention for the usage tables pruned by cleanupAuthState: rows older
  * than 90 days are deleted, 500 per cleanup run.
  */
@@ -202,6 +214,29 @@ async function checkRegisterIpLimit(
 	return checkRateLimitKey(keyHash, REGISTER_IP_LIMIT, REGISTER_IP_WINDOW_MS);
 }
 
+/** Registrations from one IP in the last 24 h, regardless of username. */
+async function checkRegisterIpDayLimit(
+	request: Request,
+): Promise<Response | null> {
+	const ip = request.headers.get("cf-connecting-ip") || "127.0.0.1";
+	const keyHash = await digest(`ip:${ip}:register:day`);
+	return checkRateLimitKey(
+		keyHash,
+		REGISTER_IP_DAY_LIMIT,
+		REGISTER_DAY_WINDOW_MS,
+	);
+}
+
+/** Registrations from all IPs in the last 24 h. */
+async function checkRegisterGlobalDayLimit(): Promise<Response | null> {
+	const keyHash = await digest("register:global");
+	return checkRateLimitKey(
+		keyHash,
+		REGISTER_GLOBAL_DAY_LIMIT,
+		REGISTER_DAY_WINDOW_MS,
+	);
+}
+
 async function register(request: Request): Promise<Response> {
 	const body = await readJson(request);
 	const { username, password } = body;
@@ -216,6 +251,10 @@ async function register(request: Request): Promise<Response> {
 	if (limited) return limited;
 	const ipLimited = await checkRegisterIpLimit(request);
 	if (ipLimited) return ipLimited;
+	const ipDayLimited = await checkRegisterIpDayLimit(request);
+	if (ipDayLimited) return ipDayLimited;
+	const globalLimited = await checkRegisterGlobalDayLimit();
+	if (globalLimited) return globalLimited;
 	const userId = crypto.randomUUID();
 	const inserted = (
 		await getDb()
@@ -342,11 +381,16 @@ export async function cleanupAuthState(): Promise<void> {
 		)
 		.bind(nowMs)
 		.run();
+	// Prune rate-limit rows older than the longest window in the table
+	// (the 24 h registration caps). Pruning at the 60 s login window
+	// would silently reset the daily caps on the next login; the
+	// fixed-window logic in checkRateLimitKey still enforces each
+	// window, pruning here is only garbage collection.
 	await db
 		.prepare(
 			"DELETE FROM shtora_rate_limits WHERE key_hash IN (SELECT key_hash FROM shtora_rate_limits WHERE window_start_ms < ? LIMIT 500)",
 		)
-		.bind(nowMs - AUTH_WINDOW_MS)
+		.bind(nowMs - REGISTER_DAY_WINDOW_MS)
 		.run();
 	// Usage retention: rows older than 90 days are deleted, 500 per run.
 	// provider_rate_limit_usage carries created_at_ms (epoch ms);

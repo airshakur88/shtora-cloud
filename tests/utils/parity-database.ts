@@ -21,6 +21,8 @@ export async function createParityDatabase(): Promise<MemoryD1> {
 		"0015_anthropic_provider.sql",
 		"0016_playground_image_ownership.sql",
 		"0017_remove_unified_token.sql",
+		"0018_route_exhausted_events.sql",
+		"0019_modality_and_suspension.sql",
 	]) {
 		db.exec(
 			readFileSync(resolve(process.cwd(), `migrations/${migration}`), "utf8"),

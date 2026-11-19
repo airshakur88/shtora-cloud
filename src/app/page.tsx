@@ -141,7 +141,7 @@ function landingQuestions({
 				.map((provider) => provider.name)
 				.join(
 					", ",
-				)} funcionam sem chave. O catálogo tem ${totalProviderCount} provedores, ${freeProviderCount} deles com modelos. Dá para cadastrar uma chave por vez no painel, na aba de provedores. Importar várias chaves de uma vez só existe pela API, com POST /api/keys/import e o export JSON de POST /api/keys/export; o painel não tem botão de importação nem de exportação. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
+				)} funcionam sem chave. O catálogo tem ${totalProviderCount} provedores, ${freeProviderCount} deles com modelos. Dá para cadastrar uma chave por vez no painel, na aba de provedores, e importar ou exportar várias de uma vez pelos botões Import e Export da mesma aba, no mesmo formato JSON de POST /api/keys/import e POST /api/keys/export. Para os demais, conecte só os que for usar. Disponibilidade, limites e condições seguem as regras de cada provedor.`,
 		},
 		{
 			id: "pool",

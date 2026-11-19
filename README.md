@@ -17,13 +17,84 @@ Local development must supply `ENCRYPTION_SECRET` in `.dev.vars`; production use
 
 Authentication uses username and password. Provider keys are managed through `/api/keys`. OpenAI-compatible clients use `/v1/chat/completions`; Anthropic clients use `/v1/messages` and the related native endpoints with the issued API key as either `Authorization: Bearer …` or `x-api-key`.
 
+Registration is capped at 5 accounts per IP per day and 100 accounts per day across all IPs (plus a 20/hour per-IP burst limit); exceeding a cap answers 429. There is no CAPTCHA on registration yet: to enable Cloudflare Turnstile, create a Turnstile site in the Cloudflare dashboard, set the Worker secrets `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`, and wire the widget into `/register` plus server-side verification of the token in `src/lib/auth.ts`. Until that wiring exists, registration works without a challenge.
+
+## Scheduled jobs (catalog validation + key probe)
+
+Two jobs run outside the request path and keep the catalog and the
+key pool honest (audit §E 2.2/2.4). Both need the columns from
+migration 0019 (`models.suspect_reason/suspect_since`,
+`api_keys.suspended_until_ms/suspension_reason`); before that
+migration they run in degraded mode: health still updates, but
+nothing is marked suspect or suspended.
+
+- **Catalog validation** (`src/lib/jobs/catalog-validation.ts`,
+  daily 03:00 UTC): marks enabled model rows suspect, never deleting
+  them: (a) rows with no successful request in 7 days (audit §B.7
+  Q5, `suspect_reason = 'no_success_7d'`), and (b) rows absent from
+  the upstream's model list (`'upstream_missing'`), one `GET
+  {baseUrl}/models` call per platform with one enabled key. Anthropic
+  has no list endpoint, so its rows are only covered by (a). At most
+  50 rows are marked per run.
+- **Key probe** (`src/lib/jobs/key-probe.ts`, every 30 minutes, max
+  50 keys per run, stalest first): a cheap upstream call per enabled
+  key that turns `last_health_check_*` into real health: `GET
+  {baseUrl}/models` for OpenAI-compatible, Cohere, Cloudflare (via
+  `/accounts/{id}/ai/v1/models/search`) and AI Horde, `GET
+  /models?key=...` for Gemini, and a minimal `POST /messages` with
+  `max_tokens: 1` for Anthropic. 401/403 marks the key `invalid` and
+  runs the existing Fix C expurgo (`maybeDisableKeyAfterAuthFailures`,
+  3 consecutive auth failures disables the key); 5 consecutive
+  failures of any type (counted in `provider_requests`, ignoring 499
+  cancellations) suspends the key for 24 h, and a good probe after
+  the suspension expired clears it automatically. A 404 from the
+  probe endpoint, or a network error, is not attributable to the key:
+  it sets health to `error` but is not recorded and never suspends.
+  Probe attempts are recorded in `provider_requests` with
+  `model_routed = '__probe__'` so they stay out of per-model scoring.
+
+Both jobs are dispatched by Cloudflare cron triggers, not by an
+external scheduler: `worker/index.ts` re-exports the vinext fetch
+handler and adds a `scheduled` handler
+(`src/lib/jobs/scheduled.ts`) that dispatches on the cron string, and
+`cloudflare.config.ts` declares the triggers
+(`triggers.scheduled({ schedule: "0 3 * * *" })` and `"*/30 * * * *"`)
+The build output keeps the `scheduled` export and the triggers in
+`worker.config.json`. The schedules are literals in the config (that
+file loads as plain Node ESM and cannot import the `@/`-aliased job
+modules); `tests/jobs-scheduled.test.ts` fails if they drift from the
+constants in `scheduled.ts`.
+
+The same jobs are also reachable over HTTP for manual runs and for an
+external scheduler, at `POST /api/cron/validate-catalog` and `POST
+/api/cron/probe-keys`. Both require `Authorization: Bearer
+<CRON_SECRET>` with the `CRON_SECRET` Worker secret
+(`bun x cf secret put CRON_SECRET`); no secret configured answers
+503, a wrong secret answers 401, and the comparison is constant-time
+over SHA-256 digests. Each answers with its summary JSON:
+
+```bash
+curl -X POST https://shtora.cloud/api/cron/validate-catalog \
+  -H "Authorization: Bearer $CRON_SECRET"
+# {"checked":307,"suspected":12,"skipped":3}
+
+curl -X POST https://shtora.cloud/api/cron/probe-keys \
+  -H "Authorization: Bearer $CRON_SECRET"
+# {"checked":48,"healthy":41,"invalid":2,"errored":5,"suspended":1,"reenabled":0,"skipped":0}
+```
+
+If the cron triggers are ever removed, any external cron service
+(cron-job.org, for example) can call the same two endpoints on the
+same frequencies: daily for validation, every 30 minutes for the
+probe.
+
 ## Anthropic clients
 
 The gateway supports native Anthropic Messages requests at `/v1/messages` and `/v1/messages/count_tokens`, plus negotiated model listing at `/v1/models` and model retrieval at `/v1/models/{model_id}`. Set `anthropic-version`; beta headers and native request fields are forwarded to Anthropic providers. The official TypeScript SDK 1.8.0 defaults to version `2026-10-21`.
 
 Common text, tool, and supported image requests can route through compatible providers when their semantics are preserved. Native-only options and content blocks require a compatible Anthropic provider; unsupported requests return an explicit error rather than silently dropping fields. `count_tokens` requires native provider token counting; unsupported models return `invalid_request_error` rather than an estimate. Translated responses mark estimated fields with `usage.shtora_estimated.input_tokens` and `usage.shtora_estimated.output_tokens`. Native responses retain provider usage unchanged. Request bodies are limited to 1 MB; larger requests return HTTP 413.
 
-Explicit model IDs pin requests to the matching configured model. Use `model: "shtora/auto"`, the curated router, to allow cross-model routing. A bare `model: "auto"` does not route across models: it pins the request to the single upstream model whose id is `auto`. Count-token requests and requests with bound native state require an explicit model.
+Explicit model IDs pin requests to the matching configured model; a bare ID matches by canonical model, so `model: "qwen3-8-flash"` also finds a row stored as `free/qwen3-8-flash`, while `model: "groq/qwen3-8-flash"` stays pinned to Groq. Use `model: "shtora/auto"`, the curated router, to allow cross-model routing. A bare `model: "auto"` redirects to `shtora/auto`. Count-token requests and requests with bound native state require an explicit model.
 
 To use a Claude model, add your Anthropic key in the dashboard first: open the Providers tab, choose Add Provider API Key, type `anthropic` in the Provider field, and paste the key. No base URL is needed; the gateway routes Anthropic requests to `https://api.anthropic.com/v1`, the base URL stored for the `anthropic` catalog provider. Then use active model IDs such as `claude-opus-5-5` or `anthropic/claude-opus-5-5`. For the official SDK, configure the gateway origin as `baseURL` (for example, `https://shtora.cloud`); the SDK appends `/v1`. Authenticate with the API key:
 

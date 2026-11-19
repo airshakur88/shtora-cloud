@@ -1,8 +1,14 @@
 import type { D1Database } from "@/lib/types";
 
+/**
+ * Cooldown ladder, indexed by failure number: 1st failure 90 s, 2nd
+ * 5 min, 3rd 10 min, 4th 30 min, 5th 1 h, 6th 4 h, 7th+ 24 h — the
+ * ladder documented in the 502 audit (§B.5). The second rung used to
+ * read 120 s here while the SQL CASE below and the audit both said
+ * 5 min; the stray value matched neither and is gone.
+ */
 export const COOLDOWN_LADDER_MS = [
-	90_000, 120_000, 300_000, 600_000, 1_800_000, 3_600_000, 14_400_000,
-	86_400_000,
+	90_000, 300_000, 600_000, 1_800_000, 3_600_000, 14_400_000, 86_400_000,
 ] as const;
 const DAY_MS = 86_400_000;
 
@@ -53,6 +59,21 @@ export async function reportFailure(
 	},
 ): Promise<void> {
 	const now = Date.now();
+	// Decay (R15): a failure_count that last moved more than a day
+	// ago restarts instead of climbing the ladder. The table has no
+	// last-failure timestamp; cooldown_until_ms is the last failure's
+	// deadline, so a deadline older than a day means the last failure
+	// is certainly more than a day old — a failure always precedes its
+	// own cooldown deadline. Deleting the stale row makes the upsert
+	// below insert fresh at failure_count 1 / 90 s.
+	await db
+		.prepare(
+			`DELETE FROM provider_rate_limit_cooldowns
+			  WHERE platform = ? AND model_id = ? AND key_id = ?
+			    AND cooldown_until_ms <= ?`,
+		)
+		.bind(input.platform, input.modelId, input.keyId, now - DAY_MS)
+		.run();
 	const isLongCooldown = input.source === "payment" || input.source === "tier";
 
 	if (isLongCooldown) {
@@ -83,11 +104,15 @@ export async function reportFailure(
 	// Ladder duration is based on the NEW failure_count after increment.
 	// In the INSERT case new count = 1 → ladder[0] = 90 000 ms.
 	// In the UPDATE case the existing failure_count (before +1) is used in
-	// the CASE so MIN(failure_count, 6) maps to ladder index 1-7.
+	// the CASE so MIN(failure_count, 6) maps to ladder index 0-6: an
+	// existing count of 1 (2nd failure) takes ladder[1] = 300 000 ms.
+	// The WHEN 0 branch is unreachable in practice — rows insert at 1
+	// and decay deletes stale rows instead of zeroing them — but it is
+	// kept at the first rung so the CASE and the ladder agree.
 	// retryAfterMs from the upstream Retry-After header takes precedence when
 	// it exceeds the ladder value, capped to one day.
 	const ladderSql = `CASE MIN(failure_count, 6)
-		WHEN 0 THEN 120000
+		WHEN 0 THEN 90000
 		WHEN 1 THEN 300000
 		WHEN 2 THEN 600000
 		WHEN 3 THEN 1800000
@@ -99,7 +124,11 @@ export async function reportFailure(
 	const retryMs = input.retryAfterMs;
 	const cooldownExpr =
 		retryMs !== undefined
-			? `MIN(${DAY_MS}, MAX(? + ${ladderSql}, ?))`
+			? // Cap is now + 1 day, not the 1-day duration: MIN used to
+				// compare a timestamp (~1.79e12) with DAY_MS (86_400_000)
+				// and always returned 86_400_000 (02/01/1970), so a
+				// key 429'd twice with Retry-After never cooled down.
+				`MIN(? + ${DAY_MS}, MAX(? + ${ladderSql}, ?))`
 			: `? + ${ladderSql}`;
 	const initialCooldown =
 		retryMs !== undefined
@@ -115,6 +144,9 @@ export async function reportFailure(
 					now + initialCooldown,
 					input.reason ?? null,
 					input.source,
+					// UPDATE binds, in placeholder order: cap (now + 1 day),
+					// ladder base (now), Retry-After deadline (now + retry).
+					now,
 					now,
 					now + retryMs,
 				]

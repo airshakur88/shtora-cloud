@@ -1,6 +1,7 @@
 import type { ProviderCatalog } from "../types";
 import { imageParts, parseInlineImage } from "./content";
 import { ProviderError, toProviderError } from "./errors";
+import { validateStreamModelEcho } from "./model-identity";
 import type { UpstreamChatInput } from "./types";
 
 export async function sendMoondream(
@@ -52,5 +53,13 @@ export async function sendMoondream(
 		},
 	);
 	if (!response.ok) throw await toProviderError(response);
-	return response;
+	if (!input.stream || !response.body) return response;
+	const checkedBody = validateStreamModelEcho(
+		response.body,
+		provider,
+		input.modelId,
+	);
+	const headers = new Headers(response.headers);
+	headers.delete("content-length");
+	return new Response(checkedBody, { status: response.status, headers });
 }

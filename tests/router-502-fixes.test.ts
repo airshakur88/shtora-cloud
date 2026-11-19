@@ -55,9 +55,23 @@ async function seedKey(
 	platform: string,
 	rawKey: string,
 ): Promise<number> {
+	// Explicit gateway-default limits: without stored limits the
+	// provider catalog limit would apply (groq tpm 6000), and a
+	// request without max_tokens reserves the 8192-token default
+	// output, so the router would throttle the key before trying it.
+	// These tests exercise routing, not rate limits.
 	const key = await createApiKey(
 		db,
-		{ userId: USER.id, platform, keyLabel: "test", rawKey },
+		{
+			userId: USER.id,
+			platform,
+			keyLabel: "test",
+			rawKey,
+			rpmLimit: 60,
+			tpmLimit: 200_000,
+			rpdLimit: 5_000,
+			tpdLimit: 5_000_000,
+		},
 		SECRET,
 	);
 	return key.id;
@@ -495,36 +509,40 @@ test("reply with only tool calls stays a success", async () => {
 	}
 });
 
-test("empty completion with stop stays a success", async () => {
+test("empty completion with stop fails over to the next key", async () => {
 	const db = await createParityDatabase();
 	try {
 		await seedUser(db);
 		await seedModel(db, "groq", "model-a");
 		await seedKey(db, "groq", "sk-test-stop-1");
+		await seedKey(db, "groq", "sk-test-stop-2");
 		let calls = 0;
 		fetchImpl = async (_input, init) => {
 			calls += 1;
-			return new Response(
-				JSON.stringify({
-					id: "empty-stop",
-					object: "chat.completion",
-					created: 0,
-					model: requestedModel(init),
-					choices: [
-						{
-							index: 0,
-							message: { role: "assistant", content: null },
-							finish_reason: "stop",
+			if (calls === 1) {
+				return new Response(
+					JSON.stringify({
+						id: "empty-stop",
+						object: "chat.completion",
+						created: 0,
+						model: requestedModel(init),
+						choices: [
+							{
+								index: 0,
+								message: { role: "assistant", content: null },
+								finish_reason: "stop",
+							},
+						],
+						usage: {
+							prompt_tokens: 10,
+							completion_tokens: 0,
+							total_tokens: 10,
 						},
-					],
-					usage: {
-						prompt_tokens: 10,
-						completion_tokens: 0,
-						total_tokens: 10,
-					},
-				}),
-				{ status: 200, headers: { "Content-Type": "application/json" } },
-			);
+					}),
+					{ status: 200, headers: { "Content-Type": "application/json" } },
+				);
+			}
+			return okCompletion(requestedModel(init), "ok");
 		};
 		const result = await routeChatCompletion({
 			db,
@@ -536,11 +554,24 @@ test("empty completion with stop stays a success", async () => {
 			},
 		});
 		expect(result.response.status).toBe(200);
-		expect(calls).toBe(1);
-		const requests = await db
-			.prepare("SELECT status FROM provider_requests")
-			.all<{ status: string }>();
-		expect(requests.results).toEqual([{ status: "success" }]);
+		expect(calls).toBe(2);
+		const body = (await result.response.json()) as {
+			choices: { message: { content: string } }[];
+		};
+		expect(body.choices[0].message.content).toBe("ok");
+		const attempts = await db
+			.prepare(
+				"SELECT status, error_message FROM provider_requests ORDER BY id",
+			)
+			.all<{ status: string; error_message: string | null }>();
+		expect(attempts.results).toEqual([
+			{ status: "error", error_message: "Upstream returned empty content" },
+			{ status: "success", error_message: null },
+		]);
+		const cooldowns = await db
+			.prepare("SELECT * FROM provider_rate_limit_cooldowns")
+			.all();
+		expect(cooldowns.results).toHaveLength(0);
 	} finally {
 		db.close();
 	}

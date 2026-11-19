@@ -7,9 +7,11 @@ import type {
 	ChatFinishReason,
 	ChatMessage,
 	ChatTool,
+	ProviderCatalog,
 } from "../types";
 import { hasImageContent, textFromContent } from "./content";
 import { classifyStatus, ProviderError, parseRetryAfterMs } from "./errors";
+import { checkReturnedModel } from "./model-identity";
 import { openAiChunk, openAiUsageChunk, sseResponse } from "./sse";
 import type { UpstreamChatInput } from "./types";
 
@@ -153,13 +155,15 @@ function finishReason(reason: string | null | undefined): ChatFinishReason {
 
 function normalizeAnthropicResponse(
 	data: Anthropic.Message,
-	modelId: string,
 ): ChatCompletionResponse {
 	const text: string[] = [];
+	const reasoning: string[] = [];
 	const toolCalls: NonNullable<ChatMessage["tool_calls"]> = [];
 	for (const block of data.content ?? []) {
 		if (block.type === "text" && typeof block.text === "string")
 			text.push(block.text);
+		if (block.type === "thinking" && typeof block.thinking === "string")
+			reasoning.push(block.thinking);
 		if (block.type === "tool_use" && block.id && block.name) {
 			toolCalls.push({
 				id: block.id,
@@ -195,13 +199,22 @@ function normalizeAnthropicResponse(
 		id: data.id ?? `anthropic-${crypto.randomUUID()}`,
 		object: "chat.completion",
 		created: Math.floor(Date.now() / 1000),
-		model: modelId,
+		// The upstream echo, not the requested id: an undated alias
+		// request answers with the dated snapshot (`claude-sonnet-4-5`
+		// → `claude-sonnet-4-5-20250929`), which the router's
+		// post-parse check accepts via the shared validator. The
+		// thinking blocks the old code dropped are kept as
+		// `reasoning_content`.
+		model: data.model,
 		choices: [
 			{
 				index: 0,
 				message: {
 					role: "assistant",
 					content: text.join("") || null,
+					...(reasoning.length
+						? { reasoning_content: reasoning.join("") }
+						: {}),
 					...(toolCalls.length ? { tool_calls: toolCalls } : {}),
 				},
 				finish_reason: finishReason(data.stop_reason),
@@ -222,6 +235,7 @@ function normalizeAnthropicResponse(
 function streamAnthropicResponse(
 	input: UpstreamChatInput,
 	stream: AsyncIterable<Anthropic.RawMessageStreamEvent>,
+	provider?: ProviderCatalog,
 ): Response {
 	const id = `anthropic-${crypto.randomUUID()}`;
 	const created = Math.floor(Date.now() / 1000);
@@ -231,6 +245,7 @@ function streamAnthropicResponse(
 	let finalReason: ChatFinishReason | null = null;
 	let emittedRole = false;
 	let finished = false;
+	let echoChecked = false;
 	const body = new ReadableStream<Uint8Array>({
 		async start(controller) {
 			const emit = (text: string) => controller.enqueue(encoder.encode(text));
@@ -251,6 +266,17 @@ function streamAnthropicResponse(
 			};
 			try {
 				for await (const event of stream) {
+					// The echo is checked before the first byte is
+					// emitted, so a mismatch errors the stream before
+					// the router commits to it and can still fail over.
+					if (
+						!echoChecked &&
+						event.type === "message_start" &&
+						event.message.model !== undefined
+					) {
+						echoChecked = true;
+						checkReturnedModel(provider, input.modelId, event.message.model);
+					}
 					emitRole();
 					if (event.type === "message_start") {
 						const inputTokens = event.message.usage?.input_tokens;
@@ -398,6 +424,7 @@ export async function sendAnthropic(
 	input: UpstreamChatInput,
 	baseUrl: string,
 	signal?: AbortSignal,
+	provider?: ProviderCatalog,
 ): Promise<Response> {
 	const client = anthropicClient(input, baseUrl);
 	const params = buildAnthropicParams(input);
@@ -412,7 +439,7 @@ export async function sendAnthropic(
 			if (error instanceof Anthropic.APIError) throw toProviderError(error);
 			throw error;
 		}
-		return streamAnthropicResponse(input, stream);
+		return streamAnthropicResponse(input, stream, provider);
 	}
 	let message: Anthropic.Message;
 	try {
@@ -424,5 +451,5 @@ export async function sendAnthropic(
 		if (error instanceof Anthropic.APIError) throw toProviderError(error);
 		throw error;
 	}
-	return Response.json(normalizeAnthropicResponse(message, input.modelId));
+	return Response.json(normalizeAnthropicResponse(message));
 }

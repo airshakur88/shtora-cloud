@@ -19,6 +19,12 @@ export class ProviderError extends Error {
 	readonly status: number;
 	readonly kind: FailureKind;
 	readonly retryAfterMs?: number;
+	/**
+	 * Set for a 403 whose upstream body names a tier/billing problem:
+	 * the key authenticates fine, the plan does not cover the model.
+	 * Only toProviderError sets it, from the error body.
+	 */
+	readonly tierProblem?: boolean;
 	nativeResponse?: Response;
 
 	constructor(
@@ -26,12 +32,14 @@ export class ProviderError extends Error {
 		status: number,
 		kind: FailureKind,
 		retryAfterMs?: number,
+		tierProblem?: boolean,
 	) {
 		super(message);
 		this.name = "ProviderError";
 		this.status = status;
 		this.kind = kind;
 		if (retryAfterMs !== undefined) this.retryAfterMs = retryAfterMs;
+		if (tierProblem !== undefined) this.tierProblem = tierProblem;
 	}
 }
 
@@ -97,6 +105,15 @@ async function readErrorBody(response: Response): Promise<string> {
 	}
 }
 
+/**
+ * A 403 is a tier/billing problem, not a plain forbidden, when the
+ * upstream body says so. A bare "forbidden" (no such wording) keeps
+ * the normal quarantine ladder; only a real tier/payment problem earns
+ * the 24 h cooldown.
+ */
+const TIER_PROBLEM_PATTERN =
+	/\b(tier|billing|payment|upgrade|quota)\b|insufficient quota/i;
+
 export async function toProviderError(
 	response: Response,
 ): Promise<ProviderError> {
@@ -105,10 +122,13 @@ export async function toProviderError(
 		response.status === 429
 			? parseRetryAfterMs(response.headers.get("retry-after"), bodyText)
 			: undefined;
+	const tierProblem =
+		response.status === 403 && TIER_PROBLEM_PATTERN.test(bodyText);
 	return new ProviderError(
 		`Upstream ${response.status}`,
 		response.status,
 		classifyStatus(response.status),
 		retryAfterMs,
+		tierProblem || undefined,
 	);
 }

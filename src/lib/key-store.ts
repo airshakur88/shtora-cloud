@@ -198,6 +198,58 @@ export interface DecryptedPlatformKey {
 	tpmLimit: number | null;
 	rpdLimit: number | null;
 	tpdLimit: number | null;
+	/** Suspension deadline (migration 0019), epoch ms; null = never suspended. */
+	suspendedUntilMs: number | null;
+}
+
+type EnabledPlatformKeyRow = Pick<
+	KeyRow,
+	| "id"
+	| "encrypted_key"
+	| "iv"
+	| "auth_tag"
+	| "base_url"
+	| "rpm_limit"
+	| "tpm_limit"
+	| "rpd_limit"
+	| "tpd_limit"
+	| "suspended_until_ms"
+>;
+
+/**
+ * Enabled keys of one platform with their suspension deadline.
+ * Migration 0019 adds suspended_until_ms; on a database without it
+ * the select throws "no such column" and every key reads as never
+ * suspended, so an old database keeps serving instead of failing the
+ * whole pool lookup.
+ */
+async function selectEnabledPlatformKeys(
+	db: D1Database,
+	platform: string,
+	userId: string,
+): Promise<EnabledPlatformKeyRow[]> {
+	const columns =
+		"id, encrypted_key, iv, auth_tag, base_url, rpm_limit, tpm_limit, rpd_limit, tpd_limit";
+	const where =
+		"FROM api_keys WHERE platform = ? AND enabled = 1 ORDER BY (user_id = ?) DESC, id ASC";
+	try {
+		const rows = await db
+			.prepare(`SELECT ${columns}, suspended_until_ms ${where}`)
+			.bind(platform, userId)
+			.all<EnabledPlatformKeyRow>();
+		return rows.results;
+	} catch (err) {
+		if (!(err instanceof Error) || !err.message.includes("no such column"))
+			throw err;
+		const rows = await db
+			.prepare(`SELECT ${columns} ${where}`)
+			.bind(platform, userId)
+			.all<Omit<EnabledPlatformKeyRow, "suspended_until_ms">>();
+		return rows.results.map((row) => ({
+			...row,
+			suspended_until_ms: null,
+		}));
+	}
 }
 
 export async function getEnabledKeysForPlatform(
@@ -209,27 +261,7 @@ export async function getEnabledKeysForPlatform(
 	// Community pool: every enabled key for the platform is available to all
 	// users. The requester's own keys come first so they spend their own quota
 	// before borrowing from the pool; per-key rate limits still apply to each.
-	const rows = await db
-		.prepare(
-			`SELECT id, encrypted_key, iv, auth_tag, base_url, rpm_limit, tpm_limit, rpd_limit, tpd_limit
-             FROM api_keys WHERE platform = ? AND enabled = 1
-             ORDER BY (user_id = ?) DESC, id ASC`,
-		)
-		.bind(platform, userId)
-		.all<
-			Pick<
-				KeyRow,
-				| "id"
-				| "encrypted_key"
-				| "iv"
-				| "auth_tag"
-				| "base_url"
-				| "rpm_limit"
-				| "tpm_limit"
-				| "rpd_limit"
-				| "tpd_limit"
-			>
-		>();
+	const rows = await selectEnabledPlatformKeys(db, platform, userId);
 	// Decryptions are independent (one AES-GCM call per row, no shared
 	// state), so they run in parallel instead of one await per key: the
 	// old sequential loop paid a full decrypt latency per key on every
@@ -237,7 +269,7 @@ export async function getEnabledKeysForPlatform(
 	// cannot be decrypted are skipped: a bad row must not lose the
 	// whole platform's pool.
 	const decrypted = await Promise.all(
-		rows.results.map(async (row) => {
+		rows.map(async (row) => {
 			// The query selects no platform column; the platform is the
 			// function's own argument, passed along for the failure log.
 			const apiKey = await tryDecryptApiKey({ ...row, platform }, secret);
@@ -250,6 +282,7 @@ export async function getEnabledKeysForPlatform(
 				tpmLimit: row.tpm_limit,
 				rpdLimit: row.rpd_limit,
 				tpdLimit: row.tpd_limit,
+				suspendedUntilMs: row.suspended_until_ms ?? null,
 			};
 		}),
 	);
@@ -340,9 +373,11 @@ export const AUTH_FAILURES_TO_DISABLE = 3;
  * were all auth failures (401/403). Only attempts the router
  * persisted in provider_requests are visible here, so a failure the
  * router did not record (e.g. native count_tokens) does not count.
- * A provider-wide 401 episode can disable several keys of that
- * platform; the log names the platform and key id so the owner can
- * tell a dead key from a provider misconfiguration. Returns true
+ * Cancelled requests (499) are ignored entirely: they neither count
+ * nor break the sequence, because the client hanging up says nothing
+ * about the key. A provider-wide 401 episode can disable several keys
+ * of that platform; the log names the platform and key id so the owner
+ * can tell a dead key from a provider misconfiguration. Returns true
  * when this call disabled the key.
  */
 export async function maybeDisableKeyAfterAuthFailures(
@@ -353,7 +388,8 @@ export async function maybeDisableKeyAfterAuthFailures(
 	const rows = await db
 		.prepare(
 			`SELECT status_code FROM provider_requests
-			  WHERE key_id = ? ORDER BY id DESC LIMIT ?`,
+			  WHERE key_id = ? AND (status_code IS NULL OR status_code <> 499)
+			  ORDER BY id DESC LIMIT ?`,
 		)
 		.bind(keyId, AUTH_FAILURES_TO_DISABLE)
 		.all<{ status_code: number | null }>();
@@ -374,6 +410,173 @@ export async function maybeDisableKeyAfterAuthFailures(
 	if (changed.meta.changes === 0) return false;
 	console.error(
 		JSON.stringify({ event: "key_auto_disabled", platform, keyId }),
+	);
+	return true;
+}
+
+/**
+ * Consecutive key-blamed failures after which a key is suspended for
+ * 24 h. Unlike the auth expurgo above (3× 401/403 → enabled = 0,
+ * permanent until the owner re-enables), a suspension expires on its
+ * own and only the key probe clears it early — a normal request never
+ * re-enables a key. Non-auth failures need 5 in a row; auth failures
+ * need 3, the same count as the disable, which runs first in the
+ * router: an auth suspension only fires when a catalog row sat
+ * between the auth failures in the raw history.
+ */
+export const CONSECUTIVE_FAILURES_TO_SUSPEND = 5;
+/** Suspension length: 24 h, the same as the probe's default. */
+export const KEY_SUSPENSION_MS = 86_400_000;
+/** Short window in which every enabled key of a platform 401/403 = episode. */
+export const PROVIDER_AUTH_EPISODE_WINDOW_MINUTES = 10;
+/**
+ * An episode needs at least this many enabled keys: with a single
+ * key a provider misconfiguration is indistinguishable from a dead
+ * key, and there is no mass suspension to protect against.
+ */
+export const PROVIDER_AUTH_EPISODE_MIN_KEYS = 2;
+
+/** Rows read per suspension check: room for skipped rows between counted failures. */
+const SUSPENSION_STREAK_READ_LIMIT = 20;
+
+function toSqliteDate(ms: number): string {
+	return new Date(ms).toISOString().replace("T", " ").slice(0, 19);
+}
+
+/**
+ * True when every enabled key of the platform failed with 401/403
+ * inside the episode window: a provider-side misconfiguration (bad
+ * base URL, rotated shared credential), not N dead keys at once.
+ * Only currently enabled keys count on either side, so keys the auth
+ * expurgo already disabled do not inflate the episode.
+ */
+async function isProviderAuthEpisode(
+	db: D1Database,
+	platform: string,
+	now: number,
+): Promise<boolean> {
+	const enabled = await db
+		.prepare(
+			"SELECT COUNT(*) AS n FROM api_keys WHERE platform = ? AND enabled = 1",
+		)
+		.bind(platform)
+		.first<{ n: number }>();
+	const total = enabled?.n ?? 0;
+	if (total < PROVIDER_AUTH_EPISODE_MIN_KEYS) return false;
+	const failed = await db
+		.prepare(
+			`SELECT COUNT(DISTINCT r.key_id) AS n FROM provider_requests r
+			  JOIN api_keys k ON k.id = r.key_id
+			  WHERE r.platform = ? AND r.status_code IN (401, 403)
+			    AND r.created_at > ? AND k.enabled = 1`,
+		)
+		.bind(
+			platform,
+			toSqliteDate(now - PROVIDER_AUTH_EPISODE_WINDOW_MINUTES * 60_000),
+		)
+		.first<{ n: number }>();
+	return (failed?.n ?? 0) >= total;
+}
+
+/**
+ * Suspend a key whose recent attempts are a solid run of key-blamed
+ * failures: 5 in a row of any kind, or 3 in a row of 401/403. The
+ * walk is newest-first over the key's recorded attempts and mirrors
+ * the probe's streak count: a success breaks it, a client cancel
+ * (499) neither counts nor breaks it. Catalog-attributed rows never
+ * punish the key either: a 404 (renamed/removed model), a
+ * model_mismatch, and an empty 200 reply are skipped the same way,
+ * so a dead model cannot suspend the keys that serve it. Returns
+ * true when this call suspended the key.
+ *
+ * The suspension columns come from migration 0019. Without them the
+ * UPDATE throws "no such column" and the check is a no-op: a
+ * data-marking failure must never fail the client request. The
+ * UPDATE itself is the same one the key probe runs (same columns,
+ * same `consecutive_failures` reason); the probe's helpers live in
+ * src/lib/jobs/key-probe.ts, which this module cannot import without
+ * a cycle, so the statement is mirrored here until the two are
+ * consolidated.
+ */
+export async function maybeSuspendKeyAfterFailures(
+	db: D1Database,
+	platform: string,
+	keyId: number,
+	now = Date.now(),
+): Promise<boolean> {
+	const rows = await db
+		.prepare(
+			`SELECT status, status_code, failure_attribution, error_message
+			  FROM provider_requests WHERE key_id = ? ORDER BY id DESC LIMIT ?`,
+		)
+		.bind(keyId, SUSPENSION_STREAK_READ_LIMIT)
+		.all<{
+			status: string;
+			status_code: number | null;
+			failure_attribution: string | null;
+			error_message: string | null;
+		}>();
+	let failures = 0;
+	let authFailures = 0;
+	for (const row of rows.results) {
+		if (row.status_code === 499) continue;
+		if (row.status_code === 404) continue;
+		if (row.failure_attribution === "model_mismatch") continue;
+		if (
+			row.status_code === 200 &&
+			row.error_message === "Upstream returned empty content"
+		)
+			continue;
+		if (row.status === "success") break;
+		failures += 1;
+		if (row.status_code === 401 || row.status_code === 403) authFailures += 1;
+		if (
+			failures >= CONSECUTIVE_FAILURES_TO_SUSPEND ||
+			authFailures >= AUTH_FAILURES_TO_DISABLE
+		)
+			break;
+	}
+	if (
+		failures < CONSECUTIVE_FAILURES_TO_SUSPEND &&
+		authFailures < AUTH_FAILURES_TO_DISABLE
+	)
+		return false;
+	if (
+		authFailures >= AUTH_FAILURES_TO_DISABLE &&
+		(await isProviderAuthEpisode(db, platform, now))
+	) {
+		// Every enabled key of the platform is failing auth at once:
+		// alert, do not suspend in bulk.
+		console.error(
+			JSON.stringify({ event: "provider_auth_episode", platform, keyId }),
+		);
+		return false;
+	}
+	try {
+		const changed = await db
+			.prepare(
+				`UPDATE api_keys
+				  SET suspended_until_ms = ?, suspension_reason = ?,
+				      updated_at = datetime('now')
+				  WHERE id = ? AND enabled = 1
+				    AND (suspended_until_ms IS NULL OR suspended_until_ms <= ?)`,
+			)
+			.bind(now + KEY_SUSPENSION_MS, "consecutive_failures", keyId, now)
+			.run();
+		if (changed.meta.changes === 0) return false;
+	} catch (err) {
+		if (err instanceof Error && err.message.includes("no such column"))
+			return false;
+		throw err;
+	}
+	console.error(
+		JSON.stringify({
+			event: "key_suspended",
+			platform,
+			keyId,
+			consecutiveFailures: failures,
+			authFailures,
+		}),
 	);
 	return true;
 }

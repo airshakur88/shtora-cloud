@@ -12,6 +12,18 @@ import { createParityDatabase } from "./utils/parity-database";
 // through the route handlers with a mocked fetch upstream.
 const SECRET = "playground-test-secret-0123456789-abcdefghijklmnop";
 
+// Keys in these routing tests carry explicit gateway-default limits so
+// the router's effective-limit reserve never throttles them: without
+// stored limits the provider catalog limit would apply (groq tpm 6000),
+// and a request without max_tokens reserves the 8192-token default
+// output. These tests exercise routing, not rate limits.
+const KEY_LIMITS = {
+	rpmLimit: 60,
+	tpmLimit: 200_000,
+	rpdLimit: 5_000,
+	tpdLimit: 5_000_000,
+} as const;
+
 const USER: AppUser = {
 	id: "user-1",
 	name: "Test User",
@@ -98,6 +110,7 @@ async function seedChatFixtures(): Promise<void> {
 			userId: USER.id,
 			platform: "groq",
 			rawKey: "gsk-playground",
+			...KEY_LIMITS,
 			keyLabel: null,
 		},
 		SECRET,

@@ -2,11 +2,12 @@
 // The numbers shown in the dashboard come from the same places the
 // enforcer reads, so display and enforcement cannot disagree.
 //
-// Precedence for each of rpm/tpm/rpd/tpd (see POST /api/keys, which bakes
-// the provider default into the row at creation):
+// Precedence for each of rpm/tpm/rpd/tpd:
 //   1. value stored on the api_keys row (set by the user, or the provider
-//      default copied in at creation)
-//   2. gateway default in ratelimit.ts when the row has nothing
+//      default copied in at creation by POST /api/keys)
+//   2. value from the provider catalog (`providers.limits`) — the
+//      fallback for rows created before the baking, or with null limits
+//   3. gateway default in ratelimit.ts when neither has a value
 // The displayed source is inferred by comparing the stored row with the
 // provider catalog: equal to the catalog means "provider", different means
 // the key was given its own value ("key"), all null means "gateway".
@@ -46,16 +47,29 @@ export function effectiveKeyLimits(
 	stored: OptionalLimits,
 	providerLimits?: OptionalLimits,
 ): EffectiveLimits {
-	const rpm = stored.rpmLimit ?? DEFAULT_RATE_LIMITS.rpm;
-	const tpm = stored.tpmLimit ?? DEFAULT_RATE_LIMITS.tpm;
-	const rpd = stored.rpdLimit ?? DEFAULT_RATE_LIMITS.rpd;
-	const tpd = stored.tpdLimit ?? DEFAULT_RATE_LIMITS.tpd;
+	// Per-field fallback: a stored null falls through to the provider
+	// catalog, then to the gateway default. The enforcer reads these
+	// same numbers (router verifyModelKeys + reserveUsage), so a
+	// provider limit in the catalog binds keys whose row has nothing.
+	const rpm =
+		stored.rpmLimit ?? providerLimits?.rpmLimit ?? DEFAULT_RATE_LIMITS.rpm;
+	const tpm =
+		stored.tpmLimit ?? providerLimits?.tpmLimit ?? DEFAULT_RATE_LIMITS.tpm;
+	const rpd =
+		stored.rpdLimit ?? providerLimits?.rpdLimit ?? DEFAULT_RATE_LIMITS.rpd;
+	const tpd =
+		stored.tpdLimit ?? providerLimits?.tpdLimit ?? DEFAULT_RATE_LIMITS.tpd;
 	let source: LimitsSource = "gateway";
 	const hasStored =
 		(stored.rpmLimit ?? null) !== null ||
 		(stored.tpmLimit ?? null) !== null ||
 		(stored.rpdLimit ?? null) !== null ||
 		(stored.tpdLimit ?? null) !== null;
+	const hasProvider =
+		(providerLimits?.rpmLimit ?? null) !== null ||
+		(providerLimits?.tpmLimit ?? null) !== null ||
+		(providerLimits?.rpdLimit ?? null) !== null ||
+		(providerLimits?.tpdLimit ?? null) !== null;
 	if (hasStored) {
 		source = "provider";
 		const differs = (
@@ -67,6 +81,8 @@ export function effectiveKeyLimits(
 			return storedValue !== (providerLimits[field] ?? null);
 		});
 		if (differs) source = "key";
+	} else if (hasProvider) {
+		source = "provider";
 	}
 	return { rpm, tpm, rpd, tpd, source };
 }
@@ -132,7 +148,14 @@ export interface KeyUsageWindow {
  * count every request the key served, including requests from other users
  * borrowing it from the community pool, because that is what spends its
  * quota. Keys without rows come back as zeros from the caller.
+ *
+ * The key list is split into small batches: D1 rejects a statement with
+ * too many bound variables, and passing every key a user owns in a single
+ * IN (...) answered /api/keys/usage with 500 ("too many SQL variables").
+ * 50 ids plus the 5 fixed window bounds stay far below that limit.
  */
+const KEY_USAGE_CHUNK_SIZE = 50;
+
 export async function getKeyUsageWindows(
 	db: D1Database,
 	keyIds: number[],
@@ -140,7 +163,6 @@ export async function getKeyUsageWindows(
 ): Promise<KeyUsageWindow[]> {
 	if (keyIds.length === 0) return [];
 	const { minuteStart, dayStart } = getRateLimitWindowStarts(now);
-	const placeholders = keyIds.map(() => "?").join(", ");
 	// Both windows live inside today, except for the first minute after
 	// UTC midnight: the minute window slides, so it can still reach rows
 	// from the previous day, and the enforcer counts those rows. The
@@ -148,19 +170,25 @@ export async function getKeyUsageWindows(
 	// the query from walking the whole table as usage accumulates (the
 	// cleanup index on created_at_ms can serve the bound).
 	const scanStart = Math.min(dayStart, minuteStart);
-	const result = await db
-		.prepare(
-			`SELECT key_id AS keyId,
+	const windows: KeyUsageWindow[] = [];
+	for (let start = 0; start < keyIds.length; start += KEY_USAGE_CHUNK_SIZE) {
+		const chunk = keyIds.slice(start, start + KEY_USAGE_CHUNK_SIZE);
+		const placeholders = chunk.map(() => "?").join(", ");
+		const result = await db
+			.prepare(
+				`SELECT key_id AS keyId,
 			 COALESCE(SUM(CASE WHEN kind = 'request' AND created_at_ms > ? THEN 1 ELSE 0 END), 0) AS requestsMinute,
 			 COALESCE(SUM(CASE WHEN kind = 'tokens' AND created_at_ms > ? THEN tokens ELSE 0 END), 0) AS tokensMinute,
 			 COALESCE(SUM(CASE WHEN kind = 'request' AND created_at_ms >= ? THEN 1 ELSE 0 END), 0) AS requestsDay,
 			 COALESCE(SUM(CASE WHEN kind = 'tokens' AND created_at_ms >= ? THEN tokens ELSE 0 END), 0) AS tokensDay
 			 FROM provider_rate_limit_usage WHERE key_id IN (${placeholders}) AND created_at_ms >= ?
 			 GROUP BY key_id`,
-		)
-		.bind(minuteStart, minuteStart, dayStart, dayStart, ...keyIds, scanStart)
-		.all<KeyUsageWindow>();
-	return result.results;
+			)
+			.bind(minuteStart, minuteStart, dayStart, dayStart, ...chunk, scanStart)
+			.all<KeyUsageWindow>();
+		windows.push(...result.results);
+	}
+	return windows;
 }
 
 export interface UsageByKeyRow {

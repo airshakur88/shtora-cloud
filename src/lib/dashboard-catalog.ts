@@ -26,6 +26,8 @@ export interface CatalogModel {
 	contextWindow: number | null;
 	globalKeyCount: number;
 	personalKeyCount: number;
+	/** Catalog-review flag: the reason the row is suspect, null when it is not. */
+	suspectReason?: string | null;
 	/** Router description, present only on virtual-router rows. */
 	description?: string;
 	/** Display names of the router members, present only on virtual-router rows. */
@@ -60,6 +62,9 @@ export function isCatalogModel(value: unknown): value is CatalogModel {
 		(typeof value.contextWindow === "number" || value.contextWindow === null) &&
 		typeof value.globalKeyCount === "number" &&
 		typeof value.personalKeyCount === "number" &&
+		(value.suspectReason === undefined ||
+			value.suspectReason === null ||
+			typeof value.suspectReason === "string") &&
 		(value.description === undefined ||
 			typeof value.description === "string") &&
 		(value.memberNames === undefined ||

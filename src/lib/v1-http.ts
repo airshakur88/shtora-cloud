@@ -172,11 +172,49 @@ export interface ModelListEntry {
 }
 
 /**
- * The one model listing both OpenAI families serve. Scope: enabled models
- * of providers with at least one enabled key in the community pool — the
- * same providers the router can actually serve. One entry per logical
- * model (`shtora/<canonical>`), plus the curated virtual routers whose
- * members are present in the listing. The three reads run in parallel.
+ * Enabled catalog rows for the public listing. Migration 0019 adds
+ * modality/suspect_reason; on a database without them the select
+ * throws "no such column" and the listing falls back to the old
+ * columns, treating every row as a chat model that was never flagged.
+ */
+interface ModelListRow {
+	platform: string;
+	model_id: string;
+	name: string;
+	modality?: string | null;
+	suspect_reason?: string | null;
+}
+
+async function listModelRows(db: D1Database): Promise<ModelListRow[]> {
+	try {
+		const rows = await db
+			.prepare(
+				"SELECT platform, model_id, name, modality, suspect_reason FROM models WHERE enabled = 1 ORDER BY platform, model_id",
+			)
+			.all<ModelListRow>();
+		return rows.results;
+	} catch (err) {
+		if (!(err instanceof Error) || !err.message.includes("no such column"))
+			throw err;
+		const rows = await db
+			.prepare(
+				"SELECT platform, model_id, name FROM models WHERE enabled = 1 ORDER BY platform, model_id",
+			)
+			.all<ModelListRow>();
+		return rows.results;
+	}
+}
+
+/**
+ * The one model listing both OpenAI families serve. Scope: enabled
+ * chat models of providers with at least one enabled key in the
+ * community pool — the same providers the router can actually serve.
+ * Rows of another modality (image/audio) and rows under catalog
+ * review (suspect_reason set) are dashboard-only: they never appear
+ * here, so a client cannot pick a model the chat endpoint cannot
+ * serve. One entry per logical model (`shtora/<canonical>`), plus the
+ * curated virtual routers whose members are present in the listing.
+ * The three reads run in parallel.
  *
  * Deliberately not restricted to `platform IN (SELECT id FROM providers)`:
  * direct rows such as the Anthropic models from migration 0005 are
@@ -191,11 +229,7 @@ export async function buildModelList(
 	db: D1Database,
 ): Promise<ModelListEntry[]> {
 	const [modelRows, enabledRows, providerRows] = await Promise.all([
-		db
-			.prepare(
-				"SELECT platform, model_id, name FROM models WHERE enabled = 1 ORDER BY platform, model_id",
-			)
-			.all<{ platform: string; model_id: string; name: string }>(),
+		listModelRows(db),
 		db
 			.prepare("SELECT DISTINCT platform FROM api_keys WHERE enabled = 1")
 			.all<{ platform: string }>(),
@@ -213,8 +247,13 @@ export async function buildModelList(
 		string,
 		{ id: string; name: string; providers: string[] }
 	>();
-	for (const row of modelRows.results) {
+	for (const row of modelRows) {
 		if (!enabledPlatforms.has(row.platform)) continue;
+		// Only chat models that are not under catalog review are
+		// listed. A non-chat row has no chat endpoint; a suspect row
+		// is out of service until the catalog job clears it.
+		if ((row.modality ?? "chat") !== "chat") continue;
+		if (row.suspect_reason != null) continue;
 		const canonical = canonicalModelId(row.model_id);
 		// Excluded canonicals (e.g. "auto") are virtual routers, not
 		// ordinary models — they are listed first below, once each.

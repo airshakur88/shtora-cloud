@@ -84,7 +84,11 @@ test("a stored limit different from the catalog counts as set for the key", () =
 	);
 	expect(limits.source).toBe("key");
 	expect(limits.rpm).toBe(30);
-	expect(limits.tpm).toBe(200_000);
+	// Per-field fallback: the fields the key does not set still come
+	// from the provider catalog, not from the gateway defaults.
+	expect(limits.tpm).toBe(20_000);
+	expect(limits.rpd).toBe(5_000);
+	expect(limits.tpd).toBe(20_000);
 });
 
 test("withEffectiveLimits labels keys from the stored row and the catalog", async () => {
@@ -133,17 +137,39 @@ test("withEffectiveLimits labels keys from the stored row and the catalog", asyn
 		},
 		SECRET,
 	);
+	// anthropic ships no catalog limits (migration 0015), so a key
+	// with nothing stored falls through to the gateway defaults.
+	const gatewayKey = await createApiKey(
+		db,
+		{
+			userId: USER_ID,
+			platform: "anthropic",
+			rawKey: "sk-ant-unset",
+			keyLabel: null,
+			baseUrl: null,
+			rpmLimit: null,
+			tpmLimit: null,
+			rpdLimit: null,
+			tpdLimit: null,
+		},
+		SECRET,
+	);
 	const enriched = await withEffectiveLimits(db, [
 		{ ...providerKey },
 		{ ...customKey },
 		{ ...unsetKey },
+		{ ...gatewayKey },
 	]);
 	expect(enriched[0]?.limitsSource).toBe("provider");
 	expect(enriched[0]?.effectiveLimits.rpm).toBe(15);
 	expect(enriched[1]?.limitsSource).toBe("key");
 	expect(enriched[1]?.effectiveLimits.rpm).toBe(30);
-	expect(enriched[2]?.limitsSource).toBe("gateway");
-	expect(enriched[2]?.effectiveLimits.rpm).toBe(60);
+	// No stored limits, but groq has catalog limits (rpm 30), so the
+	// key is labelled provider, not gateway.
+	expect(enriched[2]?.limitsSource).toBe("provider");
+	expect(enriched[2]?.effectiveLimits.rpm).toBe(30);
+	expect(enriched[3]?.limitsSource).toBe("gateway");
+	expect(enriched[3]?.effectiveLimits.rpm).toBe(60);
 });
 
 async function insertUsageRow(
@@ -205,6 +231,61 @@ test("usage windows read the same minute and day windows the enforcer uses", asy
 		tokensDay: 190,
 	});
 	expect(await getKeyUsageWindows(db, [])).toEqual([]);
+});
+
+test("usage windows merge chunks past the D1 bound-variable limit (R25)", async () => {
+	// getKeyUsageWindows splits keyIds into batches of 50: a single
+	// IN (...) with every key a user owns answered /api/keys/usage with
+	// 500 ("too many SQL variables"). Usage rows land in different
+	// batches on purpose, so a dropped batch fails the test.
+	const keyIds: number[] = [];
+	for (let i = 0; i < 120; i += 1) {
+		const inserted = await db
+			.prepare(
+				"INSERT INTO api_keys (user_id, platform, encrypted_key, iv, auth_tag, enabled) VALUES (?, 'groq', 'x', 'y', 'z', 1) RETURNING id",
+			)
+			.bind(USER_ID)
+			.all<{ id: number }>();
+		keyIds.push(inserted.results[0].id);
+	}
+	const now = Date.now();
+	for (const [index, tokens] of [
+		[0, 10],
+		[60, 20],
+		[119, 30],
+	] as const) {
+		await insertUsageRow(
+			keyIds[index],
+			"model-a",
+			"request",
+			null,
+			now - 5_000,
+		);
+		await insertUsageRow(
+			keyIds[index],
+			"model-a",
+			"tokens",
+			tokens,
+			now - 5_000,
+		);
+	}
+
+	const windows = await getKeyUsageWindows(db, keyIds, now);
+	expect(windows).toHaveLength(3);
+	const byId = new Map(windows.map((row) => [row.keyId, row]));
+	for (const [index, tokens] of [
+		[0, 10],
+		[60, 20],
+		[119, 30],
+	] as const) {
+		expect(byId.get(keyIds[index])).toEqual({
+			keyId: keyIds[index],
+			requestsMinute: 1,
+			tokensMinute: tokens,
+			requestsDay: 1,
+			tokensDay: tokens,
+		});
+	}
 });
 
 test("usage windows include the previous day in the first minute after UTC midnight", async () => {
@@ -548,6 +629,62 @@ test("GET /api/keys/usage returns current windows per own key", async () => {
 		(item) => item.requestsMinute === 0 && item.requestsDay === 0,
 	);
 	expect(unused).toBeDefined();
+});
+
+test("GET /api/keys/usage stays 200 with 200 keys (R25)", async () => {
+	// Regression test for the production 500: the route used to pass
+	// every key id in one IN (...). 200 real keys (decryptable, so the
+	// listing path runs too) must all come back, with usage merged
+	// across the internal batches.
+	const keyIds: number[] = [];
+	for (let i = 0; i < 200; i += 1) {
+		const key = await createApiKey(
+			db,
+			{
+				userId: USER_ID,
+				platform: "groq",
+				rawKey: `gsk-usage-200-${i}`,
+				keyLabel: null,
+				baseUrl: null,
+				rpmLimit: null,
+				tpmLimit: null,
+				rpdLimit: null,
+				tpdLimit: null,
+			},
+			SECRET,
+		);
+		keyIds.push(key.id);
+	}
+	const now = Date.now();
+	await insertUsageRow(keyIds[0], "model-a", "request", null, now - 5_000);
+	await insertUsageRow(keyIds[0], "model-a", "tokens", 25, now - 5_000);
+	await insertUsageRow(keyIds[199], "model-a", "request", null, now - 5_000);
+
+	const response = await keyUsageRoute.GET(
+		new Request("http://localhost/api/keys/usage", {
+			headers: await authHeaders(),
+		}),
+	);
+	expect(response.status).toBe(200);
+	const body = (await response.json()) as {
+		usage: Array<{
+			keyId: number;
+			requestsMinute: number;
+			tokensMinute: number;
+			requestsDay: number;
+			tokensDay: number;
+		}>;
+	};
+	const byId = new Map(body.usage.map((item) => [item.keyId, item]));
+	for (const keyId of keyIds) expect(byId.has(keyId)).toBe(true);
+	expect(byId.get(keyIds[0])).toEqual({
+		keyId: keyIds[0],
+		requestsMinute: 1,
+		tokensMinute: 25,
+		requestsDay: 1,
+		tokensDay: 25,
+	});
+	expect(byId.get(keyIds[199])?.requestsMinute).toBe(1);
 });
 
 test("GET /api/keys/usage stays 200 when one of the user's keys cannot be decrypted", async () => {

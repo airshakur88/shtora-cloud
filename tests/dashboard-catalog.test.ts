@@ -55,6 +55,7 @@ interface CatalogResponse {
 		description?: string;
 		members?: string[];
 		memberNames?: string[];
+		suspectReason?: string | null;
 	}>;
 }
 
@@ -354,4 +355,16 @@ test("excludes shtora/auto as an ordinary model and lists virtual routers", asyn
 	// qwen3-coder-plus is a 3d member too and is in the fixtures, so it
 	// shows up as well, after gpt-5-4-mini in router priority order.
 	expect(router3d?.memberNames).toEqual(["GPT 5.4 Mini", "Qwen3 Coder Plus"]);
+});
+
+test("suspect rows carry their reason for review, healthy rows carry null", async () => {
+	await db
+		.prepare("UPDATE models SET suspect_reason = ? WHERE model_id = ?")
+		.bind("bad_request", "llama-4")
+		.run();
+	const body = await getCatalog();
+	const llama4 = body.models.find((m) => m.id === "shtora/llama-4");
+	const gpt4o = body.models.find((m) => m.id === "shtora/gpt-4o");
+	expect(llama4?.suspectReason).toBe("bad_request");
+	expect(gpt4o?.suspectReason).toBeNull();
 });

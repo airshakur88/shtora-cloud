@@ -7,6 +7,7 @@ import {
 	LogOut,
 	MessageSquare,
 	Network,
+	ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -43,6 +44,7 @@ const sidebarItems = [
 	{ title: "Overview", url: "/dashboard", icon: Home },
 	{ title: "API Keys", url: "/dashboard/access-keys", icon: KeyRound },
 	{ title: "Providers", url: "/dashboard/providers", icon: Network },
+	{ title: "Quarantine", url: "/dashboard/quarantine", icon: ShieldAlert },
 	{ title: "Models", url: "/dashboard/models", icon: Boxes },
 	{ title: "Playground", url: "/dashboard/playground", icon: MessageSquare },
 ];

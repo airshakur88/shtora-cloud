@@ -1,5 +1,6 @@
 import type { ProviderCatalog } from "../types";
 import { ProviderError, toProviderError } from "./errors";
+import { validateStreamModelEcho } from "./model-identity";
 import type { UpstreamChatInput } from "./types";
 
 export async function sendCloudflare(
@@ -40,5 +41,13 @@ export async function sendCloudflare(
 		signal,
 	});
 	if (!response.ok) throw await toProviderError(response);
-	return response;
+	if (!input.stream || !response.body) return response;
+	const checkedBody = validateStreamModelEcho(
+		response.body,
+		provider,
+		input.modelId,
+	);
+	const headers = new Headers(response.headers);
+	headers.delete("content-length");
+	return new Response(checkedBody, { status: response.status, headers });
 }

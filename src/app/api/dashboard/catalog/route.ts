@@ -10,6 +10,7 @@ import {
 	requireUser,
 	UnauthenticatedError,
 } from "@/lib/session";
+import type { D1Database } from "@/lib/types";
 import {
 	listingVirtualRouters,
 	virtualRouterProviders,
@@ -28,6 +29,35 @@ interface ModelRow {
 	supports_tools: number;
 	supports_vision: number;
 	context_window: number;
+	suspect_reason?: string | null;
+}
+
+/**
+ * Enabled catalog rows. Migration 0019 adds suspect_reason; on a
+ * database without it the select throws "no such column" and the
+ * route falls back to the old columns, treating every row as never
+ * flagged.
+ */
+async function listModelRows(db: D1Database): Promise<ModelRow[]> {
+	try {
+		const rows = await db
+			.prepare(
+				`SELECT platform, model_id, name, enabled, supports_tools, supports_vision, context_window, suspect_reason
+				 FROM models WHERE enabled = 1 ORDER BY platform, name`,
+			)
+			.all<ModelRow>();
+		return rows.results;
+	} catch (err) {
+		if (!(err instanceof Error) || !err.message.includes("no such column"))
+			throw err;
+		const rows = await db
+			.prepare(
+				`SELECT platform, model_id, name, enabled, supports_tools, supports_vision, context_window
+				 FROM models WHERE enabled = 1 ORDER BY platform, name`,
+			)
+			.all<ModelRow>();
+		return rows.results;
+	}
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -48,12 +78,7 @@ export async function GET(request: Request): Promise<Response> {
 					)
 					.bind(user.id)
 					.all<CountRow>(),
-				db
-					.prepare(
-						`SELECT platform, model_id, name, enabled, supports_tools, supports_vision, context_window
-					 FROM models WHERE enabled = 1 ORDER BY platform, name`,
-					)
-					.all<ModelRow>(),
+				listModelRows(db),
 				db
 					.prepare("SELECT id, name FROM providers ORDER BY id")
 					.all<{ id: string; name: string }>(),
@@ -98,11 +123,19 @@ export async function GET(request: Request): Promise<Response> {
 			string,
 			{ row: ModelRow; platforms: string[] }
 		>();
-		for (const row of modelRows.results) {
+		// First suspect reason per canonical: a canonical groups
+		// several (platform, model) rows, and any one of them can be
+		// under review. The badge names the first reason found; the
+		// dashboard is the review surface, not the router, so a
+		// partially suspect canonical still shows.
+		const suspectByCanonical = new Map<string, string>();
+		for (const row of modelRows) {
 			const canonical = canonicalModelId(row.model_id);
 			// Excluded canonicals (e.g. "auto") are virtual routers, not
 			// ordinary models — they are listed first below, once each.
 			if (EXCLUDED_CANONICAL_MODELS.has(canonical)) continue;
+			if (row.suspect_reason != null && !suspectByCanonical.has(canonical))
+				suspectByCanonical.set(canonical, row.suspect_reason);
 			const entry = canonicalByModel.get(canonical);
 			if (!entry) {
 				canonicalByModel.set(canonical, { row, platforms: [row.platform] });
@@ -127,6 +160,8 @@ export async function GET(request: Request): Promise<Response> {
 			contextWindow: number;
 			globalKeyCount: number;
 			personalKeyCount: number;
+			/** Catalog-review flag: null when no row of this model is suspect. */
+			suspectReason: string | null;
 		}
 		const ordinaryModels: CatalogModelEntry[] = [
 			...canonicalByModel.values(),
@@ -151,14 +186,14 @@ export async function GET(request: Request): Promise<Response> {
 				enabled: row.enabled === 1,
 				supportsTools:
 					platforms.some((p) => {
-						const r = modelRows.results.find(
+						const r = modelRows.find(
 							(mr) => mr.platform === p && mr.model_id === row.model_id,
 						);
 						return r?.supports_tools === 1;
 					}) || row.supports_tools === 1,
 				supportsVision:
 					platforms.some((p) => {
-						const r = modelRows.results.find(
+						const r = modelRows.find(
 							(mr) => mr.platform === p && mr.model_id === row.model_id,
 						);
 						return r?.supports_vision === 1;
@@ -166,6 +201,8 @@ export async function GET(request: Request): Promise<Response> {
 				contextWindow: row.context_window,
 				globalKeyCount: globalKeys,
 				personalKeyCount: personalKeys,
+				suspectReason:
+					suspectByCanonical.get(canonicalModelId(row.model_id)) ?? null,
 			};
 		});
 
@@ -188,7 +225,7 @@ export async function GET(request: Request): Promise<Response> {
 				router.members,
 				providersByCanonical,
 			);
-			const memberRows = modelRows.results.filter((row) =>
+			const memberRows = modelRows.filter((row) =>
 				members.includes(canonicalModelId(row.model_id)),
 			);
 			const globalKeys = providers.reduce(
@@ -230,6 +267,9 @@ export async function GET(request: Request): Promise<Response> {
 				),
 				globalKeyCount: globalKeys,
 				personalKeyCount: personalKeys,
+				// Routers are not catalog rows: a suspect member is
+				// flagged on its own ordinary row below.
+				suspectReason: null,
 			});
 		}
 

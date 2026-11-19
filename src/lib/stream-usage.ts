@@ -19,6 +19,15 @@ export interface StreamUsageResult {
 	ttftMs: number | null;
 	completed: boolean;
 	cancelled: boolean;
+	/**
+	 * The stream finished cleanly but carried no text and no tool
+	 * calls — thinking-only or usage-only deltas do not count. The
+	 * router records it as an empty upstream reply, like a 200 with
+	 * no content; it is not a key failure. Only the OpenAI protocol
+	 * counts as empty: on the native protocol a thinking-only stream
+	 * is a valid Anthropic message and stays a success.
+	 */
+	emptyOutput: boolean;
 }
 
 export function observeStreamUsage(
@@ -41,9 +50,14 @@ export function observeStreamUsage(
 	let outputTokensEstimated = true;
 	let outputCharacters = 0;
 	let ttftMs: number | null = null;
-	let completed = protocol === "openai";
+	// OpenAI streams complete only on `[DONE]` — a clean close
+	// without it is a truncated stream, not a success. The old code
+	// started `completed` as true for OpenAI, so every truncated
+	// OpenAI stream was recorded as a success.
+	let completed = false;
 	let failed = false;
 	let cancelled = false;
+	let hasOutput = false;
 	const nativeUsage: Record<string, unknown> = {};
 
 	const parseEvent = () => {
@@ -51,7 +65,10 @@ export function observeStreamUsage(
 		const eventData = dataLines.join("\n");
 		dataLines = [];
 		eventChars = 0;
-		if (eventData === "[DONE]") return;
+		if (eventData === "[DONE]") {
+			if (protocol === "openai") completed = true;
+			return;
+		}
 		let event: unknown;
 		try {
 			event = JSON.parse(eventData);
@@ -59,6 +76,7 @@ export function observeStreamUsage(
 			return;
 		}
 		if (!isRecord(event)) return;
+		if (protocol === "openai" && isRecord(event.error)) failed = true;
 		if (protocol === "anthropic") {
 			if (event.type === "message_stop") completed = true;
 			if (event.type === "error") failed = true;
@@ -89,11 +107,20 @@ export function observeStreamUsage(
 							: typeof delta.partial_json === "string"
 								? delta.partial_json.length
 								: 0;
+				// Thinking alone is not output: a thinking-only stream
+				// is empty, the same as a 200 with no content.
+				if (
+					(typeof delta.text === "string" && delta.text.length > 0) ||
+					(typeof delta.partial_json === "string" &&
+						delta.partial_json.length > 0)
+				)
+					hasOutput = true;
 			} else if (
 				event.type === "content_block_start" &&
 				isRecord(event.content_block)
 			) {
 				const block = event.content_block;
+				if (block.type === "tool_use") hasOutput = true;
 				characters = nativeOutputCharacters({
 					content: [
 						block.type === "tool_use" &&
@@ -121,7 +148,16 @@ export function observeStreamUsage(
 		if (!Array.isArray(event.choices)) return;
 		for (const choice of event.choices) {
 			if (!isRecord(choice) || !isRecord(choice.delta)) continue;
-			const characters = deltaOutputCharacters(choice.delta);
+			const delta = choice.delta;
+			const characters = deltaOutputCharacters(delta);
+			if (
+				(typeof delta.content === "string" && delta.content.length > 0) ||
+				(Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) ||
+				(isRecord(delta.function_call) &&
+					typeof delta.function_call.arguments === "string" &&
+					delta.function_call.arguments.length > 0)
+			)
+				hasOutput = true;
 			outputCharacters += characters;
 			if (characters > 0 && ttftMs === null) {
 				ttftMs = Math.max(0, Math.round(performance.now() - attemptStartedAt));
@@ -206,6 +242,12 @@ export function observeStreamUsage(
 			ttftMs,
 			completed: completed && !failed,
 			cancelled,
+			emptyOutput:
+				protocol === "openai" &&
+				completed &&
+				!failed &&
+				!hasOutput &&
+				!cancelled,
 		};
 		try {
 			await onComplete(result);
@@ -219,7 +261,7 @@ export function observeStreamUsage(
 			try {
 				const next = reader.read();
 				const idle = Promise.withResolvers<never>();
-				// Idle timeout for both protocols: the 120 s upstream timeout
+				// Idle timeout for both protocols: the attempt timeout
 				// only covers time to first byte, so a stalled mid-stream
 				// would otherwise hang the consumer forever.
 				const timer = setTimeout(

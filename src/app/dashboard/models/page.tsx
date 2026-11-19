@@ -72,7 +72,8 @@ export default function DashboardModelsPage() {
 					model.id.toLowerCase().includes(query) ||
 					model.name.toLowerCase().includes(query) ||
 					model.platform.toLowerCase().includes(query) ||
-					providerNames(model.platform).toLowerCase().includes(query)
+					providerNames(model.platform).toLowerCase().includes(query) ||
+					(model.suspectReason ?? "").toLowerCase().includes(query)
 				);
 			}) ?? [],
 		[models, searchQuery, providerNames],
@@ -224,6 +225,11 @@ export default function DashboardModelsPage() {
 										<div className="text-xs text-muted-foreground">
 											{model.id}
 										</div>
+										{model.suspectReason && (
+											<div className="text-xs font-medium text-amber-600 dark:text-amber-400">
+												Suspect: {model.suspectReason}
+											</div>
+										)}
 									</td>
 									<td className="px-4 py-3 text-right text-muted-foreground">
 										{providerNames(model.platform)}
