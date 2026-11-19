@@ -220,6 +220,73 @@ test("upstream exhaustion returns the failed attempts in the result log", async 
 	}
 });
 
+test("upstream exhaustion logs route_exhausted with the full attempt log", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedDb(db);
+		fetchImpl = async () =>
+			new Response("internal upstream detail", { status: 500 });
+		const errors: unknown[] = [];
+		const originalError = console.error;
+		console.error = (...args: unknown[]) => {
+			errors.push(args[0]);
+		};
+		try {
+			const result = await routeChatCompletion({
+				db,
+				secret: SECRET,
+				user: USER,
+				request: {
+					model: "groq/model-a",
+					messages: [{ role: "user", content: "distinct-prompt-phrase" }],
+				},
+			});
+			expect(result.response.status).toBe(502);
+		} finally {
+			console.error = originalError;
+		}
+		expect(errors).toHaveLength(1);
+		const log = JSON.parse(String(errors[0])) as {
+			event: string;
+			model: string;
+			attempts: number;
+			attemptLog: Record<string, unknown>[];
+		};
+		expect(Object.keys(log).sort()).toEqual([
+			"attemptLog",
+			"attempts",
+			"event",
+			"model",
+		]);
+		expect(log.event).toBe("route_exhausted");
+		expect(log.model).toBe("groq/model-a");
+		expect(log.attempts).toBe(1);
+		expect(log.attemptLog).toHaveLength(1);
+		expect(Object.keys(log.attemptLog[0]).sort()).toEqual([
+			"kind",
+			"latencyMs",
+			"modelId",
+			"phase",
+			"platform",
+			"status",
+		]);
+		expect(log.attemptLog[0]).toMatchObject({
+			platform: "groq",
+			modelId: "model-a",
+			status: 500,
+			kind: "server",
+			phase: "member",
+		});
+		expect(log.attemptLog[0].latencyMs).toBeGreaterThanOrEqual(0);
+		// The log carries only the six attempt fields: no upstream body,
+		// prompt, or key material.
+		expect(JSON.stringify(errors)).not.toContain("internal upstream detail");
+		expect(JSON.stringify(errors)).not.toContain("distinct-prompt-phrase");
+	} finally {
+		db.close();
+	}
+});
+
 test("upstream 400 on a direct model returns 502 instead of serving a different model", async () => {
 	const db = await createParityDatabase();
 	try {

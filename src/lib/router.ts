@@ -1279,7 +1279,12 @@ export async function routeChatCompletion(args: {
 			attemptLog,
 		};
 	console.error(
-		JSON.stringify({ event: "route_exhausted", model: requested, attempts }),
+		JSON.stringify({
+			event: "route_exhausted",
+			model: requested,
+			attempts,
+			attemptLog,
+		}),
 	);
 	const response = new Response(
 		JSON.stringify({
