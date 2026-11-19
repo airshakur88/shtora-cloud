@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Combobox,
@@ -134,6 +135,7 @@ export default function PlaygroundPage() {
 	const [renaming, setRenaming] = useState(false);
 	const [sessionName, setSessionName] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [deleteTarget, setDeleteTarget] = useState<SessionSummary | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const operation = useRef<AbortController | null>(null);
@@ -359,6 +361,12 @@ export default function PlaygroundPage() {
 			if (!controller.signal.aborted) setBusy(false);
 			operation.current = null;
 		}
+	}
+
+	function confirmDeleteSession() {
+		const target = deleteTarget;
+		setDeleteTarget(null);
+		if (target) void mutateSession("DELETE", target);
 	}
 
 	async function copySessionId() {
@@ -697,14 +705,7 @@ export default function PlaygroundPage() {
 															Rename
 														</DropdownMenuItem>
 														<DropdownMenuItem
-															onClick={() => {
-																if (
-																	window.confirm(
-																		`Delete “${session.name}”? This cannot be undone.`,
-																	)
-																)
-																	void mutateSession("DELETE", session);
-															}}
+															onClick={() => setDeleteTarget(session)}
 															variant="destructive"
 														>
 															<Trash2 aria-hidden="true" className="size-4" />
@@ -829,14 +830,7 @@ export default function PlaygroundPage() {
 													aria-label="Delete session"
 													title="Delete session"
 													disabled={locked}
-													onClick={() => {
-														if (
-															window.confirm(
-																`Delete “${activeSession.name}”? This cannot be undone.`,
-															)
-														)
-															void mutateSession("DELETE", activeSession);
-													}}
+													onClick={() => setDeleteTarget(activeSession)}
 												>
 													<Trash2 className="size-4" aria-hidden="true" />
 												</Button>
@@ -1145,6 +1139,17 @@ export default function PlaygroundPage() {
 					</section>
 				</div>
 			</div>
+			<ConfirmDialog
+				open={deleteTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) setDeleteTarget(null);
+				}}
+				title={
+					deleteTarget ? `Delete “${deleteTarget.name}”?` : "Delete session"
+				}
+				description="This cannot be undone."
+				onConfirm={confirmDeleteSession}
+			/>
 		</div>
 	);
 }

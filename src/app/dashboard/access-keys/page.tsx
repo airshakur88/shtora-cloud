@@ -2,6 +2,7 @@
 
 import { Copy, LoaderCircle, MoreVertical, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -44,6 +45,7 @@ export default function DashboardAccessKeysPage() {
 	const [form, setForm] = useState({ ...emptyForm });
 	const [formOpen, setFormOpen] = useState(false);
 	const [busyId, setBusyId] = useState<number | null>(null);
+	const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [newKeyModal, setNewKeyModal] = useState<{
 		open: boolean;
@@ -143,8 +145,6 @@ export default function DashboardAccessKeysPage() {
 	}
 
 	async function handleDelete(id: number) {
-		if (!confirm("Delete this access key? This action cannot be undone."))
-			return;
 		setBusyId(id);
 		try {
 			const response = await fetch(`/api/access-keys/${id}`, {
@@ -167,6 +167,12 @@ export default function DashboardAccessKeysPage() {
 		} finally {
 			setBusyId(null);
 		}
+	}
+
+	function confirmDelete() {
+		const id = deleteTarget;
+		setDeleteTarget(null);
+		if (id !== null) void handleDelete(id);
 	}
 
 	async function handleToggle(id: number, enabled: boolean) {
@@ -397,7 +403,7 @@ export default function DashboardAccessKeysPage() {
 											{key.enabled ? "Disable" : "Enable"}
 										</DropdownMenuItem>
 										<DropdownMenuItem
-											onClick={() => handleDelete(key.id)}
+											onClick={() => setDeleteTarget(key.id)}
 											disabled={busyId === key.id}
 											className="text-destructive focus:text-destructive"
 										>
@@ -411,6 +417,15 @@ export default function DashboardAccessKeysPage() {
 					))}
 				</div>
 			)}
+			<ConfirmDialog
+				open={deleteTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) setDeleteTarget(null);
+				}}
+				title="Delete access key?"
+				description="This action cannot be undone."
+				onConfirm={confirmDelete}
+			/>
 		</div>
 	);
 }

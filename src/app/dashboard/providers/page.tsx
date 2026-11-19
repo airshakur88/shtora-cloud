@@ -8,6 +8,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Combobox,
@@ -136,6 +137,7 @@ export default function DashboardProvidersPage() {
 	});
 	const [formOpen, setFormOpen] = useState(false);
 	const [busyId, setBusyId] = useState<number | null>(null);
+	const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [activeTab, setActiveTab] = useState<"overview" | "keys">("overview");
 	const [search, setSearch] = useState("");
@@ -303,8 +305,6 @@ export default function DashboardProvidersPage() {
 	}
 
 	async function handleDeleteKey(id: number) {
-		if (!confirm("Delete this provider key? This action cannot be undone."))
-			return;
 		setBusyId(id);
 		setActionError(null);
 		try {
@@ -323,6 +323,12 @@ export default function DashboardProvidersPage() {
 		} finally {
 			setBusyId(null);
 		}
+	}
+
+	function confirmDelete() {
+		const id = deleteTarget;
+		setDeleteTarget(null);
+		if (id !== null) void handleDeleteKey(id);
 	}
 
 	async function handleToggleKey(id: number, enabled: boolean) {
@@ -1038,9 +1044,7 @@ export default function DashboardProvidersPage() {
 																				: "Enable API key"}
 																		</DropdownMenuItem>
 																		<DropdownMenuItem
-																			onClick={() =>
-																				void handleDeleteKey(key.id)
-																			}
+																			onClick={() => setDeleteTarget(key.id)}
 																			variant="destructive"
 																		>
 																			<Trash2
@@ -1063,6 +1067,15 @@ export default function DashboardProvidersPage() {
 						)}
 					</div>
 				</TabsContent>
+				<ConfirmDialog
+					open={deleteTarget !== null}
+					onOpenChange={(open) => {
+						if (!open) setDeleteTarget(null);
+					}}
+					title="Delete provider key?"
+					description="This action cannot be undone."
+					onConfirm={confirmDelete}
+				/>
 			</Tabs>
 		</div>
 	);
