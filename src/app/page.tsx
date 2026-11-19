@@ -18,6 +18,7 @@ import {
 	RequestLayers,
 } from "@/components/landing-experience";
 import { LandingNav } from "@/components/landing-nav";
+import { Logo } from "@/components/logo";
 import { FaqDepthGutter } from "@/components/ns-ui/faq-answer-depth-gutter";
 import { getDb } from "@/lib/env";
 import { getCurrentSessionUser } from "@/lib/session";
@@ -214,12 +215,7 @@ export default async function HomePage() {
 					className={`inline-flex items-center gap-[10px] text-[22px] font-[650] tracking-[-1px] hover:text-[#e3ab88] max-[480px]:text-[20px] ${FOCUS_VISIBLE}`}
 					aria-label="Shtora Cloud, início"
 				>
-					<span
-						className="inline-flex h-[34px] w-8 items-center justify-center border border-[#675243] font-[Georgia,serif] text-[28px] font-bold text-[#e3ab88] italic"
-						aria-hidden="true"
-					>
-						s.
-					</span>
+					<Logo decorative className="h-[34px] w-[34px]" />
 				</Link>
 				<nav
 					aria-label="Navegação principal"
@@ -416,13 +412,8 @@ export default async function HomePage() {
 							</div>
 							<div className="border-l border-[#514134] bg-[#211c174d] px-[18px] py-5 max-[1100px]:px-[14px] max-[1100px]:py-[18px] max-[480px]:border-t max-[480px]:border-l-0 max-[480px]:p-[18px]">
 								<h3 className="m-0 mb-[18px] flex min-h-[30px] items-center gap-[10px] text-[14.5px] font-medium text-[#e3ab88]">
-									<span
-										className="inline-flex h-[26px] w-[23px] items-center justify-center border border-[#675243] font-[Georgia,serif] text-[24px] font-bold text-[#e3ab88] italic"
-										aria-hidden="true"
-									>
-										s.
-									</span>{" "}
-									Com Shtora Cloud
+									<Logo decorative className="h-[26px] w-[26px]" /> Com Shtora
+									Cloud
 								</h3>
 								<ul className="m-0 grid list-none gap-[14px] p-0 text-[13.5px] text-[#aaa6a1]">
 									{[
@@ -559,12 +550,7 @@ export default async function HomePage() {
 					href="/"
 					className={`inline-flex items-center gap-[10px] text-[17px] font-[650] tracking-[-1px] hover:text-[#e3ab88] ${FOCUS_VISIBLE}`}
 				>
-					<span
-						className="inline-flex h-[34px] w-8 items-center justify-center border border-[#675243] font-[Georgia,serif] text-[28px] font-bold text-[#e3ab88] italic"
-						aria-hidden="true"
-					>
-						s.
-					</span>
+					<Logo decorative className="h-[34px] w-[34px]" />
 					<span>shtora</span>
 				</Link>
 				<p className="m-0 text-[13px] text-[#94918d] max-[480px]:order-3 max-[480px]:m-0 max-[480px]:w-full">

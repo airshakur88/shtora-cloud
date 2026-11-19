@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 	description:
 		"Reúna modelos gratuitos de vários provedores de IA em um só lugar: APIs compatíveis com OpenAI e Anthropic, failover automático entre provedores e provedores sem chave.",
 	alternates: { canonical: "/" },
+	icons: { icon: "/favicon.svg" },
 	openGraph: {
 		url: "https://shtora.cloud",
 		siteName: "Shtora Cloud",

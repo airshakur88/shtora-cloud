@@ -207,6 +207,61 @@ test("usage windows read the same minute and day windows the enforcer uses", asy
 	expect(await getKeyUsageWindows(db, [])).toEqual([]);
 });
 
+test("usage windows include the previous day in the first minute after UTC midnight", async () => {
+	const key = await createApiKey(
+		db,
+		{
+			userId: USER_ID,
+			platform: "groq",
+			rawKey: "gsk-windows-midnight",
+			keyLabel: null,
+			baseUrl: null,
+			rpmLimit: null,
+			tpmLimit: null,
+			rpdLimit: null,
+			tpdLimit: null,
+		},
+		SECRET,
+	);
+	const now = Date.now();
+	const dayStart = Date.UTC(
+		new Date(now).getUTCFullYear(),
+		new Date(now).getUTCMonth(),
+		new Date(now).getUTCDate(),
+	);
+	// 30 seconds after UTC midnight: the sliding minute window still
+	// reaches 45 seconds back, into the previous day.
+	const midnightNow = dayStart + 30_000;
+	// Previous day, inside the minute window but outside the day window.
+	await insertUsageRow(
+		key.id,
+		"model-a",
+		"request",
+		null,
+		midnightNow - 45_000,
+	);
+	await insertUsageRow(key.id, "model-a", "tokens", 100, midnightNow - 45_000);
+	// Today, inside both windows.
+	await insertUsageRow(
+		key.id,
+		"model-b",
+		"request",
+		null,
+		midnightNow - 10_000,
+	);
+	await insertUsageRow(key.id, "model-b", "tokens", 40, midnightNow - 10_000);
+
+	const windows = await getKeyUsageWindows(db, [key.id], midnightNow);
+	expect(windows).toHaveLength(1);
+	expect(windows[0]).toEqual({
+		keyId: key.id,
+		requestsMinute: 2,
+		tokensMinute: 140,
+		requestsDay: 1,
+		tokensDay: 40,
+	});
+});
+
 async function insertRequestRow(input: {
 	userId: string;
 	keyId: number;

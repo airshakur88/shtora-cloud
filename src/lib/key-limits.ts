@@ -141,10 +141,13 @@ export async function getKeyUsageWindows(
 	if (keyIds.length === 0) return [];
 	const { minuteStart, dayStart } = getRateLimitWindowStarts(now);
 	const placeholders = keyIds.map(() => "?").join(", ");
-	// Both windows live inside today, so rows older than dayStart can
-	// never count: bounding the scan to today keeps the query from
-	// walking the whole table as usage accumulates (the cleanup index
-	// on created_at_ms can serve the bound).
+	// Both windows live inside today, except for the first minute after
+	// UTC midnight: the minute window slides, so it can still reach rows
+	// from the previous day, and the enforcer counts those rows. The
+	// scan bound is therefore the earlier of the two starts, which keeps
+	// the query from walking the whole table as usage accumulates (the
+	// cleanup index on created_at_ms can serve the bound).
+	const scanStart = Math.min(dayStart, minuteStart);
 	const result = await db
 		.prepare(
 			`SELECT key_id AS keyId,
@@ -155,7 +158,7 @@ export async function getKeyUsageWindows(
 			 FROM provider_rate_limit_usage WHERE key_id IN (${placeholders}) AND created_at_ms >= ?
 			 GROUP BY key_id`,
 		)
-		.bind(minuteStart, minuteStart, dayStart, dayStart, ...keyIds, dayStart)
+		.bind(minuteStart, minuteStart, dayStart, dayStart, ...keyIds, scanStart)
 		.all<KeyUsageWindow>();
 	return result.results;
 }

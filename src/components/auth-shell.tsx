@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AuthBackground } from "@/components/auth-background";
+import { Logo } from "@/components/logo";
 
 interface AuthShellProps {
 	title: string;
@@ -25,12 +26,7 @@ export function AuthShell({
 					className="absolute left-10 top-10 z-10 flex items-center gap-2.5 text-[22px] font-semibold tracking-tight"
 					aria-label="Shtora Cloud, início"
 				>
-					<span
-						className="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground"
-						aria-hidden="true"
-					>
-						s.
-					</span>
+					<Logo decorative className="size-8" />
 					<span>shtora</span>
 				</Link>
 				<div className="absolute bottom-10 left-10 z-10">

@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,7 +74,16 @@ export function DashboardShell({
 	return (
 		<SidebarProvider className="flex min-h-screen bg-background">
 			<Sidebar collapsible="icon">
-				<SidebarHeader />
+				<SidebarHeader>
+					<Link
+						href="/dashboard"
+						className="flex items-center gap-2.5 px-2 py-1 text-[17px] font-semibold tracking-tight"
+						aria-label="Shtora Cloud, painel"
+					>
+						<Logo decorative className="size-8 shrink-0" />
+						<span className="group-data-[collapsible=icon]:hidden">shtora</span>
+					</Link>
+				</SidebarHeader>
 				<SidebarRail />
 				<SidebarContent className="flex flex-col">
 					<SidebarGroup>
