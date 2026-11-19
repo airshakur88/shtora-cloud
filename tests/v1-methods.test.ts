@@ -222,16 +222,9 @@ test("GET /v1/models lists virtual routers before ordinary models", async () => 
 	]);
 	expect(body.has_more).toBe(false);
 
-	// Pagination counts routers in the page: limit=2 returns only routers.
-	const firstPage = await getModels(token, "?limit=2");
-	expect(firstPage.data.map((model) => model.id)).toEqual([
-		"shtora/auto",
-		"shtora/coding",
-	]);
-	expect(firstPage.has_more).toBe(true);
-
-	// Offset past the routers returns ordinary models only.
-	const rest = await getModels(token, "?limit=100&offset=5");
-	expect(rest.data.map((model) => model.id)).toEqual(ids.slice(5));
-	expect(rest.has_more).toBe(false);
+	// No pagination: limit/offset query params are ignored and the whole
+	// listing comes back in one response, with has_more false.
+	const withParams = await getModels(token, "?limit=2&offset=5");
+	expect(withParams.data.map((model) => model.id)).toEqual(ids);
+	expect(withParams.has_more).toBe(false);
 });

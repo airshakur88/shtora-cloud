@@ -1,10 +1,9 @@
 // Shared helpers for the public /v1 and /api/v1 route handlers: wrong-method
 // (405) and preflight (OPTIONS) responses, the canonical OpenAI error
-// envelope, the shared model listing, and its pagination.
+// envelope, and the shared model listing.
 //
-// The two families (/v1 and /api/v1) share this listing, the invalid-body
-// envelope and the pagination rules below, plus one credential. What still
-// differs, and why:
+// The two families (/v1 and /api/v1) share this listing and the invalid-body
+// envelope, plus one credential. What still differs, and why:
 //
 // - Authentication: /v1 and /api/v1 accept the same credential, the
 //   `ska-...` API key (see authenticateAccessKey). One API key authenticates
@@ -27,10 +26,10 @@
 //   they answer with anthropicError, `{ type: "error", error: { type,
 //   message }, request_id }`, because that is the shape Anthropic clients
 //   parse.
-// - Pagination: the OpenAI lists use limit/offset, default 100, max 500,
-//   the same clamping rule as GET /api/usage. The native Anthropic branch
-//   keeps its own cursor pagination (after_id/before_id, default 20, max
-//   1000) because that is the Anthropic protocol.
+// - Listing: the OpenAI lists return every model in one response, with
+//   `has_more: false` — no pagination. The native Anthropic branch keeps
+//   its own cursor pagination (after_id/before_id, default 20, max 1000)
+//   because that is the Anthropic protocol.
 import { anthropicError } from "./inference-http";
 import {
 	canonicalModelId,
@@ -164,42 +163,12 @@ export function openAiError(
 	return Response.json({ error: { message, type } }, { status });
 }
 
-export const MODELS_PAGE_LIMIT_DEFAULT = 100;
-export const MODELS_PAGE_LIMIT_MAX = 500;
-
-/**
- * limit/offset pagination for the OpenAI model lists, with the same
- * clamping rule as GET /api/usage: default 100, max 500, and any missing,
- * non-integer or non-positive value falls back to the default (offset falls
- * back to 0). Invalid values are clamped, never rejected, so callers that
- * pass no parameters keep getting the plain `{ object: "list", data }`
- * shape, now with a `has_more` flag.
- */
-export function parseModelsPagination(searchParams: URLSearchParams): {
-	limit: number;
-	offset: number;
-} {
-	const rawLimit = Number(searchParams.get("limit") ?? "100");
-	const limit =
-		Number.isInteger(rawLimit) && rawLimit > 0
-			? Math.min(rawLimit, MODELS_PAGE_LIMIT_MAX)
-			: MODELS_PAGE_LIMIT_DEFAULT;
-	const rawOffset = Number(searchParams.get("offset") ?? "0");
-	const offset = Number.isInteger(rawOffset) && rawOffset > 0 ? rawOffset : 0;
-	return { limit, offset };
-}
-
 export interface ModelListEntry {
 	id: string;
 	name: string;
 	providers: string[];
 	description?: string;
 	members?: string[];
-}
-
-export interface ModelListPage {
-	entries: ModelListEntry[];
-	hasMore: boolean;
 }
 
 /**
@@ -212,12 +181,15 @@ export interface ModelListPage {
  * Deliberately not restricted to `platform IN (SELECT id FROM providers)`:
  * direct rows such as the Anthropic models from migration 0005 are
  * listable here as soon as a key for their platform is enabled.
+ *
+ * No pagination: the whole listing comes back in one response. The catalog
+ * is a few hundred entries, so one response stays small, and callers that
+ * used to take only the first page (the old default was 100) now see every
+ * model without paging.
  */
 export async function buildModelList(
 	db: D1Database,
-	limit: number,
-	offset: number,
-): Promise<ModelListPage> {
+): Promise<ModelListEntry[]> {
 	const [modelRows, enabledRows, providerRows] = await Promise.all([
 		db
 			.prepare(
@@ -264,9 +236,8 @@ export async function buildModelList(
 		}
 	}
 	// Curated virtual routers head the listing: they are the curated entry
-	// points, so they come before the ordinary models. Pagination slices
-	// this combined order, so routers count in the page like any entry.
-	// A router with no member here is skipped.
+	// points, so they come before the ordinary models. A router with no
+	// member here is skipped.
 	const providersByCanonical = new Map<string, readonly string[]>(
 		[...byCanonical.entries()].map(([canonical, entry]) => [
 			canonical,
@@ -291,11 +262,5 @@ export async function buildModelList(
 			members,
 		});
 	}
-	const entries: ModelListEntry[] = [...routerEntries, ...byCanonical.values()];
-	const total = entries.length;
-	const page = entries.slice(offset, offset + limit);
-	return {
-		entries: page,
-		hasMore: offset + page.length < total,
-	};
+	return [...routerEntries, ...byCanonical.values()];
 }

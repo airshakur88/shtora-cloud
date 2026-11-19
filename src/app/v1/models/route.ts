@@ -7,7 +7,6 @@ import {
 	openAiError,
 	openAiMethodNotAllowed,
 	optionsResponse,
-	parseModelsPagination,
 } from "@/lib/v1-http";
 
 function unauthorized(): Response {
@@ -72,14 +71,11 @@ export async function GET(request: Request): Promise<Response> {
 			return unauthorized();
 		}
 		await updateAccessKeyLastUsed(db, record.id);
-		const { limit, offset } = parseModelsPagination(
-			new URL(request.url).searchParams,
-		);
-		const page = await buildModelList(db, limit, offset);
+		const entries = await buildModelList(db);
 		return Response.json({
 			object: "list",
-			data: page.entries.map(toModelEntry),
-			has_more: page.hasMore,
+			data: entries.map(toModelEntry),
+			has_more: false,
 		});
 	} catch {
 		return openAiError("Internal error", "server_error", 500);

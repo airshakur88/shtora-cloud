@@ -10,12 +10,11 @@ import {
 	openAiError,
 	openAiMethodNotAllowed,
 	optionsResponse,
-	parseModelsPagination,
 } from "@/lib/v1-http";
 
 // /api/v1 entry shape: `created` is now and entries carry
 // `permission`/`root`/`parent`, unlike /v1. Kept as-is for contract
-// compatibility; see v1-http.ts. Scope, listing and pagination are shared
+// compatibility; see v1-http.ts. Scope and listing are shared
 // with GET /v1/models (buildModelList).
 interface ModelEntry {
 	id: string;
@@ -61,14 +60,11 @@ export async function GET(request: Request): Promise<Response> {
 
 	try {
 		const db = getDb();
-		const { limit, offset } = parseModelsPagination(
-			new URL(request.url).searchParams,
-		);
-		const page = await buildModelList(db, limit, offset);
+		const entries = await buildModelList(db);
 		return Response.json({
 			object: "list",
-			data: page.entries.map(toModelEntry),
-			has_more: page.hasMore,
+			data: entries.map(toModelEntry),
+			has_more: false,
 		});
 	} catch {
 		return openAiError("Internal error", "server_error", 500);
