@@ -232,7 +232,20 @@ export async function getApiKeyOwnerByToken(
 	db: D1Database,
 	unifiedToken: string,
 ): Promise<string | null> {
-	if (!TOKEN_PATTERN.test(unifiedToken)) return null;
+	if (!TOKEN_PATTERN.test(unifiedToken)) {
+		// Diagnostic only: never log the token itself. The prefix flags
+		// distinguish the common cases in the Worker logs (a ska- access
+		// key sent to /v1, a flmr- token with extra characters, or an
+		// unrelated credential), and the length catches truncation.
+		console.warn({
+			event: "v1_auth_failed",
+			reason: "token_pattern_mismatch",
+			isFlmr: unifiedToken.startsWith("flmr-"),
+			isSka: unifiedToken.startsWith("ska-"),
+			length: unifiedToken.length,
+		});
+		return null;
+	}
 	const tokenHash = await sha256Hex(unifiedToken);
 	const row = await db
 		.prepare(
@@ -247,7 +260,22 @@ export async function getApiKeyOwnerByToken(
 		)
 		.bind(unifiedToken)
 		.first<{ id: number; user_id: string }>();
-	if (!legacy) return null;
+	if (!legacy) {
+		// The lookups above only match enabled rows, so a miss here can
+		// also mean the token exists but its key is disabled. One extra
+		// lookup, only on this cold failure path, tells the two apart.
+		// (The unified_token column holds the SHA-256 hash for current
+		// rows; pre-hash rows still hold plaintext and miss this check.)
+		const existing = await db
+			.prepare("SELECT id FROM api_keys WHERE unified_token = ?")
+			.bind(tokenHash)
+			.first<{ id: number }>();
+		console.warn({
+			event: "v1_auth_failed",
+			reason: existing ? "key_disabled" : "unknown_token",
+		});
+		return null;
+	}
 	try {
 		await db
 			.prepare("UPDATE api_keys SET unified_token = ? WHERE id = ?")

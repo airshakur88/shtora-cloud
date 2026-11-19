@@ -90,6 +90,73 @@ test("provider API keys are encrypted and unified tokens resolve to their owner"
 		db.close();
 	}
 });
+
+test("failed unified-token lookups log a diagnosable reason without the token", async () => {
+	const db = await createParityDatabase();
+	try {
+		await db
+			.prepare(
+				"INSERT INTO user (id, name, username, password_hash) VALUES (?, ?, ?, ?)",
+			)
+			.bind("u1", "Test User", "testuser", "hash")
+			.run();
+		const created = await createApiKey(
+			db,
+			{
+				userId: "u1",
+				platform: "groq",
+				keyLabel: "primary",
+				rawKey: "sk-upstream-secret-987654",
+			},
+			SECRET,
+		);
+		const token = created.unifiedToken as string;
+		const warnings: unknown[] = [];
+		const originalWarn = console.warn;
+		console.warn = (...args: unknown[]) => {
+			warnings.push(args[0]);
+		};
+		try {
+			expect(await getApiKeyOwnerByToken(db, "ska-0123456789abcdef")).toBe(
+				null,
+			);
+			expect(
+				await getApiKeyOwnerByToken(
+					db,
+					"flmr-11111111-2222-3333-4444-555555555555",
+				),
+			).toBe(null);
+			await setApiKeyEnabled(db, created.id, "u1", false);
+			expect(await getApiKeyOwnerByToken(db, token)).toBe(null);
+		} finally {
+			console.warn = originalWarn;
+		}
+		expect(warnings).toHaveLength(3);
+		expect(warnings[0]).toMatchObject({
+			event: "v1_auth_failed",
+			reason: "token_pattern_mismatch",
+			isFlmr: false,
+			isSka: true,
+		});
+		expect(warnings[1]).toMatchObject({
+			event: "v1_auth_failed",
+			reason: "unknown_token",
+		});
+		expect(warnings[2]).toMatchObject({
+			event: "v1_auth_failed",
+			reason: "key_disabled",
+		});
+		// The token itself never reaches the logs.
+		expect(JSON.stringify(warnings)).not.toContain("ska-0123456789abcdef");
+		expect(JSON.stringify(warnings)).not.toContain(
+			"flmr-11111111-2222-3333-4444-555555555555",
+		);
+		expect(JSON.stringify(warnings)).not.toContain(token);
+	} finally {
+		db.close();
+	}
+});
+
 test("legacy plaintext unified tokens authenticate and are re-hashed on first use", async () => {
 	const db = await createParityDatabase();
 	try {
