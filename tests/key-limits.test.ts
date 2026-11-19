@@ -7,7 +7,7 @@ import {
 	parseOptionalLimit,
 	withEffectiveLimits,
 } from "../src/lib/key-limits";
-import { createApiKey, sha256Hex } from "../src/lib/key-store";
+import { createApiKey } from "../src/lib/key-store";
 import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
 
@@ -577,15 +577,9 @@ test("GET /api/keys/usage stays 200 when one of the user's keys cannot be decryp
 	const corruptId = (
 		await db
 			.prepare(
-				"INSERT INTO api_keys (user_id, platform, key_label, encrypted_key, iv, auth_tag, enabled, unified_token) VALUES (?, 'groq', 'corrupt', ?, ?, ?, 1, ?) RETURNING id",
+				"INSERT INTO api_keys (user_id, platform, key_label, encrypted_key, iv, auth_tag, enabled) VALUES (?, 'groq', 'corrupt', ?, ?, ?, 1) RETURNING id",
 			)
-			.bind(
-				USER_ID,
-				tampered,
-				encrypted.iv,
-				encrypted.authTag,
-				await sha256Hex("flmr-cccccccc-1111-2222-3333-444444444444"),
-			)
+			.bind(USER_ID, tampered, encrypted.iv, encrypted.authTag)
 			.all<{ id: number }>()
 	).results[0].id;
 	const now = Date.now();

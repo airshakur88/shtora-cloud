@@ -8,7 +8,8 @@ import {
 	test,
 } from "bun:test";
 import { readFileSync } from "node:fs";
-import { createApiKey, sha256Hex } from "../src/lib/key-store";
+import { createAccessKey } from "../src/lib/access-keys";
+import { createApiKey } from "../src/lib/key-store";
 import {
 	canMakeRequest,
 	finalizeUsage,
@@ -32,6 +33,7 @@ interface NativeReply {
 const SECRET = "native-contract-secret-0123456789-abcdefghijklmnopqrstuvwxyz";
 let db: MemoryD1;
 let token = "";
+let providerKeyId = 0;
 const originalFetch = globalThis.fetch;
 mock.module("../src/lib/env", () => ({
 	getDb: () => db,
@@ -71,12 +73,14 @@ beforeEach(async () => {
 			"INSERT INTO models (platform,model_id,name,context_window,supports_tools,supports_vision) VALUES ('groq','common-model','Common',32000,1,1)",
 		)
 		.run();
-	const key = await createApiKey(
-		db,
-		{ userId: "native-user", platform: "groq", rawKey: "groq-upstream" },
-		SECRET,
-	);
-	token = key.unifiedToken as string;
+	providerKeyId = (
+		await createApiKey(
+			db,
+			{ userId: "native-user", platform: "groq", rawKey: "groq-upstream" },
+			SECRET,
+		)
+	).id;
+	token = (await createAccessKey(db, "native-user", { name: "native" })).apiKey;
 });
 afterEach(() => {
 	globalThis.fetch = originalFetch;
@@ -534,11 +538,7 @@ test("observer cancellation finalizes once and never claims successful TTFT", as
 });
 
 test("original token receipt survives reset and cannot modify concurrent reservations", async () => {
-	const key = await db
-		.prepare("SELECT id FROM api_keys WHERE unified_token = ?")
-		.bind(await sha256Hex(token))
-		.first<{ id: number }>();
-	if (!key) throw new Error("Missing key");
+	const key = { id: providerKeyId };
 	const clock = spyOn(Date, "now").mockReturnValue(
 		Date.parse("2026-11-13T23:59:59Z"),
 	);

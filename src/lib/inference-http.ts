@@ -1,5 +1,5 @@
+import { updateAccessKeyLastUsed, validateAccessKey } from "./access-keys";
 import { MAX_BODY_BYTES } from "./chat-request";
-import { getApiKeyOwnerByToken } from "./key-store";
 import type { AppUser, AppUserRecord, D1Database } from "./types";
 
 export class InferenceHttpError extends Error {
@@ -97,8 +97,21 @@ export async function getInferenceUser(
 		throw invalid();
 	const token = bearer || apiKey;
 	if (!token || token.length > 256) throw invalid();
-	const userId = await getApiKeyOwnerByToken(db, token);
-	if (!userId) throw invalid();
+	if (!token.startsWith("ska-")) {
+		console.warn({
+			event: "v1_auth_failed",
+			reason: "not_an_api_key",
+			length: token.length,
+		});
+		throw invalid();
+	}
+	const record = await validateAccessKey(db, token);
+	if (!record) {
+		console.warn({ event: "v1_auth_failed", reason: "invalid_api_key" });
+		throw invalid();
+	}
+	await updateAccessKeyLastUsed(db, record.id);
+	const userId = record.user_id;
 	const row = await db
 		.prepare(
 			"SELECT id, name, username, role, password_hash, created_at, updated_at FROM user WHERE id = ?",

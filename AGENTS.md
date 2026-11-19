@@ -56,7 +56,7 @@ Workers (vinext). Ele reúne os modelos gratuitos de vários provedores upstream
 (no catálogo atual: modelos `:free` e provedores keyless como OVH, AI Horde e
 Kilo) atrás de uma única conta. O usuário se registra com usuário e senha, guarda
 as chaves dos provedores em `/api/keys` (criptografadas em repouso com
-`ENCRYPTION_SECRET`) e recebe um token unificado, que autentica os endpoints
+`ENCRYPTION_SECRET`) e recebe uma API key, que autentica os endpoints
 públicos compatíveis com OpenAI (`/v1/chat/completions`) e Anthropic
 (`/v1/messages`, `/v1/messages/count_tokens`, `/v1/models`) via
 `Authorization: Bearer <token>` ou `x-api-key`.

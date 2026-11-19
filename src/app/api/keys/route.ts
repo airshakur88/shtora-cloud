@@ -175,10 +175,7 @@ export async function POST(request: Request): Promise<Response> {
 			tpdLimit,
 		};
 		const key = await createApiKey(getDb(), input, getEncryptionSecret());
-		return Response.json(
-			{ key, unifiedToken: key.unifiedToken },
-			{ status: 201 },
-		);
+		return Response.json({ key }, { status: 201 });
 	} catch (error) {
 		return routeError(error, "/api/keys");
 	}

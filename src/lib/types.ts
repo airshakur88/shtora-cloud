@@ -67,7 +67,6 @@ export interface ApiKey {
 	enabled: number;
 	lastHealthCheckStatus: HealthStatus | null;
 	lastHealthCheckAt: string | null;
-	unifiedToken: string;
 	createdAt: string;
 	updatedAt: string;
 	rpmLimit: number | null;
@@ -98,7 +97,6 @@ export interface ApiKeyRecord {
 	updated_at: string;
 	last_health_check_at: string | null;
 	last_health_check_status: string | null;
-	unified_token: string;
 }
 
 export interface CreateApiKeyRequest {
@@ -119,12 +117,6 @@ export interface ApiKeyResponse {
 	enabled: boolean;
 	lastHealthCheckAt: string | null;
 	lastHealthCheckStatus: string | null;
-	/**
-	 * Present only on creation (POST /api/keys) and rotation
-	 * (POST /api/keys/[id]/rotate), returned once. List/detail responses
-	 * never include it: only the SHA-256 hash is stored.
-	 */
-	unifiedToken?: string;
 	createdAt: string;
 	maskedKey: string;
 	/** Limits stored on the key (null: not set on the row). */

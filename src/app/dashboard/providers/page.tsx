@@ -50,9 +50,7 @@ function isKeyResponse(value: unknown): value is ApiKeyResponse {
 		"id" in value &&
 		typeof value.id === "number" &&
 		"platform" in value &&
-		typeof value.platform === "string" &&
-		"unifiedToken" in value &&
-		typeof value.unifiedToken === "string"
+		typeof value.platform === "string"
 	);
 }
 
@@ -278,16 +276,9 @@ export default function DashboardProvidersPage() {
 				);
 				return;
 			}
-			if (
-				!result ||
-				typeof result !== "object" ||
-				!("unifiedToken" in result) ||
-				typeof result.unifiedToken !== "string"
-			)
-				throw new Error("Invalid provider key response.");
 			toast.add({
-				title: "Token created",
-				description: "Copy your unified token from the table below.",
+				title: "Provider key added",
+				description: "The provider key is now in the list.",
 				type: "success",
 			});
 			setForm({ ...emptyForm, platform: providersCatalog[0]?.id ?? "google" });

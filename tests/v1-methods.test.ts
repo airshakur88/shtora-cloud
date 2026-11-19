@@ -1,4 +1,5 @@
 import { expect, mock, test } from "bun:test";
+import { createAccessKey } from "../src/lib/access-keys";
 import { createApiKey } from "../src/lib/key-store";
 import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
@@ -185,7 +186,7 @@ test("GET /v1/models lists virtual routers before ordinary models", async () => 
 			.bind(modelId, name)
 			.run();
 	}
-	const key = await createApiKey(
+	await createApiKey(
 		db,
 		{
 			userId: "u1",
@@ -195,8 +196,9 @@ test("GET /v1/models lists virtual routers before ordinary models", async () => 
 		},
 		SECRET,
 	);
-	if (!key.unifiedToken) throw new Error("createApiKey did not return a token");
-	const token = key.unifiedToken;
+	const { apiKey: token } = await createAccessKey(db, "u1", {
+		name: "models-order",
+	});
 
 	// Routers present: auto, coding, smart, vision, 3d. Fast has no member
 	// here, so it stays out of the listing.

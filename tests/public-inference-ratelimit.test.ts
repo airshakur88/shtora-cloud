@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, expect, mock, test } from "bun:test";
 import { createAccessKey } from "../src/lib/access-keys";
-import { createApiKey } from "../src/lib/key-store";
 import { PUBLIC_INFERENCE_LIMITS } from "../src/lib/ratelimit";
 import type { MemoryD1 } from "./utils/d1-shim";
 import { createParityDatabase } from "./utils/parity-database";
@@ -41,12 +40,10 @@ beforeEach(async () => {
 			"INSERT INTO user (id, name, username, password_hash) VALUES ('limit-user', 'Limit', 'limituser', 'hash')",
 		)
 		.run();
-	const key = await createApiKey(
-		db,
-		{ userId: "limit-user", platform: "groq", rawKey: "groq-upstream" },
-		SECRET,
-	);
-	token = key.unifiedToken as string;
+	const key = await createAccessKey(db, "limit-user", {
+		name: "limit-key-v1",
+	});
+	token = key.apiKey;
 	accessKey = (await createAccessKey(db, "limit-user", { name: "limit-key" }))
 		.apiKey;
 });
@@ -106,13 +103,13 @@ test("POST /v1/chat/completions: invalid-token probes answer 401, then 429", asy
 		expect(
 			(
 				await v1Chat.POST(
-					chatRequest("/v1/chat/completions", "flmr-invalid-token", ip),
+					chatRequest("/v1/chat/completions", "ska-invalid-token", ip),
 				)
 			).status,
 		).toBe(401);
 	}
 	const blocked = await v1Chat.POST(
-		chatRequest("/v1/chat/completions", "flmr-invalid-token", ip),
+		chatRequest("/v1/chat/completions", "ska-invalid-token", ip),
 	);
 	expect(blocked.status).toBe(429);
 	expect(blocked.headers.get("Retry-After")).toMatch(/^[1-9][0-9]*$/);

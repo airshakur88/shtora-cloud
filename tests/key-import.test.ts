@@ -261,7 +261,11 @@ test("exportApiKeys returns decrypted raw keys without sensitive metadata", asyn
 		expect("encryptedKey" in exported[1]).toBe(false);
 		expect("iv" in exported[0]).toBe(false);
 		expect("authTag" in exported[0]).toBe(false);
-		expect("unifiedToken" in exported[0]).toBe(false);
+		expect(Object.keys(exported[0]).sort()).toEqual([
+			"key",
+			"label",
+			"platform",
+		]);
 	} finally {
 		db.close();
 	}

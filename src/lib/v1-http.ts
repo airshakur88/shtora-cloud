@@ -3,13 +3,12 @@
 // envelope, the shared model listing, and its pagination.
 //
 // The two families (/v1 and /api/v1) share this listing, the invalid-body
-// envelope and the pagination rules below. What still differs, and why:
+// envelope and the pagination rules below, plus one credential. What still
+// differs, and why:
 //
-// - Authentication: /v1 accepts the unified `flmr-...` token of any enabled
-//   provider key (see getInferenceUser / getApiKeyOwnerByToken); /api/v1
-//   accepts only `ska-...` access keys (see authenticateAccessKey). The
-//   credentials are different by design, so auth is intentionally not
-//   unified.
+// - Authentication: /v1 and /api/v1 accept the same credential, the
+//   `ska-...` API key (see authenticateAccessKey). One API key authenticates
+//   both families.
 // - Scope of GET /v1/models: the Anthropic branch (request with
 //   `anthropic-version` or `x-api-key`) lists every enabled model in its
 //   native shape and is kept as-is; the OpenAI branch and /api/v1/models

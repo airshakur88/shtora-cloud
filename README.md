@@ -15,7 +15,7 @@ Registry sources are installed outside the protected `src/components/ui` directo
 Set the Cloudflare Worker secret `ENCRYPTION_SECRET` to a random value of at least 32 characters. Provider credentials are encrypted with it; key operations fail when it is missing.
 Local development must supply `ENCRYPTION_SECRET` in `.dev.vars`; production uses the Worker secret. Never commit secret values.
 
-Authentication uses username and password. Provider keys are managed through `/api/keys`. OpenAI-compatible clients use `/v1/chat/completions`; Anthropic clients use `/v1/messages` and the related native endpoints with the issued unified token as either `Authorization: Bearer …` or `x-api-key`.
+Authentication uses username and password. Provider keys are managed through `/api/keys`. OpenAI-compatible clients use `/v1/chat/completions`; Anthropic clients use `/v1/messages` and the related native endpoints with the issued API key as either `Authorization: Bearer …` or `x-api-key`.
 
 ## Anthropic clients
 
@@ -25,7 +25,7 @@ Common text, tool, and supported image requests can route through compatible pro
 
 Explicit model IDs pin requests to the matching configured model. Use `model: "shtora/auto"`, the curated router, to allow cross-model routing. A bare `model: "auto"` does not route across models: it pins the request to the single upstream model whose id is `auto`. Count-token requests and requests with bound native state require an explicit model.
 
-To use a Claude model, add your Anthropic key in the dashboard first: open the Providers tab, choose Add Provider API Key, type `anthropic` in the Provider field, and paste the key. No base URL is needed; the gateway routes Anthropic requests to `https://api.anthropic.com/v1`, the base URL stored for the `anthropic` catalog provider. Then use active model IDs such as `claude-opus-5-5` or `anthropic/claude-opus-5-5`. For the official SDK, configure the gateway origin as `baseURL` (for example, `https://shtora.cloud`); the SDK appends `/v1`. Authenticate with the unified token:
+To use a Claude model, add your Anthropic key in the dashboard first: open the Providers tab, choose Add Provider API Key, type `anthropic` in the Provider field, and paste the key. No base URL is needed; the gateway routes Anthropic requests to `https://api.anthropic.com/v1`, the base URL stored for the `anthropic` catalog provider. Then use active model IDs such as `claude-opus-5-5` or `anthropic/claude-opus-5-5`. For the official SDK, configure the gateway origin as `baseURL` (for example, `https://shtora.cloud`); the SDK appends `/v1`. Authenticate with the API key:
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";

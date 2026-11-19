@@ -1,6 +1,6 @@
+import { updateAccessKeyLastUsed, validateAccessKey } from "@/lib/access-keys";
 import { nativeModels } from "@/lib/anthropic-models";
 import { getDb, getEncryptionSecret } from "@/lib/env";
-import { getApiKeyOwnerByToken } from "@/lib/key-store";
 import {
 	buildModelList,
 	type ModelListEntry,
@@ -58,7 +58,20 @@ export async function GET(request: Request): Promise<Response> {
 		const token = authorization.slice(7).trim();
 		if (!token) return unauthorized();
 		getEncryptionSecret();
-		if (!(await getApiKeyOwnerByToken(db, token))) return unauthorized();
+		if (!token.startsWith("ska-")) {
+			console.warn({
+				event: "v1_auth_failed",
+				reason: "not_an_api_key",
+				length: token.length,
+			});
+			return unauthorized();
+		}
+		const record = await validateAccessKey(db, token);
+		if (!record) {
+			console.warn({ event: "v1_auth_failed", reason: "invalid_api_key" });
+			return unauthorized();
+		}
+		await updateAccessKeyLastUsed(db, record.id);
 		const { limit, offset } = parseModelsPagination(
 			new URL(request.url).searchParams,
 		);

@@ -41,7 +41,7 @@ import type { SessionUser } from "@/lib/session";
 
 const sidebarItems = [
 	{ title: "Overview", url: "/dashboard", icon: Home },
-	{ title: "Access Keys", url: "/dashboard/access-keys", icon: KeyRound },
+	{ title: "API Keys", url: "/dashboard/access-keys", icon: KeyRound },
 	{ title: "Providers", url: "/dashboard/providers", icon: Network },
 	{ title: "Models", url: "/dashboard/models", icon: Boxes },
 	{ title: "Playground", url: "/dashboard/playground", icon: MessageSquare },

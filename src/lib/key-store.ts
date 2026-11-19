@@ -1,8 +1,4 @@
-import {
-	decryptApiKey,
-	encryptApiKey,
-	generateUnifiedToken,
-} from "@/lib/crypto";
+import { decryptApiKey, encryptApiKey } from "@/lib/crypto";
 import { KEYLESS_API_KEY } from "@/lib/provider-catalog";
 import type {
 	ApiKeyRecord,
@@ -58,20 +54,6 @@ async function tryDecryptApiKey(
 	}
 }
 
-/**
- * SHA-256 hex of a value, the same construction `access-keys.ts` uses for
- * `ska-…` keys. Unified tokens are stored only as this hash.
- */
-export async function sha256Hex(value: string): Promise<string> {
-	const digest = await crypto.subtle.digest(
-		"SHA-256",
-		new TextEncoder().encode(value),
-	);
-	return Array.from(new Uint8Array(digest), (byte) =>
-		byte.toString(16).padStart(2, "0"),
-	).join("");
-}
-
 /** Cap on provider keys per user (M1). Enforced in POST /api/keys and import. */
 export const MAX_API_KEYS_PER_USER = 50;
 
@@ -85,26 +67,19 @@ export async function countApiKeysForUser(
 		.first<{ n: number }>();
 	return row?.n ?? 0;
 }
-const TOKEN_PATTERN =
-	/^flmr-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
 export async function createApiKey(
 	db: D1Database,
 	input: KeyInput,
 	secret: string,
 ): Promise<KeySummary> {
 	const encrypted = await encryptApiKey(input.rawKey, secret);
-	// The unified token is stored only as a SHA-256 hash (same pattern as
-	// the `ska-…` access keys). The plaintext is returned once, in this
-	// response, and never persisted or served again.
-	const token = generateUnifiedToken();
 	const row = (
 		await db
 			.prepare(
 				`INSERT INTO api_keys
              (user_id, platform, key_label, encrypted_key, iv, auth_tag, base_url,
-              rpm_limit, tpm_limit, rpd_limit, tpd_limit, unified_token)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              rpm_limit, tpm_limit, rpd_limit, tpd_limit)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
              RETURNING *`,
 			)
 			.bind(
@@ -119,7 +94,6 @@ export async function createApiKey(
 				input.tpmLimit ?? null,
 				input.rpdLimit ?? null,
 				input.tpdLimit ?? null,
-				await sha256Hex(token),
 			)
 			.all<KeyRow>()
 	).results[0];
@@ -131,8 +105,6 @@ export async function createApiKey(
 		enabled: row.enabled === 1,
 		lastHealthCheckAt: row.last_health_check_at,
 		lastHealthCheckStatus: row.last_health_check_status,
-		// Plaintext token, returned once. The row holds only its hash.
-		unifiedToken: token,
 		createdAt: row.created_at,
 		maskedKey: maskKey(input.rawKey),
 		rpmLimit: row.rpm_limit,
@@ -167,8 +139,6 @@ export async function listApiKeys(
 				enabled: row.enabled === 1,
 				lastHealthCheckAt: row.last_health_check_at,
 				lastHealthCheckStatus: row.last_health_check_status,
-				// No unifiedToken here: only the hash is stored, and the
-				// plaintext is shown once at creation / rotation.
 				createdAt: row.created_at,
 				maskedKey:
 					decrypted === null ? UNREADABLE_KEY_MASK : maskKey(decrypted),
@@ -218,97 +188,6 @@ export async function exportApiKeys(
 		}),
 	);
 	return exported.filter((entry): entry is ExportedKey => entry !== null);
-}
-
-/**
- * Resolves a unified token to its owner's user id. Tokens are stored only
- * as SHA-256 hashes. Rows written before hashing still hold the plaintext:
- * they keep working, and the first valid use re-hashes the row in place,
- * so no D1 migration is needed — the plaintext disappears row by row. A
- * failed re-hash is ignored: the token already authenticated, and the next
- * use retries.
- */
-export async function getApiKeyOwnerByToken(
-	db: D1Database,
-	unifiedToken: string,
-): Promise<string | null> {
-	if (!TOKEN_PATTERN.test(unifiedToken)) {
-		// Diagnostic only: never log the token itself. The prefix flags
-		// distinguish the common cases in the Worker logs (a ska- access
-		// key sent to /v1, a flmr- token with extra characters, or an
-		// unrelated credential), and the length catches truncation.
-		console.warn({
-			event: "v1_auth_failed",
-			reason: "token_pattern_mismatch",
-			isFlmr: unifiedToken.startsWith("flmr-"),
-			isSka: unifiedToken.startsWith("ska-"),
-			length: unifiedToken.length,
-		});
-		return null;
-	}
-	const tokenHash = await sha256Hex(unifiedToken);
-	const row = await db
-		.prepare(
-			"SELECT id, user_id FROM api_keys WHERE unified_token = ? AND enabled = 1",
-		)
-		.bind(tokenHash)
-		.first<{ id: number; user_id: string }>();
-	if (row) return row.user_id;
-	const legacy = await db
-		.prepare(
-			"SELECT id, user_id FROM api_keys WHERE unified_token = ? AND enabled = 1",
-		)
-		.bind(unifiedToken)
-		.first<{ id: number; user_id: string }>();
-	if (!legacy) {
-		// The lookups above only match enabled rows, so a miss here can
-		// also mean the token exists but its key is disabled. One extra
-		// lookup, only on this cold failure path, tells the two apart.
-		// (The unified_token column holds the SHA-256 hash for current
-		// rows; pre-hash rows still hold plaintext and miss this check.)
-		const existing = await db
-			.prepare("SELECT id FROM api_keys WHERE unified_token = ?")
-			.bind(tokenHash)
-			.first<{ id: number }>();
-		console.warn({
-			event: "v1_auth_failed",
-			reason: existing ? "key_disabled" : "unknown_token",
-		});
-		return null;
-	}
-	try {
-		await db
-			.prepare("UPDATE api_keys SET unified_token = ? WHERE id = ?")
-			.bind(tokenHash, legacy.id)
-			.run();
-	} catch {
-		// Best-effort upgrade; the next valid use retries it.
-	}
-	return legacy.user_id;
-}
-
-/**
- * Rotates a key's unified token: the old token stops working immediately
- * and the new plaintext is returned once. Returns null when the key does
- * not belong to the user. The caller serves the returned token once and
- * never stores it.
- */
-export async function rotateUnifiedToken(
-	db: D1Database,
-	id: number,
-	userId: string,
-): Promise<string | null> {
-	const token = generateUnifiedToken();
-	const updated = (
-		await db
-			.prepare(
-				`UPDATE api_keys SET unified_token = ?, updated_at = datetime('now')
-				 WHERE id = ? AND user_id = ? RETURNING id`,
-			)
-			.bind(await sha256Hex(token), id, userId)
-			.all<{ id: number }>()
-	).results[0];
-	return updated ? token : null;
 }
 
 export interface DecryptedPlatformKey {

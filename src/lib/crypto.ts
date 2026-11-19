@@ -64,7 +64,3 @@ export async function decryptApiKey(
 	);
 	return new TextDecoder().decode(plaintext);
 }
-
-export function generateUnifiedToken(): string {
-	return `flmr-${crypto.randomUUID()}`;
-}

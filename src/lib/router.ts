@@ -504,21 +504,14 @@ async function insertRequest(
 	await db
 		.prepare(
 			`INSERT INTO provider_requests
-			 (user_id, unified_token_id, model_requested, model_routed, platform, key_id,
+			 (user_id, model_requested, model_routed, platform, key_id,
 			  status, status_code, error_message, input_tokens, output_tokens,
 			  input_tokens_estimated, output_tokens_estimated, latency_ms,
 			  routing_decision, failure_attribution, request_id)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		)
 		.bind(
 			p.user.id,
-			// unified_token_id is the api_keys row that owns the unified
-			// token the caller authenticated with — the router never
-			// receives it, so it is NULL here. It must never be the
-			// serving provider key's id: that column references
-			// api_keys(id) as a token, and key_id already records the
-			// provider key below.
-			null,
 			p.requested,
 			p.modelId,
 			p.platform,

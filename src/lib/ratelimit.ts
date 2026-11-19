@@ -13,16 +13,16 @@ export const DEFAULT_RATE_LIMITS = {
 export type RateLimitName = keyof typeof DEFAULT_RATE_LIMITS;
 
 /**
- * Public inference caps (A2). Enforced per unified-token owner and per
+ * Public inference caps (A2). Enforced per API key owner and per
  * client IP, on top of the per-(key, model) limits above.
  *
- * Why these numbers: the per-key ceiling is rpm 60 per (key, model). A token
- * owner normally holds several keys across several models, so 120 req/min
- * per token is 2x one key-model ceiling while still capping what a single
- * token can drain from the shared pool, no matter how many keys or models
- * the router fans out to. 300 req/min per IP is 2.5x the per-token cap: it
+ * Why these numbers: the per-key ceiling is rpm 60 per (key, model). An API
+ * key owner normally holds several keys across several models, so 120 req/min
+ * per API key is 2x one key-model ceiling while still capping what a single
+ * API key can drain from the shared pool, no matter how many keys or models
+ * the router fans out to. 300 req/min per IP is 2.5x the per-API-key cap: it
  * tolerates shared egress/NAT but still bounds one source abusing many
- * tokens. Both are fixed 60 s windows, like the auth limiter.
+ * API keys. Both are fixed 60 s windows, like the auth limiter.
  */
 export const PUBLIC_INFERENCE_LIMITS = {
 	perTokenRpm: 120,

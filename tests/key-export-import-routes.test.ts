@@ -78,7 +78,7 @@ beforeEach(async () => {
 	sessionCookie = `${SESSION_COOKIE_NAME}=${created.token}`;
 });
 
-test("POST /api/keys creates a key and returns its unified token once", async () => {
+test("POST /api/keys creates a key and returns it masked", async () => {
 	const response = await keysRoute.POST(
 		postJson("http://localhost/api/keys", {
 			platform: "groq",
@@ -89,19 +89,16 @@ test("POST /api/keys creates a key and returns its unified token once", async ()
 	expect(response.status).toBe(201);
 	const body = (await response.json()) as {
 		key: { platform: string; maskedKey: string; rpmLimit: number | null };
-		unifiedToken: string;
 	};
 	expect(body.key.platform).toBe("groq");
 	expect(body.key.maskedKey).toBe("••••oute");
-	expect(body.unifiedToken.startsWith("flmr-")).toBe(true);
 	// The catalog default rpm for groq applies when no limit is given.
 	expect(body.key.rpmLimit).toBeGreaterThan(0);
 	const stored = await db
-		.prepare("SELECT unified_token FROM api_keys WHERE user_id = ?")
+		.prepare("SELECT id FROM api_keys WHERE user_id = ?")
 		.bind(USER.id)
-		.first<{ unified_token: string }>();
-	// Only the hash is stored; the plaintext token never persists.
-	expect(stored?.unified_token).not.toBe(body.unifiedToken);
+		.first<{ id: number }>();
+	expect(stored?.id).toBeDefined();
 });
 
 test("POST /api/keys rejects a platform with no catalog row", async () => {
@@ -170,11 +167,10 @@ test("GET /api/keys lists only the caller's keys, masked", async () => {
 	);
 	expect(response.status).toBe(200);
 	const body = (await response.json()) as {
-		keys: Array<{ maskedKey: string; unifiedToken?: string }>;
+		keys: Array<{ maskedKey: string }>;
 	};
 	expect(body.keys).toHaveLength(1);
 	expect(body.keys[0].maskedKey).toBe("••••t-me");
-	expect(body.keys[0].unifiedToken).toBeUndefined();
 });
 
 test("POST /api/keys/export returns the user's keys in plaintext", async () => {

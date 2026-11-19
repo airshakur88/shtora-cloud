@@ -58,7 +58,7 @@ export default function DashboardAccessKeysPage() {
 				cache: "no-store",
 				signal,
 			});
-			if (!response.ok) throw new Error("Could not load access keys.");
+			if (!response.ok) throw new Error("Could not load API keys.");
 			const result: unknown = await response.json();
 			if (
 				!result ||
@@ -66,16 +66,14 @@ export default function DashboardAccessKeysPage() {
 				!("keys" in result) ||
 				!Array.isArray(result.keys)
 			)
-				throw new Error("Invalid access key response.");
+				throw new Error("Invalid API key response.");
 			if (!signal?.aborted) setKeys(result.keys as AccessKeyResponse[]);
 		} catch (cause) {
 			if (!signal?.aborted)
 				toast.add({
 					title: "Error",
 					description:
-						cause instanceof Error
-							? cause.message
-							: "Could not load access keys.",
+						cause instanceof Error ? cause.message : "Could not load API keys.",
 				});
 		}
 	}, []);
@@ -109,7 +107,7 @@ export default function DashboardAccessKeysPage() {
 					result.error &&
 					"message" in result.error
 						? String(result.error.message)
-						: "Could not create access key.";
+						: "Could not create API key.";
 				toast.add({ title: "Error", description: msg, type: "error" });
 				return;
 			}
@@ -119,11 +117,11 @@ export default function DashboardAccessKeysPage() {
 				!("accessKey" in result) ||
 				typeof result.accessKey !== "object"
 			) {
-				throw new Error("Invalid access key response.");
+				throw new Error("Invalid API key response.");
 			}
 			const created = result.accessKey as CreateAccessKeyResult;
 			toast.add({
-				title: "Access key created",
+				title: "API key created",
 				description: "Copy your API key now. It won't be shown again.",
 				type: "success",
 			});
@@ -150,10 +148,10 @@ export default function DashboardAccessKeysPage() {
 			const response = await fetch(`/api/access-keys/${id}`, {
 				method: "DELETE",
 			});
-			if (!response.ok) throw new Error("Could not delete access key.");
+			if (!response.ok) throw new Error("Could not delete API key.");
 			toast.add({
 				title: "Deleted",
-				description: "Access key removed.",
+				description: "API key removed.",
 				type: "success",
 			});
 			await loadKeys();
@@ -183,10 +181,10 @@ export default function DashboardAccessKeysPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ enabled }),
 			});
-			if (!response.ok) throw new Error("Could not update access key.");
+			if (!response.ok) throw new Error("Could not update API key.");
 			toast.add({
 				title: enabled ? "Enabled" : "Disabled",
-				description: "Access key updated.",
+				description: "API key updated.",
 				type: "success",
 			});
 			await loadKeys();
@@ -224,8 +222,8 @@ export default function DashboardAccessKeysPage() {
 		return (
 			<div className="space-y-6 p-6">
 				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-bold">Access Keys</h1>
-					<Button onClick={() => setFormOpen(true)}>New Access Key</Button>
+					<h1 className="text-2xl font-bold">API Keys</h1>
+					<Button onClick={() => setFormOpen(true)}>New API Key</Button>
 				</div>
 				<div className="space-y-4">
 					{[
@@ -246,14 +244,14 @@ export default function DashboardAccessKeysPage() {
 	return (
 		<div className="space-y-6 p-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold">Access Keys</h1>
-				<Button onClick={() => setFormOpen(true)}>New Access Key</Button>
+				<h1 className="text-2xl font-bold">API Keys</h1>
+				<Button onClick={() => setFormOpen(true)}>New API Key</Button>
 			</div>
 
 			<Dialog open={formOpen} onOpenChange={setFormOpen}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Create Access Key</DialogTitle>
+						<DialogTitle>Create API Key</DialogTitle>
 						<DialogDescription>
 							Give your key a name and optional expiration. The full key will
 							only be shown once.
@@ -316,7 +314,7 @@ export default function DashboardAccessKeysPage() {
 			>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Your New Access Key</DialogTitle>
+						<DialogTitle>Your New API Key</DialogTitle>
 						<DialogDescription>
 							Copy this key now. It will never be shown again.
 						</DialogDescription>
@@ -337,8 +335,8 @@ export default function DashboardAccessKeysPage() {
 							</Button>
 						</div>
 						<p className="mt-2 text-sm text-muted-foreground">
-							Store this key securely. It provides access to your models via the
-							API.
+							Store this key securely. Use it as a Bearer token for /v1 and
+							/api/v1.
 						</p>
 					</div>
 					<DialogFooter>
@@ -353,7 +351,7 @@ export default function DashboardAccessKeysPage() {
 
 			{keys.length === 0 ? (
 				<div className="rounded-lg border bg-card p-12 text-center">
-					<p className="text-muted-foreground mb-4">No access keys yet.</p>
+					<p className="text-muted-foreground mb-4">No API keys yet.</p>
 					<Button onClick={() => setFormOpen(true)}>
 						Create your first key
 					</Button>
@@ -422,7 +420,7 @@ export default function DashboardAccessKeysPage() {
 				onOpenChange={(open) => {
 					if (!open) setDeleteTarget(null);
 				}}
-				title="Delete access key?"
+				title="Delete API key?"
 				description="This action cannot be undone."
 				onConfirm={confirmDelete}
 			/>

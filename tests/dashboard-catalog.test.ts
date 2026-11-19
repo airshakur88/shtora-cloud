@@ -80,13 +80,13 @@ beforeEach(async () => {
 	// Enabled key for test-user on platform 'groq'
 	await db
 		.prepare(
-			"INSERT INTO api_keys (user_id,platform,encrypted_key,iv,auth_tag,enabled,unified_token) VALUES ('test-user','groq','enc','iv1','tag1',1,'tok-a')",
+			"INSERT INTO api_keys (user_id,platform,encrypted_key,iv,auth_tag,enabled) VALUES ('test-user','groq','enc','iv1','tag1',1)",
 		)
 		.run();
 	// Disabled key for other-user on platform 'groq' — per spec: global counts regardless of enabled
 	await db
 		.prepare(
-			"INSERT INTO api_keys (user_id,platform,encrypted_key,iv,auth_tag,enabled,unified_token) VALUES ('other-user','groq','enc','iv2','tag2',0,'tok-b')",
+			"INSERT INTO api_keys (user_id,platform,encrypted_key,iv,auth_tag,enabled) VALUES ('other-user','groq','enc','iv2','tag2',0)",
 		)
 		.run();
 
@@ -220,13 +220,11 @@ test("no foreign user identifiers leaked in response", async () => {
 	expect(response.status).toBe(200);
 	const rawJson = await response.text();
 
-	// The response should not contain usernames or unified tokens
+	// The response should not contain usernames
 	expect(rawJson).not.toContain("testuser");
 	expect(rawJson).not.toContain("otheruser");
 	expect(rawJson).not.toContain("Test User");
 	expect(rawJson).not.toContain("Other User");
-	expect(rawJson).not.toContain("tok-a");
-	expect(rawJson).not.toContain("tok-b");
 });
 
 test("disabled models are excluded from response", async () => {
