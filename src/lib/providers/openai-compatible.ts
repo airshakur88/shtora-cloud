@@ -72,7 +72,7 @@ function checkModel(
 		throw new ProviderError(
 			"Upstream returned an unexpected model",
 			502,
-			"server",
+			"model_mismatch",
 		);
 	}
 }

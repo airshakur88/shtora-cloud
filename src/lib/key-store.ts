@@ -323,3 +323,57 @@ export async function updateKeyHealth(
 		.bind(status, id)
 		.run();
 }
+
+/**
+ * Consecutive upstream auth failures after which a key is treated as
+ * dead and disabled. Three, not one: a single 401 can be a key
+ * rotation in flight, but three in a row with no success or other
+ * outcome between them means the key itself no longer authenticates.
+ * Only 401/403 count, never 404, 5xx or timeouts. A disabled key
+ * leaves the pool at once (getEnabledKeysForPlatform only returns
+ * enabled keys) and the owner can re-enable it from the dashboard.
+ */
+export const AUTH_FAILURES_TO_DISABLE = 3;
+
+/**
+ * Disable a key whose last AUTH_FAILURES_TO_DISABLE recorded attempts
+ * were all auth failures (401/403). Only attempts the router
+ * persisted in provider_requests are visible here, so a failure the
+ * router did not record (e.g. native count_tokens) does not count.
+ * A provider-wide 401 episode can disable several keys of that
+ * platform; the log names the platform and key id so the owner can
+ * tell a dead key from a provider misconfiguration. Returns true
+ * when this call disabled the key.
+ */
+export async function maybeDisableKeyAfterAuthFailures(
+	db: D1Database,
+	platform: string,
+	keyId: number,
+): Promise<boolean> {
+	const rows = await db
+		.prepare(
+			`SELECT status_code FROM provider_requests
+			  WHERE key_id = ? ORDER BY id DESC LIMIT ?`,
+		)
+		.bind(keyId, AUTH_FAILURES_TO_DISABLE)
+		.all<{ status_code: number | null }>();
+	if (rows.results.length < AUTH_FAILURES_TO_DISABLE) return false;
+	if (
+		!rows.results.every(
+			(row) => row.status_code === 401 || row.status_code === 403,
+		)
+	)
+		return false;
+	const changed = await db
+		.prepare(
+			`UPDATE api_keys SET enabled = 0, updated_at = datetime('now')
+			  WHERE id = ? AND enabled = 1`,
+		)
+		.bind(keyId)
+		.run();
+	if (changed.meta.changes === 0) return false;
+	console.error(
+		JSON.stringify({ event: "key_auto_disabled", platform, keyId }),
+	);
+	return true;
+}

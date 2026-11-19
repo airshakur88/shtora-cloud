@@ -6,7 +6,14 @@ export type FailureKind =
 	| "server"
 	| "timeout"
 	| "network"
-	| "bad_request";
+	| "bad_request"
+	// A 200 whose echoed model differs from the requested one: the
+	// upstream answered, but for another model.
+	| "model_mismatch"
+	// A 200 with no usable content (see router isEmptyCompletion):
+	// never routed through handleFailure, so it never quarantines
+	// a key or downgrades its health.
+	| "empty_response";
 
 export class ProviderError extends Error {
 	readonly status: number;

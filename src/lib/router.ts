@@ -17,7 +17,11 @@ import {
 	translateNativeStream,
 } from "./anthropic-response";
 import { anthropicError, readInferenceJson } from "./inference-http";
-import { getEnabledKeysForPlatform, updateKeyHealth } from "./key-store";
+import {
+	getEnabledKeysForPlatform,
+	maybeDisableKeyAfterAuthFailures,
+	updateKeyHealth,
+} from "./key-store";
 import {
 	canonicalModelId,
 	isRouterModel,
@@ -42,6 +46,7 @@ import {
 	completionOutputCharacters,
 	estimatePromptTokens,
 	estimateTokensFromCharacters,
+	isRecord,
 	isValidTokenCount,
 	parseCompletionTokenCounts,
 } from "./token-estimates";
@@ -112,7 +117,11 @@ interface PlatformTally {
 	failedKeyIds: Set<number>;
 }
 
-type Attribution = "provider_moment" | "key_exhausted" | "model_error";
+type Attribution =
+	| "provider_moment"
+	| "key_exhausted"
+	| "model_error"
+	| "model_mismatch";
 
 // ---------------------------------------------------------------------------
 // Constants (immutable)
@@ -612,6 +621,76 @@ async function readBoundedBody(
 	return body;
 }
 
+/**
+ * True when a chat completion content carries no usable text: null,
+ * an empty string, or (for content parts) no non-empty text part.
+ */
+function isEmptyContent(content: unknown): boolean {
+	if (content === null || content === undefined) return true;
+	if (typeof content === "string") return content.trim() === "";
+	if (Array.isArray(content))
+		return !content.some(
+			(part) =>
+				isRecord(part) &&
+				part.type === "text" &&
+				typeof part.text === "string" &&
+				part.text.trim() !== "",
+		);
+	return false;
+}
+
+/**
+ * True when a non-stream completion carries no usable content and the
+ * model stopped for a reason that means "nothing was produced", not
+ * "the answer is empty on purpose": it hit the output limit, or it
+ * spent the call reasoning (reasoning_content, or thinking blocks in
+ * a native message). An empty reply with finish_reason "stop" and no
+ * reasoning is a real, if empty, answer and stays a success, as does
+ * a reply that only carries tool calls.
+ */
+function isEmptyCompletion(parsed: unknown, native: boolean): boolean {
+	if (!native) {
+		if (
+			!isRecord(parsed) ||
+			!Array.isArray(parsed.choices) ||
+			parsed.choices.length === 0
+		)
+			return false;
+		const choice = parsed.choices[0];
+		if (!isRecord(choice) || !isRecord(choice.message)) return false;
+		const message = choice.message;
+		if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0)
+			return false;
+		if (!isEmptyContent(message.content)) return false;
+		const reasoning = message.reasoning_content;
+		const hasReasoning =
+			typeof reasoning === "string" && reasoning.trim() !== "";
+		return choice.finish_reason === "length" || hasReasoning;
+	}
+	if (!isRecord(parsed) || !Array.isArray(parsed.content)) return false;
+	let hasText = false;
+	let hasToolUse = false;
+	let hasThinking = false;
+	for (const block of parsed.content) {
+		if (!isRecord(block)) continue;
+		if (
+			block.type === "text" &&
+			typeof block.text === "string" &&
+			block.text.trim() !== ""
+		)
+			hasText = true;
+		if (block.type === "tool_use") hasToolUse = true;
+		if (
+			block.type === "thinking" &&
+			typeof block.thinking === "string" &&
+			block.thinking.trim() !== ""
+		)
+			hasThinking = true;
+	}
+	if (hasText || hasToolUse) return false;
+	return parsed.stop_reason === "max_tokens" || hasThinking;
+}
+
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
@@ -811,17 +890,25 @@ export async function routeChatCompletion(args: {
 	// Fair share of the attempt budget per chain model: one model with
 	// many keys must not consume all CHAIN_CAP attempts before the
 	// other models are tried. Fallback rows share their own smaller
-	// budget the same way.
+	// budget the same way. The budget is per canonical (logical) model,
+	// not per catalog row: one model served by three providers under
+	// the same id is one model with six attempts, not three models
+	// with two each.
+	const distinctModelCount = new Set(
+		chain.map((model) => canonicalModelId(model.model_id)),
+	).size;
 	const maxAttemptsPerModel = Math.max(
 		1,
-		Math.floor(CHAIN_CAP / Math.max(1, chain.length)),
+		Math.floor(CHAIN_CAP / Math.max(1, distinctModelCount)),
 	);
-	const fallbackRowCount = chain.filter((model) =>
-		isFallbackRow(model, requested, fallbackIndex),
-	).length;
+	const fallbackModelCount = new Set(
+		chain
+			.filter((model) => isFallbackRow(model, requested, fallbackIndex))
+			.map((model) => canonicalModelId(model.model_id)),
+	).size;
 	const maxFallbackAttemptsPerModel = Math.max(
 		1,
-		Math.floor(FALLBACK_ATTEMPT_CAP / Math.max(1, fallbackRowCount)),
+		Math.floor(FALLBACK_ATTEMPT_CAP / Math.max(1, fallbackModelCount)),
 	);
 	const attemptsByModel = new Map<string, number>();
 
@@ -886,8 +973,9 @@ export async function routeChatCompletion(args: {
 					: memberAttempts >= CHAIN_CAP
 			)
 				break;
+			const canonicalId = canonicalModelId(model.model_id);
 			if (
-				(attemptsByModel.get(model.model_id) ?? 0) >=
+				(attemptsByModel.get(canonicalId) ?? 0) >=
 				(isFallback ? maxFallbackAttemptsPerModel : maxAttemptsPerModel)
 			)
 				break;
@@ -901,8 +989,8 @@ export async function routeChatCompletion(args: {
 			if (isFallback) fallbackAttempts += 1;
 			else memberAttempts += 1;
 			attemptsByModel.set(
-				model.model_id,
-				(attemptsByModel.get(model.model_id) ?? 0) + 1,
+				canonicalId,
+				(attemptsByModel.get(canonicalId) ?? 0) + 1,
 			);
 			const start = Date.now();
 			const attemptStartedAt = performance.now();
@@ -1090,13 +1178,13 @@ export async function routeChatCompletion(args: {
 			let outputTokens = 0;
 			let inputTokensEstimated = 1;
 			let outputTokensEstimated = 1;
+			let parsed: unknown = null;
 			if (!stream) {
 				const body = await readBoundedBody(response);
 				out = new Response(body, {
 					status: response.status,
 					headers: response.headers,
 				});
-				let parsed: unknown = null;
 				try {
 					parsed = JSON.parse(new TextDecoder().decode(body));
 				} catch {
@@ -1136,6 +1224,32 @@ export async function routeChatCompletion(args: {
 				} else {
 					outputTokens = estimateTokensFromCharacters(outputCharacters);
 				}
+			}
+
+			// An upstream 200 with no content is not a success when the
+			// model stopped for length or spent the call reasoning: the
+			// next attempt may produce an answer. The key is not blamed
+			// for an empty reply: no quarantine report, no health
+			// downgrade, and the key stays usable.
+			if (!stream && isEmptyCompletion(parsed, native !== undefined)) {
+				attemptLog.push({
+					platform: model.platform,
+					modelId: model.model_id,
+					status: 200,
+					kind: "empty_response",
+					latencyMs,
+					phase: isFallback ? "fallback" : "member",
+				});
+				await recordEmptyAttempt(
+					db,
+					user,
+					requested,
+					model,
+					key,
+					latencyMs,
+					routingDecision,
+				);
+				continue;
 			}
 
 			const tokenReservation = await recordUsage(db, {
@@ -1310,6 +1424,47 @@ export async function routeChatCompletion(args: {
 // Failure path
 // ---------------------------------------------------------------------------
 
+/**
+ * Record an empty upstream reply as a failed attempt without blaming
+ * the key: no quarantine report and no health downgrade, so the key
+ * stays usable. The row is attributed to the model, which keeps the
+ * empty reply visible in provider_requests and lowers the model's
+ * reliability score without feeding the quarantine ladder.
+ */
+async function recordEmptyAttempt(
+	db: D1Database,
+	user: AppUser,
+	requested: string,
+	model: RouterModel,
+	key: PlatformKey,
+	latencyMs: number,
+	decision: {
+		strategy: string;
+		scores: Record<string, number>;
+		alternativesTried: string[];
+	},
+): Promise<void> {
+	if (!decision.alternativesTried.includes(model.model_id))
+		decision.alternativesTried.push(model.model_id);
+	await insertRequest(db, {
+		user,
+		requested,
+		modelId: model.model_id,
+		platform: model.platform,
+		keyId: key.id,
+		status: "error",
+		statusCode: 200,
+		errorMessage: "Upstream returned empty content",
+		inputTokens: null,
+		outputTokens: null,
+		inputTokensEstimated: null,
+		outputTokensEstimated: null,
+		latencyMs,
+		routingDecision: decision,
+		failureAttribution: "model_error",
+	});
+}
+
 async function handleFailure(
 	db: D1Database,
 	user: AppUser,
@@ -1329,8 +1484,15 @@ async function handleFailure(
 	const source = SOURCE_BY_KIND[err.kind] ?? "server_error";
 	const status = err.status;
 	// Generic message: no key label, no provider name, no secret material.
+	// A model mismatch keeps the provider error's own fixed message: it
+	// names no upstream body, and "Upstream 502" would hide the mismatch
+	// among real 502s.
 	const errorMessage =
-		status > 0 ? `Upstream ${status}` : "Upstream request failed";
+		err.kind === "model_mismatch"
+			? err.message
+			: status > 0
+				? `Upstream ${status}`
+				: "Upstream request failed";
 	const latencyMs = Date.now() - start;
 
 	if (!decision.alternativesTried.includes(model.model_id))
@@ -1347,15 +1509,17 @@ async function handleFailure(
 	if (err.kind === "server" || err.kind === "timeout")
 		tally.serverTimeoutFails += 1;
 	const attribution: Attribution =
-		(err.kind === "server" || err.kind === "timeout") &&
-		tally.serverTimeoutFails >= 2 &&
-		tally.failedKeyIds.size >= 2
-			? "provider_moment"
-			: source === "rate_limit" ||
-					source === "payment" ||
-					source === "auth_error"
-				? "key_exhausted"
-				: "model_error";
+		err.kind === "model_mismatch"
+			? "model_mismatch"
+			: (err.kind === "server" || err.kind === "timeout") &&
+					tally.serverTimeoutFails >= 2 &&
+					tally.failedKeyIds.size >= 2
+				? "provider_moment"
+				: source === "rate_limit" ||
+						source === "payment" ||
+						source === "auth_error"
+					? "key_exhausted"
+					: "model_error";
 
 	await reportFailure(db, {
 		platform: model.platform,
@@ -1389,4 +1553,10 @@ async function handleFailure(
 		routingDecision: decision,
 		failureAttribution: attribution,
 	});
+	// A key that keeps failing authentication is dead, not unlucky:
+	// disable it once its last recorded attempts are all 401/403.
+	// Only auth statuses count, and only attempts persisted above.
+	if (status === 401 || status === 403) {
+		await maybeDisableKeyAfterAuthFailures(db, model.platform, key.id);
+	}
 }
