@@ -1,5 +1,7 @@
 import { decryptApiKey } from "@/lib/crypto";
 import {
+	countSuspensionStreak,
+	isProviderFailureEpisode,
 	maybeDisableKeyAfterAuthFailures,
 	updateKeyHealth,
 } from "@/lib/key-store";
@@ -107,32 +109,6 @@ async function clearSuspension(db: D1Database, keyId: number): Promise<void> {
 		.run();
 }
 
-/**
- * Consecutive non-success attempts for a key, newest first, ignoring
- * 499s (client cancellations, audit R20): they neither count nor
- * break the streak. A success breaks it. Only the newest rows are
- * read; running out of rows without a success is not a suspension.
- */
-async function countConsecutiveFailures(
-	db: D1Database,
-	keyId: number,
-): Promise<number> {
-	const rows = await db
-		.prepare(
-			`SELECT status, status_code FROM provider_requests
-			  WHERE key_id = ? ORDER BY id DESC LIMIT 12`,
-		)
-		.bind(keyId)
-		.all<{ status: string; status_code: number | null }>();
-	let failures = 0;
-	for (const row of rows.results) {
-		if (row.status_code === 499) continue;
-		if (row.status === "success") break;
-		failures++;
-	}
-	return failures;
-}
-
 async function recordProbeAttempt(
 	db: D1Database,
 	row: KeyRow,
@@ -181,7 +157,10 @@ async function recordProbeAttempt(
  * and neither counts toward suspension. 401/403 is `invalid` and
  * goes through the existing Fix C expurgo
  * (`maybeDisableKeyAfterAuthFailures`); any other recorded failure
- * counts toward the N-consecutive suspension below.
+ * counts toward the N-consecutive suspension below, under the same
+ * shared streak rule as the request path (`countSuspensionStreak`):
+ * 429/400/410, model_mismatch and empty 200s never count, and a
+ * platform-wide failure episode suspends nothing.
  */
 export async function runKeyProbe(
 	db: D1Database,
@@ -345,23 +324,35 @@ export async function runKeyProbe(
 			);
 		}
 		if (!disabled && suspensionAvailable) {
-			const consecutive = await countConsecutiveFailures(db, row.id);
-			if (consecutive >= failuresToSuspend) {
-				await suspendKey(
-					db,
-					row.id,
-					now + suspensionMs,
-					"consecutive_failures",
-				);
-				summary.suspended++;
-				console.error(
-					JSON.stringify({
-						event: "key_suspended",
-						keyId: row.id,
-						platform: row.platform,
-						consecutiveFailures: consecutive,
-					}),
-				);
+			const { failures } = await countSuspensionStreak(db, row.id);
+			if (failures >= failuresToSuspend) {
+				if (await isProviderFailureEpisode(db, row.platform, now)) {
+					// Every enabled key of the platform failed recently:
+					// a platform episode, not a dead key.
+					console.error(
+						JSON.stringify({
+							event: "provider_failure_episode",
+							platform: row.platform,
+							keyId: row.id,
+						}),
+					);
+				} else {
+					await suspendKey(
+						db,
+						row.id,
+						now + suspensionMs,
+						"consecutive_failures",
+					);
+					summary.suspended++;
+					console.error(
+						JSON.stringify({
+							event: "key_suspended",
+							keyId: row.id,
+							platform: row.platform,
+							consecutiveFailures: failures,
+						}),
+					);
+				}
 			}
 		}
 	}

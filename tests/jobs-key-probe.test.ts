@@ -359,3 +359,43 @@ test("missing suspension columns: health still updates, nothing suspends", async
 		)?.last_health_check_status,
 	).toBe("error");
 });
+
+test("429s from the probe do not count toward suspension", async () => {
+	const keyId = await seedKey(db, "testprov", "sk-test");
+	for (let i = 0; i < 4; i++)
+		await seedAttempt(db, keyId, "testprov", "error", 429);
+	fetchImpl = async () => new Response("slow down", { status: 429 });
+
+	const summary = await runKeyProbe(db, { now: NOW, encryptionSecret: SECRET });
+
+	expect(summary).toMatchObject({ checked: 1, errored: 1, suspended: 0 });
+	expect((await keyRow(db, keyId))?.suspended_until_ms).toBeNull();
+});
+
+test("410s from the probe do not count toward suspension", async () => {
+	const keyId = await seedKey(db, "testprov", "sk-test");
+	for (let i = 0; i < 4; i++)
+		await seedAttempt(db, keyId, "testprov", "error", 410);
+	fetchImpl = async () => new Response("gone", { status: 410 });
+
+	const summary = await runKeyProbe(db, { now: NOW, encryptionSecret: SECRET });
+
+	expect(summary).toMatchObject({ checked: 1, errored: 1, suspended: 0 });
+	expect((await keyRow(db, keyId))?.suspended_until_ms).toBeNull();
+});
+
+test("platform-wide 503 episode: probe suspends nothing", async () => {
+	const keyA = await seedKey(db, "testprov", "sk-test-a");
+	const keyB = await seedKey(db, "testprov", "sk-test-b");
+	for (let i = 0; i < 4; i++) {
+		await seedAttempt(db, keyA, "testprov", "error", 500);
+		await seedAttempt(db, keyB, "testprov", "error", 500);
+	}
+	fetchImpl = async () => new Response("boom", { status: 500 });
+
+	const summary = await runKeyProbe(db, { now: NOW, encryptionSecret: SECRET });
+
+	expect(summary).toMatchObject({ checked: 2, errored: 2, suspended: 0 });
+	expect((await keyRow(db, keyA))?.suspended_until_ms).toBeNull();
+	expect((await keyRow(db, keyB))?.suspended_until_ms).toBeNull();
+});

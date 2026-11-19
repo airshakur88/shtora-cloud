@@ -479,15 +479,128 @@ async function isProviderAuthEpisode(
 }
 
 /**
+ * Failure kinds that never count toward suspension, because they blame
+ * the catalog, the platform, or the client — never the key:
+ * - 499: the client hung up.
+ * - 400/404/410: the model is gone, renamed, or rejected the request
+ *   (a catalog fault; the row is marked suspect instead).
+ * - 429: the platform is throttling; the quarantine ladder is the
+ *   backoff for that, a 24 h suspension is not.
+ * - model_mismatch: the upstream answered for another model.
+ * - empty 200: the upstream answered with no content.
+ * Everything else recorded as an error counts: 401/403 (auth),
+ * 500/502/503 (upstream error), 504/0 (timeout/network). A success
+ * breaks the streak.
+ */
+function countsTowardSuspension(row: {
+	status_code: number | null;
+	failure_attribution: string | null;
+	error_message: string | null;
+}): boolean {
+	if (row.status_code === 499) return false;
+	if (
+		row.status_code === 400 ||
+		row.status_code === 404 ||
+		row.status_code === 410 ||
+		row.status_code === 429
+	)
+		return false;
+	if (row.failure_attribution === "model_mismatch") return false;
+	if (
+		row.status_code === 200 &&
+		row.error_message === "Upstream returned empty content"
+	)
+		return false;
+	return true;
+}
+
+/**
+ * The key's current suspension streak: newest-first over its recorded
+ * attempts, counting only key-blamed failures (see
+ * countsTowardSuspension). Shared by the request path and the key
+ * probe so both suspend on the same rule.
+ */
+export async function countSuspensionStreak(
+	db: D1Database,
+	keyId: number,
+): Promise<{ failures: number; authFailures: number }> {
+	const rows = await db
+		.prepare(
+			`SELECT status, status_code, failure_attribution, error_message
+			  FROM provider_requests WHERE key_id = ? ORDER BY id DESC LIMIT ?`,
+		)
+		.bind(keyId, SUSPENSION_STREAK_READ_LIMIT)
+		.all<{
+			status: string;
+			status_code: number | null;
+			failure_attribution: string | null;
+			error_message: string | null;
+		}>();
+	let failures = 0;
+	let authFailures = 0;
+	for (const row of rows.results) {
+		if (!countsTowardSuspension(row)) continue;
+		if (row.status === "success") break;
+		failures += 1;
+		if (row.status_code === 401 || row.status_code === 403) authFailures += 1;
+		if (
+			failures >= CONSECUTIVE_FAILURES_TO_SUSPEND ||
+			authFailures >= AUTH_FAILURES_TO_DISABLE
+		)
+			break;
+	}
+	return { failures, authFailures };
+}
+
+/**
+ * True when every enabled key of the platform recorded a key-blamed
+ * failure inside the episode window: a platform-wide outage or
+ * throttling episode, not N dead keys at once. Same shape as
+ * isProviderAuthEpisode, but over every failure kind that counts
+ * toward suspension — so a 429/5xx storm cannot suspend the whole
+ * pool the way a 401 storm cannot disable it.
+ */
+export async function isProviderFailureEpisode(
+	db: D1Database,
+	platform: string,
+	now: number,
+): Promise<boolean> {
+	const enabled = await db
+		.prepare(
+			"SELECT COUNT(*) AS n FROM api_keys WHERE platform = ? AND enabled = 1",
+		)
+		.bind(platform)
+		.first<{ n: number }>();
+	const total = enabled?.n ?? 0;
+	if (total < PROVIDER_AUTH_EPISODE_MIN_KEYS) return false;
+	const failed = await db
+		.prepare(
+			`SELECT COUNT(DISTINCT r.key_id) AS n FROM provider_requests r
+			  JOIN api_keys k ON k.id = r.key_id
+			  WHERE r.platform = ? AND r.status = 'error'
+			    AND (r.status_code IS NULL OR r.status_code NOT IN (499, 400, 404, 410, 429))
+			    AND (r.failure_attribution IS NULL OR r.failure_attribution <> 'model_mismatch')
+			    AND NOT (r.status_code = 200 AND r.error_message = 'Upstream returned empty content')
+			    AND r.created_at > ? AND k.enabled = 1`,
+		)
+		.bind(
+			platform,
+			toSqliteDate(now - PROVIDER_AUTH_EPISODE_WINDOW_MINUTES * 60_000),
+		)
+		.first<{ n: number }>();
+	return (failed?.n ?? 0) >= total;
+}
+
+/**
  * Suspend a key whose recent attempts are a solid run of key-blamed
- * failures: 5 in a row of any kind, or 3 in a row of 401/403. The
- * walk is newest-first over the key's recorded attempts and mirrors
- * the probe's streak count: a success breaks it, a client cancel
- * (499) neither counts nor breaks it. Catalog-attributed rows never
- * punish the key either: a 404 (renamed/removed model), a
- * model_mismatch, and an empty 200 reply are skipped the same way,
- * so a dead model cannot suspend the keys that serve it. Returns
- * true when this call suspended the key.
+ * failures: 5 in a row, or 3 in a row of 401/403. The streak is
+ * countSuspensionStreak: a success breaks it; 499, 400/404/410, 429,
+ * model_mismatch and empty 200s neither count nor break it, so a dead
+ * model or a throttling platform cannot suspend the keys that serve
+ * it. A platform-wide failure episode suspends nothing either: when
+ * every enabled key of the platform failed with a key-blamed kind
+ * inside the window, the platform is having an episode, not N dead
+ * keys at once. Returns true when this call suspended the key.
  *
  * The suspension columns come from migration 0019. Without them the
  * UPDATE throws "no such column" and the check is a no-op: a
@@ -504,38 +617,7 @@ export async function maybeSuspendKeyAfterFailures(
 	keyId: number,
 	now = Date.now(),
 ): Promise<boolean> {
-	const rows = await db
-		.prepare(
-			`SELECT status, status_code, failure_attribution, error_message
-			  FROM provider_requests WHERE key_id = ? ORDER BY id DESC LIMIT ?`,
-		)
-		.bind(keyId, SUSPENSION_STREAK_READ_LIMIT)
-		.all<{
-			status: string;
-			status_code: number | null;
-			failure_attribution: string | null;
-			error_message: string | null;
-		}>();
-	let failures = 0;
-	let authFailures = 0;
-	for (const row of rows.results) {
-		if (row.status_code === 499) continue;
-		if (row.status_code === 404) continue;
-		if (row.failure_attribution === "model_mismatch") continue;
-		if (
-			row.status_code === 200 &&
-			row.error_message === "Upstream returned empty content"
-		)
-			continue;
-		if (row.status === "success") break;
-		failures += 1;
-		if (row.status_code === 401 || row.status_code === 403) authFailures += 1;
-		if (
-			failures >= CONSECUTIVE_FAILURES_TO_SUSPEND ||
-			authFailures >= AUTH_FAILURES_TO_DISABLE
-		)
-			break;
-	}
+	const { failures, authFailures } = await countSuspensionStreak(db, keyId);
 	if (
 		failures < CONSECUTIVE_FAILURES_TO_SUSPEND &&
 		authFailures < AUTH_FAILURES_TO_DISABLE
@@ -549,6 +631,19 @@ export async function maybeSuspendKeyAfterFailures(
 		// alert, do not suspend in bulk.
 		console.error(
 			JSON.stringify({ event: "provider_auth_episode", platform, keyId }),
+		);
+		return false;
+	}
+	if (await isProviderFailureEpisode(db, platform, now)) {
+		// Every enabled key of the platform failed with a key-blamed
+		// kind inside the window: a platform-wide outage or throttling
+		// episode, not N dead keys at once.
+		console.error(
+			JSON.stringify({
+				event: "provider_failure_episode",
+				platform,
+				keyId,
+			}),
 		);
 		return false;
 	}

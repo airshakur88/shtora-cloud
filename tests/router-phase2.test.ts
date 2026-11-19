@@ -1036,3 +1036,106 @@ test("three 500s do not suspend the key", async () => {
 		db.close();
 	}
 });
+
+// Throttling and catalog faults never suspend a key: a 429 is a
+// back-off (the quarantine ladder handles it), and a 400/410 means
+// the model is gone or rejected the request, like a 404.
+test("429s do not count toward suspension", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedUser(db);
+		const keyId = await seedKey(db, "groq", "sk-test-429-1");
+		const now = Date.now();
+		for (let i = 0; i < 5; i++)
+			await seedAttempt(db, keyId, "groq", "error", 429);
+		expect(await maybeSuspendKeyAfterFailures(db, "groq", keyId, now)).toBe(
+			false,
+		);
+		expect((await keySuspension(db, keyId)).suspended_until_ms).toBeNull();
+	} finally {
+		db.close();
+	}
+});
+
+test("410s do not count toward suspension", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedUser(db);
+		const keyId = await seedKey(db, "groq", "sk-test-410-1");
+		const now = Date.now();
+		for (let i = 0; i < 5; i++)
+			await seedAttempt(db, keyId, "groq", "error", 410);
+		expect(await maybeSuspendKeyAfterFailures(db, "groq", keyId, now)).toBe(
+			false,
+		);
+		expect((await keySuspension(db, keyId)).suspended_until_ms).toBeNull();
+	} finally {
+		db.close();
+	}
+});
+
+test("400s do not count toward suspension", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedUser(db);
+		const keyId = await seedKey(db, "groq", "sk-test-400-1");
+		const now = Date.now();
+		for (let i = 0; i < 5; i++)
+			await seedAttempt(db, keyId, "groq", "error", 400);
+		expect(await maybeSuspendKeyAfterFailures(db, "groq", keyId, now)).toBe(
+			false,
+		);
+		expect((await keySuspension(db, keyId)).suspended_until_ms).toBeNull();
+	} finally {
+		db.close();
+	}
+});
+
+// Platform-wide 503 episode suspends nothing and logs provider_failure_episode.
+test("platform-wide 503 episode suspends nothing", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedUser(db);
+		const keyA = await seedKey(db, "groq", "sk-test-ep503-a");
+		const keyB = await seedKey(db, "groq", "sk-test-ep503-b");
+		const now = Date.now();
+		await seedAttempt(db, keyB, "groq", "error", 500);
+		for (let i = 0; i < 5; i++)
+			await seedAttempt(db, keyA, "groq", "error", 500);
+		const captured = captureConsoleError();
+		try {
+			expect(await maybeSuspendKeyAfterFailures(db, "groq", keyA, now)).toBe(
+				false,
+			);
+		} finally {
+			captured.restore();
+		}
+		expect((await keySuspension(db, keyA)).suspended_until_ms).toBeNull();
+		const episodes = loggedEvents(captured.errors, "provider_failure_episode");
+		expect(episodes).toHaveLength(1);
+		expect(episodes[0]).toMatchObject({ platform: "groq", keyId: keyA });
+	} finally {
+		db.close();
+	}
+});
+
+test("a single key failing 500s still suspends when the other key is healthy", async () => {
+	const db = await createParityDatabase();
+	try {
+		await seedUser(db);
+		const keyA = await seedKey(db, "groq", "sk-test-onebad-a");
+		const keyB = await seedKey(db, "groq", "sk-test-onebad-b");
+		const now = Date.now();
+		await seedAttempt(db, keyB, "groq", "success", 200);
+		for (let i = 0; i < 5; i++)
+			await seedAttempt(db, keyA, "groq", "error", 500);
+		expect(await maybeSuspendKeyAfterFailures(db, "groq", keyA, now)).toBe(
+			true,
+		);
+		expect((await keySuspension(db, keyA)).suspended_until_ms).toBe(
+			now + KEY_SUSPENSION_MS,
+		);
+	} finally {
+		db.close();
+	}
+});
